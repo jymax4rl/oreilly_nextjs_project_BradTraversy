@@ -1,4 +1,5 @@
 import "@/assets/styles/globals.css";
+import Navbar from "@/components/Navbar";
 
 import React from "react";
 
@@ -12,7 +13,10 @@ function MainLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <main className="pt-20 h-80 ">{children}</main>
+        <Navbar className=" "></Navbar>
+        <main className="pt-[8vh] h-[92vh] border-4 border-green-900">
+          {children}
+        </main>
       </body>
     </html>
   );
