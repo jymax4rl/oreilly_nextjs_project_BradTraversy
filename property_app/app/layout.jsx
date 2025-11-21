@@ -12,7 +12,7 @@ function MainLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <div>{children}</div>
+        <main className="pt-20 h-80 ">{children}</main>
       </body>
     </html>
   );
