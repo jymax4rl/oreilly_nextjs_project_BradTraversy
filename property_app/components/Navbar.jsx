@@ -3,16 +3,19 @@ import Image from "next/image";
 import logIcon from "@/assets/images/person.png";
 import logo from "@/assets/images/blackAnkhLogo.png";
 import Hamburger from "@/components/hamburger";
+import Link from "next/link";
 
 const Navbar = () => {
   return (
-    <nav className="grid grid-cols-3 grid-gap-4 h-[8vh] border-4">
+    <nav className="grid grid-cols-3 grid-gap-4 h-[8vh]">
       <div className=" w-20 lg:w-40 flex items-center justify-center align-center">
-        <Image
-          className="lg:h-13 h-9 cursor-pointer w-auto rounded-full"
-          alt="logo"
-          src={logo}
-        />
+        <Link href={"/"}>
+          <Image
+            className="lg:h-13 h-9 cursor-pointer w-auto rounded-full"
+            alt="logo"
+            src={logo}
+          />
+        </Link>
       </div>
 
       <div className=" flex items-center justify-center align-center"></div>

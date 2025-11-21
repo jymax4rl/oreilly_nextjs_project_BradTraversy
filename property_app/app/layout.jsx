@@ -14,9 +14,7 @@ function MainLayout({ children }) {
     <html lang="en">
       <body>
         <Navbar className=" "></Navbar>
-        <main className="pt-[8vh] h-[92vh] border-4 border-green-900">
-          {children}
-        </main>
+        <main className="pt-[8vh] h-[92vh] ">{children}</main>
       </body>
     </html>
   );
