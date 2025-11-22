@@ -7,21 +7,22 @@ import Link from "next/link";
 
 const Navbar = () => {
   return (
-    <nav className="grid grid-cols-3 grid-gap-4 h-[8vh]">
-      <div className=" w-20 lg:w-40 flex items-center justify-center align-center">
+    // The nav is set to 3 col in md screens & 2 cols anything less
+    <nav className="m-0 grid bg-white grid-cols-2 lg:grid-cols-[20%_60%_20%] h-[8vh]">
+      <div className=" flex items-center ml-10 lg:ml-22 justify-start  lg:justify-start align-center">
         <Link href={"/"}>
           <Image
-            className="lg:h-13 h-9 cursor-pointer w-auto rounded-full"
+            className="lg:h-13 h-12 cursor-pointer w-auto rounded-full"
             alt="logo"
             src={logo}
           />
         </Link>
       </div>
 
-      <div className=" flex items-center justify-center align-center"></div>
+      <div className="hidden lg:block bg-green-900 flex items-center justify-center align-center"></div>
 
-      <div className=" flex  lg:w-20 m-0  lg:ml-80 space-x-5 items-center justify-center align-center">
-        <div className="flex   items-center justify-center space-x-8 align-center lg:absolute ">
+      <div className=" flex p-0  mr-6 lg:m-0   items-center justify-end lg:justify-center   ">
+        <div className="flex start items-center justify-center space-x-4 md:space-x-8 align-center lg:absolute ">
           <Image
             className="cursor-pointer h-5 w-auto"
             alt="login Icon"

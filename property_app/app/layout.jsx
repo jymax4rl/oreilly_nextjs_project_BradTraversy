@@ -12,7 +12,7 @@ export const metadata = {
 function MainLayout({ children }) {
   return (
     <html lang="en">
-      <body>
+      <body className="max-w-screen">
         <Navbar className=" "></Navbar>
         <main className="pt-[8vh] h-[92vh] ">{children}</main>
       </body>
