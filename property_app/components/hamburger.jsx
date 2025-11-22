@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import styled from "styled-components";
 
 const Hamburger = () => {
@@ -30,7 +29,7 @@ const StyledWrapper = styled.div`
 
   .hamburger svg {
     /* The size of the SVG defines the overall size */
-    height: 2.5em;
+    height: 2em;
     /* Define the transition for transforming the SVG */
     transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
   }
