@@ -1,15 +1,13 @@
 "use client";
-import React from "react";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import logIcon from "@/assets/images/person.png";
-import logo from "@/assets/images/blackAnkhLogo.png";
-import Hamburger from "@/components/hamburger";
 import Link from "next/link";
-import NavButton from "./NavButton";
-import LoginNavBtn from "./LoginNavBtn";
-import { FaGoogle } from "react-icons";
-import "./navbar.css";
+import Hamburger from "@/components/hamburger";
+import logo from "@/assets/images/blackAnkhLogo.png";
+import logIcon from "@/assets/images/person.png";
+
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 const navLinks = [
   { path: "/", label: "Home" },
@@ -17,90 +15,91 @@ const navLinks = [
   { path: "/properties/AddProperties", label: "Add Property" },
 ];
 
-const Navbar = () => {
-  const container = useRef();
+export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen); // toggle state
-  };
+  const overlayRef = useRef();
+  const tl = useRef();
+
+  const toggleMenu = () => setIsMenuOpen((prev) => !prev);
+
+  // --- GSAP animation ----
+  useGSAP(() => {
+    const overlay = overlayRef.current;
+
+    gsap.set(overlay, {
+      clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+      display: "none",
+    });
+    gsap.set(".menu-link-item-holder", { y: 75, opacity: 0 });
+
+    tl.current = gsap
+      .timeline({ paused: true })
+      .to(overlay, {
+        duration: 1.2,
+        display: "block",
+        clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+        ease: "power4.inOut",
+      })
+      .to(
+        ".menu-link-item-holder",
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          stagger: 0.1,
+          ease: "power3.out",
+        },
+        "-=0.75"
+      );
+  }, []);
+
+  // React to toggle
+  useEffect(() => {
+    if (isMenuOpen) tl.current.play();
+    else tl.current.reverse();
+  }, [isMenuOpen]);
 
   return (
     <div>
-      {/* // The nav is set to 3 col in md screens & 2 cols anything less */}
-      <nav
-        ref={container}
-        className=" menu-container m-0 grid bg-white grid-cols-2 lg:grid-cols-[20%_60%_20%] h-[8vh]"
-      >
-        <div className=" flex items-center ml-10 lg:ml-22 justify-start  align-center">
-          <Link href={"/"}>
-            <Image
-              className="lg:h-13 h-12 cursor-pointer w-auto rounded-full"
-              alt="logo"
-              src={logo}
-            />
+      {/* Navbar */}
+      <nav className="grid lg:grid-cols-[20%_60%_20%] grid-cols-2 h-[8vh] bg-white">
+        <div className="flex items-center ml-10">
+          <Link href="/">
+            <Image src={logo} alt="logo" className="h-12 w-auto" />
           </Link>
         </div>
 
-        <div className="hidden lg:flex space-x-16 items-center justify-center align-center">
-          {navLinks.map((link, index) => {
-            return (
-              <Link key={link.index} href={link.path}>
-                <NavButton text={link.label} />
-              </Link>
-            );
-          })}
+        <div className="hidden lg:flex space-x-12 items-center justify-center">
+          {navLinks.map((link) => (
+            <Link key={link.path} href={link.path}>
+              {link.label}
+            </Link>
+          ))}
         </div>
 
-        <div className=" flex p-0  mr-4 lg:mr-20   items-center justify-end lg:justify-center   ">
-          <div className="flex start items-center justify-center space-x-4 lg:space-x-6 align-center lg:absolute ">
-            <LoginNavBtn className=" " />
-            <Image
-              className=" cursor-pointer h-5 w-auto"
-              alt="login Icon"
-              src={logIcon}
-            />
-            <button onClick={toggleMenu}>
-              <Hamburger />
-            </button>
-          </div>
+        <div className="flex items-center justify-end mr-8">
+          <button onClick={toggleMenu}>
+            <Hamburger />
+          </button>
         </div>
       </nav>
-      {/* //Menu-overlay on lg screens, show hide based on menu state */}
-      <div className="  lg:block overlay-wrapper fixed top-0 w-screen   ">
-        <div className="menu-overlay relative grid lg:grid-cols-2  w-full h-screen bg-white   ">
-          <div className="hidden lg:block  leftWrapper relative w-full h-full ">
-            <div className="   fixed left-10 bottom-15  ">
-              <span onClick={toggleMenu} className=" text-9xl cursor-pointer">
-                &#x2715;
-              </span>
+
+      {/* --- CLIP-PATH OVERLAY --- */}
+      <div
+        ref={overlayRef}
+        className="menu-overlay fixed top-0 left-0 w-screen h-screen bg-white z-50"
+      >
+        <div className="menu-links flex flex-col pt-20 pl-20 text-4xl space-y-8">
+          {navLinks.map((link) => (
+            <div className="menu-link-item" key={link.path}>
+              <div className="menu-link-item-holder" onClick={toggleMenu}>
+                <Link href={link.path}>{link.label}</Link>
+              </div>
             </div>
-          </div>
-          <div className="  rightWrapper pt-8  flex-col  ">
-            <div className=" w-auto flex justify-end pr-20 ">
-              <p onClick={toggleMenu} className="cursor-pointer ">
-                close
-              </p>
-            </div>
-            <div className="   menu-links flex flex-col">
-              {navLinks.map((link, index) => {
-                return (
-                  <Link
-                    className="menu-links-item"
-                    onClick={toggleMenu}
-                    key={link.index}
-                    href={link.path}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
   );
-};
-
-export default Navbar;
+}
