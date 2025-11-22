@@ -5,6 +5,8 @@ import logo from "@/assets/images/blackAnkhLogo.png";
 import Hamburger from "@/components/hamburger";
 import Link from "next/link";
 import NavButton from "./NavButton";
+import LoginNavBtn from "./LoginNavBtn";
+import { FaGoogle } from "react-icons";
 
 const Navbar = () => {
   return (
@@ -32,10 +34,11 @@ const Navbar = () => {
         </Link>
       </div>
 
-      <div className=" flex p-0  mr-6 lg:m-0   items-center justify-end lg:justify-center   ">
-        <div className="flex start items-center justify-center space-x-4 md:space-x-8 align-center lg:absolute ">
+      <div className=" flex p-0  mr-4 lg:mr-20   items-center justify-end lg:justify-center   ">
+        <div className="flex start items-center justify-center space-x-4 lg:space-x-6 align-center lg:absolute ">
+          <LoginNavBtn className=" " />
           <Image
-            className="cursor-pointer h-5 w-auto"
+            className=" cursor-pointer h-5 w-auto"
             alt="login Icon"
             src={logIcon}
           />
