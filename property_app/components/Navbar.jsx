@@ -25,25 +25,20 @@ const Navbar = () => {
   };
   const closeMenu = () => {
     gsap.to(".overlay-wrapper", {
-      // Duration of the animation in seconds
-      duration: 1,
-      // The property to animate: 'y' or 'yPercent'
-      y: "-100%", // This is the key value for sliding up
-      // Other optional properties
-      ease: "power2.inOut",
-      delay: 0,
+      // The property you are animating
+      clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+      duration: 1.0,
+      ease: "power3.inOut",
     });
   };
   const openMenu = () => {
     gsap.to(".overlay-wrapper", {
-      // Duration of the animation in seconds
-      duration: 1,
-      // The property to animate: 'y' or 'yPercent'
-      y: "0%", // This is the key value for sliding up
-      // Other optional properties
-      ease: "power2.inOut",
-      delay: 0,
+      // The property you are animating
+      clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+      duration: 1.2,
+      ease: "power3.inOut",
     });
+    console.log("menu clicked");
   };
   return (
     <div>
@@ -70,9 +65,9 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div className="flex items-center justify-end mr-8">
-          <button onClick={openMenu}>
-            <Hamburger />
+        <div className="flex items-center justify-end pointer mr-8">
+          <button className="cursor-pointer" onClick={openMenu}>
+            Menu
           </button>
         </div>
       </nav>
@@ -90,7 +85,11 @@ const Navbar = () => {
             <div className=" menu-links flex flex-col">
               {navLinks.map((link, index) => {
                 return (
-                  <Link key={index} href={link.path}>
+                  <Link
+                    className="menu-link-item-holder"
+                    key={index}
+                    href={link.path}
+                  >
                     {link.label}
                   </Link>
                 );
