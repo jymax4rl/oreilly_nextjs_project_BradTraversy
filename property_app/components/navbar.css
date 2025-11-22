@@ -11,11 +11,11 @@
   clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%);
 }
 .menu-link-item-holder {
-  color: #000;
-  font-size: 80px;
+  color: white;
+  font-size: 60px;
   font-weight: 400;
   letter-spacing: -0.02em;
-  line-height: 85%;
+  line-height: 110%;
   width: max-content;
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+  /* clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%); */
 }

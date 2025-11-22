@@ -27,16 +27,18 @@ const Navbar = () => {
     gsap.to(".overlay-wrapper", {
       // The property you are animating
       clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
-      duration: 1.0,
-      ease: "power3.inOut",
+      duration: 0.7,
+      // ease: "back.inOut(3)",
+      y: -20,
     });
   };
   const openMenu = () => {
     gsap.to(".overlay-wrapper", {
       // The property you are animating
       clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-      duration: 1.2,
-      ease: "power3.inOut",
+      duration: 0.95,
+      ease: "back.inOut(3)",
+      y: 0,
     });
     console.log("menu clicked");
   };
@@ -86,6 +88,7 @@ const Navbar = () => {
               {navLinks.map((link, index) => {
                 return (
                   <Link
+                    onClick={closeMenu}
                     className="menu-link-item-holder"
                     key={index}
                     href={link.path}
