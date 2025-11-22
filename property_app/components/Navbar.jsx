@@ -5,7 +5,7 @@ import Link from "next/link";
 import Hamburger from "@/components/hamburger";
 import logo from "@/assets/images/blackAnkhLogo.png";
 import logIcon from "@/assets/images/person.png";
-
+import "./navbar.css";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import NavButton from "./NavButton";
@@ -23,7 +23,28 @@ const Navbar = () => {
   const toggleMenu = () => {
     setIsMobileOpen((prev) => !prev); // toggle state
   };
-
+  const closeMenu = () => {
+    gsap.to(".overlay-wrapper", {
+      // Duration of the animation in seconds
+      duration: 1,
+      // The property to animate: 'y' or 'yPercent'
+      y: "-100%", // This is the key value for sliding up
+      // Other optional properties
+      ease: "power2.inOut",
+      delay: 0,
+    });
+  };
+  const openMenu = () => {
+    gsap.to(".overlay-wrapper", {
+      // Duration of the animation in seconds
+      duration: 1,
+      // The property to animate: 'y' or 'yPercent'
+      y: "0%", // This is the key value for sliding up
+      // Other optional properties
+      ease: "power2.inOut",
+      delay: 0,
+    });
+  };
   return (
     <div>
       {/* // The nav is set to 3 col in md screens & 2 cols anything less */}
@@ -50,24 +71,26 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center justify-end mr-8">
-          <button onClick={toggleMenu}>
+          <button onClick={openMenu}>
             <Hamburger />
           </button>
         </div>
       </nav>
       {/* //Menu-overlay on lg screens, show hide based on menu state */}
-      <div className="hidden lg: overlay-wrapper absolute top-0 w-screen ">
+      <div className="hidden lg:block overlay-wrapper w-screen ">
         <div className="menu-overlay relative grid lg:grid-cols-2  w-full h-screen ">
           <div className="hidden lg:block leftWrapper relative w-full h-full  bg-red-500">
             <div className="   fixed left-10 bottom-15  ">
-              <span className=" text-9xl cursor-pointer">&#x2715;</span>
+              <span onClick={closeMenu} className=" text-9xl cursor-pointer">
+                &#x2715;
+              </span>
             </div>
           </div>
           <div className="  rightWrapper  bg-green-500">
             <div className=" menu-links flex flex-col">
               {navLinks.map((link, index) => {
                 return (
-                  <Link key={link.index} href={link.path}>
+                  <Link key={index} href={link.path}>
                     {link.label}
                   </Link>
                 );

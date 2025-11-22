@@ -1,0 +1,11 @@
+.overlay-wrapper {
+  /* Position it off-screen at the bottom */
+  transform: translateY(-100%);
+  /* Make sure it covers the screen and is on top */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999;
+}
