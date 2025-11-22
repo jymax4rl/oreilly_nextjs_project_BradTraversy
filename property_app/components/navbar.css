@@ -1,0 +1,6 @@
+.menu-links-item {
+  text-transform: uppercase;
+  font-size: 65px;
+  width: max-content;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+}

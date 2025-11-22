@@ -19,10 +19,10 @@ const navLinks = [
 
 const Navbar = () => {
   const container = useRef();
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => {
-    setIsMobileOpen((prev) => !prev); // toggle state
+    setIsMenuOpen(!isMenuOpen); // toggle state
   };
 
   return (
@@ -30,7 +30,7 @@ const Navbar = () => {
       {/* // The nav is set to 3 col in md screens & 2 cols anything less */}
       <nav
         ref={container}
-        className="menu-container m-0 grid bg-white grid-cols-2 lg:grid-cols-[20%_60%_20%] h-[8vh]"
+        className=" menu-container m-0 grid bg-white grid-cols-2 lg:grid-cols-[20%_60%_20%] h-[8vh]"
       >
         <div className=" flex items-center ml-10 lg:ml-22 justify-start  align-center">
           <Link href={"/"}>
@@ -67,18 +67,30 @@ const Navbar = () => {
         </div>
       </nav>
       {/* //Menu-overlay on lg screens, show hide based on menu state */}
-      <div className=" lg:block overlay-wrapper absolute top-0 w-screen ">
-        <div className="menu-overlay relative grid lg:grid-cols-2  w-full h-screen ">
-          <div className="hidden lg:block leftWrapper relative w-full h-full  bg-red-500">
+      <div className="  lg:block overlay-wrapper fixed top-0 w-screen   ">
+        <div className="menu-overlay relative grid lg:grid-cols-2  w-full h-screen bg-white   ">
+          <div className="hidden lg:block  leftWrapper relative w-full h-full ">
             <div className="   fixed left-10 bottom-15  ">
-              <span className=" text-9xl cursor-pointer">&#x2715;</span>
+              <span onClick={toggleMenu} className=" text-9xl cursor-pointer">
+                &#x2715;
+              </span>
             </div>
           </div>
-          <div className="  rightWrapper  bg-green-500">
-            <div className=" menu-links flex flex-col">
+          <div className="  rightWrapper pt-8  flex-col  ">
+            <div className=" w-auto flex justify-end pr-20 ">
+              <p onClick={toggleMenu} className="cursor-pointer ">
+                close
+              </p>
+            </div>
+            <div className="   menu-links flex flex-col">
               {navLinks.map((link, index) => {
                 return (
-                  <Link key={link.index} href={link.path}>
+                  <Link
+                    className="menu-links-item"
+                    onClick={toggleMenu}
+                    key={link.index}
+                    href={link.path}
+                  >
                     {link.label}
                   </Link>
                 );

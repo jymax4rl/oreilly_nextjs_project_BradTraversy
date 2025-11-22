@@ -13,7 +13,7 @@ function MainLayout({ children }) {
   return (
     <html lang="en">
       <body className="max-w-screen">
-        <Navbar className=" "></Navbar>
+        <Navbar className=" z-10"></Navbar>
         <main className="pt-[8vh] h-[92vh] ">{children}</main>
       </body>
     </html>
