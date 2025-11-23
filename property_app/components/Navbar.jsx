@@ -50,7 +50,7 @@ const Navbar = () => {
       >
         <div className=" flex items-center ml-10 lg:ml-22 justify-start  align-center">
           <Link href={"/"}>
-           <AnkhSvg className="w-15 h-10 cursor-pointer transition-all duration-300 hover:scale-110 stroke-transparent hover:stroke-[#4dd0e1] stroke-[0.5px]" />
+           <AnkhSvg className="w-15 h-10 cursor-pointer transition-all duration-300 hover:scale-110 hover:rotate-6 stroke-transparent hover:stroke-[#4dd0e1] stroke-[0.5px]" />
           </Link>
         </div>
 
