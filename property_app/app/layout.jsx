@@ -1,5 +1,6 @@
 import "@/assets/styles/globals.css";
 import Navbar from "@/components/Navbar";
+import AnkhSvg from "@/components/AnkhSvg";
 
 import React from "react";
 
@@ -15,7 +16,7 @@ function MainLayout({ children }) {
       <body className="max-w-screen">
         <Navbar className=" "></Navbar>
         <main className="pt-[8vh] h-[92vh] ">{children}</main>
-      </body>
+      </body> 
     </html>
   );
 }

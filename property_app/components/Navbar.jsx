@@ -9,6 +9,7 @@ import "./navbar.css";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import NavButton from "./NavButton";
+import AnkhSvg from "./AnkhSvg";
 
 const navLinks = [
   { path: "/", label: "Home" },
@@ -49,11 +50,7 @@ const Navbar = () => {
       >
         <div className=" flex items-center ml-10 lg:ml-22 justify-start  align-center">
           <Link href={"/"}>
-            <Image
-              className="lg:h-13 h-12 cursor-pointer w-auto rounded-full"
-              alt="logo"
-              src={logo}
-            />
+           <AnkhSvg className="w-15 h-10 cursor-pointer transition-all duration-300 hover:scale-110 stroke-transparent hover:stroke-[#4dd0e1] stroke-[0.5px]" />
           </Link>
         </div>
 
