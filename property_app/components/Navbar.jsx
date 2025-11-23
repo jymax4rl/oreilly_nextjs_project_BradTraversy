@@ -27,18 +27,16 @@ const Navbar = () => {
     gsap.to(".overlay-wrapper", {
       // The property you are animating
       clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
-      duration: 0.7,
-      // ease: "back.inOut(3)",
-      y: -20,
+      duration: 1,
+      ease: "power4.inOut",
     });
   };
   const openMenu = () => {
     gsap.to(".overlay-wrapper", {
       // The property you are animating
       clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-      duration: 0.95,
-      ease: "back.inOut(3)",
-      y: 0,
+      duration: 1,
+      ease: "power4.inOut",
     });
     console.log("menu clicked");
   };
