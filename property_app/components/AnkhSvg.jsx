@@ -1,48 +1,14 @@
-import React from "react";
+'use client'
+import React, { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
-const AnkhSvg = ({ className = "", color = "currentColor", ...props }) => {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 100 100"
-      className={className}
-      fill={color}
-      {...props}
-    >
-      {/* 
-        Ankh Shape
-        Designed as a single path for easier morphing.
-        Coordinates are on a 100x100 grid.
-      */}
-      <path
-        d="M50 100 
-           L45 100 L45 55 
-           L15 55 L15 45 
-           L45 45 
-           C45 45 40 10 50 10 
-           C60 10 55 45 55 45 
-           L85 45 L85 55 
-           L55 55 L55 100 
-           Z"
-           // Note: The loop (C commands) is a simplified approximation. 
-           // For a more precise Ankh, we might need more control points.
-           // Let's try a better loop:
-           // Start at 45,45 -> Curve up to 50,5 -> Curve down to 55,45
-      />
-      <path 
-        d="M46 45 
-           C 40 35, 35 20, 50 10 
-           C 65 20, 60 35, 54 45 
-           L 85 45 L 85 52 L 54 52 
-           L 54 100 L 46 100 
-           L 46 52 L 15 52 L 15 45 
-           Z"
-      />
-    </svg>
-  );
-};
-
-// Refined version with a "triangular" loop connection
+/**
+ * AnkhSvg Component
+ * 
+ * @param {string} className - CSS classes.
+ * @param {string} color - Unused if gradient is active, but kept for compatibility.
+ */
 /**
  * AnkhSvg Component
  * 
@@ -50,23 +16,47 @@ const AnkhSvg = ({ className = "", color = "currentColor", ...props }) => {
  * @param {string} color - Unused if gradient is active, but kept for compatibility.
  */
 const AnkhSvgRefined = ({ className = "", color = "url(#crystalGradient)", ...props }) => {
+  const container = useRef();
+  const gradientRef = useRef();
+
+  const { contextSafe } = useGSAP({ scope: container });
+
+  const onMouseEnter = contextSafe(() => {
+    gsap.fromTo(
+      gradientRef.current,
+      { attr: { x1: "-100%", x2: "0%" } },
+      {
+        attr: { x1: "200%", x2: "300%" },
+        duration: 1.5,
+        ease: "power2.inOut",
+      }
+    );
+  });
+
   return (
     <svg
+      ref={container}
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
       className={className}
       fill={color}
+      onMouseEnter={onMouseEnter}
       {...props}
     >
       <defs>
-        <linearGradient id="crystalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient 
+          ref={gradientRef}
+          id="crystalGradient" 
+          x1="-100%" y1="0%" x2="0%" y2="100%"
+          gradientUnits="userSpaceOnUse"
+        >
           <stop offset="0%" stopColor="#e0f7fa" />
-          <stop offset="20%" stopColor="#b2ebf2" />
+          <stop offset="20%" stopColor="#a9d6dcff" />
           <stop offset="45%" stopColor="#ffffff" />
-          <stop offset="50%" stopColor="#4dd0e1" />
+          <stop offset="50%" stopColor="#51878eff" />
           <stop offset="55%" stopColor="#ffffff" />
-          <stop offset="80%" stopColor="#b2ebf2" />
-          <stop offset="100%" stopColor="#006064" />
+          <stop offset="90%" stopColor="#99d6e0ff" />
+          <stop offset="100%" stopColor="#010b0bff" />
         </linearGradient>
         <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur stdDeviation="0.5" result="blur" />
