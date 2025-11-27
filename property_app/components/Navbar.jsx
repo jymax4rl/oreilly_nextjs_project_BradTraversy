@@ -5,11 +5,13 @@ import Link from "next/link";
 import Hamburger from "@/components/hamburger";
 import logo from "@/assets/images/blackAnkhLogo.png";
 import logIcon from "@/assets/images/person.png";
+import ImhotepImage from "@/assets/images/Imhotep.png";
 import "./navbar.css";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import NavButton from "./NavButton";
 import AnkhSvg from "./AnkhSvg";
+import Pattern from "./Pattern";
 
 const navLinks = [
   { path: "/", label: "Home" },
@@ -31,6 +33,11 @@ const Navbar = () => {
       duration: 1,
       ease: "power4.inOut",
     });
+    gsap.to(".hotep-text", {
+      opacity: 0,
+      y: 20,
+      duration: 0.5,
+    });
   };
   const openMenu = () => {
     gsap.to(".overlay-wrapper", {
@@ -39,6 +46,11 @@ const Navbar = () => {
       duration: 1,
       ease: "power4.inOut",
     });
+    gsap.fromTo(
+      ".hotep-text",
+      { opacity: 0, y: 50 },
+      { opacity: 1, y: 0, duration: 1.2, ease: "power3.out", delay: 0.3 }
+    );
     console.log("menu clicked");
   };
   return (
@@ -69,32 +81,52 @@ const Navbar = () => {
         </div>
       </nav>
       {/* //Menu-overlay on lg screens, show hide based on menu state */}
-      <div className="hidden lg:block overlay-wrapper w-screen ">
-        <div className="menu-overlay relative grid lg:grid-cols-2  w-full h-screen ">
-          <div className="hidden lg:block leftWrapper relative w-full h-full  bg-red-500">
-            <div className="   fixed left-10 bottom-15  ">
-              <span onClick={closeMenu} className=" text-9xl cursor-pointer">
-                &#x2715;
-              </span>
+
+      <div className="hidden lg:block overlay-wrapper w-screen  z-10  ">
+        <Pattern>
+          <div className="menu-overlay relative grid lg:grid-cols-2 text-black w-full h-screen ">
+            <div className="hidden lg:block leftWrapper relative w-full h-full">
+              <div className="relative image w-[90%] h-[80%] border-[4px] flex items-center justify-center border-black p-auto m-auto">
+                <Image
+                  src={ImhotepImage}
+                  className="rounded-full cursor-pointer h-[80%] w-[80%] object-cover"
+                  alt=""
+                />
+                <div className="hotep-text absolute text-3xl text-white">
+                  Hotep
+                </div>
+              </div>
+              <div className="   fixed left-10 bottom-15  ">
+                <span onClick={closeMenu} className=" text-9xl  cursor-pointer">
+                  &#x2715;
+                </span>
+              </div>
+            </div>
+
+            <div className="rightWrapper">
+              <div
+                onClick={closeMenu}
+                className="menuClose cursor-pointer justify-self-end mr-8 mt-8"
+              >
+                Close
+              </div>
+              <div className=" menu-links flex flex-col">
+                {navLinks.map((link, index) => {
+                  return (
+                    <Link
+                      onClick={closeMenu}
+                      className="menu-link-item-holder mt-4"
+                      key={index}
+                      href={link.path}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           </div>
-          <div className="  rightWrapper  bg-green-500">
-            <div className=" menu-links flex flex-col">
-              {navLinks.map((link, index) => {
-                return (
-                  <Link
-                    onClick={closeMenu}
-                    className="menu-link-item-holder"
-                    key={index}
-                    href={link.path}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        </Pattern>
       </div>
     </div>
   );

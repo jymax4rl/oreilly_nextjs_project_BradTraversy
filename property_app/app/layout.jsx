@@ -4,6 +4,8 @@ import AnkhSvg from "@/components/AnkhSvg";
 
 import React from "react";
 
+import StyledComponentsRegistry from "@/lib/registry";
+
 export const metadata = {
   title: "Nextjs course",
   description: "Learning Nextjs with MongoDB",
@@ -14,9 +16,11 @@ function MainLayout({ children }) {
   return (
     <html lang="en">
       <body className="max-w-screen">
-        <Navbar className=" "></Navbar>
-        <main className="pt-[8vh] h-[92vh] ">{children}</main>
-      </body> 
+        <StyledComponentsRegistry>
+          <Navbar className=" "></Navbar>
+          <main className="pt-[8vh] h-[92vh] ">{children}</main>
+        </StyledComponentsRegistry>
+      </body>
     </html>
   );
 }
