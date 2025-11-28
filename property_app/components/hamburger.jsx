@@ -4,7 +4,7 @@ import styled from "styled-components";
 const Hamburger = () => {
   return (
     <StyledWrapper>
-      <label className="hamburger">
+      <label className="hamburger lg:hidden">
         <input type="checkbox" />
         <svg viewBox="0 0 32 32">
           <path

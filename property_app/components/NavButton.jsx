@@ -5,7 +5,7 @@ import styled from "styled-components";
 const NavButton = ({ text }) => {
   return (
     <StyledWrapper>
-      <button className="cta">
+      <button className="cta hidden lg:block">
         <span className="hover-underline-animation"> {text} </span>
       </button>
     </StyledWrapper>

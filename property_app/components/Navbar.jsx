@@ -64,7 +64,7 @@ const Navbar = () => {
       >
         <div className=" flex items-center ml-10 lg:ml-22 justify-start  align-center">
           <Link href={"/"}>
-            <AnkhSvg className="w-15 h-10 cursor-pointer transition-all duration-300 hover:scale-110 hover:rotate-6 stroke-transparent hover:stroke-[#4dd0e1] stroke-[0.5px]" />
+            <AnkhSvg className="lg:w-15 lg:h-10 w-10 h-8 cursor-pointer transition-all duration-300 hover:scale-110 hover:rotate-6 stroke-transparent hover:stroke-[#4dd0e1] stroke-[0.5px]" />
           </Link>
         </div>
 
@@ -80,9 +80,14 @@ const Navbar = () => {
           <div>
             <LoginNavButton></LoginNavButton>
           </div>
-          <button className="cursor-pointer" onClick={openMenu}>
-            <NavButton text="Menu"></NavButton>
-          </button>
+
+          <NavButton
+            className="cursor-pointer hidden lg:block"
+            onClick={openMenu}
+            text="Menu"
+          ></NavButton>
+
+          <Hamburger className="lg:hidden" onClick={openMenu}></Hamburger>
 
           <div>
             <LuUserRound className="cursor-pointer" alt="login-icon" />
@@ -91,10 +96,10 @@ const Navbar = () => {
       </nav>
       {/* //Menu-overlay on lg screens, show hide based on menu state */}
 
-      <div className="hidden lg:block overlay-wrapper w-screen  z-10  ">
+      <div className=" overlay-wrapper w-screen  z-10  ">
         <Pattern>
           <div className="menu-overlay relative grid lg:grid-cols-2 text-black w-full h-screen ">
-            <div className="hidden lg:block leftWrapper relative w-full h-full">
+            <div className=" leftWrapper relative w-full h-full">
               <div className="relative image w-[90%] h-[80%]  flex items-center justify-center border-black p-auto m-auto">
                 <Image
                   src={ImhotepImage}
