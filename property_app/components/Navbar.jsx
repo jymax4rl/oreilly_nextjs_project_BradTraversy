@@ -83,11 +83,11 @@ const Navbar = () => {
 
           <NavButton
             className="cursor-pointer hidden lg:block"
-            onClick={openMenu}
+            clickFunc={openMenu}
             text="Menu"
           ></NavButton>
 
-          <Hamburger className="lg:hidden" onClick={openMenu}></Hamburger>
+          <Hamburger className="lg:hidden" clickFunc={openMenu}></Hamburger>
 
           <div>
             <LuUserRound className="cursor-pointer" alt="login-icon" />
@@ -98,7 +98,7 @@ const Navbar = () => {
 
       <div className=" overlay-wrapper w-screen  z-10  ">
         <Pattern>
-          <div className="menu-overlay relative grid lg:grid-cols-2 text-black w-full h-screen ">
+          <div className="menu-overlay relative grid grid-cols-1 lg:grid-cols-2 text-black w-full h-screen ">
             <div className=" leftWrapper relative w-full h-full">
               <div className="relative image w-[90%] h-[80%]  flex items-center justify-center border-black p-auto m-auto">
                 <Image
