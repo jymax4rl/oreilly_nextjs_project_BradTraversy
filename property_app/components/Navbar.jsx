@@ -5,13 +5,15 @@ import Link from "next/link";
 import Hamburger from "@/components/hamburger";
 import logo from "@/assets/images/blackAnkhLogo.png";
 import logIcon from "@/assets/images/person.png";
-import ImhotepImage from "@/assets/images/Imhotep.png";
+import ImhotepImage from "../assets/images/Imhotep.png";
 import "./navbar.css";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import NavButton from "./NavButton";
 import AnkhSvg from "./AnkhSvg";
 import Pattern from "./Pattern";
+import { LuUserRound } from "react-icons/lu";
+import LoginNavButton from "./LoginNavBtn";
 
 const navLinks = [
   { path: "/", label: "Home" },
@@ -74,10 +76,17 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div className="flex items-center justify-end pointer mr-8">
+        <div className="flex  gap-8 border-black items-center justify-end pointer mr-8">
+          <div>
+            <LoginNavButton></LoginNavButton>
+          </div>
           <button className="cursor-pointer" onClick={openMenu}>
-            Menu
+            <NavButton text="Menu"></NavButton>
           </button>
+
+          <div>
+            <LuUserRound className="cursor-pointer" alt="login-icon" />
+          </div>
         </div>
       </nav>
       {/* //Menu-overlay on lg screens, show hide based on menu state */}
@@ -86,7 +95,7 @@ const Navbar = () => {
         <Pattern>
           <div className="menu-overlay relative grid lg:grid-cols-2 text-black w-full h-screen ">
             <div className="hidden lg:block leftWrapper relative w-full h-full">
-              <div className="relative image w-[90%] h-[80%] border-[4px] flex items-center justify-center border-black p-auto m-auto">
+              <div className="relative image w-[90%] h-[80%]  flex items-center justify-center border-black p-auto m-auto">
                 <Image
                   src={ImhotepImage}
                   className="rounded-full cursor-pointer h-[80%] w-[80%] object-cover"
