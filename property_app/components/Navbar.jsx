@@ -22,15 +22,12 @@ const navLinks = [
 ];
 
 const Navbar = () => {
-  const container = useRef();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const container = useRef();
 
-  const toggleMenu = () => {
-    setIsMobileOpen((prev) => !prev); // toggle state
-  };
-  const closeMenu = () => {
+  // 1. Define your GSAP animations
+  const closeMenuAnimation = () => {
     gsap.to(".overlay-wrapper", {
-      // The property you are animating
       clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
       duration: 1,
       ease: "power4.inOut",
@@ -41,9 +38,8 @@ const Navbar = () => {
       duration: 0.5,
     });
   };
-  const openMenu = () => {
+  const openMenuAnimation = () => {
     gsap.to(".overlay-wrapper", {
-      // The property you are animating
       clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
       duration: 1,
       ease: "power4.inOut",
@@ -53,14 +49,28 @@ const Navbar = () => {
       { opacity: 0, y: 50 },
       { opacity: 1, y: 0, duration: 1.2, ease: "power3.out", delay: 0.3 }
     );
-    console.log("menu clicked");
   };
+
+  // 2. The Toggle function ONLY updates state
+  const toggleMenu = () => {
+    setIsMobileOpen((prev) => !prev);
+  };
+
+  // 3. The useEffect listens to state changes and triggers GSAP
+  useEffect(() => {
+    if (isMobileOpen) {
+      openMenuAnimation();
+    } else {
+      closeMenuAnimation();
+    }
+  }, [isMobileOpen]); // <--- This dependency array is key!
+
   return (
     <div>
       {/* // The nav is set to 3 col in md screens & 2 cols anything less */}
       <nav
         ref={container}
-        className="menu-container m-0 grid bg-white grid-cols-2 lg:grid-cols-[20%_60%_20%] h-[8vh]"
+        className="menu-container m-0 grid bg-white grid-cols-2 lg:grid-cols-[20%_60%_20%] z-50 fixed w-screen h-[8vh]"
       >
         <div className=" flex items-center ml-10 lg:ml-22 justify-start  align-center">
           <Link href={"/"}>
@@ -82,24 +92,28 @@ const Navbar = () => {
           </div>
 
           <NavButton
-            className="cursor-pointer hidden lg:block"
-            clickFunc={openMenu}
-            text="Menu"
+            className="cursor-pointer "
+            clickFunc={toggleMenu}
+            text={isMobileOpen ? "Close" : "Menu"} // Optional: change text based on state
           ></NavButton>
 
-          <Hamburger className="lg:hidden" clickFunc={openMenu}></Hamburger>
+          <Hamburger className="" clickFunc={toggleMenu}></Hamburger>
 
           <div>
-            <LuUserRound className="cursor-pointer" alt="login-icon" />
+            <LuUserRound
+              onClick={toggleMenu}
+              className="cursor-pointer"
+              alt="login-icon"
+            />
           </div>
         </div>
       </nav>
       {/* //Menu-overlay on lg screens, show hide based on menu state */}
 
-      <div className=" overlay-wrapper w-screen  z-10  ">
+      <div className="mt-[8vh] overlay-wrapper w-screen  z-10  ">
         <Pattern>
-          <div className="menu-overlay relative grid grid-cols-1 lg:grid-cols-2 text-black w-full h-screen ">
-            <div className=" leftWrapper relative w-full h-full">
+          <div className="menu-overlay  relative grid grid-cols-1 lg:grid-cols-2 text-black w-full h-screen ">
+            <div className="lg:block leftWrapper relative w-full h-full">
               <div className="relative image w-[90%] h-[80%]  flex items-center justify-center border-black p-auto m-auto">
                 <Image
                   src={ImhotepImage}
@@ -111,24 +125,21 @@ const Navbar = () => {
                 </div>
               </div>
               <div className="   fixed left-10 bottom-15  ">
-                <span onClick={closeMenu} className=" text-9xl  cursor-pointer">
+                <span
+                  onClick={toggleMenu}
+                  className=" text-9xl  cursor-pointer"
+                >
                   &#x2715;
                 </span>
               </div>
             </div>
 
             <div className="rightWrapper">
-              <div
-                onClick={closeMenu}
-                className="menuClose cursor-pointer justify-self-end mr-8 mt-8"
-              >
-                Close
-              </div>
               <div className=" menu-links flex flex-col">
                 {navLinks.map((link, index) => {
                   return (
                     <Link
-                      onClick={closeMenu}
+                      onClick={toggleMenu}
                       className="menu-link-item-holder mt-4"
                       key={index}
                       href={link.path}
@@ -137,6 +148,9 @@ const Navbar = () => {
                     </Link>
                   );
                 })}
+                <div className="menu-link-item-holder mt-4">
+                  <LoginNavButton></LoginNavButton>
+                </div>
               </div>
             </div>
           </div>
