@@ -92,7 +92,7 @@ const Navbar = () => {
           </div>
 
           <NavButton
-            className="cursor-pointer "
+            className="cursor-pointer hidden lg:block "
             clickFunc={toggleMenu}
             text={isMobileOpen ? "Close" : "Menu"} // Optional: change text based on state
           ></NavButton>
