@@ -14,6 +14,7 @@ import AnkhSvg from "./AnkhSvg";
 import Pattern from "./Pattern";
 import { LuUserRound } from "react-icons/lu";
 import LoginNavButton from "./LoginNavBtn";
+import { usePathname } from "next/navigation";
 
 const navLinks = [
   { path: "/", label: "Home" },
@@ -83,9 +84,17 @@ const Navbar = () => {
           </Link>
         </div>
 
-        <div className="hidden lg:flex space-x-12 items-center justify-center">
+        <div className="hidden text-black lg:flex space-x-12 p-2 items-center justify-center">
           {navLinks.map((link, index) => (
-            <Link key={index} href={link.path}>
+            <Link
+              key={index}
+              href={link.path}
+              className={
+                usePathname() === link.path
+                  ? "bg-gray-200 p-2 text-white"
+                  : "p-2"
+              }
+            >
               <NavButton text={link.label}></NavButton>
             </Link>
           ))}
@@ -166,32 +175,32 @@ const Navbar = () => {
 
                 <a
                   href="#"
-                  class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+                  className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
                   role="menuitem"
                 >
                   <i
                     data-lucide="settings-2"
-                    class="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"
+                    className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"
                   ></i>
-                  <span class="font-medium">Settings</span>
+                  <span className="font-medium">Settings</span>
                 </a>
               </div>
 
               {/* <!-- Divider --> */}
-              <div class="my-2 h-px bg-zinc-100"></div>
+              <div className="my-2 h-px bg-zinc-100"></div>
 
               {/* <!-- Actions --> */}
-              <div class="space-y-1">
+              <div className="space-y-1">
                 <a
                   href="#"
-                  class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-red-50 hover:text-red-600"
+                  className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-red-50 hover:text-red-600"
                   role="menuitem"
                 >
                   <i
                     data-lucide="log-out"
-                    class="w-4 h-4 text-zinc-400 group-hover:text-red-500"
+                    className="w-4 h-4 text-zinc-400 group-hover:text-red-500"
                   ></i>
-                  <span class="font-medium">Sign out</span>
+                  <span className="font-medium">Sign out</span>
                 </a>
               </div>
             </div>
