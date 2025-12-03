@@ -56,6 +56,11 @@ const Navbar = () => {
     setIsMobileOpen((prev) => !prev);
   };
 
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const toggleProfileMenu = () => {
+    setIsProfileOpen((prev) => !prev);
+  };
+
   // 3. The useEffect listens to state changes and triggers GSAP
   useEffect(() => {
     if (isMobileOpen) {
@@ -87,8 +92,8 @@ const Navbar = () => {
         </div>
 
         <div className="flex  gap-8 border-black items-center justify-end pointer mr-8">
-          <div>
-            <LoginNavButton></LoginNavButton>
+          <div className="hidden lg:flex">
+            <LoginNavButton className=""></LoginNavButton>
           </div>
 
           <NavButton
@@ -101,10 +106,95 @@ const Navbar = () => {
 
           <div>
             <LuUserRound
-              onClick={toggleMenu}
+              id="profile-trigger"
+              onClick={toggleProfileMenu}
               className="cursor-pointer"
               alt="login-icon"
             />
+            {/* <!-- Profile Menu --> */}
+            <div
+              id="profile-menu"
+              className={`absolute right-0 top-full mt-3 w-[14em] origin-top-right rounded-xl border border-zinc-200 bg-white p-2 shadow-xl shadow-zinc-200/50 ring-1 ring-black ring-opacity-5 focus:outline-none transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] z-50 ${
+                isProfileOpen
+                  ? "opacity-100 visible scale-100"
+                  : "opacity-0 invisible scale-95"
+              }`}
+              role="menu"
+              aria-orientation="vertical"
+              aria-labelledby="profile-trigger"
+            >
+              {/* <!-- User Info Section --> */}
+              <div className="px-3 py-3 mb-2 border-b border-zinc-100">
+                <p className="text-sm font-medium text-zinc-900">
+                  Jimmeh Camara
+                </p>
+                <p className="text-xs text-zinc-500 truncate font-normal mt-0.5">
+                  jimmeh@example.com
+                </p>
+              </div>
+
+              {/* <!-- Menu Items --> */}
+              <div className="space-y-1">
+                <Link
+                  href="#"
+                  className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+                  role="menuitem"
+                >
+                  <LuUserRound
+                    data-lucide="user"
+                    className="w-6 h-6 text-black"
+                  ></LuUserRound>
+                  <span className="font-medium">My Profile</span>
+                </Link>
+
+                <a
+                  href="#"
+                  className="group flex items-center justify-between rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+                  role="menuitem"
+                >
+                  <div className="flex items-center gap-3">
+                    <i
+                      data-lucide="heart"
+                      className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"
+                    ></i>
+                    <span className="font-medium">Saved Properties</span>
+                  </div>
+                  <span className="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-xs font-medium text-zinc-600 group-hover:bg-white">
+                    3
+                  </span>
+                </a>
+
+                <a
+                  href="#"
+                  class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+                  role="menuitem"
+                >
+                  <i
+                    data-lucide="settings-2"
+                    class="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"
+                  ></i>
+                  <span class="font-medium">Settings</span>
+                </a>
+              </div>
+
+              {/* <!-- Divider --> */}
+              <div class="my-2 h-px bg-zinc-100"></div>
+
+              {/* <!-- Actions --> */}
+              <div class="space-y-1">
+                <a
+                  href="#"
+                  class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-red-50 hover:text-red-600"
+                  role="menuitem"
+                >
+                  <i
+                    data-lucide="log-out"
+                    class="w-4 h-4 text-zinc-400 group-hover:text-red-500"
+                  ></i>
+                  <span class="font-medium">Sign out</span>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </nav>
@@ -148,8 +238,8 @@ const Navbar = () => {
                     </Link>
                   );
                 })}
-                <div className="menu-link-item-holder mt-4">
-                  <LoginNavButton></LoginNavButton>
+                <div className="menu-link-item-holder mt-4  lg:flex ">
+                  <LoginNavButton className=""></LoginNavButton>
                 </div>
               </div>
             </div>
