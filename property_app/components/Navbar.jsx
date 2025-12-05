@@ -113,9 +113,11 @@ const Navbar = () => {
         </div>
 
         <div className="flex  gap-8 border-black items-center justify-end pointer mr-8">
-          <div className="hidden lg:flex">
-            <LoginNavButton className=""></LoginNavButton>
-          </div>
+          {!isLoggedIn && (
+            <div className="hidden lg:flex">
+              <LoginNavButton className=""></LoginNavButton>
+            </div>
+          )}
 
           <NavButton
             className="cursor-pointer hidden lg:block "
@@ -269,9 +271,11 @@ const Navbar = () => {
                     Add Property
                   </Link>
                 )}
-                <div className="menu-link-item-holder mt-4  lg:flex ">
-                  <LoginNavButton className=""></LoginNavButton>
-                </div>
+                {!isLoggedIn && (
+                  <div className="menu-link-item-holder mt-4">
+                    <LoginNavButton className=""></LoginNavButton>
+                  </div>
+                )}
               </div>
             </div>
           </div>
