@@ -19,12 +19,12 @@ import { usePathname } from "next/navigation";
 const navLinks = [
   { path: "/", label: "Home" },
   { path: "/properties", label: "Properties" },
-  { path: "/properties/AddProperties", label: "Add Property" },
 ];
 
 const Navbar = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const container = useRef();
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   // 1. Define your GSAP animations
   const closeMenuAnimation = () => {
@@ -98,6 +98,18 @@ const Navbar = () => {
               <NavButton text={link.label}></NavButton>
             </Link>
           ))}
+          {isLoggedIn && (
+            <Link
+              href="/properties/AddProperties"
+              className={
+                usePathname() === "/properties/AddProperties"
+                  ? "bg-gray-200 p-2 text-white"
+                  : "p-2"
+              }
+            >
+              <NavButton text="Add Property"></NavButton>
+            </Link>
+          )}
         </div>
 
         <div className="flex  gap-8 border-black items-center justify-end pointer mr-8">
@@ -247,6 +259,15 @@ const Navbar = () => {
                     </Link>
                   );
                 })}
+                {isLoggedIn && (
+                  <Link
+                    onClick={toggleMenu}
+                    href={"/properties/AddProperties"}
+                    className="menu-link-item-holder mt-4"
+                  >
+                    Add Property
+                  </Link>
+                )}
                 <div className="menu-link-item-holder mt-4  lg:flex ">
                   <LoginNavButton className=""></LoginNavButton>
                 </div>
