@@ -28,7 +28,6 @@ const StyledWrapper = styled.div`
 
   .hover-underline-animation {
     position: relative;
-    color: black;
     padding-bottom: 20px;
   }
 
