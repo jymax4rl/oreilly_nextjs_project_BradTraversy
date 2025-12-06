@@ -112,15 +112,16 @@ const Navbar = () => {
           )}
         </div>
 
-        <div className="flex  gap-8 border-black items-center justify-end pointer mr-8">
-          {!isLoggedIn && (
-            <div className="hidden lg:flex">
-              <LoginNavButton className=""></LoginNavButton>
-            </div>
-          )}
-
+        <div className="flex  w-full space-between gap-8 border-black items-center justify-end pointer mr-8">
+          <div className="flex  w-full border-black">
+            {!isLoggedIn && (
+              <div className="hidden lg:flex">
+                <LoginNavButton className=" "></LoginNavButton>
+              </div>
+            )}
+          </div>
           <NavButton
-            className="cursor-pointer hidden lg:block "
+            className="cursor-pointer hidden p-0 m-0 lg:block "
             clickFunc={toggleMenu}
             text={isMobileOpen ? "Close" : "Menu"} // Optional: change text based on state
           ></NavButton>
