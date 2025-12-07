@@ -1,9 +1,22 @@
 import React from "react";
+import Image from "next/image";
+import heroImage from "@/assets/images/modernMansion01.png";
 
 function Hero() {
   return (
-    <div className="w-full h-[45vh] ">
-      <main className="  h-[65vh] bg-white/20 flex flex-col items-center justify-center  pb-32 px-4 w-full">
+    <div className="w-full h-[85vh] pt-[8vh] relative">
+      <div className="absolute inset-0 z-0">
+        <Image
+          src={heroImage}
+          alt="Luxury Home"
+          fill
+          priority
+          className="object-cover"
+        />
+        {/* Overlay to ensure text readability */}
+        <div className="absolute inset-0 bg-black/40"></div>
+      </div>
+      <main className="relative z-10 h-[85vh] flex flex-col items-center justify-center pb-32 px-4 w-full">
         {/* Background Elements (Required for glass effect to be visible) */}
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 bg-grid opacity-30"></div>
@@ -12,17 +25,17 @@ function Hero() {
           <div className="absolute bottom-0 left-0 w-[35rem] h-[35rem] bg-cyan-600/10 rounded-full blur-[100px] animate-blob animation-delay-4000"></div>
         </div>
         {/* <!-- Main Glass Container --> */}
-        <div className="relative z-10 p-6  w-full max-w-2xl">
-          <div className="relative w-full  rounded-3xl border-none bg-white/10 backdrop-blur-3xl hover:bg-white/20 p-10 md:p-14 shadow-2xl shadow-black/10 hover:shadow-white/10 transition-all duration-800 ease-in-out">
+        <div className="relative z-10 p-6 mt-[8vh] w-full max-w-2xl">
+          <div className="relative w-full  rounded-3xl border-none bg-white/10 backdrop-blur-[10px] hover:backdrop-blur-[1px] hover:text-white hover:bg-white/20 p-10 md:p-14 shadow-2xl shadow-black/10 hover:shadow-white/10 transition-all duration-800 ease-in-out">
             {/* Content */}
             {/* <!-- Hero Text --> */}
-            <div className="relative z-10  text-black space-y-6 text-center">
-              <h1 className="text-4xl md:text-6xl font-medium tracking-tight text-gradient leading-[1.1]">
+            <div className="relative z-10 space-y-6 text-center text-gradient">
+              <h1 className="text-4xl md:text-6xl font-medium tracking-tight leading-[1.1]">
                 Find your <br />
                 perfect dream home
               </h1>
 
-              <p className="text-lg hover:text-black transition-all duration-300 md:text-md cursor-pointer text-black/50 font-light leading-relaxed max-w-lg mx-auto">
+              <p className="text-lg md:text-md cursor-pointer  max-w-lg mx-auto">
                 Find your perfect dream home.
               </p>
             </div>

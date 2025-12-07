@@ -1,6 +1,6 @@
 import "@/assets/styles/globals.css";
 import Navbar from "@/components/Navbar";
-import AnkhSvg from "@/components/AnkhSvg";
+import Footer from "@/components/Footer";
 
 import React from "react";
 
@@ -17,8 +17,9 @@ function MainLayout({ children }) {
     <html lang="en">
       <body className="max-w-screen">
         <StyledComponentsRegistry>
-          <Navbar className=" "></Navbar>
-          <main className="pt-[8vh] h-[92vh] ">{children}</main>
+          <Navbar className=" bg-transparent"></Navbar>
+          <main className="">{children}</main>
+          <Footer className="" />
         </StyledComponentsRegistry>
       </body>
     </html>

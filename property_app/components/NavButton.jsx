@@ -2,10 +2,10 @@
 import React from "react";
 import styled from "styled-components";
 
-const NavButton = ({ text, clickFunc }) => {
+const NavButton = ({ text, href, clickFunc }) => {
   return (
     <StyledWrapper>
-      <button className="cta hidden lg:block" onClick={clickFunc}>
+      <button className="cta hidden lg:block" onClick={clickFunc} href={href}>
         <span className="hover-underline-animation"> {text} </span>
       </button>
     </StyledWrapper>

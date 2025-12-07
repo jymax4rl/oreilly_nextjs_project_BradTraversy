@@ -2,6 +2,7 @@ import Link from "next/link"; // Or 'react-router-dom'
 import { FaInstagram, FaTwitter, FaLinkedin, FaFacebook } from "react-icons/fa"; // Optional icons
 
 const Footer = () => {
+  const currentYear = new Date().getFullYear();
   return (
     <footer className="bg-zinc-950 text-zinc-400 relative pt-24 pb-12 overflow-hidden font-sans">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -63,7 +64,10 @@ const Footer = () => {
             <a href="#" className="hover:text-white transition-colors">
               <FaInstagram />
             </a>
-            <a href="#" className="hover:text-white transition-colors">
+            <a
+              href="https://x.com/ConnaisAfrique/status/1996164384666562916"
+              className="hover:text-white transition-colors"
+            >
               <FaTwitter />
             </a>
             <a href="#" className="hover:text-white transition-colors">
@@ -74,7 +78,7 @@ const Footer = () => {
             </a>
           </div>
           <p className="text-sm hover:text-white transition-colors cursor-pointer ">
-            © 2025 Kama Properties Inc.
+            © {currentYear} Kama Properties Inc.
           </p>
         </div>
 

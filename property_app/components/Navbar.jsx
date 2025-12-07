@@ -72,7 +72,7 @@ const Navbar = () => {
   }, [isMobileOpen]); // <--- This dependency array is key!
 
   return (
-    <div>
+    <div className="bg-transparent">
       {/* // The nav is set to 3 col in md screens & 2 cols anything less */}
       <nav
         ref={container}

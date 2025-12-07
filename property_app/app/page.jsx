@@ -8,11 +8,10 @@ const HomePage = () => {
 
   return (
     <div className="m-0 p-0  ">
-      <div className="w-full h-[100vh] ">
-        <Hero />
+      <div className="w-full ">
+        <Hero className="h-[55vh] border-4 border-zinc-800" />
         <InfoBoxes />
       </div>
-      <Footer />
     </div>
   );
 };
