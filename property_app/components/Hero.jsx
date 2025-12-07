@@ -3,7 +3,7 @@ import React from "react";
 function Hero() {
   return (
     <div className="w-full h-[45vh] ">
-      <main className="  h-[65vh] bg-white/20 flex flex-col items-center justify-center pt-20 pb-32 px-4 w-full">
+      <main className="  h-[65vh] bg-white/20 flex flex-col items-center justify-center  pb-32 px-4 w-full">
         {/* Background Elements (Required for glass effect to be visible) */}
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 bg-grid opacity-30"></div>
