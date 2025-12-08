@@ -121,7 +121,7 @@ const Navbar = () => {
             )}
           </div>
           <NavButton
-            className="cursor-pointer hidden p-0 m-0 lg:block "
+            className="cursor-pointer text-white hidden p-0 m-0 lg:block "
             clickFunc={toggleMenu}
             text={isMobileOpen ? "Close" : "Menu"} // Optional: change text based on state
           ></NavButton>

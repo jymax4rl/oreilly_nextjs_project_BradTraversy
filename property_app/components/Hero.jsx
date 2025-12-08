@@ -4,7 +4,7 @@ import heroImage from "@/assets/images/modernMansion01.png";
 
 function Hero() {
   return (
-    <div className="w-full h-[85vh] pt-[8vh] relative">
+    <div className="w-full h-[55vh] pt-[8vh] relative">
       <div className="absolute inset-0 z-0">
         <Image
           src={heroImage}
@@ -16,7 +16,7 @@ function Hero() {
         {/* Overlay to ensure text readability */}
         <div className="absolute inset-0 bg-black/40"></div>
       </div>
-      <main className="relative z-10 h-[85vh] flex flex-col items-center justify-center pb-32 px-4 w-full">
+      <main className="relative z-10 h-[55vh] flex flex-col items-center justify-center pb-32 px-4 w-full">
         {/* Background Elements (Required for glass effect to be visible) */}
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 bg-grid opacity-30"></div>

@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import HomeProperties from "@/components/HomeProperties";
 
 export const metadata = {
   title: "properties",
@@ -11,10 +12,7 @@ const PropertiesPage = () => {
   console.log("");
   return (
     <div>
-      <h1 className="">Properties Page</h1>
-      <Link className="cursor-pointer" href={"/"}>
-        Home
-      </Link>
+      <HomeProperties />
     </div>
   );
 };
