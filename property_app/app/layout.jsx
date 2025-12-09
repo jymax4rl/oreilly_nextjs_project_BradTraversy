@@ -13,6 +13,7 @@ export const metadata = {
 };
 
 function MainLayout({ children }) {
+  console.log(children);  
   return (
     <html lang="en">
       <body className="max-w-screen">

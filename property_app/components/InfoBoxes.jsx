@@ -13,7 +13,11 @@ const InfoBoxes = () => {
             Find your dream rental property. Browse our extensive list of
             apartments, homes, and condos tailored to your lifestyle.
           </p>
-          <Button text="Browse Properties" link="/properties" />
+          <Button
+            text="Browse Properties"
+            link="/properties"
+            borderColor="black"
+          />
         </div>
 
         {/* Card 2: For Landlords */}
