@@ -77,9 +77,9 @@ const PropertyCard = ({ property }) => {
           </div>
 
           {/* Price Badge (Bottom Right Over Image) */}
-          <div className="absolute bottom-4 right-4 bg-white px-4 py-2 rounded-lg shadow-lg font-bold text-gray-900">
+          <div className="absolute bottom-4 right-4 bg-white-200 backdrop-blur-2xl px-4 py-2 rounded-lg shadow-lg font-bold text-gray-900 hover:text-white hover:bg-black transition-colors duration-300">
             <span className="text-lg">{displayRate.price}</span>
-            <span className="text-gray-500 text-sm font-normal ml-1">
+            <span className=" text-sm font-normal ml-1">
               {displayRate.label}
             </span>
           </div>
@@ -89,8 +89,8 @@ const PropertyCard = ({ property }) => {
       {/* Content Section */}
       <div className="p-5 flex flex-col flex-grow">
         {/* Location */}
-        <div className="flex items-center text-gray-500 text-sm mb-2 space-x-1">
-          <FaMapMarkerAlt className="text-indigo-500" />
+        <div className="flex items-center text-blue-900 text-sm mb-2 space-x-1">
+          <FaMapMarkerAlt className="" />
           <p>
             {location.city}, {location.state}
           </p>
