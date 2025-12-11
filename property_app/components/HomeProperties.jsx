@@ -17,6 +17,7 @@ import {
   fetchExchangeRates,
   formatCurrency,
 } from "../app/utils/currencyUtils";
+import DateCurrencyUpdated from "./DateCurrencyUpdated";
 
 // --- Child Component ---
 const PropertyCard = ({ property, rate, symbol }) => {
@@ -190,8 +191,9 @@ const HomeProperties = () => {
                 available for short-term and long-term stays.
               </p>
             </div>
-            <div className="flex justify-center md:justify-end">
+            <div className=" justify-center md:justify-end">
               <Currency onCurrencyChange={handleCurrencyChange} />
+              <DateCurrencyUpdated />
             </div>
           </div>
         </div>

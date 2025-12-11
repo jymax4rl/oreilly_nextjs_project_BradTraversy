@@ -15,6 +15,7 @@ export const CURRENCIES = [
   { code: "XPF", name: "Comoros Franc", symbol: "XPF", rate: 1 },
   { code: "CAD", name: "Canadian Dollar", symbol: "CA$", rate: 1 },
   { code: "GMD", name: "Gambian Dalasi", symbol: "GMD", rate: 1 },
+  { code: "XAU", name: "Gold", symbol: "XAU", rate: 1 },
 ];
 
 /**
@@ -23,16 +24,40 @@ export const CURRENCIES = [
  */
 export const fetchExchangeRates = async () => {
   try {
-    // Fetch rates with USD as the base currency
-    const res = await fetch("https://open.er-api.com/v6/latest/USD");
-    const data = await res.json();
+    const apiKey = process.env.NEXT_PUBLIC_CURRENCY_API_KEY;
 
-    // The API returns an object like { rates: { EUR: 0.92, ZAR: 18.5, ... } }
-    // We add USD: 1 manually since the API excludes the base currency
+    // 1. CHECK FIRST: If key is missing, go straight to fallback
+    if (!apiKey) {
+      console.warn("API Key is missing! Using open fallback API.");
+      const currencyApi = "https://open.er-api.com/v6/latest/USD";
+      const res = await fetch(currencyApi);
+      const data = await res.json();
+      // Ensure we add the USD: 1 base, as open-er-api might exclude it
+      return { ...data.rates, USD: 1 };
+    }
+
+    // 2. PRIMARY: If key exists, use CurrencyFreaks
+    const res = await fetch(
+      `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiKey}`
+    );
+
+    // 3. Handle specific API errors (e.g., if key is invalid/expired)
+    if (!res.ok) {
+      throw new Error(`CurrencyFreaks API Error: ${res.status}`);
+    }
+
+    const data = await res.json();
     return { ...data.rates, USD: 1 };
   } catch (error) {
-    console.error("Failed to fetch rates:", error);
-    return null; // Return null so the app can use fallbacks
+    // 4. ULTIMATE FALLBACK: If Primary API crashes or key is invalid
+    console.error("Primary API failed, trying fallback...", error);
+    try {
+      const fallbackRes = await fetch("https://open.er-api.com/v6/latest/USD");
+      const fallbackData = await fallbackRes.json();
+      return { ...fallbackData.rates, USD: 1 };
+    } catch (e) {
+      return null; // Both failed
+    }
   }
 };
 
