@@ -1,12 +1,20 @@
-import React from "react";
+import React, { Children } from "react";
 import Image from "next/image"; // Added next/image
 import propertyData from "../properties.json"; // Adjust path based on where you saved the json file
-import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt } from "react-icons/fa";
+import {
+  FaBed,
+  FaBath,
+  FaRulerCombined,
+  FaMapMarkerAlt,
+  FaSearch,
+} from "react-icons/fa";
 import Button from "./Button";
 import Link from "next/link";
+import Currency from "./Currency";
 
 // --- Child Component: The Single Property Card ---
 const PropertyCard = ({ property }) => {
+  //destructuring the property object
   const {
     name,
     type,
@@ -153,24 +161,64 @@ const HomeProperties = () => {
 
   return (
     <section className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900">
-            Featured Properties
-          </h2>
-          <p className="text-gray-600 mt-4 text-lg max-w-2xl mx-auto">
-            Explore our hand-picked selection of top-tier properties available
-            for short-term and long-term stays.
-          </p>
+      <div className="container mx-auto px-4 border-2 border-gray-700">
+        <div className="w-full text-center mb-12 ">
+          <div className="border-2 border-gray-700 grid grid-cols-8 gap-4 ">
+            <div className="col-span-7">
+              <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900">
+                Featured Properties
+              </h2>
+              <p className="text-gray-600 mt-4 text-lg max-w-2xl mx-auto">
+                Explore our hand-picked selection of top-tier properties
+                available for short-term and long-term stays.
+              </p>
+            </div>
+            <Currency />
+          </div>
         </div>
 
         {/* The Grid Layout using Map */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8">
-          {properties.map((property) => (
-            // Using the _id as the unique key for React's reconciliation
-            <PropertyCard key={property._id} property={property} />
-          ))}
-        </div>
+        {properties.length === 0 ? (
+          // --- Start of Modern Empty State Section ---
+          <div className="col-span-full flex flex-col items-center justify-center text-center py-24 px-4 bg-white rounded-3xl border border-gray-100 shadow-sm">
+            {/* Icon Container with subtle background */}
+            <div className="bg-indigo-50 p-8 rounded-full mb-6 inline-flex items-center justify-center animate-pulse-slow">
+              <FaSearch className="text-6xl text-indigo-300" />
+            </div>
+            {/* Headline */}
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">
+              No Properties Found
+            </h3>
+            {/* Subtext */}
+            <p className="text-gray-500 text-lg max-w-md mx-auto leading-relaxed">
+              We couldn't find any listings that match your current criteria.
+              Try adjusting your filters or check back again soon.
+            </p>
+            {/* Optional generic CTA button */}
+            <div className="flex gap-4">
+              <Link
+                href="/"
+                className="mt-8 px-8 py-3 cursor-pointer bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors duration-300 shadow-md"
+              >
+                Go Home
+              </Link>
+              <Link
+                href="/properties"
+                className="mt-8 px-8 py-3 cursor-pointer bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors duration-300 shadow-md"
+              >
+                View All Properties
+              </Link>
+            </div>
+          </div>
+        ) : (
+          // --- End of Modern Empty State Section ---
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8">
+            {properties.map((property) => (
+              // Using the _id as the unique key for React's reconciliation
+              <PropertyCard key={property._id} property={property} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -2,14 +2,15 @@
   {
     "_id": "1",
     "owner": "1",
-    "name": "Boston Commons Retreat",
+    "name": "Nile View Retreat",
     "type": "Apartment",
-    "description": "This is a beautiful apartment located near the commons. It is a 2 bedroom apartment with a full kitchen and bathroom. It is available for weekly or monthly rentals.",
+    "description": "A beautiful apartment located overlooking the Nile. It is a 2 bedroom apartment with a full kitchen and bathroom.",
     "location": {
-      "street": "120 Tremont Street",
-      "city": "Boston",
-      "state": "MA",
-      "zipcode": "02108"
+      "country": "Egypt",
+      "street": "12 Nile Corniche",
+      "city": "Cairo",
+      "state": "Cairo Governorate",
+      "zipcode": "11511"
     },
     "beds": 2,
     "baths": 1,
@@ -19,16 +20,11 @@
       "Full kitchen",
       "Washer & Dryer",
       "Free Parking",
-      "Hot Tub",
       "24/7 Security",
-      "Wheelchair Accessible",
       "Elevator Access",
-      "Dishwasher",
-      "Gym/Fitness Center",
       "Air Conditioning",
       "Balcony/Patio",
-      "Smart TV",
-      "Coffee Maker"
+      "Smart TV"
     ],
     "rates": {
       "weekly": 1100,
@@ -37,7 +33,7 @@
     "seller_info": {
       "name": "John Doe",
       "email": "john@gmail.com",
-      "phone": "617-555-5555"
+      "phone": "20-2-555-5555"
     },
     "images": ["a1.jpg", "a2.jpg", "a3.jpg"],
     "is_featured": false,
@@ -47,14 +43,15 @@
   {
     "_id": "2",
     "owner": "1",
-    "name": "Cozy Downtown Loft",
+    "name": "Zamalek Island Loft",
     "type": "Apartment",
-    "description": "A cozy downtown loft with great city views.",
+    "description": "A cozy loft in the upscale Zamalek district with city views.",
     "location": {
-      "street": "45 Main Street",
-      "city": "New York",
-      "state": "NY",
-      "zipcode": "10001"
+      "country": "Egypt",
+      "street": "45 Zamalek Street",
+      "city": "Cairo",
+      "state": "Cairo Governorate",
+      "zipcode": "11211"
     },
     "beds": 1,
     "baths": 1,
@@ -63,16 +60,11 @@
       "Wifi",
       "Full kitchen",
       "Washer & Dryer",
-      "Free Parking",
-      "Hot Tub",
       "24/7 Security",
-      "Wheelchair Accessible",
       "Elevator Access",
-      "Dishwasher",
       "High-Speed Internet",
       "Air Conditioning",
-      "Smart TV",
-      "Outdoor Grill/BBQ"
+      "Smart TV"
     ],
     "rates": {
       "weekly": 1000,
@@ -81,7 +73,7 @@
     "seller_info": {
       "name": "Jane Smith",
       "email": "jane@gmail.com",
-      "phone": "212-555-5555"
+      "phone": "20-2-555-5556"
     },
     "images": ["b1.jpg", "b2.jpg", "b3.jpg"],
     "is_featured": false,
@@ -91,14 +83,15 @@
   {
     "_id": "3",
     "owner": "2",
-    "name": "Luxury Condo with a View",
+    "name": "Luxury Maadi Condo",
     "type": "Condo",
-    "description": "Experience luxury in this stunning condo with breathtaking views.",
+    "description": "Experience luxury in this stunning condo in the quiet suburb of Maadi.",
     "location": {
-      "street": "500 Lux Lane",
-      "city": "Los Angeles",
-      "state": "CA",
-      "zipcode": "90001"
+      "country": "Egypt",
+      "street": "500 Maadi Road",
+      "city": "Cairo",
+      "state": "Cairo Governorate",
+      "zipcode": "11431"
     },
     "beds": 3,
     "baths": 2,
@@ -108,16 +101,12 @@
       "Full kitchen",
       "Washer & Dryer",
       "Free Parking",
-      "Hot Tub",
       "24/7 Security",
-      "Wheelchair Accessible",
       "Elevator Access",
-      "Dishwasher",
       "Swimming Pool",
       "Gym/Fitness Center",
       "Air Conditioning",
-      "Smart TV",
-      "Coffee Maker"
+      "Smart TV"
     ],
     "rates": {
       "nightly": 200,
@@ -127,7 +116,7 @@
     "seller_info": {
       "name": "David Johnson",
       "email": "david@gmail.com",
-      "phone": "213-555-5555"
+      "phone": "20-2-555-5557"
     },
     "images": ["c1.jpg", "c2.jpg", "c3.jpg"],
     "is_featured": false,
@@ -137,23 +126,24 @@
   {
     "_id": "4",
     "owner": "2",
-    "name": "Charming Cottage Getaway",
-    "type": "Cottage Or Cabin",
-    "description": "Escape to this charming cottage for a peaceful retreat.",
+    "name": "Heliopolis Historical Stay",
+    "type": "House",
+    "description": "A charming house located in the historic Heliopolis area.",
     "location": {
-      "street": "123 Countryside Lane",
-      "city": "Austin",
-      "state": "TX",
-      "zipcode": "78701"
+      "country": "Egypt",
+      "street": "123 Heliopolis Ave",
+      "city": "Cairo",
+      "state": "Cairo Governorate",
+      "zipcode": "11341"
     },
-    "beds": 1,
+    "beds": 2,
     "baths": 1,
     "square_feet": 900,
     "amenities": [
-      "Fireplace",
       "Outdoor Grill/BBQ",
       "Balcony/Patio",
-      "Coffee Maker"
+      "Coffee Maker",
+      "Air Conditioning"
     ],
     "rates": {
       "weekly": 2000
@@ -161,7 +151,7 @@
     "seller_info": {
       "name": "Emily Davis",
       "email": "emily@gmail.com",
-      "phone": "512-555-5555"
+      "phone": "20-2-555-5558"
     },
     "images": ["d1.jpg", "d2.jpg", "d3.jpg"],
     "is_featured": false,
@@ -171,14 +161,15 @@
   {
     "_id": "5",
     "owner": "3",
-    "name": "Modern Downtown Studio",
+    "name": "Downtown Cairo Studio",
     "type": "Studio",
-    "description": "Stay in style in this modern downtown studio apartment.",
+    "description": "Stay near Tahrir Square in this modern downtown studio apartment.",
     "location": {
-      "street": "75 Urban Avenue",
-      "city": "Chicago",
-      "state": "IL",
-      "zipcode": "60601"
+      "country": "Egypt",
+      "street": "75 Downtown Lane",
+      "city": "Cairo",
+      "state": "Cairo Governorate",
+      "zipcode": "11111"
     },
     "beds": 1,
     "baths": 1,
@@ -187,8 +178,7 @@
       "High-Speed Internet",
       "Smart TV",
       "Air Conditioning",
-      "Gym/Fitness Center",
-      "Outdoor Grill/BBQ"
+      "Near Metro"
     ],
     "rates": {
       "weekly": 1100,
@@ -197,7 +187,7 @@
     "seller_info": {
       "name": "Michael Brown",
       "email": "michael@gmail.com",
-      "phone": "312-555-5555"
+      "phone": "20-2-555-5559"
     },
     "images": ["e1.jpg", "e2.jpg", "e3.jpg"],
     "is_featured": true,
@@ -207,33 +197,34 @@
   {
     "_id": "6",
     "owner": "3",
-    "name": "Seaside Retreat",
-    "type": "House",
-    "description": "Escape to this seaside house for a relaxing getaway.",
+    "name": "Westlands Modern Living",
+    "type": "Apartment",
+    "description": "A vibrant apartment in the heart of Westlands' entertainment district.",
     "location": {
-      "street": "456 Oceanfront Drive",
-      "city": "Miami",
-      "state": "FL",
-      "zipcode": "33101"
+      "country": "Kenya",
+      "street": "456 Westlands Road",
+      "city": "Nairobi",
+      "state": "Nairobi County",
+      "zipcode": "00100"
     },
-    "beds": 4,
-    "baths": 3,
-    "square_feet": 2800,
+    "beds": 2,
+    "baths": 2,
+    "square_feet": 1400,
     "amenities": [
-      "Beach Access",
       "Swimming Pool",
       "Balcony/Patio",
       "Smart TV",
-      "Outdoor Grill/BBQ"
+      "24/7 Security",
+      "Wifi"
     ],
     "rates": {
-      "nightly": 500,
-      "weekly": 2500
+      "nightly": 150,
+      "weekly": 900
     },
     "seller_info": {
       "name": "Sarah Wilson",
       "email": "sarah@gmail.com",
-      "phone": "305-555-5555"
+      "phone": "254-700-555555"
     },
     "images": ["f1.jpg", "f2.jpg", "f3.jpg"],
     "is_featured": true,
@@ -243,14 +234,15 @@
   {
     "_id": "7",
     "owner": "4",
-    "name": "Rustic Cabin in the Woods",
+    "name": "Karen Suburb Cottage",
     "type": "Cottage Or Cabin",
-    "description": "Experience nature in this cozy rustic cabin.",
+    "description": "Experience tranquility in this cozy cottage located in Karen.",
     "location": {
-      "street": "789 Forest Lane",
-      "city": "Denver",
-      "state": "CO",
-      "zipcode": "80201"
+      "country": "Kenya",
+      "street": "789 Karen Lane",
+      "city": "Nairobi",
+      "state": "Nairobi County",
+      "zipcode": "00502"
     },
     "beds": 2,
     "baths": 1,
@@ -258,17 +250,17 @@
     "amenities": [
       "Fireplace",
       "Outdoor Grill/BBQ",
-      "Hiking Trails Access",
+      "Garden Access",
       "Pet-Friendly"
     ],
     "rates": {
-      "nightly": 475,
-      "weekly": 2000
+      "nightly": 120,
+      "weekly": 750
     },
     "seller_info": {
       "name": "Robert Anderson",
       "email": "robert@gmail.com",
-      "phone": "303-555-5555"
+      "phone": "254-700-555556"
     },
     "images": ["g1.jpg", "g2.jpg", "g3.jpg"],
     "is_featured": false,
@@ -278,32 +270,28 @@
   {
     "_id": "8",
     "owner": "5",
-    "name": "Ski-In/Ski-Out Chalet",
-    "type": "Chalet",
-    "description": "Hit the slopes from this cozy ski-in/ski-out chalet.",
+    "name": "Langata Apartment near Wildlife",
+    "type": "Apartment",
+    "description": "Stay close to Nairobi National Park in this comfortable apartment.",
     "location": {
-      "street": "321 Mountain Road",
-      "city": "Aspen",
-      "state": "CO",
-      "zipcode": "81611"
+      "country": "Kenya",
+      "street": "321 Langata Road",
+      "city": "Nairobi",
+      "state": "Nairobi County",
+      "zipcode": "00606"
     },
     "beds": 3,
     "baths": 2,
     "square_feet": 1800,
-    "amenities": [
-      "Ski Equipment Storage",
-      "Fireplace",
-      "Balcony/Patio",
-      "Smart TV"
-    ],
+    "amenities": ["Balcony/Patio", "Smart TV", "Wifi", "Free Parking"],
     "rates": {
-      "nightly": 300,
+      "nightly": 180,
       "weekly": 1100
     },
     "seller_info": {
       "name": "Jennifer Martin",
       "email": "jennifer@gmail.com",
-      "phone": "970-555-5555"
+      "phone": "254-700-555557"
     },
     "images": ["h1.jpg", "h2.jpg", "h3.jpg"],
     "is_featured": false,
@@ -313,33 +301,34 @@
   {
     "_id": "9",
     "owner": "6",
-    "name": "Mountain View Retreat",
+    "name": "Gigiri Diplomatic Stay",
     "type": "House",
-    "description": "Enjoy stunning mountain views from this spacious retreat.",
+    "description": "Secure and spacious house located in the diplomatic hub of Gigiri.",
     "location": {
-      "street": "600 Summit Drive",
-      "city": "Boulder",
-      "state": "CO",
-      "zipcode": "80301"
+      "country": "Kenya",
+      "street": "600 Gigiri Avenue",
+      "city": "Nairobi",
+      "state": "Nairobi County",
+      "zipcode": "00600"
     },
     "beds": 4,
     "baths": 3,
     "square_feet": 2400,
     "amenities": [
-      "Mountain View",
-      "Hiking Trails Access",
-      "Air Conditioning",
+      "Garden View",
+      "High Security",
+      "Wifi",
       "Smart TV",
       "Outdoor Grill/BBQ"
     ],
     "rates": {
-      "weekly": 1000,
-      "monthly": 3800
+      "weekly": 1500,
+      "monthly": 4500
     },
     "seller_info": {
       "name": "Lisa Taylor",
       "email": "lisa@gmail.com",
-      "phone": "303-555-5555"
+      "phone": "254-700-555558"
     },
     "images": ["i1.jpg", "i2.jpg", "i3.jpg"],
     "is_featured": false,
@@ -349,36 +338,756 @@
   {
     "_id": "10",
     "owner": "7",
-    "name": "Historic Downtown Loft",
+    "name": "Kilimani City Apartment",
     "type": "Apartment",
-    "description": "Step back in time with a stay in this historic downtown loft.",
+    "description": "Modern apartment in the accessible Kilimani area.",
     "location": {
-      "street": "123 History Lane",
-      "city": "Philadelphia",
-      "state": "PA",
-      "zipcode": "19101"
+      "country": "Kenya",
+      "street": "123 Kilimani Street",
+      "city": "Nairobi",
+      "state": "Nairobi County",
+      "zipcode": "00100"
     },
     "beds": 2,
     "baths": 1,
     "square_feet": 1200,
     "amenities": [
       "High-Speed Internet",
-      "Air Conditioning",
+      "Elevator Access",
       "Smart TV",
-      "Coffee Maker"
+      "Coffee Maker",
+      "Swimming Pool"
     ],
     "rates": {
-      "weekly": 550,
-      "monthly": 2100
+      "weekly": 850,
+      "monthly": 2800
     },
     "seller_info": {
       "name": "Matthew Harris",
       "email": "matthew@gmail.com",
-      "phone": "215-555-5555"
+      "phone": "254-700-555559"
     },
     "images": ["j1.jpg", "j2.jpg", "j3.jpg"],
     "is_featured": false,
     "createdAt": "2024-01-10T00:00:00.000Z",
     "updatedAt": "2024-01-10T00:00:00.000Z"
+  },
+  {
+    "_id": "11",
+    "owner": "8",
+    "name": "Victoria Island Luxury Condo",
+    "type": "Condo",
+    "description": "High-end condo in the heart of Victoria Island business district.",
+    "location": {
+      "country": "Nigeria",
+      "street": "100 Adeola Odeku",
+      "city": "Lagos",
+      "state": "Lagos State",
+      "zipcode": "101241"
+    },
+    "beds": 3,
+    "baths": 3,
+    "square_feet": 2000,
+    "amenities": [
+      "24/7 Power Supply",
+      "Swimming Pool",
+      "Gym",
+      "High-Speed Wifi",
+      "Security"
+    ],
+    "rates": {
+      "nightly": 300,
+      "weekly": 1800
+    },
+    "seller_info": {
+      "name": "Chinedu Okeke",
+      "email": "chinedu@gmail.com",
+      "phone": "234-800-555551"
+    },
+    "images": ["k1.jpg", "k2.jpg", "k3.jpg"],
+    "is_featured": true,
+    "createdAt": "2024-01-11T00:00:00.000Z",
+    "updatedAt": "2024-01-11T00:00:00.000Z"
+  },
+  {
+    "_id": "12",
+    "owner": "8",
+    "name": "Lekki Phase 1 Serviced Apartment",
+    "type": "Apartment",
+    "description": "Fully serviced apartment suitable for long stays in Lekki.",
+    "location": {
+      "country": "Nigeria",
+      "street": "22 Admiralty Way",
+      "city": "Lagos",
+      "state": "Lagos State",
+      "zipcode": "105102"
+    },
+    "beds": 2,
+    "baths": 2,
+    "square_feet": 1300,
+    "amenities": [
+      "Serviced",
+      "Wifi",
+      "Air Conditioning",
+      "Parking",
+      "Backup Generator"
+    ],
+    "rates": {
+      "weekly": 1000,
+      "monthly": 3500
+    },
+    "seller_info": {
+      "name": "Chinedu Okeke",
+      "email": "chinedu@gmail.com",
+      "phone": "234-800-555551"
+    },
+    "images": ["l1.jpg", "l2.jpg", "l3.jpg"],
+    "is_featured": false,
+    "createdAt": "2024-01-12T00:00:00.000Z",
+    "updatedAt": "2024-01-12T00:00:00.000Z"
+  },
+  {
+    "_id": "13",
+    "owner": "9",
+    "name": "Ikoyi Exclusive House",
+    "type": "House",
+    "description": "A private house with a pool in the exclusive neighborhood of Ikoyi.",
+    "location": {
+      "country": "Nigeria",
+      "street": "5 Bourdillon Road",
+      "city": "Lagos",
+      "state": "Lagos State",
+      "zipcode": "101233"
+    },
+    "beds": 5,
+    "baths": 5,
+    "square_feet": 4000,
+    "amenities": [
+      "Private Pool",
+      "Garden",
+      "24/7 Security",
+      "Staff Quarters",
+      "Full Kitchen"
+    ],
+    "rates": {
+      "weekly": 3000,
+      "monthly": 10000
+    },
+    "seller_info": {
+      "name": "Amina Yusuf",
+      "email": "amina@gmail.com",
+      "phone": "234-800-555552"
+    },
+    "images": ["m1.jpg", "m2.jpg", "m3.jpg"],
+    "is_featured": true,
+    "createdAt": "2024-01-13T00:00:00.000Z",
+    "updatedAt": "2024-01-13T00:00:00.000Z"
+  },
+  {
+    "_id": "14",
+    "owner": "10",
+    "name": "Ikeja Mainland Studio",
+    "type": "Studio",
+    "description": "Compact studio near the airport on the Lagos Mainland.",
+    "location": {
+      "country": "Nigeria",
+      "street": "15 Allen Avenue",
+      "city": "Lagos",
+      "state": "Lagos State",
+      "zipcode": "100271"
+    },
+    "beds": 1,
+    "baths": 1,
+    "square_feet": 600,
+    "amenities": ["Near Airport", "Wifi", "Air Conditioning", "Smart TV"],
+    "rates": {
+      "nightly": 80,
+      "weekly": 500
+    },
+    "seller_info": {
+      "name": "Tunde Bakare",
+      "email": "tunde@gmail.com",
+      "phone": "234-800-555553"
+    },
+    "images": ["n1.jpg", "n2.jpg", "n3.jpg"],
+    "is_featured": false,
+    "createdAt": "2024-01-14T00:00:00.000Z",
+    "updatedAt": "2024-01-14T00:00:00.000Z"
+  },
+  {
+    "_id": "15",
+    "owner": "10",
+    "name": "Eko Atlantic City View",
+    "type": "Apartment",
+    "description": "Modern apartment in the new Eko Atlantic development.",
+    "location": {
+      "country": "Nigeria",
+      "street": "Block A Eko Boulevard",
+      "city": "Lagos",
+      "state": "Lagos State",
+      "zipcode": "106104"
+    },
+    "beds": 2,
+    "baths": 2,
+    "square_feet": 1500,
+    "amenities": [
+      "Ocean View",
+      "Modern Furnishings",
+      "Swimming Pool",
+      "Gym",
+      "24/7 Security"
+    ],
+    "rates": {
+      "weekly": 1500,
+      "monthly": 5000
+    },
+    "seller_info": {
+      "name": "Tunde Bakare",
+      "email": "tunde@gmail.com",
+      "phone": "234-800-555553"
+    },
+    "images": ["o1.jpg", "o2.jpg", "o3.jpg"],
+    "is_featured": false,
+    "createdAt": "2024-01-15T00:00:00.000Z",
+    "updatedAt": "2024-01-15T00:00:00.000Z"
+  },
+  {
+    "_id": "16",
+    "owner": "11",
+    "name": "Camps Bay Seaside Villa",
+    "type": "House",
+    "description": "Stunning villa with panoramic ocean views in Camps Bay.",
+    "location": {
+      "country": "South Africa",
+      "street": "55 Victoria Road",
+      "city": "Cape Town",
+      "state": "Western Cape",
+      "zipcode": "8005"
+    },
+    "beds": 5,
+    "baths": 4,
+    "square_feet": 3500,
+    "amenities": [
+      "Ocean View",
+      "Infinity Pool",
+      "BBQ Area",
+      "Wifi",
+      "Smart Home"
+    ],
+    "rates": {
+      "nightly": 800,
+      "weekly": 5000
+    },
+    "seller_info": {
+      "name": "Willem Botha",
+      "email": "willem@gmail.com",
+      "phone": "27-21-555-5551"
+    },
+    "images": ["p1.jpg", "p2.jpg", "p3.jpg"],
+    "is_featured": true,
+    "createdAt": "2024-01-16T00:00:00.000Z",
+    "updatedAt": "2024-01-16T00:00:00.000Z"
+  },
+  {
+    "_id": "17",
+    "owner": "11",
+    "name": "City Bowl Loft with Mountain View",
+    "type": "Apartment",
+    "description": "Stylish loft in the City Bowl with views of Table Mountain.",
+    "location": {
+      "country": "South Africa",
+      "street": "88 Bree Street",
+      "city": "Cape Town",
+      "state": "Western Cape",
+      "zipcode": "8001"
+    },
+    "beds": 1,
+    "baths": 1,
+    "square_feet": 1000,
+    "amenities": [
+      "Mountain View",
+      "Central Location",
+      "Wifi",
+      "Air Conditioning"
+    ],
+    "rates": {
+      "nightly": 150,
+      "weekly": 900
+    },
+    "seller_info": {
+      "name": "Willem Botha",
+      "email": "willem@gmail.com",
+      "phone": "27-21-555-5551"
+    },
+    "images": ["q1.jpg", "q2.jpg", "q3.jpg"],
+    "is_featured": false,
+    "createdAt": "2024-01-17T00:00:00.000Z",
+    "updatedAt": "2024-01-17T00:00:00.000Z"
+  },
+  {
+    "_id": "18",
+    "owner": "12",
+    "name": "Constantia Winelands Cottage",
+    "type": "Cottage Or Cabin",
+    "description": "A peaceful cottage surrounded by vineyards in Constantia.",
+    "location": {
+      "country": "South Africa",
+      "street": "22 Spaanschemat River Rd",
+      "city": "Cape Town",
+      "state": "Western Cape",
+      "zipcode": "7806"
+    },
+    "beds": 2,
+    "baths": 2,
+    "square_feet": 1400,
+    "amenities": ["Vineyard Views", "Fireplace", "Garden", "Quiet Area"],
+    "rates": {
+      "weekly": 1200,
+      "monthly": 4000
+    },
+    "seller_info": {
+      "name": "Anika Van Der Merwe",
+      "email": "anika@gmail.com",
+      "phone": "27-21-555-5552"
+    },
+    "images": ["r1.jpg", "r2.jpg", "r3.jpg"],
+    "is_featured": false,
+    "createdAt": "2024-01-18T00:00:00.000Z",
+    "updatedAt": "2024-01-18T00:00:00.000Z"
+  },
+  {
+    "_id": "19",
+    "owner": "13",
+    "name": "V&A Waterfront Marina Condo",
+    "type": "Condo",
+    "description": "Luxury condo located directly on the marina at the V&A Waterfront.",
+    "location": {
+      "country": "South Africa",
+      "street": "Dock Road",
+      "city": "Cape Town",
+      "state": "Western Cape",
+      "zipcode": "8002"
+    },
+    "beds": 2,
+    "baths": 2,
+    "square_feet": 1600,
+    "amenities": [
+      "Marina View",
+      "Walking distance to shops",
+      "Swimming Pool",
+      "Gym",
+      "Secure Parking"
+    ],
+    "rates": {
+      "nightly": 400,
+      "weekly": 2500
+    },
+    "seller_info": {
+      "name": "Sipho Dlamini",
+      "email": "sipho@gmail.com",
+      "phone": "27-21-555-5553"
+    },
+    "images": ["s1.jpg", "s2.jpg", "s3.jpg"],
+    "is_featured": true,
+    "createdAt": "2024-01-19T00:00:00.000Z",
+    "updatedAt": "2024-01-19T00:00:00.000Z"
+  },
+  {
+    "_id": "20",
+    "owner": "13",
+    "name": "Clifton Beach Bungalow",
+    "type": "House",
+    "description": "Direct access to the famous Clifton 4th Beach.",
+    "location": {
+      "country": "South Africa",
+      "street": "44 Kloof Road",
+      "city": "Cape Town",
+      "state": "Western Cape",
+      "zipcode": "8005"
+    },
+    "beds": 3,
+    "baths": 3,
+    "square_feet": 2200,
+    "amenities": ["Beach Access", "Ocean View", "Outdoor Shower", "BBQ Deck"],
+    "rates": {
+      "nightly": 600,
+      "weekly": 3800
+    },
+    "seller_info": {
+      "name": "Sipho Dlamini",
+      "email": "sipho@gmail.com",
+      "phone": "27-21-555-5553"
+    },
+    "images": ["t1.jpg", "t2.jpg", "t3.jpg"],
+    "is_featured": false,
+    "createdAt": "2024-01-20T00:00:00.000Z",
+    "updatedAt": "2024-01-20T00:00:00.000Z"
+  },
+  {
+    "_id": "21",
+    "owner": "14",
+    "name": "Traditional Medina Riad",
+    "type": "House",
+    "description": "An authentic Moroccan Riad with a central courtyard in the heart of the Medina.",
+    "location": {
+      "country": "Morocco",
+      "street": "15 Derb Dabachi",
+      "city": "Marrakech",
+      "state": "Marrakech-Safi",
+      "zipcode": "40000"
+    },
+    "beds": 6,
+    "baths": 6,
+    "square_feet": 3000,
+    "amenities": [
+      "Courtyard Plunge Pool",
+      "Rooftop Terrace",
+      "Traditional Decor",
+      "Breakfast Included",
+      "Wifi"
+    ],
+    "rates": {
+      "nightly": 450,
+      "weekly": 2800
+    },
+    "seller_info": {
+      "name": "Hassan Benali",
+      "email": "hassan@gmail.com",
+      "phone": "212-5-555-5551"
+    },
+    "images": ["u1.jpg", "u2.jpg", "u3.jpg"],
+    "is_featured": true,
+    "createdAt": "2024-01-21T00:00:00.000Z",
+    "updatedAt": "2024-01-21T00:00:00.000Z"
+  },
+  {
+    "_id": "22",
+    "owner": "14",
+    "name": "Palmeraie Luxury Villa",
+    "type": "House",
+    "description": "Spacious villa with large gardens and pool in the Palmeraie district.",
+    "location": {
+      "country": "Morocco",
+      "street": "Route de Fès",
+      "city": "Marrakech",
+      "state": "Marrakech-Safi",
+      "zipcode": "40000"
+    },
+    "beds": 5,
+    "baths": 5,
+    "square_feet": 5000,
+    "amenities": [
+      "Large Swimming Pool",
+      "Extensive Gardens",
+      "Staffed",
+      "Air Conditioning",
+      "Fireplace"
+    ],
+    "rates": {
+      "weekly": 3500,
+      "monthly": 12000
+    },
+    "seller_info": {
+      "name": "Hassan Benali",
+      "email": "hassan@gmail.com",
+      "phone": "212-5-555-5551"
+    },
+    "images": ["v1.jpg", "v2.jpg", "v3.jpg"],
+    "is_featured": false,
+    "createdAt": "2024-01-22T00:00:00.000Z",
+    "updatedAt": "2024-01-22T00:00:00.000Z"
+  },
+  {
+    "_id": "23",
+    "owner": "15",
+    "name": "Gueliz Modern Apartment",
+    "type": "Apartment",
+    "description": "Contemporary apartment in the modern Gueliz neighborhood, near shops and cafes.",
+    "location": {
+      "country": "Morocco",
+      "street": "Ave Mohammed V",
+      "city": "Marrakech",
+      "state": "Marrakech-Safi",
+      "zipcode": "40000"
+    },
+    "beds": 2,
+    "baths": 2,
+    "square_feet": 1100,
+    "amenities": [
+      "Modern Kitchen",
+      "Balcony",
+      "Wifi",
+      "Air Conditioning",
+      "Elevator"
+    ],
+    "rates": {
+      "nightly": 120,
+      "weekly": 750
+    },
+    "seller_info": {
+      "name": "Khadija El Fassi",
+      "email": "khadija@gmail.com",
+      "phone": "212-5-555-5552"
+    },
+    "images": ["w1.jpg", "w2.jpg", "w3.jpg"],
+    "is_featured": false,
+    "createdAt": "2024-01-23T00:00:00.000Z",
+    "updatedAt": "2024-01-23T00:00:00.000Z"
+  },
+  {
+    "_id": "24",
+    "owner": "15",
+    "name": "Boutique House near Jemaa el-Fnaa",
+    "type": "House",
+    "description": "A small, stylish house just steps away from the famous main square.",
+    "location": {
+      "country": "Morocco",
+      "street": "Rue Riad Zitoun el Kdim",
+      "city": "Marrakech",
+      "state": "Marrakech-Safi",
+      "zipcode": "40000"
+    },
+    "beds": 3,
+    "baths": 2,
+    "square_feet": 1500,
+    "amenities": [
+      "Rooftop Terrace",
+      "Central Location",
+      "Wifi",
+      "Traditional Decor"
+    ],
+    "rates": {
+      "nightly": 200,
+      "weekly": 1300
+    },
+    "seller_info": {
+      "name": "Khadija El Fassi",
+      "email": "khadija@gmail.com",
+      "phone": "212-5-555-5552"
+    },
+    "images": ["x1.jpg", "x2.jpg", "x3.jpg"],
+    "is_featured": false,
+    "createdAt": "2024-01-24T00:00:00.000Z",
+    "updatedAt": "2024-01-24T00:00:00.000Z"
+  },
+  {
+    "_id": "25",
+    "owner": "16",
+    "name": "Agafay Desert Luxury Tent",
+    "type": "Cottage Or Cabin",
+    "description": "Glamping experience in a luxury tent on the outskirts of Marrakech in the Agafay desert.",
+    "location": {
+      "country": "Morocco",
+      "street": "Agafay Desert Road",
+      "city": "Marrakech",
+      "state": "Marrakech-Safi",
+      "zipcode": "40000"
+    },
+    "beds": 1,
+    "baths": 1,
+    "square_feet": 500,
+    "amenities": [
+      "Desert Views",
+      "Private Bathroom",
+      "Dinner Included",
+      "Stargazing"
+    ],
+    "rates": {
+      "nightly": 250
+    },
+    "seller_info": {
+      "name": "Omar Idrissi",
+      "email": "omar@gmail.com",
+      "phone": "212-5-555-5553"
+    },
+    "images": ["y1.jpg", "y2.jpg", "y3.jpg"],
+    "is_featured": true,
+    "createdAt": "2024-01-25T00:00:00.000Z",
+    "updatedAt": "2024-01-25T00:00:00.000Z"
+  },
+  {
+    "_id": "26",
+    "owner": "17",
+    "name": "Osu Modern Apartment",
+    "type": "Apartment",
+    "description": "Vibrant apartment located in the busy Osu neighborhood, known for nightlife.",
+    "location": {
+      "country": "Ghana",
+      "street": "Oxford Street",
+      "city": "Accra",
+      "state": "Greater Accra",
+      "zipcode": "GA-001"
+    },
+    "beds": 2,
+    "baths": 2,
+    "square_feet": 1200,
+    "amenities": [
+      "Wifi",
+      "Air Conditioning",
+      "Balcony",
+      "Near Restaurants",
+      "Security"
+    ],
+    "rates": {
+      "nightly": 130,
+      "weekly": 800
+    },
+    "seller_info": {
+      "name": "Kwame Nkrumah",
+      "email": "kwame@gmail.com",
+      "phone": "233-20-555-5551"
+    },
+    "images": ["z1.jpg", "z2.jpg", "z3.jpg"],
+    "is_featured": false,
+    "createdAt": "2024-01-26T00:00:00.000Z",
+    "updatedAt": "2024-01-26T00:00:00.000Z"
+  },
+  {
+    "_id": "27",
+    "owner": "17",
+    "name": "Cantonments Luxury House",
+    "type": "House",
+    "description": "Secure and upscale house in the quiet Cantonments area.",
+    "location": {
+      "country": "Ghana",
+      "street": "Fourth Circular Road",
+      "city": "Accra",
+      "state": "Greater Accra",
+      "zipcode": "GA-002"
+    },
+    "beds": 4,
+    "baths": 4,
+    "square_feet": 3000,
+    "amenities": [
+      "Swimming Pool",
+      "Garden",
+      "Boys Quarters",
+      "Backup Generator",
+      "24/7 Security"
+    ],
+    "rates": {
+      "weekly": 2000,
+      "monthly": 7000
+    },
+    "seller_info": {
+      "name": "Kwame Nkrumah",
+      "email": "kwame@gmail.com",
+      "phone": "233-20-555-5551"
+    },
+    "images": ["aa1.jpg", "aa2.jpg", "aa3.jpg"],
+    "is_featured": true,
+    "createdAt": "2024-01-27T00:00:00.000Z",
+    "updatedAt": "2024-01-27T00:00:00.000Z"
+  },
+  {
+    "_id": "28",
+    "owner": "18",
+    "name": "Labadi Beachfront Condo",
+    "type": "Condo",
+    "description": "Enjoy ocean breezes in this condo near Labadi Beach.",
+    "location": {
+      "country": "Ghana",
+      "street": "La Beach Road",
+      "city": "Accra",
+      "state": "Greater Accra",
+      "zipcode": "GA-003"
+    },
+    "beds": 3,
+    "baths": 2,
+    "square_feet": 1800,
+    "amenities": [
+      "Beach View",
+      "Swimming Pool",
+      "Balcony",
+      "Wifi",
+      "Air Conditioning"
+    ],
+    "rates": {
+      "nightly": 200,
+      "weekly": 1200
+    },
+    "seller_info": {
+      "name": "Abena Osei",
+      "email": "abena@gmail.com",
+      "phone": "233-20-555-5552"
+    },
+    "images": ["bb1.jpg", "bb2.jpg", "bb3.jpg"],
+    "is_featured": false,
+    "createdAt": "2024-01-28T00:00:00.000Z",
+    "updatedAt": "2024-01-28T00:00:00.000Z"
+  },
+  {
+    "_id": "29",
+    "owner": "19",
+    "name": "Airport Residential Studio",
+    "type": "Studio",
+    "description": "Convenient studio apartment in the Airport Residential Area.",
+    "location": {
+      "country": "Ghana",
+      "street": "Volta Street",
+      "city": "Accra",
+      "state": "Greater Accra",
+      "zipcode": "GA-004"
+    },
+    "beds": 1,
+    "baths": 1,
+    "square_feet": 550,
+    "amenities": [
+      "Near Airport",
+      "Wifi",
+      "Air Conditioning",
+      "Gym Access",
+      "Security"
+    ],
+    "rates": {
+      "weekly": 600,
+      "monthly": 2000
+    },
+    "seller_info": {
+      "name": "Kofi Mensah",
+      "email": "kofi@gmail.com",
+      "phone": "233-20-555-5553"
+    },
+    "images": ["cc1.jpg", "cc2.jpg", "cc3.jpg"],
+    "is_featured": false,
+    "createdAt": "2024-01-29T00:00:00.000Z",
+    "updatedAt": "2024-01-29T00:00:00.000Z"
+  },
+  {
+    "_id": "30",
+    "owner": "19",
+    "name": "East Legon Gated House",
+    "type": "House",
+    "description": "Spacious family house in a gated community in East Legon.",
+    "location": {
+      "country": "Ghana",
+      "street": "Lagos Avenue",
+      "city": "Accra",
+      "state": "Greater Accra",
+      "zipcode": "GA-005"
+    },
+    "beds": 4,
+    "baths": 3,
+    "square_feet": 2500,
+    "amenities": [
+      "Gated Community",
+      "Garden",
+      "Garage",
+      "Wifi",
+      "Air Conditioning"
+    ],
+    "rates": {
+      "weekly": 1100,
+      "monthly": 3800
+    },
+    "seller_info": {
+      "name": "Kofi Mensah",
+      "email": "kofi@gmail.com",
+      "phone": "233-20-555-5553"
+    },
+    "images": ["dd1.jpg", "dd2.jpg", "dd3.jpg"],
+    "is_featured": false,
+    "createdAt": "2024-01-30T00:00:00.000Z",
+    "updatedAt": "2024-01-30T00:00:00.000Z"
   }
 ]
