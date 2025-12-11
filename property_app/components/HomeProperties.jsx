@@ -94,54 +94,51 @@ const PropertyCard = ({ property, rate, symbol }) => {
           </div>
         </div>
       </Link>
-      <div className="p-5 flex flex-col flex-grow">
-        <div className="flex items-center text-blue-900 text-sm mb-2 space-x-1">
-          <FaMapMarkerAlt />
-          <p>
-            {location.city}, {location.state}
-          </p>
+      <Link href={"/properties/" + property._id}>
+        <div className="p-5 flex flex-col flex-grow">
+          <div className="flex items-center text-blue-900 text-sm mb-2 space-x-1">
+            <FaMapMarkerAlt />
+            <p>
+              {location.city}, {location.country}
+            </p>
+          </div>
+          <h3
+            className="text-xl font-bold text-gray-900 mb-4 line-clamp-1"
+            title={name}
+          >
+            {name}
+          </h3>
+          <div className="flex items-center justify-between text-gray-700 text-sm py-2 mt-auto px-2">
+            <div className="flex items-center space-x-2">
+              <FaBed className="text-black-400 text-s" />
+              <span className="font-semibold">
+                {beds}{" "}
+                <span className="hidden sm:inline font-normal text-gray-500">
+                  Beds
+                </span>
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <FaBath className="text-black-400 text-s" />
+              <span className="font-semibold">
+                {baths}{" "}
+                <span className="hidden sm:inline font-normal text-gray-500">
+                  Baths
+                </span>
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <FaRulerCombined className="text-black-400 text-s" />
+              <span className="font-semibold">
+                {square_feet.toLocaleString()}{" "}
+                <span className="hidden sm:inline font-normal text-gray-500">
+                  sqft
+                </span>
+              </span>
+            </div>
+          </div>
         </div>
-        <h3
-          className="text-xl font-bold text-gray-900 mb-4 line-clamp-1"
-          title={name}
-        >
-          {name}
-        </h3>
-        <div className="flex items-center justify-between text-gray-700 text-sm py-2 mt-auto px-2">
-          <div className="flex items-center space-x-2">
-            <FaBed className="text-black-400 text-s" />
-            <span className="font-semibold">
-              {beds}{" "}
-              <span className="hidden sm:inline font-normal text-gray-500">
-                Beds
-              </span>
-            </span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <FaBath className="text-black-400 text-s" />
-            <span className="font-semibold">
-              {baths}{" "}
-              <span className="hidden sm:inline font-normal text-gray-500">
-                Baths
-              </span>
-            </span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <FaRulerCombined className="text-black-400 text-s" />
-            <span className="font-semibold">
-              {square_feet.toLocaleString()}{" "}
-              <span className="hidden sm:inline font-normal text-gray-500">
-                sqft
-              </span>
-            </span>
-          </div>
-        </div>
-        <Button
-          text={"View Details"}
-          link={"/properties/" + property._id}
-          borderColor={"black"}
-        ></Button>
-      </div>
+      </Link>
     </div>
   );
 };

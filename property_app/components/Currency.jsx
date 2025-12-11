@@ -57,7 +57,7 @@ const Currency = ({ onCurrencyChange }) => {
               <button
                 key={currency.code}
                 onClick={() => handleSelect(currency)}
-                className={`flex items-center w-full px-4 py-3 text-sm text-left transition duration-150 ease-in-out 
+                className={`cursor-pointer flex items-center w-full px-4 py-3 text-sm text-left transition duration-150 ease-in-out 
                   ${
                     currency.code === selectedCurrency.code
                       ? "bg-indigo-50 text-indigo-700 font-semibold pointer-events-none"

@@ -41,7 +41,7 @@ const DateCurrencyUpdated = () => {
   if (!updatedAt) return null;
 
   return (
-    <span className="text-xs block text-gray-400">
+    <span className="text-xs block pt-1 text-gray-400">
       Rates updated: {new Date(updatedAt).toLocaleDateString()}
     </span>
   );
