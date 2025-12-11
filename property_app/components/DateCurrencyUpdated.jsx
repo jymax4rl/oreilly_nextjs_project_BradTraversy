@@ -8,7 +8,7 @@ const DateCurrencyUpdated = () => {
     const fetchDate = async () => {
       try {
         // 1. CHECK FIRST: If key is missing, go straight to fallback
-        if (!process.env.NEXT_PUBLIC_CURRENCY_API_KEY) {
+        if (!process.env.NEXT_PUBLIC_CURRENCY_EXCHANGE_RATE_API) {
           console.warn("API Key is missing! Using open fallback API.");
           const currencyApi = "https://open.er-api.com/v6/latest/USD";
           const res = await fetch(currencyApi);
@@ -20,7 +20,7 @@ const DateCurrencyUpdated = () => {
 
         // 2. PRIMARY: If key exists, use CurrencyFreaks
         const res = await fetch(
-          `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${process.env.NEXT_PUBLIC_CURRENCY_API_KEY}`
+          `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${process.env.NEXT_PUBLIC_CURRENCY_EXCHANGE_RATE_API}`
         );
 
         // 3. Handle specific API errors

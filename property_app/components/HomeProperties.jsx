@@ -82,11 +82,11 @@ const PropertyCard = ({ property, rate, symbol }) => {
                 Featured
               </span>
             )}
-            <span className="bg-white/90 text-gray-800 text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm backdrop-blur-sm">
+            <span className="bg-white/90 backdrop-blur-sm text-gray-800 text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
               {type}
             </span>
           </div>
-          <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-lg shadow-lg font-bold text-gray-900 transition-colors duration-300">
+          <div className="absolute bottom-4 right-4 bg-white/10 backdrop-blur-md hover:bg-black/20 hover:text-white px-4 py-2 rounded-lg shadow-lg font-bold text-gray-900 transition-colors duration-300">
             <span className="text-lg">{displayRate.price}</span>
             <span className="text-sm font-normal ml-1">
               {displayRate.label}

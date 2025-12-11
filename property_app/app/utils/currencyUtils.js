@@ -15,16 +15,15 @@ export const CURRENCIES = [
   { code: "XPF", name: "Comoros Franc", symbol: "XPF", rate: 1 },
   { code: "CAD", name: "Canadian Dollar", symbol: "CA$", rate: 1 },
   { code: "GMD", name: "Gambian Dalasi", symbol: "GMD", rate: 1 },
-  { code: "XAU", name: "Gold", symbol: "XAU", rate: 1 },
 ];
 
 /**
- * Fetches live exchange rates from the Frankfurter API (Base: USD)
+ * Fetches live exchange rates from the CurrencyFreaks API (Base: USD)
  * @returns {Promise<Object>} A map of currency codes to rates
  */
 export const fetchExchangeRates = async () => {
   try {
-    const apiKey = process.env.NEXT_PUBLIC_CURRENCY_API_KEY;
+    const apiKey = process.env.NEXT_PUBLIC_CURRENCY_EXCHANGE_RATE_API;
 
     // 1. CHECK FIRST: If key is missing, go straight to fallback
     if (!apiKey) {
