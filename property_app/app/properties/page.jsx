@@ -1,17 +1,12 @@
 import React from "react";
-import Link from "next/link";
 import HomeProperties from "@/components/HomeProperties";
-import Currency from "@/components/Currency";
-export const metadata = {
-  title: "properties",
-  description: "Learning Nextjs with MongoDB",
-  keywords: "Nextjs React & MongoDb",
-};
 
 const PropertiesPage = () => {
-  console.log("");
   return (
-    <div>
+    <div className="p-8">
+      <h1 className="text-4xl font-bold mb-8">Property Listings</h1>
+
+      {/* 3. Pass the current currency value to the Property component */}
       <HomeProperties />
     </div>
   );

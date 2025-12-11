@@ -1,6 +1,7 @@
-import React, { Children } from "react";
-import Image from "next/image"; // Added next/image
-import propertyData from "../properties.json"; // Adjust path based on where you saved the json file
+"use client";
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import propertyData from "../properties.json";
 import {
   FaBed,
   FaBath,
@@ -11,10 +12,14 @@ import {
 import Button from "./Button";
 import Link from "next/link";
 import Currency from "./Currency";
+import {
+  CURRENCIES,
+  fetchExchangeRates,
+  formatCurrency,
+} from "../app/utils/currencyUtils";
 
-// --- Child Component: The Single Property Card ---
-const PropertyCard = ({ property }) => {
-  //destructuring the property object
+// --- Child Component ---
+const PropertyCard = ({ property, rate, symbol }) => {
   const {
     name,
     type,
@@ -26,31 +31,33 @@ const PropertyCard = ({ property }) => {
     images,
     is_featured,
   } = property;
-
-  // Correct path to images in public folder
   const mainImage = `/properties/${images[0]}`;
 
-  // Helper function to determine the best price rate to display
+  // Helper to get display price using the IMPORTED function
   const getDisplayPrice = (ratesObj) => {
     if (!ratesObj) return { price: "N/A", label: "" };
 
-    // Prioritize showing nightly, then weekly, then monthly
     if (ratesObj.nightly) {
       return {
-        price: `$${ratesObj.nightly.toLocaleString()}`,
+        // FIX: Added formatCurrency() wrapper
+        price: formatCurrency(ratesObj.nightly, rate, symbol),
         label: "/ night",
       };
     }
     if (ratesObj.weekly) {
-      return { price: `$${ratesObj.weekly.toLocaleString()}`, label: "/ week" };
+      return {
+        // FIX: Added formatCurrency() wrapper (was missing entirely)
+        price: formatCurrency(ratesObj.weekly, rate, symbol),
+        label: "/ week",
+      };
     }
     if (ratesObj.monthly) {
       return {
-        price: `$${ratesObj.monthly.toLocaleString()}`,
+        // FIX: Added formatCurrency() wrapper
+        price: formatCurrency(ratesObj.monthly, rate, symbol),
         label: "/ month",
       };
     }
-
     return { price: "Contact", label: "for rates" };
   };
 
@@ -58,7 +65,6 @@ const PropertyCard = ({ property }) => {
 
   return (
     <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col h-full border border-gray-100">
-      {/* Image Section Container */}
       <Link href={"/properties/" + property._id}>
         <div className="relative cursor-pointer h-56 overflow-hidden group">
           <Image
@@ -68,11 +74,7 @@ const PropertyCard = ({ property }) => {
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="w-full cursor-pointer h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
           />
-
-          {/* Overlay Gradient for better text readability if needed */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-60"></div>
-
-          {/* Top Badges */}
           <div className="absolute top-4 left-4 flex gap-2">
             {is_featured && (
               <span className="bg-indigo-600 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
@@ -83,37 +85,28 @@ const PropertyCard = ({ property }) => {
               {type}
             </span>
           </div>
-
-          {/* Price Badge (Bottom Right Over Image) */}
-          <div className="absolute bottom-4 right-4 bg-white-200 backdrop-blur-2xl px-4 py-2 rounded-lg shadow-lg font-bold text-gray-900 hover:text-white hover:bg-black transition-colors duration-300">
+          <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-lg shadow-lg font-bold text-gray-900 transition-colors duration-300">
             <span className="text-lg">{displayRate.price}</span>
-            <span className=" text-sm font-normal ml-1">
+            <span className="text-sm font-normal ml-1">
               {displayRate.label}
             </span>
           </div>
         </div>
       </Link>
-
-      {/* Content Section */}
       <div className="p-5 flex flex-col flex-grow">
-        {/* Location */}
         <div className="flex items-center text-blue-900 text-sm mb-2 space-x-1">
-          <FaMapMarkerAlt className="" />
+          <FaMapMarkerAlt />
           <p>
             {location.city}, {location.state}
           </p>
         </div>
-
-        {/* Title */}
         <h3
           className="text-xl font-bold text-gray-900 mb-4 line-clamp-1"
           title={name}
         >
           {name}
         </h3>
-
-        {/* Key Stats Row */}
-        <div className="flex items-center justify-between text-gray-700 text-sm py-2 mt-auto px-2   ">
+        <div className="flex items-center justify-between text-gray-700 text-sm py-2 mt-auto px-2">
           <div className="flex items-center space-x-2">
             <FaBed className="text-black-400 text-s" />
             <span className="font-semibold">
@@ -142,8 +135,6 @@ const PropertyCard = ({ property }) => {
             </span>
           </div>
         </div>
-
-        {/* View Details Button */}
         <Button
           text={"View Details"}
           link={"/properties/" + property._id}
@@ -156,15 +147,41 @@ const PropertyCard = ({ property }) => {
 
 // --- Main Parent Component ---
 const HomeProperties = () => {
-  // In a real app, you might fetch this data in a useEffect hook.
+  const [currencyCode, setCurrencyCode] = useState("USD");
   const properties = propertyData;
+  const [rates, setRates] = useState({}); // Store live rates here
+  const [loading, setLoading] = useState(true);
+
+  const handleCurrencyChange = (newCode) => {
+    setCurrencyCode(newCode);
+  };
+  // Fetch rates on component mount
+  useEffect(() => {
+    const getRates = async () => {
+      const liveRates = await fetchExchangeRates();
+      if (liveRates) {
+        setRates(liveRates);
+      }
+      setLoading(false);
+    };
+    getRates();
+  }, []);
+
+  // 1. Find the metadata (Symbol, Name) from our static list
+  const currencyMeta =
+    CURRENCIES.find((c) => c.code === currencyCode) || CURRENCIES[0];
+  const { symbol } = currencyMeta;
+
+  // 2. Get the rate: Prefer live rate, fallback to static/default (which is 1)
+  // If loading, we default to 1 to avoid NaN flashes
+  const rate = rates[currencyCode] || 1;
 
   return (
     <section className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4 border-2 border-gray-700">
+      <div className="container mx-auto px-4 ">
         <div className="w-full text-center mb-12 ">
-          <div className="border-2 border-gray-700 grid grid-cols-8 gap-4 ">
-            <div className="col-span-7">
+          <div className="grid grid-cols-1 md:grid-cols-8 gap-4 items-center">
+            <div className="md:col-span-7 text-left md:text-center">
               <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900">
                 Featured Properties
               </h2>
@@ -173,28 +190,23 @@ const HomeProperties = () => {
                 available for short-term and long-term stays.
               </p>
             </div>
-            <Currency />
+            <div className="flex justify-center md:justify-end">
+              <Currency onCurrencyChange={handleCurrencyChange} />
+            </div>
           </div>
         </div>
 
-        {/* The Grid Layout using Map */}
         {properties.length === 0 ? (
-          // --- Start of Modern Empty State Section ---
           <div className="col-span-full flex flex-col items-center justify-center text-center py-24 px-4 bg-white rounded-3xl border border-gray-100 shadow-sm">
-            {/* Icon Container with subtle background */}
             <div className="bg-indigo-50 p-8 rounded-full mb-6 inline-flex items-center justify-center animate-pulse-slow">
               <FaSearch className="text-6xl text-indigo-300" />
             </div>
-            {/* Headline */}
             <h3 className="text-3xl font-bold text-gray-900 mb-4">
               No Properties Found
             </h3>
-            {/* Subtext */}
             <p className="text-gray-500 text-lg max-w-md mx-auto leading-relaxed">
               We couldn't find any listings that match your current criteria.
-              Try adjusting your filters or check back again soon.
             </p>
-            {/* Optional generic CTA button */}
             <div className="flex gap-4">
               <Link
                 href="/"
@@ -211,11 +223,14 @@ const HomeProperties = () => {
             </div>
           </div>
         ) : (
-          // --- End of Modern Empty State Section ---
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8">
             {properties.map((property) => (
-              // Using the _id as the unique key for React's reconciliation
-              <PropertyCard key={property._id} property={property} />
+              <PropertyCard
+                key={property._id}
+                property={property}
+                rate={rate}
+                symbol={symbol}
+              />
             ))}
           </div>
         )}
