@@ -1,11 +1,17 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { FaChevronDown, FaMoneyBillWave } from "react-icons/fa";
+import {
+  FaChevronDown,
+  FaMoneyBillWave,
+  Banknote,
+  ChevronDown,
+} from "lucide-react";
 // IMPORT the shared data
 import { CURRENCIES } from "../app/utils/currencyUtils";
 
 const Currency = ({ onCurrencyChange }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [selected, setSelected] = useState(CURRENCIES[0]);
 
   // Initialize with the first currency from our shared list
   const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]);
@@ -33,47 +39,62 @@ const Currency = ({ onCurrencyChange }) => {
   };
 
   return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
+    <div className="relative" ref={dropdownRef}>
       <button
-        type="button"
-        className="inline-flex cursor-pointer justify-center items-center w-full rounded-xl border border-gray-200 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
         onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition-all duration-200 outline-none focus:ring-2 focus:ring-indigo-500/20 ${
+          isOpen ? "ring-2 ring-indigo-500/20 border-indigo-500" : ""
+        }`}
       >
-        <FaMoneyBillWave className="mr-2 h-4 w-4 text-indigo-500" />
-        <span className="font-bold mr-1">{selectedCurrency.code}</span>
-        <span className="text-gray-500">({selectedCurrency.symbol})</span>
-        <FaChevronDown
-          className={`-mr-1 ml-2 h-4 w-4 transform transition-transform duration-200 ${
-            isOpen ? "rotate-180 text-indigo-600" : "rotate-0 text-gray-400"
+        <div className="p-1 bg-indigo-50 rounded-full text-indigo-600">
+          <Banknote size={16} />
+        </div>
+        <span className="font-bold text-gray-700">{selected.code}</span>
+        <span className="text-gray-400 text-sm">({selected.symbol})</span>
+        <ChevronDown
+          size={16}
+          className={`text-gray-400 transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
           }`}
         />
       </button>
 
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl shadow-2xl bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 z-10">
-          <div className="py-1">
-            {/* Map over the IMPORTED list */}
-            {CURRENCIES.map((currency) => (
-              <button
-                key={currency.code}
-                onClick={() => handleSelect(currency)}
-                className={`cursor-pointer flex items-center w-full px-4 py-3 text-sm text-left transition duration-150 ease-in-out 
-                  ${
-                    currency.code === selectedCurrency.code
-                      ? "bg-indigo-50 text-indigo-700 font-semibold pointer-events-none"
-                      : "text-gray-700 hover:bg-gray-100"
+      {/* Dropdown */}
+      <div
+        className={`absolute right-0 mt-2 w-56 bg-white/90 backdrop-blur-xl border border-gray-100 rounded-2xl shadow-xl z-50 transform transition-all duration-200 origin-top-right overflow-hidden ${
+          isOpen
+            ? "opacity-100 scale-100 translate-y-0"
+            : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+        }`}
+      >
+        <div className="p-1.5">
+          {CURRENCIES.map((c) => (
+            <button
+              key={c.code}
+              onClick={() => handleSelect(c)}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-colors ${
+                selected.code === c.code
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className={`font-bold ${
+                    selected.code === c.code
+                      ? "text-indigo-700"
+                      : "text-gray-900"
                   }`}
-              >
-                <span className="font-bold w-1/4">{currency.code}</span>
-                <span className="w-1/4 text-right">{currency.symbol}</span>
-                <span className="text-gray-500 ml-2 truncate w-1/2">
-                  {currency.name}
+                >
+                  {c.code}
                 </span>
-              </button>
-            ))}
-          </div>
+                <span className="text-gray-400 font-medium">{c.name}</span>
+              </div>
+              <span className="text-gray-500 font-mono">{c.symbol}</span>
+            </button>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 };
