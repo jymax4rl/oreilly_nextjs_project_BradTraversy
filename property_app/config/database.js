@@ -6,13 +6,26 @@ const connectToDatabase = async () => {
 
   //if the connection is already open, do nothing
   if (mongoose.connection.readyState === 1) {
-    console.log("Already connected to MongoDB");
-    return;
+    if (
+      mongoose.connection.db &&
+      mongoose.connection.db.databaseName !== "KamaProperties"
+    ) {
+      console.log(
+        `Connected to wrong database (${mongoose.connection.db.databaseName}), reconnecting to KamaProperties...`
+      );
+      await mongoose.disconnect();
+      // Fall through to connect logic
+    } else {
+      console.log("Already connected to MongoDB");
+      return;
+    }
   }
 
   //connect to MongoDB
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGODB_URI, {
+      dbName: "KamaProperties",
+    });
     console.log("Connected to MongoDB");
   } catch (error) {
     console.error("Failed to connect to MongoDB:", error);

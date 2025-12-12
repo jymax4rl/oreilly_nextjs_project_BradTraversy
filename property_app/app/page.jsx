@@ -4,7 +4,7 @@ import InfoBoxes from "@/components/InfoBoxes";
 import Footer from "@/components/Footer";
 import { MongoClient } from "mongodb";
 import connectToDatabase from "@/config/database";
-const HomePage = async () => {
+const HomePage = () => {
   return (
     <div className="m-0 p-0  ">
       <div className="w-full ">
