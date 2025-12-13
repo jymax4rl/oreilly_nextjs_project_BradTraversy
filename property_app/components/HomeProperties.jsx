@@ -204,9 +204,9 @@ const PropertyCard = ({ property, rate, symbol }) => {
 };
 
 // --- Main Parent Component ---
-const HomeProperties = () => {
+const HomeProperties = ({ initialProperties = [] }) => {
   const [currencyCode, setCurrencyCode] = useState("USD");
-  const [properties, setProperties] = useState([]);
+  const [properties, setProperties] = useState(initialProperties);
   const [rates, setRates] = useState({}); // Store live rates here
   const [loading, setLoading] = useState(true);
 
@@ -214,27 +214,22 @@ const HomeProperties = () => {
     setCurrencyCode(newCode);
   };
 
-  // Fetch properties and rates on component mount
+  // Fetch exchange rates on component mount
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchRates = async () => {
       try {
-        // Fetch properties from the API
-        const response = await fetch("/api/properties");
-        const data = await response.json();
-        setProperties(data);
-
         // Fetch exchange rates
         const liveRates = await fetchExchangeRates();
         if (liveRates) {
           setRates(liveRates);
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching exchange rates:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+    fetchRates();
   }, []);
 
   // 1. Find the metadata (Symbol, Name) from our static list
@@ -261,7 +256,19 @@ const HomeProperties = () => {
           </div>
         </div>
 
-        {properties.length === 0 ? (
+        {loading ? (
+          <div className="col-span-full flex flex-col items-center justify-center text-center py-24 px-4 bg-white rounded-3xl border border-gray-100 shadow-sm">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2 mt-6">
+              Loading Currency Rates
+            </h3>
+            <p className="text-gray-500 text-base max-w-md mx-auto">
+              Fetching the latest exchange rates...
+            </p>
+          </div>
+        ) : properties.length === 0 ? (
           <div className="col-span-full flex flex-col items-center justify-center text-center py-24 px-4 bg-white rounded-3xl border border-gray-100 shadow-sm">
             <div className="bg-indigo-50 p-8 rounded-full mb-6 inline-flex items-center justify-center animate-pulse-slow">
               <Search className="w-16 h-16 text-indigo-300" />
