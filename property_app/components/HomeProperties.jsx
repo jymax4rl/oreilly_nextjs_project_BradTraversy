@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import propertyData from "../properties.json";
 import {
   Bed,
   Bath,
@@ -207,23 +206,35 @@ const PropertyCard = ({ property, rate, symbol }) => {
 // --- Main Parent Component ---
 const HomeProperties = () => {
   const [currencyCode, setCurrencyCode] = useState("USD");
-  const properties = propertyData;
+  const [properties, setProperties] = useState([]);
   const [rates, setRates] = useState({}); // Store live rates here
   const [loading, setLoading] = useState(true);
 
   const handleCurrencyChange = (newCode) => {
     setCurrencyCode(newCode);
   };
-  // Fetch rates on component mount
+
+  // Fetch properties and rates on component mount
   useEffect(() => {
-    const getRates = async () => {
-      const liveRates = await fetchExchangeRates();
-      if (liveRates) {
-        setRates(liveRates);
+    const fetchData = async () => {
+      try {
+        // Fetch properties from the API
+        const response = await fetch("/api/properties");
+        const data = await response.json();
+        setProperties(data);
+
+        // Fetch exchange rates
+        const liveRates = await fetchExchangeRates();
+        if (liveRates) {
+          setRates(liveRates);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    getRates();
+    fetchData();
   }, []);
 
   // 1. Find the metadata (Symbol, Name) from our static list

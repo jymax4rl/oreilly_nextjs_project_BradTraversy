@@ -6,11 +6,13 @@ export const GET = async (request) => {
   try {
     // Connect to MongoDB
     await connectToDatabase();
-    // Find all properties
-    const properties = await Property.find({});
-    // Return properties as JSON
+    // Find all properties and convert to plain JavaScript objects
+    const properties = await Property.find({}).lean();
     return new Response(JSON.stringify(properties), {
       status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
   } catch (error) {
     console.log(error);

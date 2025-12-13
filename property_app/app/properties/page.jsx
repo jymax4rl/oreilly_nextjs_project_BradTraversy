@@ -1,6 +1,5 @@
 import React from "react";
 import HomeProperties from "@/components/HomeProperties";
-import PropertySearch from "@/components/PropertySearch";
 
 const PropertiesPage = () => {
   return (

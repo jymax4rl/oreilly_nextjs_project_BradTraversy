@@ -1,4 +1,4 @@
-import { Schema, models, model, Mongoose } from "mongoose";
+import { Schema, models, model } from "mongoose";
 
 const UserSchema = new Schema({
   kycStatus: {
@@ -59,5 +59,5 @@ const UserSchema = new Schema({
   },
 });
 
-const User = models.User || Mongoose.model("User", UserSchema);
+const User = models.User || model("User", UserSchema);
 export default User;
