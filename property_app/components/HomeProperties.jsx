@@ -24,6 +24,7 @@ import {
   formatCurrency,
 } from "../app/utils/currencyUtils";
 import DateCurrencyUpdated from "./DateCurrencyUpdated";
+import PropertySearch from "./PropertySearch";
 
 // --- Child Component ---
 const PropertyCard = ({ property, rate, symbol }) => {
@@ -240,13 +241,7 @@ const HomeProperties = () => {
         <div className="w-full text-center mb-12 ">
           <div className="grid grid-cols-1 md:grid-cols-8 gap-4 items-center">
             <div className="md:col-span-7 text-left md:text-center">
-              <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900">
-                Featured Properties
-              </h2>
-              <p className="text-gray-600 mt-4 text-lg max-w-2xl mx-auto">
-                Explore our hand-picked selection of top-tier properties
-                available for short-term and long-term stays.
-              </p>
+              <PropertySearch />
             </div>
             <div className=" justify-center md:justify-end">
               <Currency onCurrencyChange={handleCurrencyChange} />

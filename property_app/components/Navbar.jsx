@@ -72,11 +72,11 @@ const Navbar = () => {
   }, [isMobileOpen]); // <--- This dependency array is key!
 
   return (
-    <div className="bg-transparent">
+    <div className="">
       {/* // The nav is set to 3 col in md screens & 2 cols anything less */}
       <nav
         ref={container}
-        className="menu-container m-0 grid bg-transparent grid-cols-2 lg:grid-cols-[20%_60%_20%] z-50 fixed w-screen h-[8vh]"
+        className="menu-container m-0 grid bg-black/10 backdrop-blur-sm grid-cols-2 lg:grid-cols-[20%_60%_20%] z-50 fixed w-screen h-[8vh]"
       >
         <div className=" flex items-center ml-10 lg:ml-22 justify-start  align-center">
           <Link href={"/"}>
