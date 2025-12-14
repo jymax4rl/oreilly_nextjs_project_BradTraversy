@@ -1,18 +1,6 @@
 import React from "react";
 import HomeProperties from "@/components/HomeProperties";
-import Property from "@/models/Property";
-
-async function fetchProperties() {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/properties`);
-    if (!res.ok) {
-      throw new Error("Failed to fetch properties");
-    }
-    return res.json();
-  } catch (error) {
-    console.log(error);
-  }
-}
+import fetchProperties from "@/utils/request";
 
 const PropertiesPage = async ({ maxProperties }) => {
   const properties = await fetchProperties();

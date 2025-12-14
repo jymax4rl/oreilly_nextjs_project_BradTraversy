@@ -7,7 +7,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 // IMPORT the shared data
-import { CURRENCIES } from "../app/utils/currencyUtils";
+import { CURRENCIES } from "../utils/currencyUtils";
 
 const Currency = ({ onCurrencyChange }) => {
   const [isOpen, setIsOpen] = useState(false);

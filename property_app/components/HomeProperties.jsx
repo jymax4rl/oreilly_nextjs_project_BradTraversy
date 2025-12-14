@@ -21,7 +21,7 @@ import {
   CURRENCIES,
   fetchExchangeRates,
   formatCurrency,
-} from "../app/utils/currencyUtils";
+} from "../utils/currencyUtils";
 import DateCurrencyUpdated from "./DateCurrencyUpdated";
 import PropertySearch from "./PropertySearch";
 
