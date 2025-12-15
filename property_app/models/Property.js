@@ -12,10 +12,16 @@ const PropertySchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    is_featured: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
     // Add other fields relevant to your Airbnb clone (price, description, etc.)
   },
   {
-    timestamps: true,
+    timestamps: true, // Automatically adds createdAt and updatedAt
+    strict: false, // Allow fields not in schema
     collection: "Properties", // FORCE Mongoose to look for "Properties" (Capitalized)
   }
 );

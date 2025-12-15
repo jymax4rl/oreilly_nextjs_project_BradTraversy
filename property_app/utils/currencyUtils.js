@@ -1,5 +1,3 @@
-// src/utils/currencyUtils.js
-
 // Static metadata: Codes, Names, Symbols.
 // We initialize rates to 1 (USD) as a fallback.
 export const CURRENCIES = [
@@ -55,7 +53,9 @@ export const fetchExchangeRates = async () => {
   } catch (error) {
     // 4. ULTIMATE FALLBACK: If Primary API crashes or key is invalid
     console.error("Primary API failed, trying fallback...", error);
+
     try {
+      // 5. Fallback: Use Open Exchange Rates API
       const fallbackRes = await fetch("https://open.er-api.com/v6/latest/USD");
       const fallbackData = await fallbackRes.json();
       return { ...fallbackData.rates, USD: 1 };
@@ -65,12 +65,13 @@ export const fetchExchangeRates = async () => {
   }
 };
 
+// 6. Format currency with fallback
 export const formatCurrency = (amount, rate, symbol) => {
   if (!amount) return "N/A";
   const converted = amount * rate;
   const safeSymbol = symbol || "$";
 
-  return `${safeSymbol}${converted.toLocaleString(undefined, {
+  return `${safeSymbol} ${converted.toLocaleString(undefined, {
     maximumFractionDigits: 0,
   })}`;
 };
