@@ -24,6 +24,7 @@ const connectToDatabase = async () => {
   //connect to MongoDB
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
+      //specify the database name
       dbName: "KamaProperties",
     });
     console.log("Connected to MongoDB");
@@ -32,4 +33,5 @@ const connectToDatabase = async () => {
   }
 };
 
+//exporting connection logic
 export default connectToDatabase;

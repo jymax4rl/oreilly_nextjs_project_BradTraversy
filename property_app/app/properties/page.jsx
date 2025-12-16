@@ -6,8 +6,7 @@ import connectToDatabase from "@/config/database";
 const PropertiesPage = async ({ maxProperties }) => {
   // Connect to database first!
   await connectToDatabase();
-
-  // DEBUG: Check all properties in database
+  // DEBUG: Check all properties in database collection
   const allProps = await Property.find({}).lean();
   const featuredCount = allProps.filter((p) => p.is_featured === true).length;
   const notFeaturedCount = allProps.filter(
@@ -26,13 +25,6 @@ const PropertiesPage = async ({ maxProperties }) => {
       await Property.find({ is_featured: true }).limit(maxProperties).lean()
     : //else get all not featured properties
       await Property.find({ is_featured: false }).lean();
-
-  console.log(
-    "🔍 Query:",
-    maxProperties ? "Featured (true)" : "Not Featured (false)"
-  );
-  console.log("📊 Properties found:", properties.length);
-  console.log("🏠 First property:", properties[0]);
 
   //sort properties by date
   // properties.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));

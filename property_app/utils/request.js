@@ -1,3 +1,4 @@
+//fetch properties from the database with optional limit parameter
 async function fetchProperties(limit) {
   try {
     const res = await fetch(

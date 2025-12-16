@@ -21,6 +21,8 @@ import {
 } from "../utils/currencyUtils";
 
 // --- Child Component ---
+
+//destructuring the property object
 const PropertyCard = ({ property, rate, symbol }) => {
   const {
     name,
@@ -33,7 +35,7 @@ const PropertyCard = ({ property, rate, symbol }) => {
     images,
     is_featured,
   } = property;
-  const mainImage = `/properties/${images[0]}`;
+  const mainImage = `/properties/${images[1]}`;
   const [isLiked, setIsLiked] = useState(false);
 
   // Helper to get display price using the IMPORTED function

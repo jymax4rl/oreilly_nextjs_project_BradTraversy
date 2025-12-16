@@ -28,6 +28,8 @@ const PropertySchema = new mongoose.Schema(
 
 // Check if model exists to prevent "OverwriteModelError" in Next.js
 const Property =
-  mongoose.models.Property || mongoose.model("Property", PropertySchema);
+  //check if the model exists in the mongoose models collection
+  //if it does not exist, create it
+  mongoose.models.Property || mongoose.model("Properties", PropertySchema);
 
 export default Property;

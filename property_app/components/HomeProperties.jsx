@@ -1,26 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import {
-  Bed,
-  Bath,
-  Ruler,
-  MapPin,
-  Search,
-  Check,
-  X,
-  Zap,
-  Shield,
-  Crown,
-  Heart,
-} from "lucide-react";
+import { Search } from "lucide-react";
 import PropertyCard from "./PropertyCard";
 import Link from "next/link";
 import Currency from "./Currency";
-import {
-  CURRENCIES,
-  fetchExchangeRates,
-  formatCurrency,
-} from "../utils/currencyUtils";
+import { CURRENCIES, fetchExchangeRates } from "../utils/currencyUtils";
 import DateCurrencyUpdated from "./DateCurrencyUpdated";
 import PropertySearch from "./PropertySearch";
 
@@ -59,7 +43,6 @@ const HomeProperties = ({ initialProperties = [] }) => {
   const { symbol } = currencyMeta;
 
   // 2. Get the rate: Prefer live rate, fallback to static/default (which is 1)
-  // If loading, we default to 1 to avoid NaN flashes
   const rate = rates[currencyCode] || 1;
 
   return (
@@ -77,16 +60,18 @@ const HomeProperties = ({ initialProperties = [] }) => {
           </div>
         </div>
 
+        {/* // If loading, we default to 1 to avoid NaN flashes */}
+
         {loading ? (
           <div className="col-span-full flex flex-col items-center justify-center text-center py-24 px-4 bg-white rounded-3xl border border-gray-100 shadow-sm">
             <div className="relative">
               <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-2 mt-6">
-              Loading Currency Rates
+              Loading Kama Properties
             </h3>
             <p className="text-gray-500 text-base max-w-md mx-auto">
-              Fetching the latest exchange rates...
+              Fetching the Kama Properties...
             </p>
           </div>
         ) : properties.length === 0 ? (
