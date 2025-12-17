@@ -30,6 +30,7 @@ const PropertySchema = new mongoose.Schema(
 const Property =
   //check if the model exists in the mongoose models collection
   //if it does not exist, create it
-  mongoose.models.Property || mongoose.model("Properties", PropertySchema);
+
+  mongoose.models.Property || mongoose.model("Property", PropertySchema);
 
 export default Property;

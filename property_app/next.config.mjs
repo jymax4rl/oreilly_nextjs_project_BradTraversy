@@ -11,6 +11,11 @@ const nextConfig = {
       },
     ],
   },
+  resolve: {
+    fallback: {
+      async_hooks: false,
+    },
+  },
 };
 
 export default nextConfig;

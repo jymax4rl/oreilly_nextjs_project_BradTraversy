@@ -70,9 +70,10 @@ const PropertyCard = ({ property, rate, symbol }) => {
 
   return (
     <div className="group bg-white rounded-3xl overflow-hidden flex flex-col h-full border border-gray-100 hover:border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative">
-      <Link href={"/properties/" + property._id}>
+      <Link href={`../properties/${property._id}`}>
         <div className="relative cursor-pointer h-72 overflow-hidden">
           <Image
+            loading="eager"
             src={mainImage}
             alt={name}
             fill
@@ -128,7 +129,7 @@ const PropertyCard = ({ property, rate, symbol }) => {
         />
       </button>
 
-      <Link href={"/properties/" + property._id}>
+      <Link href={`../properties/${property._id}`}>
         <div className="p-6 flex flex-col flex-grow">
           <div className="mb-4">
             <h3

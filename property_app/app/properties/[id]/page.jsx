@@ -1,20 +1,11 @@
-"use client";
-
 import React from "react";
-import Link from "next/link";
-
-const PropertyPage = () => {
+export default async function Property({ params }) {
+  const { id } = await params;
+  console.log("params object:" + id);
+  console.table(id);
   return (
-    <div>
-      <h1>Property page in [id] folder</h1>
-
-      <Link className="cursor-pointer" href={"/"}>
-        Home
-      </Link>
-
-      <div></div>
+    <div className="flex justify-center items-center h-screen w-full">
+      <h2 className="text-2xl font-bold">Property</h2>
     </div>
   );
-};
-
-export default PropertyPage;
+}

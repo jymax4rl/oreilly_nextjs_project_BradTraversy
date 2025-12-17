@@ -1,9 +1,15 @@
 import mongoose from "mongoose";
+const apiDomain = process.env.MONGODB_URI || null;
 
 const connectToDatabase = async () => {
   // Set strict query to true to prevent unknown field queries
   mongoose.set("strictQuery", true);
 
+  //handle the case where the domain is not available yet
+  if (!apiDomain) {
+    console.log("No MongoDB URI provided");
+    return [];
+  }
   //if the connection is already open, do nothing
   if (mongoose.connection.readyState === 1) {
     if (
@@ -23,7 +29,7 @@ const connectToDatabase = async () => {
 
   //connect to MongoDB
   try {
-    await mongoose.connect(process.env.MONGODB_URI, {
+    await mongoose.connect(apiDomain, {
       //specify the database name
       dbName: "KamaProperties",
     });
