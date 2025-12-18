@@ -83,7 +83,8 @@ const HomeProperties = ({ initialProperties = [] }) => {
               No Properties Found
             </h3>
             <p className="text-gray-500 text-lg max-w-md mx-auto leading-relaxed">
-              We couldn't find any listings that match your current criteria.
+              We couldn&apos;t find any listings that match your current
+              criteria.
             </p>
             <div className="flex gap-4">
               <Link

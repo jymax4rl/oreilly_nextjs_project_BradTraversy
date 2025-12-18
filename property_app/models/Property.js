@@ -17,7 +17,74 @@ const PropertySchema = new mongoose.Schema(
       required: true,
       default: false,
     },
-    // Add other fields relevant to your Airbnb clone (price, description, etc.)
+    type: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+    },
+    location: {
+      street: {
+        type: String,
+      },
+      city: {
+        type: String,
+      },
+      state: {
+        type: String,
+      },
+      zipcode: {
+        type: String,
+      },
+      country: {
+        type: String,
+      },
+    },
+    beds: {
+      type: Number,
+      required: true,
+    },
+    baths: {
+      type: Number,
+      required: true,
+    },
+    square_feet: {
+      type: Number,
+      required: true,
+    },
+    amenities: [
+      {
+        type: String,
+      },
+    ],
+    rates: {
+      nightly: {
+        type: Number,
+      },
+      weekly: {
+        type: Number,
+      },
+      monthly: {
+        type: Number,
+      },
+    },
+    seller_info: {
+      name: {
+        type: String,
+      },
+      email: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+    },
+    images: [
+      {
+        type: String,
+      },
+    ],
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt

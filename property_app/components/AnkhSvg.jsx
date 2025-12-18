@@ -1,37 +1,44 @@
-'use client'
+"use client";
 import React, { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
 /**
  * AnkhSvg Component
- * 
+ *
  * @param {string} className - CSS classes.
  * @param {string} color - Unused if gradient is active, but kept for compatibility.
  */
 /**
  * AnkhSvg Component
- * 
+ *
  * @param {string} className - CSS classes.
  * @param {string} color - Unused if gradient is active, but kept for compatibility.
  */
-const AnkhSvgRefined = ({ className = "", color = "url(#crystalGradient)", ...props }) => {
+const AnkhSvgRefined = ({
+  className = "",
+  color = "url(#crystalGradient)",
+  ...props
+}) => {
   const container = useRef();
   const gradientRef = useRef();
 
   const { contextSafe } = useGSAP({ scope: container });
 
-  const onMouseEnter = contextSafe(() => {
-    gsap.fromTo(
-      gradientRef.current,
-      { attr: { x1: "-100%", x2: "0%" } },
-      {
-        attr: { x1: "200%", x2: "300%" },
-        duration: 1.5,
-        ease: "power2.inOut",
-      }
-    );
-  });
+  const onMouseEnter = () => {
+    contextSafe(() => {
+      if (!gradientRef.current) return;
+      gsap.fromTo(
+        gradientRef.current,
+        { attr: { x1: "-100%", x2: "0%" } },
+        {
+          attr: { x1: "200%", x2: "300%" },
+          duration: 1.5,
+          ease: "power2.inOut",
+        }
+      );
+    })();
+  };
 
   return (
     <svg
@@ -44,10 +51,13 @@ const AnkhSvgRefined = ({ className = "", color = "url(#crystalGradient)", ...pr
       {...props}
     >
       <defs>
-        <linearGradient 
+        <linearGradient
           ref={gradientRef}
-          id="crystalGradient" 
-          x1="-100%" y1="0%" x2="0%" y2="100%"
+          id="crystalGradient"
+          x1="-100%"
+          y1="0%"
+          x2="0%"
+          y2="100%"
           gradientUnits="userSpaceOnUse"
         >
           <stop offset="0%" stopColor="#e0f7fa" />
@@ -103,7 +113,7 @@ const AnkhSvgRefined = ({ className = "", color = "url(#crystalGradient)", ...pr
           L 12,8
           Z
       */}
-      <path 
+      <path
         fillRule="evenodd"
         d="M11,9 L8,9 L8,11 L11,11 L11,22 L13,22 L13,11 L16,11 L16,9 L13,9 
            C 13.5,8 15.5,7 15.5,4.5 
@@ -113,7 +123,7 @@ const AnkhSvgRefined = ({ className = "", color = "url(#crystalGradient)", ...pr
            M12,7.5 
            C 11.2,6.5 10.5,5.5 10.5,4.5 
            A 1.5 1.5 0 1 1 13.5,4.5 
-           C 13.5,5.5 12.8,6.5 12,7.5 Z" 
+           C 13.5,5.5 12.8,6.5 12,7.5 Z"
         filter="url(#glow)"
       />
     </svg>

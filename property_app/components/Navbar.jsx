@@ -25,6 +25,7 @@ const Navbar = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const container = useRef();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const pathname = usePathname();
 
   // 1. Define your GSAP animations
   const closeMenuAnimation = () => {
@@ -90,7 +91,7 @@ const Navbar = () => {
               key={index}
               href={link.path}
               className={
-                usePathname() === link.path
+                pathname === link.path
                   ? "rounded-sm bg-black p-2 text-white"
                   : "p-2 text-black"
               }
@@ -102,7 +103,7 @@ const Navbar = () => {
             <Link
               href="/properties/AddProperties"
               className={
-                usePathname() === "/properties/AddProperties"
+                pathname === "/properties/AddProperties"
                   ? "bg-gray-200 p-2 text-white"
                   : "p-2"
               }

@@ -16,7 +16,7 @@ const Footer = () => {
             </h3>
             <p className="max-w-md text-lg text-zinc-500">
               Join thousands of satisfied clients who found their perfect home
-              with Kama Properties. Let's start the conversation.
+              with Kama Properties. Let&apos;s start the conversation.
             </p>
             <div className="flex gap-4 pt-4">
               <button className="bg-white text-black px-8 py-3 rounded-full font-medium hover:bg-zinc-200 transition-colors">
