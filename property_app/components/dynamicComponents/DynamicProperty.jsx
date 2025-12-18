@@ -1,5 +1,6 @@
+"use client";
 import React from "react";
-// import Link from 'next/link'; // UNCOMMENT in your local Next.js project
+import Link from "next/link";
 import Image from "next/image";
 
 import {
@@ -29,7 +30,7 @@ export default function DynamicProperty({ property }) {
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-6 py-4 transition-all">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           {/* Replaced Link with a for preview compatibility */}
-          <a
+          <Link
             href="/properties"
             className="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
           >
@@ -37,7 +38,7 @@ export default function DynamicProperty({ property }) {
               <ArrowLeft size={16} />
             </div>
             Back to Listings
-          </a>
+          </Link>
           <div className="flex gap-2">
             <button className="p-2 rounded-full hover:bg-slate-50 text-slate-500 hover:text-slate-900 transition-colors">
               <Share2 size={20} />
@@ -303,7 +304,13 @@ export default function DynamicProperty({ property }) {
                   <span className="underline decoration-slate-300 decoration-dotted underline-offset-4">
                     Cleaning fee
                   </span>
-                  <span>$150</span>
+                  <span>
+                    {formatCurrency(
+                      150,
+                      rates[currencyCode],
+                      currencyCode === "USD" ? "$" : currencyCode
+                    )}
+                  </span>
                 </div>
                 <div className="flex justify-between font-bold text-slate-900 pt-4 border-t border-slate-100 mt-4 text-base">
                   <span>Total</span>

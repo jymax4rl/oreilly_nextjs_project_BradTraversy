@@ -1,5 +1,4 @@
 import React from "react";
-
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
 import mongoose from "mongoose";

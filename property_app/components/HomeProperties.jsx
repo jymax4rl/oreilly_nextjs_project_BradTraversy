@@ -4,7 +4,7 @@ import { Search } from "lucide-react";
 import PropertyCard from "./PropertyCard";
 import Link from "next/link";
 import Currency from "./Currency";
-import { formatCurrency } from "../utils/currencyUtils";
+import { formatCurrency, CURRENCIES } from "../utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
 import DateCurrencyUpdated from "./DateCurrencyUpdated";
 import PropertySearch from "./PropertySearch";
