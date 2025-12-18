@@ -32,14 +32,13 @@ export default async function PropertyPage({ params }) {
     // Connect to database first!
     await connectToDatabase();
 
-    console.log("🔍 Checking ID:", id, "| Type:", typeof id);
-    // Check if the ID is a valid MongoDB ObjectId to avoid Casting errors
-    if (mongoose.Types.ObjectId.isValid(id)) {
-      property = await Property.findOne({ _id: id }).lean();
-    } else {
-      property = await mongoose.connection.db
-        .collection("Properties")
-        .findOne({ _id: id });
+    // With standardized IDs, we can use the simple Mongoose findById
+    const propertyDoc = await Property.findById(id).lean();
+
+    // Convert ObjectId to string for Next.js serialization
+    if (propertyDoc) {
+      property = propertyDoc;
+      property._id = property._id.toString();
     }
   } catch (error) {
     console.error("Database error:", error);
