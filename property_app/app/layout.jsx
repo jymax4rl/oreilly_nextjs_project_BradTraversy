@@ -6,6 +6,8 @@ import React from "react";
 
 import StyledComponentsRegistry from "@/lib/registry";
 
+import { CurrencyProvider } from "@/utils/CurrencyContext";
+
 export const metadata = {
   title: "Nextjs course",
   description: "Learning Nextjs with MongoDB",
@@ -13,14 +15,16 @@ export const metadata = {
 };
 
 function MainLayout({ children }) {
-  console.log(children);  
+  console.log(children);
   return (
     <html lang="en">
       <body className="max-w-screen">
         <StyledComponentsRegistry>
-          <Navbar className=" bg-transparent"></Navbar>
-          <main className="">{children}</main>
-          <Footer className="" />
+          <CurrencyProvider>
+            <Navbar className=" bg-transparent"></Navbar>
+            <main className="">{children}</main>
+            <Footer className="" />
+          </CurrencyProvider>
         </StyledComponentsRegistry>
       </body>
     </html>

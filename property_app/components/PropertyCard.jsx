@@ -14,16 +14,14 @@ import {
   Crown,
   Heart,
 } from "lucide-react";
-import {
-  CURRENCIES,
-  fetchExchangeRates,
-  formatCurrency,
-} from "../utils/currencyUtils";
+import { formatCurrency } from "../utils/currencyUtils";
+import { useCurrency } from "@/utils/CurrencyContext";
 
 // --- Child Component ---
 
 //destructuring the property object
-const PropertyCard = ({ property, rate, symbol }) => {
+const PropertyCard = ({ property }) => {
+  const { currencyCode, rates } = useCurrency();
   const {
     name,
     type,
@@ -31,7 +29,7 @@ const PropertyCard = ({ property, rate, symbol }) => {
     beds,
     baths,
     square_feet,
-    rates,
+    rates: propertyRates, // Renamed to avoid conflict with global rates
     images,
     is_featured,
   } = property;
@@ -42,31 +40,31 @@ const PropertyCard = ({ property, rate, symbol }) => {
   const getDisplayPrice = (ratesObj) => {
     if (!ratesObj) return { price: "N/A", label: "" };
 
+    const currentRate = rates[currencyCode];
+    const currentSymbol = currencyCode === "USD" ? "$" : currencyCode;
+
     if (ratesObj.nightly) {
       return {
-        // FIX: Added formatCurrency() wrapper
-        price: formatCurrency(ratesObj.nightly, rate, symbol),
+        price: formatCurrency(ratesObj.nightly, currentRate, currentSymbol),
         label: "/ night",
       };
     }
     if (ratesObj.weekly) {
       return {
-        // FIX: Added formatCurrency() wrapper (was missing entirely)
-        price: formatCurrency(ratesObj.weekly, rate, symbol),
+        price: formatCurrency(ratesObj.weekly, currentRate, currentSymbol),
         label: "/ week",
       };
     }
     if (ratesObj.monthly) {
       return {
-        // FIX: Added formatCurrency() wrapper
-        price: formatCurrency(ratesObj.monthly, rate, symbol),
+        price: formatCurrency(ratesObj.monthly, currentRate, currentSymbol),
         label: "/ month",
       };
     }
     return { price: "Contact", label: "for rates" };
   };
 
-  const displayRate = getDisplayPrice(rates);
+  const displayRate = getDisplayPrice(propertyRates);
 
   return (
     <div className="group bg-white rounded-3xl overflow-hidden flex flex-col h-full border border-gray-100 hover:border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative">

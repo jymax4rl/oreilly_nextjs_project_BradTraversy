@@ -4,38 +4,15 @@ import { Search } from "lucide-react";
 import PropertyCard from "./PropertyCard";
 import Link from "next/link";
 import Currency from "./Currency";
-import { CURRENCIES, fetchExchangeRates } from "../utils/currencyUtils";
+import { formatCurrency } from "../utils/currencyUtils";
+import { useCurrency } from "@/utils/CurrencyContext";
 import DateCurrencyUpdated from "./DateCurrencyUpdated";
 import PropertySearch from "./PropertySearch";
 
 // --- Main Parent Component ---
 const HomeProperties = ({ initialProperties = [] }) => {
-  const [currencyCode, setCurrencyCode] = useState("USD");
+  const { currencyCode, setCurrencyCode, rates, loading } = useCurrency();
   const [properties, setProperties] = useState(initialProperties);
-  const [rates, setRates] = useState({}); // Store live rates here
-  const [loading, setLoading] = useState(true);
-
-  const handleCurrencyChange = (newCode) => {
-    setCurrencyCode(newCode);
-  };
-
-  // Fetch exchange rates on component mount
-  useEffect(() => {
-    const fetchRates = async () => {
-      try {
-        // Fetch exchange rates
-        const liveRates = await fetchExchangeRates();
-        if (liveRates) {
-          setRates(liveRates);
-        }
-      } catch (error) {
-        console.error("Error fetching exchange rates:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchRates();
-  }, []);
 
   // 1. Find the metadata (Symbol, Name) from our static list
   const currencyMeta =
@@ -54,7 +31,7 @@ const HomeProperties = ({ initialProperties = [] }) => {
               <PropertySearch />
             </div>
             <div className=" justify-center md:justify-end">
-              <Currency onCurrencyChange={handleCurrencyChange} />
+              <Currency onCurrencyChange={setCurrencyCode} />
               <DateCurrencyUpdated />
             </div>
           </div>

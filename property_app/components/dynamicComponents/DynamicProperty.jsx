@@ -15,15 +15,13 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
+import { useCurrency } from "@/utils/CurrencyContext";
+import { formatCurrency } from "@/utils/currencyUtils";
 
 export default function DynamicProperty({ property }) {
   // Fallback for preview if property prop is missing
   const data = property;
-
-  // Helper to format currency ensuring it matches the fetched data format
-  const formatPrice = (price) => {
-    return price ? `$${price.toLocaleString()}` : "N/A";
-  };
+  const { currencyCode, rates } = useCurrency();
 
   return (
     <div className="bg-white min-h-screen text-slate-900 font-sans selection:bg-blue-100 pb-20">
@@ -243,8 +241,16 @@ export default function DynamicProperty({ property }) {
                 <div className="flex flex-col">
                   <span className="text-3xl font-extrabold text-slate-900">
                     {data.rates.monthly
-                      ? formatPrice(data.rates.monthly)
-                      : formatPrice(data.rates.weekly)}
+                      ? formatCurrency(
+                          data.rates.monthly,
+                          rates[currencyCode],
+                          currencyCode === "USD" ? "$" : currencyCode
+                        )
+                      : formatCurrency(
+                          data.rates.weekly,
+                          rates[currencyCode],
+                          currencyCode === "USD" ? "$" : currencyCode
+                        )}
                   </span>
                   <span className="text-slate-500 font-medium">
                     {data.rates.monthly ? "/ month" : "/ week"}
@@ -286,7 +292,11 @@ export default function DynamicProperty({ property }) {
                     Base price
                   </span>
                   <span>
-                    {formatPrice(data.rates.weekly || data.rates.monthly)}
+                    {formatCurrency(
+                      data.rates.weekly || data.rates.monthly,
+                      rates[currencyCode],
+                      currencyCode === "USD" ? "$" : currencyCode
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -299,8 +309,10 @@ export default function DynamicProperty({ property }) {
                   <span>Total</span>
                   <span>
                     {/* Simple total calculation example */}
-                    {formatPrice(
-                      (data.rates.weekly || data.rates.monthly) + 150
+                    {formatCurrency(
+                      (data.rates.weekly || data.rates.monthly) + 150,
+                      rates[currencyCode],
+                      currencyCode === "USD" ? "$" : currencyCode
                     )}
                   </span>
                 </div>
