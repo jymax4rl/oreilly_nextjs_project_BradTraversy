@@ -43,6 +43,7 @@ const PropertiesPage = async ({ maxProperties }) => {
   return (
     <div className="">
       {/* Pass server-fetched properties to client component */}
+
       <HomeProperties initialProperties={limitedProperties} />
     </div>
   );

@@ -16,6 +16,9 @@ const nextConfig = {
       async_hooks: false,
     },
   },
+  experimental: {
+    viewTransition: true,
+  },
 };
 
 export default nextConfig;
