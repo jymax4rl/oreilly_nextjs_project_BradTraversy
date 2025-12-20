@@ -27,46 +27,22 @@ export default function DynamicProperty({ property }) {
 
   return (
     <div className="bg-white min-h-screen text-slate-900 font-sans selection:bg-blue-100 pb-20">
-      {/* Minimal Navbar with Backdrop Blur */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-6 py-4 transition-all">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          {/* Replaced Link with a for preview compatibility */}
-          <Link
-            href="/properties"
-            className="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
-          >
-            <div className="p-2 rounded-full bg-slate-50 group-hover:bg-slate-100 transition-colors">
-              <ArrowLeft size={16} />
-            </div>
-            Back to Listings
-          </Link>
-          <div className="flex gap-2">
-            <button className="p-2 rounded-full hover:bg-slate-50 text-slate-500 hover:text-slate-900 transition-colors">
-              <Share2 size={20} />
-            </button>
-            <button className="p-2 rounded-full hover:bg-slate-50 text-slate-500 hover:text-rose-500 transition-colors">
-              <Heart size={20} />
-            </button>
-          </div>
-        </div>
-      </nav>
-
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-10">
         {/* Header & Title Section */}
         <header className="space-y-6">
           <div className="space-y-2">
-            <div className="flex items-center gap-3 text-xs font-bold tracking-wider uppercase text-blue-600">
-              <span>{data.type}</span>
+            <div className="flex flex-wrap gap-3">
+              <span className="inline-flex cursor-pointer items-center px-4 py-1.5 rounded-xl bg-blue-900 text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-blue-500/30 transform transition-transform hover:-translate-y-0.5">
+                {data.type}
+              </span>
               {data.is_featured && (
-                <>
-                  <span className="w-1 h-1 rounded-full bg-slate-300" />
-                  <span className="flex items-center gap-1 text-amber-500">
-                    <Star size={12} fill="currentColor" /> Featured
-                  </span>
-                </>
+                <span className="inline-flex cursor-pointer items-center gap-1.5 px-4 py-1.5 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-black/30 transform transition-transform hover:-translate-y-0.5">
+                  <Star size={12} fill="currentColor" />
+                  Featured
+                </span>
               )}
             </div>
-            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-900">
+            <h1 className="text-3xl md:text-5xl font-thin font-sans tracking-tight text-slate-900">
               {data.name}
             </h1>
             <div className="flex items-center gap-2 text-slate-500 font-medium">
@@ -89,21 +65,21 @@ export default function DynamicProperty({ property }) {
                 priority
                 quality={90}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 50vw"
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                className="object-cover cursor-pointer transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
             </div>
 
             {/* Secondary Images Column */}
-            <div className="hidden md:grid md:col-span-1 grid-rows-2 gap-4 h-full">
-              <div className="relative h-full bg-slate-100 group">
+            <div className="hidden  md:grid md:col-span-1 grid-rows-2 gap-4 h-full">
+              <div className="relative cursor-pointer h-full bg-slate-100 group">
                 <Image
                   src={`/properties/${data.images[1] || "default.jpg"}`}
                   alt="Interior detail"
                   fill
                   quality={90}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  className="object-cover cursor-pointer transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
               <div className="relative h-full bg-slate-100 group">
@@ -113,7 +89,7 @@ export default function DynamicProperty({ property }) {
                   fill
                   quality={90}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  className="object-cover cursor-pointer transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
             </div>
@@ -128,7 +104,7 @@ export default function DynamicProperty({ property }) {
                 fill
                 quality={90}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                className="object-cover cursor-pointer transition-transform duration-700 group-hover:scale-105"
               />
               {data.images.length > 4 && (
                 <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center text-white font-medium backdrop-blur-sm cursor-pointer hover:bg-slate-900/60 transition-colors">

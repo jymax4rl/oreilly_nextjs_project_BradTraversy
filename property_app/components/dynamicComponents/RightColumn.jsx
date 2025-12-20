@@ -9,7 +9,7 @@ function RightColumn({ data }) {
   const { currencyCode, rates } = useCurrency();
   return (
     <div className="relative">
-      <div className="sticky top-32 p-8 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 bg-white space-y-8">
+      <div className="sticky  top-32 p-8 rounded-3xl border border-slate-200  shadow-xl/20 shadow-black-900 bg-white space-y-8">
         <div className="flex items-baseline justify-between">
           <div className="flex flex-col">
             <span className="text-3xl font-extrabold text-slate-900">
@@ -50,7 +50,7 @@ function RightColumn({ data }) {
           </div>
         </div>
 
-        <button className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-slate-900/20 text-lg">
+        <button className="w-full cursor-pointer py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-slate-900/20 text-lg">
           Reserve
         </button>
 

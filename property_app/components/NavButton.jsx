@@ -5,11 +5,7 @@ import styled from "styled-components";
 const NavButton = ({ text, href, clickFunc }) => {
   return (
     <StyledWrapper>
-      <button
-        className="cta text-white hidden lg:block"
-        onClick={clickFunc}
-        href={href}
-      >
+      <button className="cta hidden lg:block" onClick={clickFunc} href={href}>
         <span className="hover-underline-animation"> {text} </span>
       </button>
     </StyledWrapper>

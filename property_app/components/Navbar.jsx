@@ -77,7 +77,7 @@ const Navbar = () => {
       {/* // The nav is set to 3 col in md screens & 2 cols anything less */}
       <nav
         ref={container}
-        className="menu-container m-0 grid bg-black/10 backdrop-blur-sm grid-cols-2 lg:grid-cols-[20%_60%_20%] z-50 fixed w-screen h-[8vh]"
+        className="menu-container m-0 grid bg-blue/10 backdrop-blur-sm grid-cols-2 lg:grid-cols-[20%_60%_20%] z-50 fixed w-screen h-[8vh]"
       >
         <div className=" flex items-center ml-10 lg:ml-22 justify-start  align-center">
           <Link href={"/"}>
@@ -91,9 +91,7 @@ const Navbar = () => {
               key={index}
               href={link.path}
               className={
-                pathname === link.path
-                  ? "rounded-sm bg-black p-2 text-white"
-                  : "p-2 text-black"
+                pathname === link.path ? " p-2 text-white" : "p-2 text-black"
               }
             >
               <NavButton text={link.label}></NavButton>
@@ -104,8 +102,8 @@ const Navbar = () => {
               href="/properties/AddProperties"
               className={
                 pathname === "/properties/AddProperties"
-                  ? "bg-gray-200 p-2 text-white"
-                  : "p-2"
+                  ? " p-2 text-white"
+                  : " text-black"
               }
             >
               <NavButton text="Add Property"></NavButton>

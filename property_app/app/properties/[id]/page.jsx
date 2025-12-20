@@ -73,7 +73,7 @@ export default async function PropertyPage({ params }) {
     );
   }
   return (
-    <div>
+    <div className="pt-[8vh]">
       <DynamicProperty property={property} />
     </div>
   );
