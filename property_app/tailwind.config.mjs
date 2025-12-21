@@ -8,7 +8,7 @@ export default {
   darkMode: "class",
   theme: {
     fontFamily: {
-      sans: ["Inter", "sans-serif"],
+      sans: ["Poppins", "sans-serif"],
     },
     extend: {
       animation: {
