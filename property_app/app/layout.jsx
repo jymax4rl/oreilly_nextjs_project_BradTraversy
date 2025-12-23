@@ -7,6 +7,7 @@ import React from "react";
 import StyledComponentsRegistry from "@/lib/registry";
 
 import { CurrencyProvider } from "@/utils/CurrencyContext";
+import AuthProvider from "@/components/AuthProvider";
 
 export const metadata = {
   title: "Nextjs course",
@@ -17,17 +18,19 @@ export const metadata = {
 function MainLayout({ children }) {
   console.log(children);
   return (
-    <html lang="en">
-      <body className="max-w-screen">
-        <StyledComponentsRegistry>
-          <CurrencyProvider>
-            <Navbar className=" bg-transparent"></Navbar>
-            <main className="">{children}</main>
-            <Footer className="" />
-          </CurrencyProvider>
-        </StyledComponentsRegistry>
-      </body>
-    </html>
+    <AuthProvider>
+      <html lang="en">
+        <body className="max-w-screen">
+          <StyledComponentsRegistry>
+            <CurrencyProvider>
+              <Navbar className=" bg-transparent"></Navbar>
+              <main className="">{children}</main>
+              <Footer className="" />
+            </CurrencyProvider>
+          </StyledComponentsRegistry>
+        </body>
+      </html>
+    </AuthProvider>
   );
 }
 

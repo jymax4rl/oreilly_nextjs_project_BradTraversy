@@ -54,67 +54,67 @@ function PropertyDetails({ data }) {
             Rates per period
           </h2>
           <div className="flex items-center gap-10">
-            <p className="text-slate-600 leading-relaxed text-lg font-light whitespace-pre-line">
+            <div className="text-slate-600 leading-relaxed text-lg font-light whitespace-pre-line">
               {data.rates.monthly ? (
                 <div className="flex items-center gap-2">
-                  Monthly{" : "}
-                  <div className="font-bold">
+                  <p>Monthly{" : "}</p>
+                  <p className="font-bold">
                     {formatCurrency(
                       data.rates.monthly,
                       rates[currencyCode],
                       currencyCode === "USD" ? "$" : currencyCode
                     )}
-                  </div>
+                  </p>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2 text-red-500">
+                  <p className="flex items-center gap-2 text-red-500">
                     Monthly:
                     {<X size={16} strokeWidth={5} />}
-                  </div>
+                  </p>
                 </div>
               )}
-            </p>
-            <p className="text-slate-600 leading-relaxed text-lg font-light whitespace-pre-line">
+            </div>
+            <div className="text-slate-600 leading-relaxed text-lg font-light whitespace-pre-line">
               {data.rates.weekly ? (
                 <div className="flex items-center gap-2">
-                  Weekly{" : "}
-                  <div className="font-bold">
+                  <p>Weekly{" : "}</p>
+                  <p className="font-bold">
                     {formatCurrency(
                       data.rates.weekly,
                       rates[currencyCode],
                       currencyCode === "USD" ? "$" : currencyCode
                     )}
-                  </div>
+                  </p>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2 text-red-500">
+                  <p className="flex items-center gap-2 text-red-500">
                     weekly : <X size={16} strokeWidth={5} />
-                  </div>
+                  </p>
                 </div>
               )}
-            </p>
-            <p className="text-slate-600 leading-relaxed text-lg font-light whitespace-pre-line">
+            </div>
+            <div className="text-slate-600 leading-relaxed text-lg font-light whitespace-pre-line">
               {data.rates.nightly ? (
                 <div className="flex items-center gap-2">
-                  Nightly{" : "}
-                  <div className="font-bold">
+                  <p>Nightly{" : "}</p>
+                  <p className="font-bold">
                     {formatCurrency(
                       data.rates.nightly,
                       rates[currencyCode],
                       currencyCode === "USD" ? "$" : currencyCode
                     )}
-                  </div>
+                  </p>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2 text-red-500">
+                  <p className="flex items-center gap-2 text-red-500">
                     Nightly : <X size={16} strokeWidth={5} />
-                  </div>
+                  </p>
                 </div>
               )}
-            </p>
+            </div>
           </div>
         </div>
         {/* Description */}
