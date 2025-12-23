@@ -15,6 +15,7 @@ import Pattern from "./Pattern";
 import { LuUserRound } from "react-icons/lu";
 import LoginNavButton from "./LoginNavBtn";
 import { usePathname } from "next/navigation";
+import { signIn, signOut, useSession, getProviders } from "next-auth/react";
 
 const navLinks = [
   { path: "/", label: "Home" },
@@ -22,9 +23,10 @@ const navLinks = [
 ];
 
 const Navbar = () => {
+  const { data: session } = useSession();
+  const [providers, setProviders] = useState(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const container = useRef();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const pathname = usePathname();
 
   // 1. Define your GSAP animations
@@ -63,6 +65,15 @@ const Navbar = () => {
     setIsProfileOpen((prev) => !prev);
   };
 
+  useEffect(() => {
+    const setAuthProviders = async () => {
+      const res = await getProviders();
+      setProviders(res);
+    };
+    setAuthProviders();
+  }, []);
+  console.log(providers);
+
   // 3. The useEffect listens to state changes and triggers GSAP
   useEffect(() => {
     if (isMobileOpen) {
@@ -97,7 +108,7 @@ const Navbar = () => {
               <NavButton text={link.label}></NavButton>
             </Link>
           ))}
-          {isLoggedIn && (
+          {session && (
             <Link
               href="/properties/AddProperties"
               className={
@@ -113,9 +124,15 @@ const Navbar = () => {
 
         <div className="flex  w-full space-between gap-8 border-black items-center justify-end pointer mr-8">
           <div className="flex  w-full border-black">
-            {!isLoggedIn && (
+            {!session && (
               <div className="hidden lg:flex">
-                <LoginNavButton className=" "></LoginNavButton>
+                {providers &&
+                  Object.values(providers).map((provider, index) => (
+                    <LoginNavButton
+                      key={index}
+                      onClick={() => signIn(provider.id)}
+                    />
+                  ))}
               </div>
             )}
           </div>
@@ -126,7 +143,7 @@ const Navbar = () => {
           ></NavButton>
 
           <Hamburger className="" clickFunc={toggleMenu}></Hamburger>
-          {isLoggedIn && (
+          {session && (
             <div>
               <LuUserRound
                 id="profile-trigger"
@@ -262,7 +279,7 @@ const Navbar = () => {
                     </Link>
                   );
                 })}
-                {isLoggedIn && (
+                {session && (
                   <Link
                     onClick={toggleMenu}
                     href={"/properties/AddProperties"}
@@ -271,7 +288,7 @@ const Navbar = () => {
                     Add Property
                   </Link>
                 )}
-                {!isLoggedIn && (
+                {!session && (
                   <div className="menu-link-item-holder mt-4">
                     <LoginNavButton className=""></LoginNavButton>
                   </div>

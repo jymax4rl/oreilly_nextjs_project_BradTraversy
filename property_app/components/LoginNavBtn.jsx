@@ -2,10 +2,13 @@
 import React from "react";
 import styled from "styled-components";
 
-const LoginNavButton = () => {
+const LoginNavButton = ({ onClick }) => {
   return (
     <StyledWrapper>
-      <button className="button flex  items-center justify-center cursor-pointer bg-[#000] text-[#fff]">
+      <button
+        onClick={onClick}
+        className="button flex  items-center justify-center cursor-pointer bg-[#000] text-[#fff]"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           preserveAspectRatio="xMidYMid"
