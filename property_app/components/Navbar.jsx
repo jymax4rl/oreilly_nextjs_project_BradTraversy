@@ -110,9 +110,9 @@ const Navbar = () => {
           ))}
           {session && (
             <Link
-              href="/properties/AddProperties"
+              href="/properties/add"
               className={
-                pathname === "/properties/AddProperties"
+                pathname === "/properties/add"
                   ? " p-2 text-white"
                   : " text-black"
               }
@@ -122,8 +122,8 @@ const Navbar = () => {
           )}
         </div>
 
-        <div className="flex  w-full space-between gap-8 border-black items-center justify-end pointer mr-8">
-          <div className="flex  w-full border-black">
+        <div className="flex w-full gap-12  items-center justify-end pointer mr-8">
+          <div className="flex border-black">
             {!session && (
               <div className="hidden lg:flex">
                 {providers &&
@@ -136,107 +136,109 @@ const Navbar = () => {
               </div>
             )}
           </div>
-          <NavButton
-            className="cursor-pointer text-white hidden p-0 m-0 lg:block "
-            clickFunc={toggleMenu}
-            text={isMobileOpen ? "Close" : "Menu"} // Optional: change text based on state
-          ></NavButton>
+          <div className="">
+            <NavButton
+              className="cursor-pointer text-white hidden p-0 m-0 lg:block "
+              clickFunc={toggleMenu}
+              text={isMobileOpen ? "Close" : "Menu"} // Optional: change text based on state
+            >
+              {session && (
+                <div className="">
+                  <LuUserRound
+                    id="profile-trigger"
+                    onClick={toggleProfileMenu}
+                    className="cursor-pointer w-6 h-6 text-zinc-600"
+                  />
+                  {/* <!-- Profile Menu --> */}
+                  <div
+                    id="profile-menu"
+                    className={`absolute right-0 top-full mt-3 w-[14em] origin-top-right rounded-xl border border-zinc-200 bg-white p-2 shadow-xl shadow-zinc-200/20 ring-1 ring-black ring-opacity-5 focus:outline-none transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] z-50 ${
+                      isProfileOpen
+                        ? "opacity-100 visible scale-100"
+                        : "opacity-0 invisible scale-95"
+                    }`}
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby="profile-trigger"
+                  >
+                    {/* <!-- User Info Section --> */}
+                    <div className="px-3 py-3 mb-2 border-b border-zinc-100">
+                      <p className="text-sm font-medium text-zinc-900">
+                        {session.user.name}
+                      </p>
+                      <p className="text-xs text-zinc-500 truncate font-normal mt-0.5">
+                        {session.user.email}
+                      </p>
+                    </div>
+
+                    {/* <!-- Menu Items --> */}
+                    <div className="space-y-1">
+                      <Link
+                        href="#"
+                        className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+                        role="menuitem"
+                      >
+                        <LuUserRound
+                          data-lucide="user"
+                          className="w-6 h-6 text-black"
+                        ></LuUserRound>
+                        <span className="font-medium">{session.user.name}</span>
+                      </Link>
+
+                      <a
+                        href="#"
+                        className="group flex items-center justify-between rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+                        role="menuitem"
+                      >
+                        <div className="flex items-center gap-3">
+                          <i
+                            data-lucide="heart"
+                            className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"
+                          ></i>
+                          <span className="font-medium">Saved Properties</span>
+                        </div>
+                        <span className="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-xs font-medium text-zinc-600 group-hover:bg-white">
+                          3
+                        </span>
+                      </a>
+
+                      <a
+                        href="#"
+                        className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+                        role="menuitem"
+                      >
+                        <i
+                          data-lucide="settings-2"
+                          className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"
+                        ></i>
+                        <span className="font-medium">Settings</span>
+                      </a>
+                    </div>
+
+                    {/* <!-- Divider --> */}
+                    <div className="my-2 h-px bg-zinc-100"></div>
+
+                    {/* <!-- Actions --> */}
+                    <div className="space-y-1">
+                      <a
+                        href="#"
+                        className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-red-50 hover:text-red-600"
+                        role="menuitem"
+                      >
+                        <i
+                          data-lucide="log-out"
+                          className="w-4 h-4 text-zinc-400 group-hover:text-red-500"
+                        ></i>
+                        <button onClick={() => signOut()}>Sign out</button>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </NavButton>
+          </div>
 
           <Hamburger className="" clickFunc={toggleMenu}></Hamburger>
-          {session && (
-            <div>
-              <LuUserRound
-                id="profile-trigger"
-                onClick={toggleProfileMenu}
-                className="cursor-pointer"
-                alt="login-icon"
-              />
-              {/* <!-- Profile Menu --> */}
-              <div
-                id="profile-menu"
-                className={`absolute right-0 top-full mt-3 w-[14em] origin-top-right rounded-xl border border-zinc-200 bg-white p-2 shadow-xl shadow-zinc-200/50 ring-1 ring-black ring-opacity-5 focus:outline-none transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] z-50 ${
-                  isProfileOpen
-                    ? "opacity-100 visible scale-100"
-                    : "opacity-0 invisible scale-95"
-                }`}
-                role="menu"
-                aria-orientation="vertical"
-                aria-labelledby="profile-trigger"
-              >
-                {/* <!-- User Info Section --> */}
-                <div className="px-3 py-3 mb-2 border-b border-zinc-100">
-                  <p className="text-sm font-medium text-zinc-900">
-                    Jimmeh Camara
-                  </p>
-                  <p className="text-xs text-zinc-500 truncate font-normal mt-0.5">
-                    jimmeh@example.com
-                  </p>
-                </div>
-
-                {/* <!-- Menu Items --> */}
-                <div className="space-y-1">
-                  <Link
-                    href="#"
-                    className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
-                    role="menuitem"
-                  >
-                    <LuUserRound
-                      data-lucide="user"
-                      className="w-6 h-6 text-black"
-                    ></LuUserRound>
-                    <span className="font-medium">My Profile</span>
-                  </Link>
-
-                  <a
-                    href="#"
-                    className="group flex items-center justify-between rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
-                    role="menuitem"
-                  >
-                    <div className="flex items-center gap-3">
-                      <i
-                        data-lucide="heart"
-                        className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"
-                      ></i>
-                      <span className="font-medium">Saved Properties</span>
-                    </div>
-                    <span className="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-xs font-medium text-zinc-600 group-hover:bg-white">
-                      3
-                    </span>
-                  </a>
-
-                  <a
-                    href="#"
-                    className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
-                    role="menuitem"
-                  >
-                    <i
-                      data-lucide="settings-2"
-                      className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"
-                    ></i>
-                    <span className="font-medium">Settings</span>
-                  </a>
-                </div>
-
-                {/* <!-- Divider --> */}
-                <div className="my-2 h-px bg-zinc-100"></div>
-
-                {/* <!-- Actions --> */}
-                <div className="space-y-1">
-                  <a
-                    href="#"
-                    className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-red-50 hover:text-red-600"
-                    role="menuitem"
-                  >
-                    <i
-                      data-lucide="log-out"
-                      className="w-4 h-4 text-zinc-400 group-hover:text-red-500"
-                    ></i>
-                    <span className="font-medium">Sign out</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </nav>
       {/* //Menu-overlay on lg screens, show hide based on menu state */}
@@ -282,7 +284,7 @@ const Navbar = () => {
                 {session && (
                   <Link
                     onClick={toggleMenu}
-                    href={"/properties/AddProperties"}
+                    href={"/properties/add"}
                     className="menu-link-item-holder mt-4"
                   >
                     Add Property

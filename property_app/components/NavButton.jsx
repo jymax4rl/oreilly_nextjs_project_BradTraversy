@@ -2,12 +2,15 @@
 import React from "react";
 import styled from "styled-components";
 
-const NavButton = ({ text, href, clickFunc }) => {
+const NavButton = ({ text, href, clickFunc, children }) => {
   return (
     <StyledWrapper>
-      <button className="cta hidden lg:block" onClick={clickFunc} href={href}>
-        <span className="hover-underline-animation"> {text} </span>
-      </button>
+      <div className="flex items-center gap-6">
+        <button className="cta hidden lg:block" onClick={clickFunc} href={href}>
+          <span className="hover-underline-animation"> {text} </span>
+        </button>
+        {children}
+      </div>
     </StyledWrapper>
   );
 };
