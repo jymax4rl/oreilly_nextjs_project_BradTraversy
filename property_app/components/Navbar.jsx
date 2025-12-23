@@ -290,7 +290,13 @@ const Navbar = () => {
                 )}
                 {!session && (
                   <div className="menu-link-item-holder mt-4">
-                    <LoginNavButton className=""></LoginNavButton>
+                    {providers &&
+                      Object.values(providers).map((provider, index) => (
+                        <LoginNavButton
+                          key={index}
+                          onClick={() => signIn(provider.id)}
+                        />
+                      ))}
                   </div>
                 )}
               </div>
