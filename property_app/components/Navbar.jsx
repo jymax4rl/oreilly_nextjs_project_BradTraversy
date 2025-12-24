@@ -147,12 +147,12 @@ const Navbar = () => {
                   <LuUserRound
                     id="profile-trigger"
                     onClick={toggleProfileMenu}
-                    className="cursor-pointer w-6 h-6 text-zinc-600"
+                    className="cursor-pointer w-6 h-6 text-zinc-600 hover:text-white transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
                   />
                   {/* <!-- Profile Menu --> */}
                   <div
                     id="profile-menu"
-                    className={`absolute right-0 top-full mt-3 w-[14em] origin-top-right rounded-xl border border-zinc-200 bg-white p-2 shadow-xl shadow-zinc-200/20 ring-1 ring-black ring-opacity-5 focus:outline-none transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] z-50 ${
+                    className={`absolute right-0 top-full mr-6 mt-3 w-[14em] origin-top-right rounded-xl border border-zinc-200 bg-white p-2 shadow-xl shadow-zinc-200/20 ring-1 ring-black ring-opacity-5 focus:outline-none transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] z-50 ${
                       isProfileOpen
                         ? "opacity-100 visible scale-100"
                         : "opacity-0 invisible scale-95"
@@ -180,14 +180,13 @@ const Navbar = () => {
                       >
                         <LuUserRound
                           data-lucide="user"
-                          className="w-6 h-6 text-black"
+                          className="w-4 h-4 text-black hover:text-white"
                         ></LuUserRound>
                         <span className="font-medium">{session.user.name}</span>
                       </Link>
-
-                      <a
+                      <Link
                         href="#"
-                        className="group flex items-center justify-between rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+                        className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
                         role="menuitem"
                       >
                         <div className="flex items-center gap-3">
@@ -200,9 +199,9 @@ const Navbar = () => {
                         <span className="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-xs font-medium text-zinc-600 group-hover:bg-white">
                           3
                         </span>
-                      </a>
+                      </Link>
 
-                      <a
+                      <Link
                         href="#"
                         className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
                         role="menuitem"
@@ -212,7 +211,7 @@ const Navbar = () => {
                           className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"
                         ></i>
                         <span className="font-medium">Settings</span>
-                      </a>
+                      </Link>
                     </div>
 
                     {/* <!-- Divider --> */}
@@ -225,11 +224,12 @@ const Navbar = () => {
                         className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-red-50 hover:text-red-600"
                         role="menuitem"
                       >
-                        <i
-                          data-lucide="log-out"
-                          className="w-4 h-4 text-zinc-400 group-hover:text-red-500"
-                        ></i>
-                        <button onClick={() => signOut()}>Sign out</button>
+                        <button
+                          className="cursor-pointer w-full text-zinc-400 group-hover:text-red-500"
+                          onClick={() => signOut()}
+                        >
+                          Sign out
+                        </button>
                       </a>
                     </div>
                   </div>

@@ -24,11 +24,7 @@ export const authOptions = {
       const userExists = await User.findOne({ email: profile.email });
       //3.add user to db if not exists
       if (!userExists) {
-        //truncate user name if too long
-        const username =
-          profile.name.length > 20
-            ? profile.name.substring(0, 20)
-            : profile.name;
+        const username = profile.name;
         await User.create({
           email: profile.email,
           username,

@@ -32,7 +32,7 @@ const LoginNavButton = ({ onClick }) => {
             d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0 79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251"
           />
         </svg>
-        Login or Register
+        Sign In
       </button>
     </StyledWrapper>
   );
@@ -40,30 +40,75 @@ const LoginNavButton = ({ onClick }) => {
 
 const StyledWrapper = styled.div`
   .button {
-    // background-color: #000;
-    // color: #ffffff;
-    padding: 0.5rem 1.4rem;
-    font-size: 0.875rem;
-    line-height: 1rem;
-    font-weight: 400;
+    /* --- Glassmorphism Base --- */
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+
+    /* --- Typography & Layout --- */
+    color: #ffffff;
+    padding: 0.5rem 0.5rem;
+    font-size: 0.95rem;
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.2rem;
+    font-weight: 500;
+
     text-align: center;
     vertical-align: middle;
     align-items: center;
-    border-radius: 0.5rem;
+    border-radius: 12px;
     gap: 0.75rem;
-    border: none;
     cursor: pointer;
-    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1),
-      0 2px 2px -1px rgba(0, 0, 0, 0.06);
-    transition: 0.6s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Subtle inner shine */
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Add a subtle gradient overlay to make it pop more */
+  .button::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    z-index: -1;
+    border-radius: 12px;
   }
 
   .button svg {
-    height: 15px;
+    height: 18px;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.1));
+    transition: transform 0.3s ease;
   }
 
+  /* --- Hover State --- */
   .button:hover {
-    box-shadow: none;
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+    color: #fff;
+  }
+
+  .button:hover svg {
+    transform: scale(1.1);
+  }
+
+  /* --- Active/Click State --- */
+  .button:active {
+    transform: translateY(0);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.2);
   }
 `;
 
