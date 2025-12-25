@@ -29,26 +29,25 @@ export const fetchExchangeRates = async () => {
     const apiKey = process.env.NEXT_PUBLIC_CURRENCY_EXCHANGE_RATE_API;
 
     // 1. CHECK FIRST: If key is missing, go straight to fallback
+    const currencyApi = "https://open.er-api.com/v6/latest/USD";
+    const res = await fetch(currencyApi);
+    const data = await res.json();
     if (!apiKey) {
       console.warn("API Key is missing! Using open fallback API.");
-      const currencyApi = "https://open.er-api.com/v6/latest/USD";
-      const res = await fetch(currencyApi);
-      const data = await res.json();
       // Ensure we add the USD: 1 base, as open-er-api might exclude it
       return { ...data.rates, USD: 1 };
     }
 
     // 2. PRIMARY: If key exists, use CurrencyFreaks
-    const res = await fetch(
-      `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiKey}`
-    );
+    // const res = await fetch(
+    //   `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiKey}`
+    // );
 
     // 3. Handle specific API errors (e.g., if key is invalid/expired)
-    if (!res.ok) {
-      throw new Error(`CurrencyFreaks API Error: ${res.status}`);
-    }
+    // if (!res.ok) {
+    //   throw new Error(`CurrencyFreaks API Error: ${res.status}`);
+    // }
 
-    const data = await res.json();
     return { ...data.rates, USD: 1 };
   } catch (error) {
     // 4. ULTIMATE FALLBACK: If Primary API crashes or key is invalid

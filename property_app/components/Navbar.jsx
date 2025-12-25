@@ -28,7 +28,11 @@ const Navbar = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const container = useRef();
   const pathname = usePathname();
+  const profileImage = session?.user?.image;
 
+  console.log("profileImage:", profileImage);
+
+  console.log("session:", session);
   // 1. Define your GSAP animations
   const closeMenuAnimation = () => {
     gsap.to(".overlay-wrapper", {
@@ -143,12 +147,26 @@ const Navbar = () => {
               text={isMobileOpen ? "Close" : "Menu"} // Optional: change text based on state
             >
               {session && (
-                <div className="">
-                  <LuUserRound
-                    id="profile-trigger"
-                    onClick={toggleProfileMenu}
-                    className="cursor-pointer w-6 h-6 text-zinc-600 hover:text-white transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
-                  />
+                <div className="relative">
+                  {!profileImage && (
+                    <div className="">
+                      <LuUserRound
+                        id="profile-trigger"
+                        onClick={toggleProfileMenu}
+                        className="cursor-pointer w-6 h-6 text-zinc-600 hover:text-white transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <Image
+                      src={session.user.image}
+                      alt="profile"
+                      width={40}
+                      onClick={toggleProfileMenu}
+                      height={40}
+                      className="rounded-full cursor-pointer"
+                    />
+                  </div>
                   {/* <!-- Profile Menu --> */}
                   <div
                     id="profile-menu"
