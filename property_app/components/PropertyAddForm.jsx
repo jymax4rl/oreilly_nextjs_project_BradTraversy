@@ -187,13 +187,13 @@ const PropertyAddForm = () => {
             {/* The Slider Track */}
             <div
               className="flex-1 flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentStep * 100}%)` }}
+              style={{ transform: `translateX(-${currentStep * 105}%)` }}
             >
+              {/*Step 1: Modern Grid Selection */}
               <div className="w-full flex-shrink-0 px-2 py-2 overflow-y-auto">
                 <label className="block text-sm font-medium text-gray-900 mb-4">
                   Property Type
                 </label>
-                {/* Modern Grid Selection */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3">
                   {propertyOptions.map((option) => (
                     <div
@@ -228,6 +228,41 @@ const PropertyAddForm = () => {
                       </span>
                     </div>
                   ))}
+                </div>
+                {/* Hidden input to pass the value to the form handler */}
+                <input type="hidden" name="type" value={propertyType} />
+              </div>
+              {/*Step 2: Listing name & description */}
+              <div className="w-full flex-shrink-0 px-8 py-4 overflow-y-auto">
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    Listing Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                    placeholder="e.g. Beautiful Apartment In Miami"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="description"
+                    className="block text-sm font-medium text-gray-900 mb-2"
+                  >
+                    Description
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none resize-none"
+                    rows="5"
+                    placeholder="Tell us about your property..."
+                    required
+                  ></textarea>
                 </div>
               </div>
             </div>
