@@ -180,27 +180,27 @@ const PropertyAddForm = () => {
   };
 
   return (
-    <div className="h-screen pt-24">
+    <div className="h-screen pt-24 overflow-x-hidden">
       <div className="container">
-        <div className="bg-white shadow-md border-2 rounded-md p-6">
-          <form onSubmit={handleSubmit}>
+        <div className="bg-white shadow-md border-2 rounded-md lg:p-6">
+          <form className="w-screen" onSubmit={handleSubmit}>
             {/* The Slider Track */}
             <div
-              className="flex-1 flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentStep * 105}%)` }}
+              className="flex-1 w-full flex lg:gap-4 transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${currentStep * 100}%)` }}
             >
               {/*Step 1: Modern Grid Selection */}
-              <div className="w-full flex-shrink-0 px-2 py-2 overflow-y-auto">
+              <div className="w-full flex-shrink-0 lg:px-2 px-0 py-2 overflow-y-auto">
                 <label className="block text-sm font-medium text-gray-900 mb-4">
                   Property Type
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 lg:p-3 ">
                   {propertyOptions.map((option) => (
                     <div
                       key={option.value}
                       onClick={() => setPropertyType(option.value)}
                       className={`
-                          relative lg:w-48 cursor-pointer rounded-xl border p-4 flex flex-col items-center justify-center gap-3 transition-all aspect-[4/3 ] sm:aspect-square
+                          relative lg:w-48 w-32 cursor-pointer m-auto rounded-xl border p-4 flex flex-col items-center justify-center gap-4 transition-all aspect-[4/3 ] sm:aspect-square
                           ${
                             propertyType === option.value
                               ? "border-gray-900 bg-gray-50 ring-1 ring-gray-900 shadow-sm"
@@ -233,8 +233,8 @@ const PropertyAddForm = () => {
                 <input type="hidden" name="type" value={propertyType} />
               </div>
               {/*Step 2: Listing name & description */}
-              <div className="w-full flex-shrink-0 px-8 py-4 overflow-y-auto">
-                <div>
+              <div className="w-full flex-shrink-0 lg:px-20  px-5 overflow-y-auto">
+                <div className="my-4 ">
                   <label className="block text-sm font-medium text-gray-900 mb-2">
                     Listing Name
                   </label>
@@ -248,7 +248,7 @@ const PropertyAddForm = () => {
                   />
                 </div>
 
-                <div>
+                <div className="my-4">
                   <label
                     htmlFor="description"
                     className="block text-sm font-medium text-gray-900 mb-2"
@@ -263,6 +263,50 @@ const PropertyAddForm = () => {
                     placeholder="Tell us about your property..."
                     required
                   ></textarea>
+                </div>
+              </div>
+              {/* --- STEP 2: Location --- */}
+              <div className="w-full flex-shrink-0 p-0 overflow-y-auto ">
+                <div className="space-y-6 max-w-2xl lg:max-w-4xl lg:mx-auto">
+                  <div className="bg-white shadow-md rounded-2xl p-6 border border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Where is it located?
+                    </h3>
+                    <div className="space-y-4">
+                      <input
+                        type="text"
+                        id="street"
+                        name="location.street"
+                        className="w-full rounded-xl border-white bg-white shadow-sm p-4 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                        placeholder="Street Address"
+                      />
+                      <input
+                        type="text"
+                        id="city"
+                        name="location.city"
+                        className="w-full rounded-xl border-white bg-white shadow-sm p-4 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                        placeholder="City"
+                        required
+                      />
+                      <div className="flex gap-4">
+                        <input
+                          type="text"
+                          id="state"
+                          name="location.state"
+                          className="w-1/2 rounded-xl border-white bg-white shadow-sm p-4 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                          placeholder="State"
+                          required
+                        />
+                        <input
+                          type="text"
+                          id="zipcode"
+                          name="location.zipcode"
+                          className="w-1/2 rounded-xl border-white bg-white shadow-sm p-4 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                          placeholder="Zipcode"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
