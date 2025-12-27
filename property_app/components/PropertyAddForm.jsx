@@ -10,7 +10,7 @@ const PropertyAddForm = () => {
     "Listing Name",
     "Description",
     "Location",
-    "Photos",
+
     "Amenities",
     "Price",
   ];
@@ -180,10 +180,10 @@ const PropertyAddForm = () => {
   };
 
   return (
-    <div className="h-screen pt-24 overflow-x-hidden">
-      <div className="container">
-        <div className="bg-white shadow-md rounded-md lg:p-6">
-          <form className="w-screen" onSubmit={handleSubmit}>
+    <div className="h-screen min-w-full overflow-x-hidden">
+      <div className="container mx-auto w-full ">
+        <div className="bg-white shadow-md rounded-md ">
+          <form className="w-full" onSubmit={handleSubmit}>
             {/* The Slider Track */}
             <div
               className="flex-1 w-full flex lg:gap-4 transition-transform duration-500 ease-in-out"
@@ -266,7 +266,7 @@ const PropertyAddForm = () => {
                 </div>
               </div>
               {/* --- STEP 2: Location --- */}
-              <div className="w-full flex-shrink-0 p-2 overflow-y-auto ">
+              <div className="w-full flex-shrink-0 px-8 py-4 overflow-y-auto ">
                 <div className="space-y-6 max-w-2xl lg:max-w-4xl lg:mx-auto">
                   <div className="bg-white shadow-md rounded-2xl p-6 border border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -527,7 +527,6 @@ const PropertyAddForm = () => {
               </div>
             </div>
           </form>
-          <p>{propertyType}</p>
           <div className="p-8 border-t border-gray-100 bg-white flex justify-between items-center z-10">
             <button
               onClick={prevStep}

@@ -4,9 +4,9 @@ import AuthGuard from "@/components/AuthGuardLoading";
 const PropertyAddPage = () => {
   return (
     <AuthGuard>
-      <section className="">
+      <section className="overflow-hidden h-auto   mx-4">
         <div className="container">
-          <div className="bg-white shadow-md rounded-md ">
+          <div className="bg-white shadow-md p-auto mt-[12vh] rounded-md ">
             <PropertyAddForm />
           </div>
         </div>
