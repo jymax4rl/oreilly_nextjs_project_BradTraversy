@@ -266,7 +266,7 @@ const PropertyAddForm = () => {
                 </div>
               </div>
               {/* --- STEP 2: Location --- */}
-              <div className="w-full flex-shrink-0 p-0 overflow-y-auto ">
+              <div className="w-full flex-shrink-0 p-2 overflow-y-auto ">
                 <div className="space-y-6 max-w-2xl lg:max-w-4xl lg:mx-auto">
                   <div className="bg-white shadow-md rounded-2xl p-6 border border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
