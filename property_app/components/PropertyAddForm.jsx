@@ -309,6 +309,91 @@ const PropertyAddForm = () => {
                   </div>
                 </div>
               </div>
+              {/* --- STEP 3: Details & Amenities --- */}
+              <div className="w-full   flex-shrink-0 px-8 py-4 overflow-y-auto">
+                <div className="lg:max-w-6xl mx-auto space-y-8">
+                  {/* Specs */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                        Beds
+                      </label>
+                      <input
+                        type="number"
+                        id="beds"
+                        name="beds"
+                        className="w-full text-center rounded-xl border-gray-200 bg-gray-50 p-3 font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                        Baths
+                      </label>
+                      <input
+                        type="number"
+                        id="baths"
+                        name="baths"
+                        className="w-full text-center rounded-xl border-gray-200 bg-gray-50 p-3 font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                        Sq Ft
+                      </label>
+                      <input
+                        type="number"
+                        id="square_feet"
+                        name="square_feet"
+                        className="w-full text-center rounded-xl border-gray-200 bg-gray-50 p-3 font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Amenities Grid */}
+                  <div className=" ">
+                    <label className="block text-lg font-semibold text-gray-900 mb-4">
+                      What does it offer?
+                    </label>
+                    <div className="grid lg:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-3">
+                      {[
+                        { id: "wifi", label: "Wifi" },
+                        { id: "kitchen", label: "Full Kitchen" },
+                        { id: "washer_dryer", label: "Washer & Dryer" },
+                        { id: "free_parking", label: "Free Parking" },
+                        { id: "pool", label: "Swimming Pool" },
+                        { id: "hot_tub", label: "Hot Tub" },
+                        { id: "24_7_security", label: "24/7 Security" },
+                        { id: "wheelchair", label: "Wheelchair Accessible" },
+                        { id: "elevator", label: "Elevator" },
+                        { id: "dishwasher", label: "Dishwasher" },
+                        { id: "gym", label: "Gym" },
+                        { id: "ac", label: "Air Conditioning" },
+                        { id: "patio", label: "Balcony/Patio" },
+                        { id: "smart_tv", label: "Smart TV" },
+                      ].map((amenity) => (
+                        <label
+                          key={amenity.id}
+                          className="relative flex items-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50"
+                        >
+                          <input
+                            type="checkbox"
+                            id={`amenity_${amenity.id}`}
+                            name="amenities"
+                            value={amenity.label}
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
+                          />
+                          <span className="text-sm text-gray-700 font-medium">
+                            {amenity.label}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </form>
           <p>{propertyType}</p>
