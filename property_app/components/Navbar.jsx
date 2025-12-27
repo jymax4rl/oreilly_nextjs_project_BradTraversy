@@ -195,6 +195,7 @@ const Navbar = () => {
                         href="#"
                         className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
                         role="menuitem"
+                        onClick={() => setIsProfileOpen(false)}
                       >
                         <LuUserRound
                           data-lucide="user"
@@ -206,6 +207,7 @@ const Navbar = () => {
                         href="#"
                         className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
                         role="menuitem"
+                        onClick={() => setIsProfileOpen(false)}
                       >
                         <div className="flex items-center gap-3">
                           <i
@@ -223,6 +225,7 @@ const Navbar = () => {
                         href="#"
                         className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
                         role="menuitem"
+                        onClick={() => setIsProfileOpen(false)}
                       >
                         <i
                           data-lucide="settings-2"

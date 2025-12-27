@@ -10,6 +10,7 @@ const HomePage = () => {
         <Hero className="h-[55vh] border-4 border-zinc-800" />
 
         <PropertiesPage maxProperties={11} />
+
         <InfoBoxes />
       </div>
     </div>
