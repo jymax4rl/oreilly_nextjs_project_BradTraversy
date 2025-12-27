@@ -182,7 +182,7 @@ const PropertyAddForm = () => {
   return (
     <div className="h-screen pt-24 overflow-x-hidden">
       <div className="container">
-        <div className="bg-white shadow-md border-2 rounded-md lg:p-6">
+        <div className="bg-white shadow-md rounded-md lg:p-6">
           <form className="w-screen" onSubmit={handleSubmit}>
             {/* The Slider Track */}
             <div
@@ -310,7 +310,7 @@ const PropertyAddForm = () => {
                 </div>
               </div>
               {/* --- STEP 3: Details & Amenities --- */}
-              <div className="w-full   flex-shrink-0 px-8 py-4 overflow-y-auto">
+              <div className="w-full flex-shrink-0 px-8 py-4 overflow-y-auto">
                 <div className="lg:max-w-6xl mx-auto space-y-8">
                   {/* Specs */}
                   <div className="grid grid-cols-3 gap-4">
@@ -394,13 +394,144 @@ const PropertyAddForm = () => {
                   </div>
                 </div>
               </div>
+              {/* --- STEP 4: Rates --- */}
+              <div className="w-full flex-shrink-0 px-8 py-4 overflow-y-auto">
+                <div className="max-w-2xl mx-auto">
+                  <div className="bg-green-50 rounded-3xl p-8 border border-green-100 text-center space-y-6">
+                    <h3 className="text-xl font-bold text-green-900">
+                      Set Your Pricing
+                    </h3>
+                    <p className="text-green-700/80 text-sm">
+                      Leave fields blank if they don't apply.
+                    </p>
+
+                    <div className="space-y-4">
+                      <div className="relative">
+                        <label
+                          htmlFor="weekly_rate"
+                          className="absolute left-4 top-3 text-xs font-bold text-green-700 uppercase"
+                        >
+                          Weekly Rate
+                        </label>
+                        <input
+                          type="number"
+                          id="weekly_rate"
+                          name="rates.weekly"
+                          className="w-full rounded-xl border-transparent bg-white shadow-sm pt-8 pb-3 px-4 text-lg font-semibold text-gray-900 focus:ring-2 focus:ring-green-500 outline-none placeholder:text-gray-300"
+                          placeholder="$0"
+                        />
+                      </div>
+                      <div className="relative">
+                        <label
+                          htmlFor="monthly_rate"
+                          className="absolute left-4 top-3 text-xs font-bold text-green-700 uppercase"
+                        >
+                          Monthly Rate
+                        </label>
+                        <input
+                          type="number"
+                          id="monthly_rate"
+                          name="rates.monthly"
+                          className="w-full rounded-xl border-transparent bg-white shadow-sm pt-8 pb-3 px-4 text-lg font-semibold text-gray-900 focus:ring-2 focus:ring-green-500 outline-none placeholder:text-gray-300"
+                          placeholder="$0"
+                        />
+                      </div>
+                      <div className="relative">
+                        <label
+                          htmlFor="nightly_rate"
+                          className="absolute left-4 top-3 text-xs font-bold text-green-700 uppercase"
+                        >
+                          Nightly Rate
+                        </label>
+                        <input
+                          type="number"
+                          id="nightly_rate"
+                          name="rates.nightly"
+                          className="w-full rounded-xl border-transparent bg-white shadow-sm pt-8 pb-3 px-4 text-lg font-semibold text-gray-900 focus:ring-2 focus:ring-green-500 outline-none placeholder:text-gray-300"
+                          placeholder="$0"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* --- STEP 5: Contact & Images --- */}
+              <div className="w-full flex-shrink-0 px-8 py-4 overflow-y-auto">
+                <div className="max-w-2xl mx-auto space-y-8">
+                  {/* Contact Info */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Seller Information
+                    </h3>
+                    <input
+                      type="text"
+                      name="seller_info.name"
+                      className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
+                      placeholder="Seller Name"
+                    />
+                    <input
+                      type="email"
+                      name="seller_info.email"
+                      className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
+                      placeholder="Email Address"
+                      required
+                    />
+                    <input
+                      type="tel"
+                      name="seller_info.phone"
+                      className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
+                      placeholder="Phone Number"
+                    />
+                  </div>
+
+                  {/* Image Upload */}
+                  <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:bg-gray-50 transition-colors">
+                    <div className="mx-auto h-12 w-12 text-gray-400 mb-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+                        />
+                      </svg>
+                    </div>
+                    <label
+                      htmlFor="images"
+                      className="block text-sm font-medium text-gray-900 cursor-pointer"
+                    >
+                      <span className="text-blue-600 hover:text-blue-500">
+                        Upload images
+                      </span>{" "}
+                      or drag and drop
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1">
+                      PNG, JPG, GIF up to 10MB
+                    </p>
+                    <input
+                      type="file"
+                      id="images"
+                      name="images"
+                      className="hidden"
+                      accept="image/*"
+                      multiple
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </form>
           <p>{propertyType}</p>
           <div className="p-8 border-t border-gray-100 bg-white flex justify-between items-center z-10">
             <button
               onClick={prevStep}
-              className={`px-6 py-3 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors ${
+              className={`px-6 py-3 cursor-pointer rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors ${
                 currentStep === 0
                   ? "opacity-0 pointer-events-none"
                   : "opacity-100"
@@ -418,7 +549,7 @@ const PropertyAddForm = () => {
             ) : (
               <button
                 onClick={nextStep}
-                className="lg:px-8 px-4 py-3 rounded-xl bg-gray-900 text-white font-semibold shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all active:scale-95 flex items-center gap-2"
+                className="cursor-pointer lg:px-8 px-4 py-3 rounded-xl bg-gray-900 text-white font-semibold shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all active:scale-95 flex items-center gap-2"
               >
                 Next Step
                 <svg
