@@ -4,13 +4,97 @@ import { useState } from "react";
 const PropertyAddForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [propertyType, setPropertyType] = useState("");
+  const amenities = [
+    { id: "wifi", label: "Wifi" },
+    { id: "kitchen", label: "Full Kitchen" },
+    { id: "washer_dryer", label: "Washer & Dryer" },
+    { id: "free_parking", label: "Free Parking" },
+    { id: "pool", label: "Swimming Pool" },
+    { id: "hot_tub", label: "Hot Tub" },
+    { id: "24_7_security", label: "24/7 Security" },
+    { id: "wheelchair", label: "Wheelchair Accessible" },
+    { id: "elevator", label: "Elevator" },
+    { id: "dishwasher", label: "Dishwasher" },
+    { id: "gym", label: "Gym" },
+    { id: "ac", label: "Air Conditioning" },
+    { id: "patio", label: "Balcony/Patio" },
+    { id: "smart_tv", label: "Smart TV" },
+  ];
+  const [fields, setFields] = useState({
+    owner: "4",
+    name: "Karen Suburb Cottage",
+    type: "Cottage Or Cabin",
+    description:
+      "Experience tranquility in this cozy cottage located in Karen.",
+    location: {
+      country: "Kenya",
+      street: "789 Karen Lane",
+      city: "Nairobi",
+      state: "Nairobi County",
+      zipcode: "00502",
+    },
+    beds: 2,
+    baths: 1,
+    square_feet: 1100,
+    amenities: [
+      "Fireplace",
+      "Outdoor Grill/BBQ",
+      "Garden Access",
+      "Pet-Friendly",
+      "Wifi",
+      "Free Parking",
+      "Swimming Pool",
+      "Hot Tub",
+      "24/7 Security",
+      "Wheelchair Accessible",
+      "Elevator",
+      "Dishwasher",
+      "Gym",
+      "Air Conditioning",
+      "Balcony/Patio",
+      "Smart TV",
+    ],
+    rates: {
+      nightly: 120,
+      weekly: 750,
+    },
+    seller_info: {
+      name: "Robert Anderson",
+      email: "robert@gmail.com",
+      phone: "254-700-555556",
+    },
+    images: ["g1.jpg", "g2.jpg", "g3.jpg"],
+    is_featured: false,
+    createdAt: "2024-01-07T00:00:00.000Z",
+    updatedAt: "2024-01-07T00:00:00.000Z",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name.includes(".")) {
+      const [outerKey, innerKey] = name.split(".");
+      setFields((prevFields) => ({
+        ...prevFields,
+        [outerKey]: {
+          ...prevFields[outerKey],
+          [innerKey]: value,
+        },
+      }));
+    } else {
+      setFields((prevFields) => ({
+        ...prevFields,
+        [name]: value,
+      }));
+    }
+  };
+  const handleAmenitiesChange = () => {};
+  const handleImageChange = () => {};
 
   const steps = [
     "Property Type",
     "Listing Name",
     "Description",
     "Location",
-
     "Amenities",
     "Price",
   ];
@@ -239,6 +323,8 @@ const PropertyAddForm = () => {
                     Listing Name
                   </label>
                   <input
+                    value={fields.name}
+                    onChange={handleChange}
                     type="text"
                     id="name"
                     name="name"
@@ -256,6 +342,8 @@ const PropertyAddForm = () => {
                     Description
                   </label>
                   <textarea
+                    value={fields.description}
+                    onChange={handleChange}
                     id="description"
                     name="description"
                     className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none resize-none"
@@ -274,6 +362,8 @@ const PropertyAddForm = () => {
                     </h3>
                     <div className="space-y-4">
                       <input
+                        value={fields.location.street}
+                        onChange={handleChange}
                         type="text"
                         id="street"
                         name="location.street"
@@ -281,6 +371,8 @@ const PropertyAddForm = () => {
                         placeholder="Street Address"
                       />
                       <input
+                        value={fields.location.city}
+                        onChange={handleChange}
                         type="text"
                         id="city"
                         name="location.city"
@@ -290,6 +382,8 @@ const PropertyAddForm = () => {
                       />
                       <div className="flex gap-4">
                         <input
+                          value={fields.location.state}
+                          onChange={handleChange}
                           type="text"
                           id="state"
                           name="location.state"
@@ -298,6 +392,8 @@ const PropertyAddForm = () => {
                           required
                         />
                         <input
+                          value={fields.location.zipcode}
+                          onChange={handleChange}
                           type="text"
                           id="zipcode"
                           name="location.zipcode"
@@ -319,6 +415,8 @@ const PropertyAddForm = () => {
                         Beds
                       </label>
                       <input
+                        value={fields.beds}
+                        onChange={handleChange}
                         type="number"
                         id="beds"
                         name="beds"
@@ -331,6 +429,8 @@ const PropertyAddForm = () => {
                         Baths
                       </label>
                       <input
+                        value={fields.baths}
+                        onChange={handleChange}
                         type="number"
                         id="baths"
                         name="baths"
@@ -343,6 +443,8 @@ const PropertyAddForm = () => {
                         Sq Ft
                       </label>
                       <input
+                        value={fields.square_feet}
+                        onChange={handleChange}
                         type="number"
                         id="square_feet"
                         name="square_feet"
@@ -358,22 +460,7 @@ const PropertyAddForm = () => {
                       What does it offer?
                     </label>
                     <div className="grid lg:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-3">
-                      {[
-                        { id: "wifi", label: "Wifi" },
-                        { id: "kitchen", label: "Full Kitchen" },
-                        { id: "washer_dryer", label: "Washer & Dryer" },
-                        { id: "free_parking", label: "Free Parking" },
-                        { id: "pool", label: "Swimming Pool" },
-                        { id: "hot_tub", label: "Hot Tub" },
-                        { id: "24_7_security", label: "24/7 Security" },
-                        { id: "wheelchair", label: "Wheelchair Accessible" },
-                        { id: "elevator", label: "Elevator" },
-                        { id: "dishwasher", label: "Dishwasher" },
-                        { id: "gym", label: "Gym" },
-                        { id: "ac", label: "Air Conditioning" },
-                        { id: "patio", label: "Balcony/Patio" },
-                        { id: "smart_tv", label: "Smart TV" },
-                      ].map((amenity) => (
+                      {amenities.map((amenity) => (
                         <label
                           key={amenity.id}
                           className="relative flex items-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50"
@@ -383,6 +470,8 @@ const PropertyAddForm = () => {
                             id={`amenity_${amenity.id}`}
                             name="amenities"
                             value={amenity.label}
+                            checked={fields.amenities.includes(amenity.label)}
+                            onChange={handleAmenitiesChange}
                             className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
                           />
                           <span className="text-sm text-gray-700 font-medium">
@@ -419,6 +508,8 @@ const PropertyAddForm = () => {
                           name="rates.weekly"
                           className="w-full rounded-xl border-transparent bg-white shadow-sm pt-8 pb-3 px-4 text-lg font-semibold text-gray-900 focus:ring-2 focus:ring-green-500 outline-none placeholder:text-gray-300"
                           placeholder="$0"
+                          value={fields.rates.weekly}
+                          onChange={handleChange}
                         />
                       </div>
                       <div className="relative">
@@ -434,6 +525,8 @@ const PropertyAddForm = () => {
                           name="rates.monthly"
                           className="w-full rounded-xl border-transparent bg-white shadow-sm pt-8 pb-3 px-4 text-lg font-semibold text-gray-900 focus:ring-2 focus:ring-green-500 outline-none placeholder:text-gray-300"
                           placeholder="$0"
+                          value={fields.rates.monthly}
+                          onChange={handleChange}
                         />
                       </div>
                       <div className="relative">
@@ -449,6 +542,8 @@ const PropertyAddForm = () => {
                           name="rates.nightly"
                           className="w-full rounded-xl border-transparent bg-white shadow-sm pt-8 pb-3 px-4 text-lg font-semibold text-gray-900 focus:ring-2 focus:ring-green-500 outline-none placeholder:text-gray-300"
                           placeholder="$0"
+                          value={fields.rates.nightly}
+                          onChange={handleChange}
                         />
                       </div>
                     </div>
@@ -468,6 +563,8 @@ const PropertyAddForm = () => {
                       name="seller_info.name"
                       className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
                       placeholder="Seller Name"
+                      value={fields.seller_info.name}
+                      onChange={handleChange}
                     />
                     <input
                       type="email"
@@ -475,12 +572,16 @@ const PropertyAddForm = () => {
                       className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
                       placeholder="Email Address"
                       required
+                      value={fields.seller_info.email}
+                      onChange={handleChange}
                     />
                     <input
                       type="tel"
                       name="seller_info.phone"
                       className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
                       placeholder="Phone Number"
+                      value={fields.seller_info.phone}
+                      onChange={handleChange}
                     />
                   </div>
 
@@ -520,6 +621,7 @@ const PropertyAddForm = () => {
                       className="hidden"
                       accept="image/*"
                       multiple
+                      onChange={handleImageChange}
                       required
                     />
                   </div>
