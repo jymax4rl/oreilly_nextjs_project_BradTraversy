@@ -288,17 +288,23 @@ const PropertyAddForm = () => {
   };
 
   // Handler to fix the "action" prop warning in client-side preview
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    addProperty(formData);
-  };
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   const formData = new FormData(e.currentTarget);
+  //   addProperty(formData);
+  // };
 
   return (
     <div className="h-screen min-w-full overflow-x-hidden">
       <div className="container mx-auto w-full ">
         <div className="bg-white shadow-md rounded-md ">
-          <form className="w-full" onSubmit={handleSubmit}>
+          <form
+            className="w-full"
+            // onSubmit={handleSubmit}
+            action="/api/properties"
+            method="POST"
+            encType="multipart/form-data"
+          >
             {/* The Slider Track */}
             <div
               className="flex-1 w-full flex lg:gap-4 transition-transform duration-500 ease-in-out"
@@ -664,48 +670,48 @@ const PropertyAddForm = () => {
                 </div>
               </div>
             </div>
-          </form>
-          <div className="p-8 border-t border-gray-100 bg-white flex justify-between items-center z-10">
-            <button
-              onClick={prevStep}
-              className={`px-6 py-3 cursor-pointer rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors ${
-                currentStep === 0
-                  ? "opacity-0 pointer-events-none"
-                  : "opacity-100"
-              }`}
-            >
-              Back
-            </button>
-            {currentStep === steps.length - 1 ? (
+            <div className="p-8 border-t border-gray-100 bg-white flex justify-between items-center z-10">
               <button
-                type="submit"
-                className="lg:px-8 px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:shadow-blue-600/40 hover:-translate-y-0.5 transition-all active:scale-95"
+                onClick={prevStep}
+                className={`px-6 py-3 cursor-pointer rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors ${
+                  currentStep === 0
+                    ? "opacity-0 pointer-events-none"
+                    : "opacity-100"
+                }`}
               >
-                Complete Listing
+                Back
               </button>
-            ) : (
-              <button
-                onClick={nextStep}
-                className="cursor-pointer lg:px-8 px-4 py-3 rounded-xl bg-gray-900 text-white font-semibold shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all active:scale-95 flex items-center gap-2"
-              >
-                Next Step
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="w-4 h-4"
+              {currentStep === steps.length - 1 ? (
+                <button
+                  type="submit"
+                  className="lg:px-8 px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:shadow-blue-600/40 hover:-translate-y-0.5 transition-all active:scale-95"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                  />
-                </svg>
-              </button>
-            )}
-          </div>
+                  Complete Listing
+                </button>
+              ) : (
+                <button
+                  onClick={nextStep}
+                  className="cursor-pointer lg:px-8 px-4 py-3 rounded-xl bg-gray-900 text-white font-semibold shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all active:scale-95 flex items-center gap-2"
+                >
+                  Next Step
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-4 h-4"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </form>
         </div>
       </div>
     </div>
