@@ -3,6 +3,7 @@ import { useState } from "react";
 
 const PropertyAddForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [fileName, setFileName] = useState("");
   const [propertyType, setPropertyType] = useState("");
   const amenities = [
     { id: "wifi", label: "Wifi" },
@@ -109,7 +110,13 @@ const PropertyAddForm = () => {
       amenities: updatedAmenities,
     }));
   };
-  const handleImageChange = () => {};
+  const handleImageChange = (e) => {
+    const { files } = e.target;
+    if (files && files.length > 0) {
+      const name = files[0].name;
+      setFileName(name.length > 20 ? `${name.substring(0, 20)}...` : name);
+    }
+  };
 
   const steps = [
     "Property Type",
@@ -645,6 +652,7 @@ const PropertyAddForm = () => {
                       onChange={handleImageChange}
                       required
                     />
+                    <p>{fileName}</p>
                   </div>
                 </div>
               </div>
