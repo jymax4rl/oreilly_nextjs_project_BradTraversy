@@ -37,10 +37,6 @@ const PropertyAddForm = () => {
     baths: 1,
     square_feet: 1100,
     amenities: [
-      "Fireplace",
-      "Outdoor Grill/BBQ",
-      "Garden Access",
-      "Pet-Friendly",
       "Wifi",
       "Free Parking",
       "Swimming Pool",
@@ -69,7 +65,9 @@ const PropertyAddForm = () => {
     updatedAt: "2024-01-07T00:00:00.000Z",
   });
 
+  //check if the name includes a dot or nested object
   const handleChange = (e) => {
+    console.log("Target", e.target);
     const { name, value } = e.target;
     if (name.includes(".")) {
       const [outerKey, innerKey] = name.split(".");
@@ -81,13 +79,36 @@ const PropertyAddForm = () => {
         },
       }));
     } else {
+      //not nested object
       setFields((prevFields) => ({
         ...prevFields,
         [name]: value,
       }));
     }
+    console.log("InnerKey", prevFields);
   };
-  const handleAmenitiesChange = () => {};
+  const handleAmenitiesChange = (e) => {
+    const { value, checked } = e.target;
+
+    //clone the current array
+    const updatedAmenities = [...fields.amenities];
+    if (checked) {
+      updatedAmenities.push(value);
+      console.log("Checked", value);
+      console.log("UpdatedAmenities", updatedAmenities);
+    } else {
+      // remove the value from the array
+      const index = updatedAmenities.indexOf(value);
+      updatedAmenities.splice(index, 1);
+      console.log("Unchecked", value);
+      console.log("Index", index);
+      console.log("UpdatedAmenities", updatedAmenities);
+    }
+    setFields((prevFields) => ({
+      ...prevFields,
+      amenities: updatedAmenities,
+    }));
+  };
   const handleImageChange = () => {};
 
   const steps = [

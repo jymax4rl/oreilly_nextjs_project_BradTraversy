@@ -20,6 +20,17 @@ const UserSchema = new Schema(
         ref: "Property",
       },
     ],
+    //role and host status
+    role: {
+      type: String,
+      enum: ["guest", "host", "admin"],
+      default: "guest",
+    },
+    hostStatus: {
+      type: String,
+      enum: ["none", "onboarding", "verified", "rejected"],
+      default: "none",
+    },
   },
   {
     timestamps: true,
