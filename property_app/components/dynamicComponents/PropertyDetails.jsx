@@ -127,6 +127,22 @@ function PropertyDetails({ data }) {
           </p>
         </div>
 
+        {/* Audio Description */}
+        {data.audio && (
+          <div>
+            <h2 className="text-2xl font-bold mb-6 text-slate-900">
+              Listen to the host
+            </h2>
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+              <audio
+                controls
+                src={`/audio/properties/${data.audio}`}
+                className="w-full"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Amenities Grid */}
         <div>
           <h2 className="text-2xl font-bold mb-8 text-slate-900">

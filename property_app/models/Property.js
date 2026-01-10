@@ -85,6 +85,10 @@ const PropertySchema = new mongoose.Schema(
         type: String,
       },
     ],
+    audio: {
+      type: String,
+      required: false,
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt

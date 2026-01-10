@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 const PropertyAddForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -110,6 +110,56 @@ const PropertyAddForm = () => {
       amenities: updatedAmenities,
     }));
   };
+  const [recording, setRecording] = useState(false);
+  const [audioUrl, setAudioUrl] = useState(null);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorderRef.current.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/wav" });
+        const url = URL.createObjectURL(blob);
+        setAudioUrl(url);
+        setAudioBlob(blob);
+        audioChunksRef.current = [];
+      };
+
+      mediaRecorderRef.current.start();
+      setRecording(true);
+    } catch (error) {
+      console.error("Error accessing microphone:", error);
+      alert("Microphone access is required to record audio.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && recording) {
+      mediaRecorderRef.current.stop();
+      setRecording(false);
+      // Stop all tracks to release microphone
+      mediaRecorderRef.current.stream
+        .getTracks()
+        .forEach((track) => track.stop());
+    }
+  };
+
+  const deleteAudio = () => {
+    setAudioUrl(null);
+    setAudioBlob(null);
+  };
+
   const handleImageChange = (e) => {
     const { files } = e.target;
     if (files && files.length > 0) {
@@ -118,6 +168,45 @@ const PropertyAddForm = () => {
         return name.length > 20 ? `${name.substring(0, 20)}...` : name;
       });
       setFileNames(newFileNames);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+
+    // Append audio blob if existing
+    if (audioBlob) {
+      formData.append("audio", audioBlob, "recording.wav");
+    }
+
+    try {
+      const res = await fetch("/api/properties", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        // Redirect is handled by the server response usually, but for fetch we might need to handle it
+        // creating a property redirects, but fetch doesn't automatically follow in the way a form does for the browser history if it returns a redirect.
+        // However, my API returns Response.redirect().
+        // If I use fetch, I need to check res.url or handle the redirection manually.
+        // Actually, Response.redirect in API route with fetch: the browser follows it?
+        // No, fetch follows redirects transparently and returns the final response.
+        // I should probably return the ID and redirect client-side, OR assume strict form submission.
+        // BUT, to submit a Blob, I MUST use fetch.
+        // So, I'll check res.url and window.location.href = res.url if it changed.
+        if (res.redirected) {
+          window.location.href = res.url;
+        } else {
+          // Fallback if API didn't redirect but succeeded?
+          // My API does return Response.redirect.
+        }
+      } else {
+        console.error("Submission failed");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
     }
   };
 
@@ -298,13 +387,7 @@ const PropertyAddForm = () => {
     <div className="h-screen min-w-full overflow-x-hidden">
       <div className="container mx-auto w-full ">
         <div className="bg-white shadow-md rounded-md ">
-          <form
-            className="w-full"
-            // onSubmit={handleSubmit}
-            action="/api/properties"
-            method="POST"
-            encType="multipart/form-data"
-          >
+          <form className="w-full" onSubmit={handleSubmit}>
             {/* The Slider Track */}
             <div
               className="flex-1 w-full flex lg:gap-4 transition-transform duration-500 ease-in-out"
@@ -388,6 +471,43 @@ const PropertyAddForm = () => {
                     placeholder="Tell us about your property..."
                     required
                   ></textarea>
+                  {/* Audio Recorder UI */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                      Audio Description
+                    </label>
+                    <div className="flex items-center gap-4">
+                      {!recording ? (
+                        <button
+                          type="button"
+                          onClick={startRecording}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                        >
+                          Start Recording
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={stopRecording}
+                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition animate-pulse"
+                        >
+                          Stop Recording
+                        </button>
+                      )}
+                      {audioUrl && (
+                        <div className="flex items-center gap-2">
+                          <audio controls src={audioUrl} className="h-10" />
+                          <button
+                            type="button"
+                            onClick={deleteAudio}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
               {/* --- STEP 2: Location --- */}
