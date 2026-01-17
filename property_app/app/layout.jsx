@@ -8,11 +8,14 @@ import StyledComponentsRegistry from "@/lib/registry";
 
 import { CurrencyProvider } from "@/utils/CurrencyContext";
 import AuthProvider from "@/components/AuthProvider";
+import connectToDatabase from "@/config/database";
+import Property from "@/models/Property";
 
 export const metadata = {
-  title: "Nextjs course",
-  description: "Learning Nextjs with MongoDB",
-  keywords: "Nextjs React & MongoDb",
+  title: "ImKm Properties",
+  description: "ImKm Properties made for Africans by Africans",
+  keywords:
+    "Rent in Senegal,Rent in Mali,Rent in Burkina,Rent in Ghana,Rent in Côte d'Ivoire,Rent in Niger,Rent in Chad,Rent in Cameroon,Rent in Guinea,rent in Rwanda,Rent in Uganda,Rent in Burundi,Rent in Tanzania,Rent in Kenya,Rent in Somalia,Rent in Ethiopia,Rent in Eritrea,Rent in Djibouti,Rent in Comoros,Rent in Madagascar,Rent in Mauritius,Rent in Seychelles,Rent in Malawi,Rent in Zambia,Rent in Zimbabwe,Rent in Mozambique,Rent in Angola,Rent in Congo",
 };
 
 function MainLayout({ children }) {
