@@ -21,6 +21,33 @@ import {
   Star,
 } from "lucide-react";
 
+/* ============================
+   SEO METADATA (SERVER-SIDE)
+============================ */
+export async function generateMetadata(props) {
+  const params = await props.params;
+
+  await connectToDatabase();
+  const property = await Property.findById(params.id).lean();
+
+  if (!property) {
+    return {
+      title: "Property not found | Aplica",
+      description: "This property does not exist",
+    };
+  }
+
+  return {
+    title: `${property.name} | ${property.type} ${property.location.city}`,
+    description: property.description,
+    openGraph: {
+      title: property.name,
+      description: property.description,
+      images: property.images?.length ? [property.images[0]] : [],
+    },
+  };
+}
+
 export default async function PropertyPage({ params }) {
   // Unwrapping params for Next.js 15
   const resolvedParams = await params;
