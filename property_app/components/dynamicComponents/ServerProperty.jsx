@@ -1,39 +1,52 @@
+// key changes:
+// - show a server-rendered short description under the H1
+// - JSON-LD uses truncated sanitized description and dynamic priceCurrency
+// - JSON-LD includes image array and offers.price/priceCurrency
+
 import React from "react";
 import Image from "next/image";
 
-/**
- * Server-rendered component containing SEO-critical DOM:
- * - H1 title
- * - short description snippet
- * - location / address
- * - main hero image (server-rendered <img> via next/image)
- * - JSON-LD for RealEstateListing, Offer, BreadcrumbList
- *
- * This component must be a server component (no "use client").
- */
+function stripHtml(html = "") {
+  return String(html).replace(/<\/?[^>]+(>|$)/g, "");
+}
+function truncate(str = "", max = 160) {
+  if (!str) return "";
+  return str.length <= max ? str : str.slice(0, max - 3).trim() + "...";
+}
 
 export default function ServerProperty({ property, canonicalUrl }) {
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com").replace(/\/$/, "");
   const mainImagePath = property.images?.[0] || "/properties/default.jpg";
   const mainImage = mainImagePath.startsWith("http") ? mainImagePath : `${siteUrl}${mainImagePath}`;
 
+  // SAFETY: short sanitized description for page HTML & JSON-LD
+  const raw = stripHtml(property.description || "");
+  const shortDescription = truncate(raw, 150);
+
+  // Determine price and currency (fallbacks)
+  const price = property.rates?.monthly || property.rates?.weekly || property.rates?.nightly || 0;
+  const priceCurrency = property.currency || property.rates?.currency || "USD";
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
     "name": property.name,
-    "description": property.description,
+    "description": shortDescription,
     "url": canonicalUrl,
     "image": [mainImage],
     "address": {
       "@type": "PostalAddress",
       "streetAddress": property.location?.street || "",
       "addressLocality": property.location?.city || "",
+      "addressRegion": property.location?.region || "",
       "addressCountry": property.location?.country || ""
     },
     "offers": {
       "@type": "Offer",
-      "price": property.rates?.monthly || property.rates?.weekly || property.rates?.nightly || 0,
-      "priceCurrency": "USD"
+      "price": price,
+      "priceCurrency": priceCurrency,
+      "url": canonicalUrl,
+      "availability": property.available ? "https://schema.org/InStock" : "https://schema.org/Unavailable"
     }
   };
 
@@ -60,6 +73,13 @@ export default function ServerProperty({ property, canonicalUrl }) {
               {property.location?.street}, {property.location?.city}, {property.location?.country}
             </span>
           </div>
+
+          {/* Server-rendered short description for improved snippet & indexing */}
+          {shortDescription && (
+            <p className="mt-3 text-lg text-slate-700 max-w-3xl">
+              {shortDescription}
+            </p>
+          )}
         </div>
 
         <div className="mt-8 relative h-[420px] md:h-[500px] rounded-2xl overflow-hidden">
@@ -75,15 +95,8 @@ export default function ServerProperty({ property, canonicalUrl }) {
         </div>
       </header>
 
-      {/* JSON-LD structured data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
     </>
   );
 }
