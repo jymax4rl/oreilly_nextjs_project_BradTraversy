@@ -17,13 +17,19 @@ function truncate(str = "", max = 160) {
   return str.length <= max ? str : str.slice(0, max - 3).trim() + "...";
 }
 
-export async function generateMetadata({ params }) {
+export async function generateMetadata(props) {
+  const params = await props.params;
   const id = params?.id;
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com").replace(/\/$/, "");
+  const siteUrl = (
+    process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com"
+  ).replace(/\/$/, "");
 
   await connectToDatabase();
   // Project only the public fields needed for metadata
-  const property = await Property.findById(id, "name description images location type").lean();
+  const property = await Property.findById(
+    id,
+    "name description images location type",
+  ).lean();
 
   if (!property) {
     return {
@@ -38,9 +44,21 @@ export async function generateMetadata({ params }) {
 
   const canonicalUrl = `${siteUrl}/properties/${property._id || id}`;
   const firstImage = property.images?.length ? property.images[0] : null;
-  const absoluteImage = firstImage
-    ? (firstImage.startsWith("http") ? firstImage : `${siteUrl}${firstImage}`)
-    : `${siteUrl}/og-default.jpg`;
+
+  let absoluteImage = `${siteUrl}/og-default.jpg`;
+
+  if (firstImage) {
+    if (firstImage.startsWith("http")) {
+      absoluteImage = firstImage;
+    } else {
+      const imagePath = firstImage.startsWith("/")
+        ? firstImage
+        : /^\d+_/.test(firstImage)
+          ? `/images/properties/${firstImage}`
+          : `/properties/${firstImage}`;
+      absoluteImage = `${siteUrl}${imagePath}`;
+    }
+  }
 
   return {
     title: `${property.name} | ${property.type} ${property.location?.city || ""} | Aplica`,
@@ -71,14 +89,18 @@ export async function generateMetadata({ params }) {
    PAGE SERVER COMPONENT
 ============================ */
 
-export default async function PropertyPage({ params }) {
+export default async function PropertyPage(props) {
   // Next.js app router provides params
+  const params = await props.params;
   const { id } = params;
 
   await connectToDatabase();
 
   // Project only the fields required for rendering + JSON-LD
-  const propertyDoc = await Property.findById(id, "-internalNotes -sensitiveField").lean();
+  const propertyDoc = await Property.findById(
+    id,
+    "-internalNotes -sensitiveField",
+  ).lean();
 
   if (!propertyDoc) {
     // Return a 404 page (HTTP 404) so search engines don't index a Not Found UI
@@ -91,7 +113,9 @@ export default async function PropertyPage({ params }) {
     _id: propertyDoc._id.toString(),
   };
 
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com").replace(/\/$/, "");
+  const siteUrl = (
+    process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com"
+  ).replace(/\/$/, "");
   const canonicalUrl = `${siteUrl}/properties/${property._id}`;
 
   // Render server-side header/JSON-LD via ServerProperty (server component),

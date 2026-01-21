@@ -32,9 +32,21 @@ function getCurrencyForCountry(country = "") {
 }
 
 export default function ServerProperty({ property, canonicalUrl }) {
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com").replace(/\/$/, "");
-  const mainImagePath = property.images?.[0] || "/properties/default.jpg";
-  const mainImage = mainImagePath.startsWith("http") ? mainImagePath : `${siteUrl}${mainImagePath}`;
+  const siteUrl = (
+    process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com"
+  ).replace(/\/$/, "");
+  const imagePath = property.images?.[0];
+  const mainImagePath = imagePath
+    ? imagePath.startsWith("http") || imagePath.startsWith("/")
+      ? imagePath
+      : /^\d+_/.test(imagePath)
+        ? `/images/properties/${imagePath}`
+        : `/properties/${imagePath}`
+    : "/properties/default.jpg";
+
+  const mainImage = mainImagePath.startsWith("http")
+    ? mainImagePath
+    : `${siteUrl}${mainImagePath}`;
 
   // Short sanitized description for server HTML & JSON-LD
   const raw = stripHtml(property.description || "");
@@ -42,7 +54,11 @@ export default function ServerProperty({ property, canonicalUrl }) {
 
   // Determine numeric price (prefer monthly -> weekly -> nightly)
   const price =
-    (property.rates && (property.rates.monthly || property.rates.weekly || property.rates.nightly)) || 0;
+    (property.rates &&
+      (property.rates.monthly ||
+        property.rates.weekly ||
+        property.rates.nightly)) ||
+    0;
 
   // Determine currency from country (DB lacks property.currency)
   const priceCurrency = getCurrencyForCountry(property.location?.country);
@@ -59,15 +75,17 @@ export default function ServerProperty({ property, canonicalUrl }) {
       streetAddress: property.location?.street || "",
       addressLocality: property.location?.city || "",
       addressRegion: property.location?.region || "",
-      addressCountry: property.location?.country || ""
+      addressCountry: property.location?.country || "",
     },
     offers: {
       "@type": "Offer",
       price: price,
       priceCurrency: priceCurrency,
       url: canonicalUrl,
-      availability: property.available ? "https://schema.org/InStock" : "https://schema.org/Unavailable"
-    }
+      availability: property.available
+        ? "https://schema.org/InStock"
+        : "https://schema.org/Unavailable",
+    },
   };
 
   const breadcrumb = {
@@ -75,10 +93,25 @@ export default function ServerProperty({ property, canonicalUrl }) {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
-      { "@type": "ListItem", position: 2, name: "Properties", item: `${siteUrl}/properties` },
-      { "@type": "ListItem", position: 3, name: property.location?.city || "City", item: `${siteUrl}/properties?city=${encodeURIComponent(property.location?.city || "")}` },
-      { "@type": "ListItem", position: 4, name: property.name, item: canonicalUrl }
-    ]
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Properties",
+        item: `${siteUrl}/properties`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: property.location?.city || "City",
+        item: `${siteUrl}/properties?city=${encodeURIComponent(property.location?.city || "")}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: property.name,
+        item: canonicalUrl,
+      },
+    ],
   };
 
   return (
@@ -90,7 +123,8 @@ export default function ServerProperty({ property, canonicalUrl }) {
           </h1>
           <div className="flex items-center gap-2 text-slate-500 font-medium">
             <span>
-              {property.location?.street}, {property.location?.city}, {property.location?.country}
+              {property.location?.street}, {property.location?.city},{" "}
+              {property.location?.country}
             </span>
           </div>
 
@@ -104,7 +138,7 @@ export default function ServerProperty({ property, canonicalUrl }) {
 
         <div className="mt-8 relative h-[420px] md:h-[500px] rounded-2xl overflow-hidden">
           <Image
-            src={mainImage}
+            src={mainImagePath}
             alt={`${property.name} — main view`}
             fill
             priority
@@ -115,8 +149,14 @@ export default function ServerProperty({ property, canonicalUrl }) {
         </div>
       </header>
 
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
+      />
     </>
   );
 }

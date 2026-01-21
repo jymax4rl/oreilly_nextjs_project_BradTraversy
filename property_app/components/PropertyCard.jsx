@@ -34,7 +34,15 @@ const PropertyCard = ({ property }) => {
     images,
     is_featured,
   } = property;
-  const mainImage = `/properties/${images[1]}`;
+
+  const imagePath = images?.[0];
+  const mainImage = imagePath
+    ? imagePath.startsWith("http")
+      ? imagePath
+      : /^\d+_/.test(imagePath)
+        ? `/images/properties/${imagePath}`
+        : `/properties/${imagePath}`
+    : "/properties/default.jpg";
   const [isLiked, setIsLiked] = useState(false);
 
   // Helper to get display price using the IMPORTED function
