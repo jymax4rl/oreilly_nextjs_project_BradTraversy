@@ -34,12 +34,13 @@ export default async function PropertyPage({ params }) {
   const canonicalUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/properties/${params.id}`;
 
   return (
-    <>
-      {/* ServerProperty now ONLY handles SEO tags + JSON-LD, no visible UI */}
-      <ServerProperty property={serialized} canonicalUrl={canonicalUrl} />
-
-      {/* DynamicProperty owns the entire visible layout (Airbnb-style) */}
-      <DynamicProperty property={serialized} />
-    </>
+    <div>
+      <HomeProperties
+        key={`${locationQuery || "all"}-${typeQuery || "all"}`}
+        initialProperties={serializedProperties}
+        searchQuery={locationQuery || ""}
+        typeFilter={typeQuery || ""}
+      />
+    </div>
   );
 }

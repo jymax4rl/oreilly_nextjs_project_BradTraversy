@@ -3,48 +3,60 @@ import HomeProperties from "@/components/HomeProperties";
 import Property from "@/models/Property";
 import connectToDatabase from "@/config/database";
 
-const PropertiesPage = async ({ maxProperties }) => {
-  // Connect to database first!
+const PropertiesPage = async ({ searchParams }) => {
+  // Next.js 15+: searchParams is a Promise
+  const params = await searchParams;
+  const locationQuery = params?.location?.trim();
+  const typeQuery = params?.type;
+
   await connectToDatabase();
-  // DEBUG: Check all properties in database collection
-  const allProps = await Property.find({}).lean();
-  const featuredCount = allProps.filter((p) => p.is_featured === true).length;
-  const notFeaturedCount = allProps.filter(
-    (p) => p.is_featured === false
-  ).length;
-  console.log("📊 Total properties in DB:", allProps.length);
-  console.log(
-    "✅ Featured:",
-    featuredCount,
-    "| ❌ Not featured:",
-    notFeaturedCount
-  );
 
-  const properties = maxProperties
-    ? //if maxProperties is defined, get maxProperties featured properties
-      await Property.find({ is_featured: true }).limit(maxProperties).lean()
-    : //else get all not featured properties
-      await Property.find({ is_featured: false }).lean();
+  // Build MongoDB query dynamically
+  const mongoQuery = {};
 
-  //sort properties by date
-  // properties.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  // Location search: case-insensitive regex across ALL location fields + name
+  if (locationQuery) {
+    const escaped = locationQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(escaped, "i");
+    mongoQuery.$or = [
+      { "location.city": regex },
+      { "location.state": regex },
+      { "location.country": regex },
+      { "location.street": regex },
+      { "location.zipcode": regex },
+      { name: regex },
+    ];
+  }
 
-  // Convert MongoDB ObjectIds to strings for serialization
+  // Property type filter
+  if (typeQuery && typeQuery !== "All Properties") {
+    mongoQuery.type = { $regex: new RegExp(typeQuery, "i") };
+  }
+
+  // If no filters, show non-featured (original behavior)
+  const hasFilters =
+    locationQuery || (typeQuery && typeQuery !== "All Properties");
+  if (!hasFilters) {
+    mongoQuery.is_featured = false;
+  }
+
+  const properties = await Property.find(mongoQuery).lean();
+
+  // Serialize ObjectIds
   const serializedProperties = properties.map((property) => ({
-    // spread all properties
     ...property,
-    // Convert ObjectId to string
     _id: property._id.toString(),
+    owner: property.owner?.toString?.() || property.owner,
   }));
 
-  //limit of properties
-  const limitedProperties = serializedProperties.slice(0, maxProperties);
-
   return (
-    <div className="">
-      {/* Pass server-fetched properties to client component */}
-
-      <HomeProperties initialProperties={limitedProperties} />
+    <div>
+      <HomeProperties
+        key={`${locationQuery || "all"}-${typeQuery || "all"}`} // ← ADD THIS
+        initialProperties={serializedProperties}
+        searchQuery={locationQuery || ""}
+        typeFilter={typeQuery || ""}
+      />
     </div>
   );
 };

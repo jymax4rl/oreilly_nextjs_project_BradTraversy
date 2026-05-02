@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Search } from "lucide-react";
+import { Search, MapPin, Home, SlidersHorizontal } from "lucide-react";
 import PropertyCard from "./PropertyCard";
 import Link from "next/link";
 import Currency from "./Currency";
@@ -9,41 +9,55 @@ import { useCurrency } from "@/utils/CurrencyContext";
 import DateCurrencyUpdated from "./DateCurrencyUpdated";
 import PropertySearch from "./PropertySearch";
 
-// --- Main Parent Component ---
-const HomeProperties = ({ initialProperties = [] }) => {
+const HomeProperties = ({
+  initialProperties = [],
+  searchQuery = "",
+  typeFilter = "",
+}) => {
   const { currencyCode, setCurrencyCode, rates, loading } = useCurrency();
   const [properties, setProperties] = useState(
-    initialProperties.length > 0 ? initialProperties : mockProperties
+    initialProperties.length > 0 ? initialProperties : [],
   );
+
+  // Add a useEffect that updates the properties state whenever initialProperties changes (backup defense):
+  useEffect(() => {
+    setProperties(initialProperties.length > 0 ? initialProperties : []);
+  }, [initialProperties]);
+
+  useEffect(() => {
+    setProperties(initialProperties.length > 0 ? initialProperties : []);
+  }, [initialProperties]);
 
   const currencyMeta =
     CURRENCIES.find((c) => c.code === currencyCode) || CURRENCIES[0];
   const { symbol } = currencyMeta;
   const rate = rates[currencyCode] || 1;
 
-  // SCROLL OBSERVER LOGIC
+  // SCROLL OBSERVER LOGIC (preserved exactly)
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add("is-visible");
-            // Optional: Stop observing once visible to run animation only once
             observer.unobserve(entry.target);
           }
         });
       },
       {
-        threshold: 0.1, // Trigger when 10% of the element is visible
-        rootMargin: "0px 0px -50px 0px", // Trigger slightly before the bottom of the viewport
-      }
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px",
+      },
     );
 
     const cards = document.querySelectorAll(".animate-on-scroll");
     cards.forEach((card) => observer.observe(card));
 
     return () => observer.disconnect();
-  }, [properties]); // Re-run if properties list changes
+  }, [properties]);
+
+  const hasSearch =
+    searchQuery || (typeFilter && typeFilter !== "All Properties");
 
   return (
     <section className="py-16 bg-gray-50 min-h-screen">
@@ -55,7 +69,6 @@ const HomeProperties = ({ initialProperties = [] }) => {
           transform: translateY(30px);
           transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
-
         .animate-on-scroll.is-visible {
           opacity: 1;
           transform: translateY(0);
@@ -64,18 +77,51 @@ const HomeProperties = ({ initialProperties = [] }) => {
         }}
       />
 
-      <div className="container mx-auto px-4 ">
-        <div className="w-full text-center mb-12 ">
+      <div className="container mx-auto px-4">
+        <div className="w-full text-center mb-12">
           <div className="grid grid-cols-1 md:grid-cols-8 gap-4 items-center">
             <div className="md:col-span-7 text-left md:text-center">
               <PropertySearch />
             </div>
-            <div className=" justify-center md:justify-end flex gap-2 items-center">
+            <div className="justify-center md:justify-end flex gap-2 items-center">
               <Currency onCurrencyChange={setCurrencyCode} />
               <DateCurrencyUpdated />
             </div>
           </div>
         </div>
+
+        {/* Search Results Context Header */}
+        {hasSearch && (
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {properties.length} result{properties.length !== 1 ? "s" : ""}{" "}
+                found
+              </h2>
+              <p className="text-gray-500 mt-1 flex items-center gap-2 flex-wrap">
+                {searchQuery && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {searchQuery}
+                  </span>
+                )}
+                {typeFilter && typeFilter !== "All Properties" && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium">
+                    <Home className="h-3.5 w-3.5" />
+                    {typeFilter}
+                  </span>
+                )}
+              </p>
+            </div>
+            <Link
+              href="/properties"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-white border border-gray-200 rounded-xl hover:border-gray-300 transition-all shadow-sm"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Clear filters
+            </Link>
+          </div>
+        )}
 
         {loading ? (
           <div className="col-span-full flex flex-col items-center justify-center text-center py-24 px-4 bg-white rounded-3xl border border-gray-100 shadow-sm">
@@ -100,6 +146,13 @@ const HomeProperties = ({ initialProperties = [] }) => {
             <p className="text-gray-500 text-lg max-w-md mx-auto leading-relaxed">
               We couldn&apos;t find any listings that match your current
               criteria.
+              {searchQuery && (
+                <>
+                  {" "}
+                  Try adjusting your search for{" "}
+                  <strong>&quot;{searchQuery}&quot;</strong>.
+                </>
+              )}
             </p>
             <div className="flex gap-4">
               <Link
@@ -122,8 +175,6 @@ const HomeProperties = ({ initialProperties = [] }) => {
               <div
                 key={property._id}
                 className="animate-on-scroll"
-                // Optional: Keep staggered delay for items appearing together initially
-                // For scrolling items, the delay is less critical but adds a nice feel
                 style={{ transitionDelay: `${(index % 3) * 100}ms` }}
               >
                 <PropertyCard property={property} rate={rate} symbol={symbol} />
