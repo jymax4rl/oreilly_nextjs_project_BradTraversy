@@ -1,17 +1,22 @@
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/utils/authOptions";
+import { redirect } from "next/navigation";
 import PropertyAddForm from "@/components/PropertyAddForm";
-import AuthGuard from "@/components/AuthGuardLoading";
 
-const PropertyAddPage = () => {
-  return (
-    <AuthGuard>
-      <section className="overflow-hidden h-auto   mx-4">
-        <div className="container">
-          <div className="bg-white shadow-md p-auto mt-[12vh] rounded-md ">
-            <PropertyAddForm />
-          </div>
-        </div>
-      </section>
-    </AuthGuard>
-  );
+export const metadata = {
+  title: "Add Property | Kama Properties",
 };
-export default PropertyAddPage;
+
+export default async function AddPropertyPage() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    redirect("/api/auth/signin?callbackUrl=/properties/add");
+  }
+
+  if (session.user.hostStatus !== "verified") {
+    redirect("/host/onboarding");
+  }
+
+  return <PropertyAddForm />;
+}
