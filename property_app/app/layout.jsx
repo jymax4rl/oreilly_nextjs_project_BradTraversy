@@ -5,8 +5,7 @@ import React from "react";
 import StyledComponentsRegistry from "@/lib/registry";
 import { CurrencyProvider } from "@/utils/CurrencyContext";
 import AuthProvider from "@/components/AuthProvider";
-import connectToDatabase from "@/config/database";
-import Property from "@/models/Property";
+
 
 export const metadata = {
   title: "Kama Properties",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -8,6 +8,9 @@ import Link from "next/link";
 export default function HostOnboardingPage() {
   const { data: session, update } = useSession();
   const router = useRouter();
+
+  const isResubmission = session?.user?.hostStatus === "rejected";
+
   const [formData, setFormData] = useState({
     phone: "",
     idType: "passport",
@@ -15,8 +18,32 @@ export default function HostOnboardingPage() {
     address: "",
     bio: "",
   });
+  const [loadingExisting, setLoadingExisting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Pre-populate form for rejected users
+  useEffect(() => {
+    if (!isResubmission) return;
+    setLoadingExisting(true);
+
+    fetch("/api/host/onboarding")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.application) {
+          const { phone, idType, idNumber, address, bio } = data.application;
+          setFormData({
+            phone: phone || "",
+            idType: idType || "passport",
+            idNumber: idNumber || "",
+            address: address || "",
+            bio: bio || "",
+          });
+        }
+      })
+      .catch((err) => console.error("Failed to load existing application:", err))
+      .finally(() => setLoadingExisting(false));
+  }, [isResubmission]);
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -28,16 +55,19 @@ export default function HostOnboardingPage() {
     setError("");
 
     try {
+      // Rejected users PUT (update), new applicants POST (create)
+      const method = isResubmission ? "PUT" : "POST";
       const res = await fetch("/api/host/onboarding", {
-        method: "POST",
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Submission failed");
+      const text = await res.text();
+      if (!res.ok) throw new Error(text || "Submission failed");
 
-      await update({ hostStatus: "onboarding" });
+      // Refresh session so hostStatus updates to "onboarding"
+      await update();
       router.push("/host/pending");
     } catch (err) {
       setError(err.message);
@@ -72,29 +102,47 @@ export default function HostOnboardingPage() {
     return null;
   }
 
+  if (loadingExisting) {
+    return (
+      <section className="min-h-screen flex items-center justify-center bg-blue-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900" />
+      </section>
+    );
+  }
+
   return (
     <section className="bg-blue-50 min-h-screen py-12">
       <div className="container m-auto max-w-2xl py-12 px-4">
         <div className="bg-white px-6 py-8 shadow-md rounded-md border">
+
+          {/* Rejection notice banner */}
+          {isResubmission && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-700 font-semibold text-sm">
+                ⚠️ Your previous application was rejected.
+              </p>
+              <p className="text-red-600 text-sm mt-1">
+                Please update your details below and resubmit. Our team will review your application again.
+              </p>
+            </div>
+          )}
+
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Become a Host
+            {isResubmission ? "Update Your Application" : "Become a Host"}
           </h1>
           <p className="text-gray-600 mb-8">
-            List your property on Kama Properties and reach thousands of
-            potential guests across Africa.
+            {isResubmission
+              ? "Edit your details and resubmit for review."
+              : "List your property on Kama Properties and reach thousands of potential guests across Africa."}
           </p>
 
           {error && (
-            <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
-              {error}
-            </div>
+            <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-gray-700 font-bold mb-2">
-                Phone Number
-              </label>
+              <label className="block text-gray-700 font-bold mb-2">Phone Number</label>
               <input
                 type="tel"
                 name="phone"
@@ -108,9 +156,7 @@ export default function HostOnboardingPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  ID Type
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">ID Type</label>
                 <select
                   name="idType"
                   value={formData.idType}
@@ -119,13 +165,11 @@ export default function HostOnboardingPage() {
                 >
                   <option value="passport">Passport</option>
                   <option value="national_id">National ID</option>
-                  <option value="drivers_license">Driver's License</option>
+                  <option value="drivers_license">Driver&apos;s License</option>
                 </select>
               </div>
               <div>
-                <label className="block text-gray-700 font-bold mb-2">
-                  ID Number
-                </label>
+                <label className="block text-gray-700 font-bold mb-2">ID Number</label>
                 <input
                   type="text"
                   name="idNumber"
@@ -138,9 +182,7 @@ export default function HostOnboardingPage() {
             </div>
 
             <div>
-              <label className="block text-gray-700 font-bold mb-2">
-                Address
-              </label>
+              <label className="block text-gray-700 font-bold mb-2">Address</label>
               <input
                 type="text"
                 name="address"
@@ -153,9 +195,7 @@ export default function HostOnboardingPage() {
             </div>
 
             <div>
-              <label className="block text-gray-700 font-bold mb-2">
-                About You
-              </label>
+              <label className="block text-gray-700 font-bold mb-2">About You</label>
               <textarea
                 name="bio"
                 rows={4}
@@ -171,7 +211,11 @@ export default function HostOnboardingPage() {
               disabled={submitting}
               className="bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-6 rounded w-full disabled:opacity-50 transition"
             >
-              {submitting ? "Submitting..." : "Submit Application"}
+              {submitting
+                ? "Submitting..."
+                : isResubmission
+                  ? "Resubmit Application"
+                  : "Submit Application"}
             </button>
           </form>
         </div>

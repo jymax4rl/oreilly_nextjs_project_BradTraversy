@@ -53,12 +53,15 @@ export default function AdminHostsPage() {
         body: JSON.stringify(body),
       });
 
-      if (!res.ok) throw new Error("Action failed");
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Server returned ${res.status}`);
+      }
 
       setApplications((prev) => prev.filter((app) => app._id !== id));
     } catch (error) {
-      alert("Failed to process application. Check console.");
-      console.error(error);
+      console.error("handleAction error:", error);
+      alert("Failed: " + error.message);
     } finally {
       setActionLoading(null);
     }
@@ -226,41 +229,49 @@ export default function AdminHostsPage() {
                     )}
                   </div>
 
-                  {filter === "pending" && (
-                    <div className="flex lg:flex-col gap-2">
+                  <div className="flex lg:flex-col gap-2 items-start">
+                    {/* Status badge for non-pending */}
+                    {filter !== "pending" && (
+                      <div className="flex items-center gap-2 mb-1">
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            app.status === "approved"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {app.status}
+                        </span>
+                        {app.reviewedAt && (
+                          <span className="text-xs text-gray-500">
+                            {new Date(app.reviewedAt).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Approve button — shown on pending + rejected tabs */}
+                    {filter !== "approved" && (
                       <button
                         onClick={() => handleAction(app._id, "approved")}
                         disabled={actionLoading === app._id}
-                        className="flex-1 lg:flex-none bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium transition disabled:opacity-50"
+                        className="w-full lg:w-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium transition disabled:opacity-50"
                       >
-                        {actionLoading === app._id
-                          ? "Processing..."
-                          : "Approve"}
+                        {actionLoading === app._id ? "Processing..." : "Approve"}
                       </button>
+                    )}
+
+                    {/* Reject button — shown on pending + approved tabs */}
+                    {filter !== "rejected" && (
                       <button
                         onClick={() => handleAction(app._id, "rejected")}
                         disabled={actionLoading === app._id}
-                        className="flex-1 lg:flex-none bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium transition disabled:opacity-50"
+                        className="w-full lg:w-auto bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium transition disabled:opacity-50"
                       >
                         {actionLoading === app._id ? "Processing..." : "Reject"}
                       </button>
-                    </div>
-                  )}
-
-                  {filter !== "pending" && (
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${app.status === "approved" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
-                      >
-                        {app.status}
-                      </span>
-                      {app.reviewedAt && (
-                        <span className="text-xs text-gray-500">
-                          {new Date(app.reviewedAt).toLocaleDateString()}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

@@ -20,6 +20,7 @@ const HostApplicationSchema = new Schema(
     },
     reviewedAt: { type: Date },
     reviewedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    rejectionReason: { type: String },
   },
   { timestamps: true }
 );

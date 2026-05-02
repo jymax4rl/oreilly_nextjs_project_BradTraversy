@@ -1,10 +1,9 @@
 import connectToDatabase from "@/config/database";
 import HostApplication from "@/models/HostApplication";
-import User from "@/models/User";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 
-export const GET = async () => {
+export const GET = async (request) => {
   try {
     await connectToDatabase();
     const session = await getServerSession(authOptions);
@@ -13,7 +12,14 @@ export const GET = async () => {
       return new Response("Unauthorized", { status: 403 });
     }
 
-    const applications = await HostApplication.find({ status: "pending" })
+    // Read the ?status= query param — defaults to "pending"
+    const { searchParams } = new URL(request.url);
+    const statusFilter = searchParams.get("status") || "pending";
+
+    const validStatuses = ["pending", "approved", "rejected"];
+    const filter = validStatuses.includes(statusFilter) ? statusFilter : "pending";
+
+    const applications = await HostApplication.find({ status: filter })
       .populate("user", "email username image")
       .sort({ createdAt: -1 })
       .lean();
