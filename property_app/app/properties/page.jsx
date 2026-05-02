@@ -14,7 +14,6 @@ const PropertiesPage = async ({ searchParams }) => {
   // Build MongoDB query dynamically
   const mongoQuery = {};
 
-  // Location search: case-insensitive regex across ALL location fields + name
   if (locationQuery) {
     const escaped = locationQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(escaped, "i");
@@ -28,12 +27,10 @@ const PropertiesPage = async ({ searchParams }) => {
     ];
   }
 
-  // Property type filter
   if (typeQuery && typeQuery !== "All Properties") {
     mongoQuery.type = { $regex: new RegExp(typeQuery, "i") };
   }
 
-  // If no filters, show non-featured (original behavior)
   const hasFilters =
     locationQuery || (typeQuery && typeQuery !== "All Properties");
   if (!hasFilters) {
@@ -42,7 +39,6 @@ const PropertiesPage = async ({ searchParams }) => {
 
   const properties = await Property.find(mongoQuery).lean();
 
-  // Serialize ObjectIds
   const serializedProperties = properties.map((property) => ({
     ...property,
     _id: property._id.toString(),
@@ -52,7 +48,7 @@ const PropertiesPage = async ({ searchParams }) => {
   return (
     <div>
       <HomeProperties
-        key={`${locationQuery || "all"}-${typeQuery || "all"}`} // ← ADD THIS
+        key={`${locationQuery || "all"}-${typeQuery || "all"}`}
         initialProperties={serializedProperties}
         searchQuery={locationQuery || ""}
         typeFilter={typeQuery || ""}
