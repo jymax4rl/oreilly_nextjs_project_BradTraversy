@@ -5,9 +5,9 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import mongoose from "mongoose";
 
-export const PATCH = async (request, context) => {
+export const PATCH = async (request, { params }) => {
   // Next.js 15/16: params is a Promise and must be awaited
-  const { id } = await context.params;
+  const { id } = await params;
 
   try {
     await connectToDatabase();
@@ -63,7 +63,12 @@ export const PATCH = async (request, context) => {
       user.role = status === "approved" ? "host" : "guest";
       await user.save();
     } else {
-      console.warn("User not found for application:", id, "userId:", application.user);
+      console.warn(
+        "User not found for application:",
+        id,
+        "userId:",
+        application.user,
+      );
     }
 
     return Response.json({

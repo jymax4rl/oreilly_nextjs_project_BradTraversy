@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 
 function stripHtml(html = "") {
   return String(html).replace(/<\/?[^>]+(>|$)/g, "");
@@ -30,32 +29,22 @@ export default function ServerProperty({ property, canonicalUrl }) {
     process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com"
   ).replace(/\/$/, "");
 
-  // Image path from DB (e.g., "1.jpg" or "/images/properties/1.jpg")
   const rawImagePath = property.images?.[0] || "/properties/default.jpg";
-
-  // Ensure local path starts with / for Next.js Image component
   const localImagePath = rawImagePath.startsWith("/")
     ? rawImagePath
     : `/images/properties/${rawImagePath}`;
-
-  // Absolute URL for JSON-LD schema (must have / between siteUrl and path)
   const absoluteImageUrl = rawImagePath.startsWith("http")
     ? rawImagePath
     : `${siteUrl}${localImagePath}`;
 
-  // Short sanitized description for server HTML & JSON-LD
   const raw = stripHtml(property.description || "");
   const shortDescription = truncate(raw, 150);
-
-  // Determine numeric price (prefer monthly -> weekly -> nightly)
   const price =
     (property.rates &&
       (property.rates.monthly ||
         property.rates.weekly ||
         property.rates.nightly)) ||
     0;
-
-  // Determine currency from country
   const priceCurrency = getCurrencyForCountry(property.location?.country);
 
   const jsonLd = {
@@ -109,40 +98,9 @@ export default function ServerProperty({ property, canonicalUrl }) {
     ],
   };
 
+  // ONLY renders invisible SEO scripts — no visible UI
   return (
     <>
-      <header className="max-w-7xl mx-auto px-6">
-        <div className="space-y-2">
-          <h1 className="text-3xl md:text-5xl font-thin tracking-tight text-slate-900">
-            {property.name}
-          </h1>
-          <div className="flex items-center gap-2 text-slate-500 font-medium">
-            <span>
-              {property.location?.street}, {property.location?.city},{" "}
-              {property.location?.country}
-            </span>
-          </div>
-
-          {shortDescription && (
-            <p className="mt-3 text-lg text-slate-700 max-w-3xl">
-              {shortDescription}
-            </p>
-          )}
-        </div>
-
-        <div className="mt-8 relative h-[420px] md:h-[500px] rounded-2xl overflow-hidden">
-          <Image
-            src={localImagePath}
-            alt={`${property.name} — main view`}
-            fill
-            priority
-            quality={90}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 50vw"
-            className="object-cover"
-          />
-        </div>
-      </header>
-
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

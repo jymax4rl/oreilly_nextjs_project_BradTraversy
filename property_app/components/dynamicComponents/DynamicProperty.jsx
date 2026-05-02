@@ -26,7 +26,7 @@ export default function DynamicProperty({ property }) {
   const { currencyCode, rates } = useCurrency();
 
   return (
-    <div className="bg-white min-h-screen text-slate-900 font-sans selection:bg-blue-100 pb-20">
+    <div className="bg-white min-h-screen text-slate-900 font-sans selection:bg-blue-100 pb-20 pt-[10vh]">
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-10">
         {/* Header & Title Section */}
         <header className="space-y-6">
