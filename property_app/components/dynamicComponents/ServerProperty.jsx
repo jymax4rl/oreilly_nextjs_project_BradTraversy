@@ -1,4 +1,3 @@
-// property_app/components/dynamicComponents/ServerProperty.jsx
 import React from "react";
 import Image from "next/image";
 
@@ -10,10 +9,6 @@ function truncate(str = "", max = 160) {
   return str.length <= max ? str : str.slice(0, max - 3).trim() + "...";
 }
 
-/**
- * Map a property's country (name or code) to a likely currency code.
- * Extend this mapping as needed for your target markets.
- */
 function getCurrencyForCountry(country = "") {
   if (!country) return "USD";
   const c = country.toLowerCase();
@@ -25,16 +20,28 @@ function getCurrencyForCountry(country = "") {
   if (c.includes("kenya") || c === "ke") return "KES";
   if (c.includes("morocco") || c === "ma") return "MAD";
   if (c.includes("ghana") || c === "gh") return "GHS";
-  if (c.includes("france") || c === "fr") return "EUR"; // assume EUR for many europe countries — adjust as needed
+  if (c.includes("france") || c === "fr") return "EUR";
   if (c.includes("europe") || c.includes("eur")) return "EUR";
-  // add more mappings as necessary
   return "USD";
 }
 
 export default function ServerProperty({ property, canonicalUrl }) {
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com").replace(/\/$/, "");
-  const mainImagePath = property.images?.[0] || "/properties/default.jpg";
-  const mainImage = mainImagePath.startsWith("http") ? mainImagePath : `${siteUrl}${mainImagePath}`;
+  const siteUrl = (
+    process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com"
+  ).replace(/\/$/, "");
+
+  // Image path from DB (e.g., "1.jpg" or "/images/properties/1.jpg")
+  const rawImagePath = property.images?.[0] || "/properties/default.jpg";
+
+  // Ensure local path starts with / for Next.js Image component
+  const localImagePath = rawImagePath.startsWith("/")
+    ? rawImagePath
+    : `/images/properties/${rawImagePath}`;
+
+  // Absolute URL for JSON-LD schema (must have / between siteUrl and path)
+  const absoluteImageUrl = rawImagePath.startsWith("http")
+    ? rawImagePath
+    : `${siteUrl}${localImagePath}`;
 
   // Short sanitized description for server HTML & JSON-LD
   const raw = stripHtml(property.description || "");
@@ -42,9 +49,13 @@ export default function ServerProperty({ property, canonicalUrl }) {
 
   // Determine numeric price (prefer monthly -> weekly -> nightly)
   const price =
-    (property.rates && (property.rates.monthly || property.rates.weekly || property.rates.nightly)) || 0;
+    (property.rates &&
+      (property.rates.monthly ||
+        property.rates.weekly ||
+        property.rates.nightly)) ||
+    0;
 
-  // Determine currency from country (DB lacks property.currency)
+  // Determine currency from country
   const priceCurrency = getCurrencyForCountry(property.location?.country);
 
   const jsonLd = {
@@ -53,21 +64,23 @@ export default function ServerProperty({ property, canonicalUrl }) {
     name: property.name,
     description: shortDescription,
     url: canonicalUrl,
-    image: [mainImage],
+    image: [absoluteImageUrl],
     address: {
       "@type": "PostalAddress",
       streetAddress: property.location?.street || "",
       addressLocality: property.location?.city || "",
       addressRegion: property.location?.region || "",
-      addressCountry: property.location?.country || ""
+      addressCountry: property.location?.country || "",
     },
     offers: {
       "@type": "Offer",
       price: price,
       priceCurrency: priceCurrency,
       url: canonicalUrl,
-      availability: property.available ? "https://schema.org/InStock" : "https://schema.org/Unavailable"
-    }
+      availability: property.available
+        ? "https://schema.org/InStock"
+        : "https://schema.org/Unavailable",
+    },
   };
 
   const breadcrumb = {
@@ -75,10 +88,25 @@ export default function ServerProperty({ property, canonicalUrl }) {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
-      { "@type": "ListItem", position: 2, name: "Properties", item: `${siteUrl}/properties` },
-      { "@type": "ListItem", position: 3, name: property.location?.city || "City", item: `${siteUrl}/properties?city=${encodeURIComponent(property.location?.city || "")}` },
-      { "@type": "ListItem", position: 4, name: property.name, item: canonicalUrl }
-    ]
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Properties",
+        item: `${siteUrl}/properties`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: property.location?.city || "City",
+        item: `${siteUrl}/properties?city=${encodeURIComponent(property.location?.city || "")}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: property.name,
+        item: canonicalUrl,
+      },
+    ],
   };
 
   return (
@@ -90,11 +118,11 @@ export default function ServerProperty({ property, canonicalUrl }) {
           </h1>
           <div className="flex items-center gap-2 text-slate-500 font-medium">
             <span>
-              {property.location?.street}, {property.location?.city}, {property.location?.country}
+              {property.location?.street}, {property.location?.city},{" "}
+              {property.location?.country}
             </span>
           </div>
 
-          {/* Server-rendered short description for improved snippet & indexing */}
           {shortDescription && (
             <p className="mt-3 text-lg text-slate-700 max-w-3xl">
               {shortDescription}
@@ -104,7 +132,7 @@ export default function ServerProperty({ property, canonicalUrl }) {
 
         <div className="mt-8 relative h-[420px] md:h-[500px] rounded-2xl overflow-hidden">
           <Image
-            src={mainImage}
+            src={localImagePath}
             alt={`${property.name} — main view`}
             fill
             priority
@@ -115,8 +143,14 @@ export default function ServerProperty({ property, canonicalUrl }) {
         </div>
       </header>
 
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
+      />
     </>
   );
 }

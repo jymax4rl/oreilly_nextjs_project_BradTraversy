@@ -18,7 +18,7 @@ function truncate(str = "", max = 160) {
 }
 
 export async function generateMetadata({ params }) {
-  const id = params?.id;
+  const { id } = await params;
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com").replace(/\/$/, "");
 
   await connectToDatabase();
@@ -72,8 +72,7 @@ export async function generateMetadata({ params }) {
 ============================ */
 
 export default async function PropertyPage({ params }) {
-  // Next.js app router provides params
-  const { id } = params;
+  const { id } = await params;
 
   await connectToDatabase();
 
