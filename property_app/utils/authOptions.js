@@ -3,6 +3,9 @@ import connectToDatabase from "@/config/database";
 import User from "@/models/User";
 
 export const authOptions = {
+  session: {
+    strategy: "jwt",
+  },
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
@@ -18,28 +21,45 @@ export const authOptions = {
   ],
   callbacks: {
     async signIn({ profile }) {
-      //1.connect to db
       await connectToDatabase();
-      //2.check if user exists
       const userExists = await User.findOne({ email: profile.email });
-      //3.add user to db if not exists
       if (!userExists) {
         const username = profile.name;
         await User.create({
           email: profile.email,
           username,
           image: profile.image,
+          role: "guest",
+          hostStatus: "none",
         });
       }
-      //4.return true to allow sign in
       return true;
     },
-    async session({ session }) {
-      //1.get user from db
-      const user = await User.findOne({ email: session.user.email });
-      //2.assign user id to session
-      session.user.id = user._id.toString();
-      //3.return session
+    async jwt({ token, trigger, session }) {
+      // Hydrate token from DB on first use
+      if (!token.role || !token.hostStatus) {
+        await connectToDatabase();
+        const user = await User.findOne({ email: token.email });
+        if (user) {
+          token.id = user._id.toString();
+          token.role = user.role;
+          token.hostStatus = user.hostStatus;
+        }
+      }
+
+      // Allow client-side session refresh after onboarding
+      if (trigger === "update" && session?.hostStatus) {
+        token.hostStatus = session.hostStatus;
+      }
+
+      return token;
+    },
+    async session({ session, token }) {
+      if (token && session.user) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.hostStatus = token.hostStatus;
+      }
       return session;
     },
   },
