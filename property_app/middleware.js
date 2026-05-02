@@ -6,17 +6,22 @@ export default withAuth(
     const token = req.nextauth.token;
     const { pathname } = req.nextUrl;
 
-    // /properties/add → verified hosts only
     if (pathname === "/properties/add") {
       if (token?.hostStatus !== "verified") {
         return NextResponse.redirect(new URL("/host/onboarding", req.url));
       }
     }
 
-    // /host/onboarding → block already-verified hosts
     if (pathname === "/host/onboarding") {
       if (token?.hostStatus === "verified") {
         return NextResponse.redirect(new URL("/properties/add", req.url));
+      }
+    }
+
+    // /admin/* → admin role only
+    if (pathname.startsWith("/admin")) {
+      if (token?.role !== "admin") {
+        return NextResponse.redirect(new URL("/", req.url));
       }
     }
 
@@ -25,13 +30,12 @@ export default withAuth(
   {
     callbacks: {
       authorized({ token }) {
-        // All matched routes require at least a logged-in user
         return token !== null;
       },
     },
-  }
+  },
 );
 
 export const config = {
-  matcher: ["/properties/add", "/host/:path*"],
+  matcher: ["/properties/add", "/host/:path*", "/admin/:path*"],
 };
