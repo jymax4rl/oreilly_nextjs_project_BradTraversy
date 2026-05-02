@@ -14,7 +14,13 @@ export const POST = async (request) => {
     if (!session || !session.user) {
       return new Response("Unauthorized", { status: 401 });
     }
-
+// HOST VERIFICATION GUARD
+    if (session.user.hostStatus !== "verified") {
+      return new Response(
+        "Access denied. Only verified hosts can list properties.",
+        { status: 403 }
+      );
+    }
     const formData = await request.formData();
 
     // Access all values from amenities and images
