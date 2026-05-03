@@ -6,12 +6,47 @@ import { notFound } from "next/navigation";
 
 export async function generateMetadata({ params }) {
   await connectToDatabase();
-  const { id } = await params; // ← await for Next.js 15+
+  const { id } = await params;
   const property = await Property.findById(id).lean();
-  if (!property) return { title: "Property Not Found" };
+
+  if (!property) {
+    return { title: "Property Not Found | Kama Properties" };
+  }
+
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://kamaproperties.com";
+  const canonicalUrl = `${siteUrl}/properties/${id}`;
+  const ogImage = property.images?.[0]
+    ? `${siteUrl}/images/properties/${property.images[0]}`
+    : `${siteUrl}/og-image.jpg`;
+
   return {
-    title: `${property.name} | Kama Properties`,
-    description: property.description?.slice(0, 160),
+    title: `${property.name} | ${property.location?.city || "Africa"}`,
+    description:
+      property.description?.slice(0, 160) ||
+      `Stay at ${property.name} in ${property.location?.city}`,
+    keywords: `${property.type}, ${property.location?.city}, ${property.location?.country}, vacation rental, Africa`,
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      title: property.name,
+      description: property.description?.slice(0, 160),
+      url: canonicalUrl,
+      type: "website",
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: `${property.name} in ${property.location?.city}`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: property.name,
+      description: property.description?.slice(0, 160),
+      images: [ogImage],
+    },
   };
 }
 
@@ -41,3 +76,4 @@ export default async function PropertyPage({ params }) {
     </div>
   );
 }
+export const revalidate = 3600; // Regenerate every 1 hour

@@ -6,12 +6,47 @@ import StyledComponentsRegistry from "@/lib/registry";
 import { CurrencyProvider } from "@/utils/CurrencyContext";
 import AuthProvider from "@/components/AuthProvider";
 
-
 export const metadata = {
-  title: "Kama Properties",
-  description: "Kama Properties made for Africans by Africans",
-  keywords:
-    "Rent in Senegal,Rent in Mali,Rent in Burkina,Rent in Ghana,Rent in Côte d'Ivoire,Rent in Niger,Rent in Chad,Rent in Cameroon,Rent in Guinea,rent in Rwanda,Rent in Uganda,Rent in Burundi,Rent in Tanzania,Rent in Kenya,Rent in Somalia,Rent in Ethiopia,Rent in Eritrea,Rent in Djibouti,Rent in Comoros,Rent in Madagascar,Rent in Mauritius,Rent in Seychelles,Rent in Malawi,Rent in Zambia,Rent in Zimbabwe,Rent in Mozambique,Rent in Angola,Rent in Congo",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://kamaproperties.com",
+  ),
+  title: {
+    default: "Kama Properties | African Vacation Rentals",
+    template: "%s | Kama Properties",
+  },
+  description: "Kama Properties made for Africans by Africans...",
+  keywords: "Rent in Senegal, Rent in Mali, Rent in Ghana...",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    siteName: "Kama Properties",
+    images: [
+      {
+        url: "/og-image.jpg", // Create this 1200x630 image
+        width: 1200,
+        height: 630,
+        alt: "Kama Properties - African Vacation Rentals",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Kama Properties",
+    description: "Kama Properties made for Africans by Africans",
+    images: ["/og-image.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 function MainLayout({ children }) {
