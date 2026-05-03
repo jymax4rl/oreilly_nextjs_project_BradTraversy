@@ -2,26 +2,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import {
-  Bed,
-  Bath,
-  Ruler,
-  MapPin,
-  Search,
-  Check,
-  X,
-  Zap,
-  Shield,
-  Crown,
-  Heart,
-} from "lucide-react";
+import { Bed, Bath, Ruler, MapPin, Heart } from "lucide-react";
 import { formatCurrency } from "../utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
+import { useSession } from "next-auth/react";
 
-// --- Child Component ---
-
-//destructuring the property object
-const PropertyCard = ({ property }) => {
+const PropertyCard = ({ property, isSaved = false }) => {
+  const { data: session } = useSession();
   const { currencyCode, rates } = useCurrency();
   const {
     name,
@@ -30,17 +17,20 @@ const PropertyCard = ({ property }) => {
     beds,
     baths,
     square_feet,
-    rates: propertyRates, // Renamed to avoid conflict with global rates
+    rates: propertyRates,
     images,
     is_featured,
+    _id,
   } = property;
-  const mainImage = `/properties/${images[1]}`;
-  const [isLiked, setIsLiked] = useState(false);
 
-  // Helper to get display price using the IMPORTED function
+  // Initialize from prop (server knows if it's saved)
+  const [isLiked, setIsLiked] = useState(isSaved);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const mainImage = `/properties/${images?.[1] || images?.[0] || "default.jpg"}`;
+
   const getDisplayPrice = (ratesObj) => {
     if (!ratesObj) return { price: "N/A", label: "" };
-
     const currentRate = rates[currencyCode];
     const currentSymbol = currencyCode === "USD" ? "$" : currencyCode;
 
@@ -67,9 +57,40 @@ const PropertyCard = ({ property }) => {
 
   const displayRate = getDisplayPrice(propertyRates);
 
+  const handleLikeToggle = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!session?.user) {
+      // Redirect to sign in if not logged in
+      window.location.href = "/api/auth/signin";
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/user/bookmarks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ propertyId: _id }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setIsLiked(data.isBookmarked);
+      } else {
+        console.error("Bookmark error:", data);
+      }
+    } catch (error) {
+      console.error("Failed to toggle bookmark:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="group bg-white rounded-3xl overflow-hidden flex flex-col h-full border border-gray-100 hover:border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative">
-      <Link href={`/properties/${property._id}`}>
+      <Link href={`/properties/${_id}`}>
         <div className="relative cursor-pointer h-72 overflow-hidden">
           <Image
             loading="eager"
@@ -109,18 +130,15 @@ const PropertyCard = ({ property }) => {
         </div>
       </Link>
 
-      {/* Like Button (Positioned Absolute relative to card to float above image) */}
+      {/* Like Button */}
       <button
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setIsLiked(!isLiked);
-        }}
-        className="absolute cursor-pointer top-4 right-4 z-20 p-2.5 rounded-full bg-white/20 backdrop-blur-md hover:bg-white transition-colors duration-200 group/heart focus:outline-none"
+        onClick={handleLikeToggle}
+        disabled={isLoading}
+        className="absolute cursor-pointer top-4 right-4 z-20 p-2.5 rounded-full bg-white/20 backdrop-blur-md hover:bg-white transition-colors duration-200 group/heart focus:outline-none disabled:opacity-50"
       >
         <Heart
           size={18}
-          className={`transition-colors duration-200  ${
+          className={`transition-colors duration-200 ${
             isLiked
               ? "fill-red-500 text-red-500"
               : "text-white group-hover/heart:text-gray-900"
@@ -128,7 +146,7 @@ const PropertyCard = ({ property }) => {
         />
       </button>
 
-      <Link href={`/properties/${property._id}`}>
+      <Link href={`/properties/${_id}`}>
         <div className="p-6 flex flex-col flex-grow">
           <div className="mb-4">
             <h3
@@ -140,7 +158,7 @@ const PropertyCard = ({ property }) => {
             <div className="flex items-center text-gray-500 text-sm font-medium">
               <MapPin size={16} className="text-gray-400 mr-1.5" />
               <p>
-                {location.city}, {location.country}
+                {location?.city}, {location?.country}
               </p>
             </div>
           </div>
@@ -186,7 +204,7 @@ const PropertyCard = ({ property }) => {
                     className="mr-2 text-indigo-500"
                     strokeWidth={2.5}
                   />
-                  {square_feet.toLocaleString()}
+                  {square_feet?.toLocaleString()}
                 </span>
                 <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mt-0.5">
                   Sq Ft

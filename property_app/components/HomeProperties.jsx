@@ -13,6 +13,7 @@ const HomeProperties = ({
   initialProperties = [],
   searchQuery = "",
   typeFilter = "",
+  isSavedView = false,
 }) => {
   const { currencyCode, setCurrencyCode, rates, loading } = useCurrency();
   const [properties, setProperties] = useState(
@@ -177,7 +178,12 @@ const HomeProperties = ({
                 className="animate-on-scroll"
                 style={{ transitionDelay: `${(index % 3) * 100}ms` }}
               >
-                <PropertyCard property={property} rate={rate} symbol={symbol} />
+                <PropertyCard
+                  property={property}
+                  rate={rate}
+                  symbol={symbol}
+                  isSaved={isSavedView}
+                />
               </div>
             ))}
           </div>
