@@ -115,13 +115,23 @@ export default function AdminHostsPage() {
   return (
     <section className="min-h-screen bg-gray-50 py-12">
       <div className="container m-auto max-w-6xl px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">
-            Host Applications
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Review and manage host onboarding applications
-          </p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">
+              Host Applications
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Review and manage host onboarding applications
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Link 
+              href="/admin/transactions" 
+              className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded transition font-medium"
+            >
+              View Transactions
+            </Link>
+          </div>
         </div>
 
         <div className="flex gap-2 mb-6">

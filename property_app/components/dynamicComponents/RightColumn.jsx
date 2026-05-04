@@ -77,9 +77,29 @@ function RightColumn({ data }) {
     }
     
     handleFlutterPayment({
-      callback: (response) => {
+      callback: async (response) => {
          console.log("Payment complete:", response);
-         // Optionally, you can trigger a webhook or backend confirmation here
+         
+         if (response.status === "successful") {
+            try {
+              const res = await fetch("/api/transactions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  ...response,
+                  property_id: data._id,
+                  property_name: data.name,
+                  host_id: data.owner,
+                  host_name: data.seller_info?.name || "Unknown",
+                  host_email: data.seller_info?.email || "",
+                }),
+              });
+              if (!res.ok) console.error("Failed to save transaction to DB");
+            } catch (err) {
+              console.error("Error saving transaction:", err);
+            }
+         }
+         
          closePaymentModal();
       },
       onClose: () => {
