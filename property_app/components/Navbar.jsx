@@ -3,11 +3,10 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Hamburger from "@/components/hamburger";
-import ImhotepImage from "../assets/images/Imhotep.png";
 import "./navbar.css";
 import gsap from "gsap";
 import NavButton from "./NavButton";
-import AnkhSvg from "./AnkhSvg";
+import KamaLogo from "../assets/images/Kama logo - blue.svg";
 import Pattern from "./Pattern";
 import { LuUserRound } from "react-icons/lu";
 import LoginNavButton from "./LoginNavBtn";
@@ -105,10 +104,13 @@ const Navbar = () => {
   return (
     <div>
       <nav className="menu-container m-0 grid bg-blue/10 backdrop-blur-sm grid-cols-2 lg:grid-cols-[20%_60%_20%] z-50 fixed w-screen h-[8vh]">
-        {/* Logo */}
-        <div className="flex items-center ml-10 lg:ml-22 justify-start align-center">
+        <div className="flex items-center ml-4 lg:ml-22 justify-start align-center">
           <Link href="/">
-            <AnkhSvg className="lg:w-15 lg:h-10 w-10 h-8 cursor-pointer transition-all duration-300 hover:scale-110 hover:rotate-6 stroke-transparent hover:stroke-[#4dd0e1] stroke-[0.5px]" />
+            <Image 
+              src={KamaLogo} 
+              alt="Kama Properties Logo" 
+              className="lg:w-32 lg:h-12 w-24 h-10 cursor-pointer transition-all duration-300 hover:scale-105" 
+            />
           </Link>
         </div>
 
@@ -150,7 +152,7 @@ const Navbar = () => {
         </div>
 
         {/* Right Section */}
-        <div className="flex w-full gap-12 items-center justify-end pointer mr-8">
+        <div className="flex w-full gap-12 items-center justify-end pointer mr-4">
           {/* Desktop Login */}
           {!session && (
             <div className="hidden lg:block">
@@ -160,7 +162,7 @@ const Navbar = () => {
 
           {/* Profile Dropdown */}
           {session && (
-            <div className="relative">
+            <div className="relative hidden lg:block">
               <button
                 id="profile-trigger"
                 onClick={toggleProfileMenu}
@@ -373,34 +375,17 @@ const Navbar = () => {
             </div>
           )}
 
-          <Hamburger clickFunc={toggleMenu} />
+          <Hamburger clickFunc={toggleMenu} checked={isMobileOpen} />
         </div>
       </nav>
 
       {/* Mobile Overlay Menu */}
       <div className="mt-[8vh] overlay-wrapper w-screen z-10">
         <Pattern>
-          <div className="menu-overlay relative grid grid-cols-1 lg:grid-cols-2 text-black w-full h-screen">
-            <div className="lg:block leftWrapper relative w-full h-full">
-              <div className="relative image w-[90%] h-[80%] flex items-center justify-center border-black p-auto m-auto">
-                <Image
-                  src={ImhotepImage}
-                  className="rounded-full cursor-pointer h-[80%] w-[80%] object-cover"
-                  alt="Imhotep"
-                />
-                <div className="hotep-text absolute text-3xl text-white">
-                  Hotep
-                </div>
-              </div>
-              <div className="fixed left-10 bottom-15">
-                <span onClick={toggleMenu} className="text-9xl cursor-pointer">
-                  &#x2715;
-                </span>
-              </div>
-            </div>
-
-            <div className="rightWrapper">
+          <div className="menu-overlay relative text-black w-full h-screen overflow-y-auto px-6 py-12">
+            <div className="w-full max-w-lg mx-auto">
               <div className="menu-links flex flex-col">
+
                 {navLinks.map((link, index) => (
                   <Link
                     onClick={toggleMenu}
@@ -430,6 +415,92 @@ const Navbar = () => {
                   >
                     Admin Dashboard
                   </Link>
+                )}
+
+                {/* Mobile Profile Info */}
+                {session && (
+                  <div className="mt-10 pt-8 border-t border-zinc-100">
+                    <div className="flex items-center gap-4">
+                      {profileImage ? (
+                        <Image
+                          src={profileImage}
+                          alt="Profile"
+                          width={60}
+                          height={60}
+                          className="rounded-full object-cover border-2 border-white shadow-sm"
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-md">
+                          {session.user.name?.charAt(0) || "U"}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-lg font-bold text-zinc-900 truncate">
+                          {session.user.name || "User"}
+                        </p>
+                        <p className="text-sm text-zinc-500 truncate">
+                          {session.user.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mt-6">
+                      <Link
+                        href="#"
+                        onClick={toggleMenu}
+                        className="flex items-center gap-2 p-3 rounded-xl bg-zinc-50 text-zinc-700 text-sm font-medium"
+                      >
+                        <LuUserRound className="w-4 h-4" />
+                        Profile
+                      </Link>
+                      <Link
+                        href="/saved-properties"
+                        onClick={toggleMenu}
+                        className="flex items-center gap-2 p-3 rounded-xl bg-zinc-50 text-zinc-700 text-sm font-medium"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                          />
+                        </svg>
+                        Saved
+                      </Link>
+                      <Link
+                        href="#"
+                        onClick={toggleMenu}
+                        className="flex items-center gap-2 p-3 rounded-xl bg-zinc-50 text-zinc-700 text-sm font-medium"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                        </svg>
+                        Settings
+                      </Link>
+                    </div>
+                  </div>
                 )}
 
                 {!session && (

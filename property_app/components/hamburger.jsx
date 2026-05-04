@@ -2,11 +2,11 @@
 import React from "react";
 import styled from "styled-components";
 
-const Hamburger = ({ clickFunc }) => {
+const Hamburger = ({ clickFunc, checked }) => {
   return (
     <StyledWrapper>
       <label className="hamburger lg:hidden">
-        <input type="checkbox" onChange={clickFunc} />
+        <input type="checkbox" checked={checked} onChange={clickFunc} />
         <svg viewBox="0 0 32 32">
           <path
             className="line line-top-bottom"

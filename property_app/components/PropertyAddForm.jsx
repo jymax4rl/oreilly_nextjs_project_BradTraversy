@@ -384,7 +384,7 @@ const PropertyAddForm = () => {
   // };
 
   return (
-    <div className="h-screen min-w-full overflow-x-hidden">
+    <div className="min-h-screen min-w-full overflow-x-hidden pt-[10vh]">
       <div className="container mx-auto w-full ">
         <div className="bg-white shadow-md rounded-md ">
           <form className="w-full" onSubmit={handleSubmit}>

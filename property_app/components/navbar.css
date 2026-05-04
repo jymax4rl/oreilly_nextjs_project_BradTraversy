@@ -16,5 +16,10 @@
   letter-spacing: -0.02em;
   line-height: 110%;
   width: max-content;
-  /* clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%); */
+}
+
+@media (max-width: 1024px) {
+  .menu-link-item-holder {
+    font-size: 36px;
+  }
 }
