@@ -10,16 +10,3 @@
   z-index: 999;
   clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%);
 }
-.menu-link-item-holder {
-  font-size: 60px;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  line-height: 110%;
-  width: max-content;
-}
-
-@media (max-width: 1024px) {
-  .menu-link-item-holder {
-    font-size: 36px;
-  }
-}

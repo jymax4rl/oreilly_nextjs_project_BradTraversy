@@ -9,6 +9,15 @@ import NavButton from "./NavButton";
 import KamaLogo from "../assets/images/Kama logo - blue.svg";
 import Pattern from "./Pattern";
 import { LuUserRound } from "react-icons/lu";
+import {
+  Home,
+  Building2,
+  PlusCircle,
+  Shield,
+  Heart,
+  Settings,
+  LogOut,
+} from "lucide-react";
 import LoginNavButton from "./LoginNavBtn";
 import { usePathname } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
@@ -17,9 +26,14 @@ import { useMenuOverlay } from "@/contexts/MenuOverlayContext";
 import { isExploreMobileLayout } from "@/utils/exploreLayout";
 
 const navLinks = [
-  { path: "/", label: "Home" },
-  { path: "/properties", label: "Properties" },
+  { path: "/", label: "Home", Icon: Home },
+  { path: "/properties", label: "Properties", Icon: Building2 },
 ];
+
+const overlayRowClass =
+  "group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-[15px] font-medium leading-snug text-zinc-900 transition-colors hover:bg-zinc-50 active:bg-zinc-100";
+const overlayIconClass =
+  "h-5 w-5 shrink-0 text-zinc-400 transition-colors group-hover:text-zinc-600";
 
 const Navbar = () => {
   const { data: session } = useSession();
@@ -410,145 +424,163 @@ const Navbar = () => {
       {/* Mobile Overlay Menu */}
       <div className="overlay-wrapper w-screen z-10">
         <Pattern>
-          <div className="menu-overlay relative text-black w-full h-screen overflow-y-auto px-6 py-12">
-            <div className="w-full max-w-lg mx-auto">
-              <div className="menu-links flex flex-col">
-
-                {navLinks.map((link, index) => (
-                  <Link
-                    onClick={close}
-                    className="menu-link-item-holder mt-4"
-                    key={index}
-                    href={link.path}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+          <div className="menu-overlay relative w-full h-screen overflow-y-auto px-5 py-10 font-sans antialiased text-zinc-900">
+            <div className="mx-auto w-full max-w-md">
+              <nav
+                className="menu-links flex flex-col gap-0.5"
+                aria-label="Main navigation"
+              >
+                {navLinks.map((link, index) => {
+                  const Icon = link.Icon;
+                  return (
+                    <Link
+                      key={index}
+                      href={link.path}
+                      onClick={close}
+                      className={overlayRowClass}
+                    >
+                      <Icon className={overlayIconClass} aria-hidden />
+                      {link.label}
+                    </Link>
+                  );
+                })}
 
                 {hostNavItem && (
                   <Link
-                    onClick={close}
                     href={hostNavItem.path}
-                    className="menu-link-item-holder mt-4"
+                    onClick={close}
+                    className={overlayRowClass}
                   >
+                    <PlusCircle className={overlayIconClass} aria-hidden />
                     {hostNavItem.label}
                   </Link>
                 )}
 
                 {session?.user?.role === "admin" && (
                   <Link
-                    onClick={close}
                     href="/admin/hosts"
-                    className="menu-link-item-holder mt-4"
+                    onClick={close}
+                    className={overlayRowClass}
                   >
+                    <Shield className={overlayIconClass} aria-hidden />
                     Admin Dashboard
                   </Link>
                 )}
+              </nav>
 
-                {/* Mobile Profile Info */}
-                {session && (
-                  <div className="mt-10 pt-8 border-t border-zinc-100">
-                    <div className="flex items-center gap-4">
-                      {profileImage ? (
-                        <Image
-                          src={profileImage}
-                          alt="Profile"
-                          width={60}
-                          height={60}
-                          className="rounded-full object-cover border-2 border-white shadow-sm"
-                        />
-                      ) : (
-                        <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-md">
-                          {session.user.name?.charAt(0) || "U"}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-lg font-bold text-zinc-900 truncate">
-                          {session.user.name || "User"}
-                        </p>
-                        <p className="text-sm text-zinc-500 truncate">
-                          {session.user.email}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 mt-6">
-                      <Link
-                        href="#"
-                        onClick={close}
-                        className="flex items-center gap-2 p-3 rounded-xl bg-zinc-50 text-zinc-700 text-sm font-medium"
-                      >
-                        <LuUserRound className="w-4 h-4" />
-                        Profile
-                      </Link>
-                      <Link
-                        href="/saved-properties"
-                        onClick={close}
-                        className="flex items-center gap-2 p-3 rounded-xl bg-zinc-50 text-zinc-700 text-sm font-medium"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                          />
-                        </svg>
-                        Saved
-                      </Link>
-                      <Link
-                        href="#"
-                        onClick={close}
-                        className="flex items-center gap-2 p-3 rounded-xl bg-zinc-50 text-zinc-700 text-sm font-medium"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                        </svg>
-                        Settings
-                      </Link>
-                    </div>
-                  </div>
-                )}
-
-                {!session && (
-                  <div className="menu-link-item-holder mt-4">
-                    <LoginNavButton onClick={() => signIn("google")} />
-                  </div>
-                )}
-
-                {session && (
+              {!session && (
+                <div className="mt-8">
                   <button
+                    type="button"
+                    onClick={() => {
+                      signIn("google");
+                      close();
+                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-[15px] font-medium text-zinc-900 shadow-sm transition-colors hover:bg-zinc-50"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 256 262"
+                      className="h-5 w-5 shrink-0"
+                      aria-hidden
+                    >
+                      <path
+                        fill="#4285F4"
+                        d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055-34.523 0-63.824-22.773-74.269-54.25l-1.531.13-40.298 31.187-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M56.281 156.37c-2.756-8.123-4.351-16.827-4.351-25.82 0-8.994 1.595-17.697 4.206-25.82l-.073-1.73L15.26 71.312l-1.335.635C5.077 89.644 0 109.517 0 130.55s5.077 40.905 13.925 58.602l42.356-32.782"
+                      />
+                      <path
+                        fill="#EB4335"
+                        d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0 79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251"
+                      />
+                    </svg>
+                    Sign in with Google
+                  </button>
+                </div>
+              )}
+
+              {session && (
+                <>
+                  <div
+                    className="my-8 h-px bg-zinc-200/90"
+                    role="presentation"
+                  />
+                  <p className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                    Account
+                  </p>
+                  <div className="mb-4 flex items-center gap-3 rounded-xl border border-zinc-100 bg-zinc-50/90 px-4 py-3">
+                    {profileImage ? (
+                      <Image
+                        src={profileImage}
+                        alt=""
+                        width={48}
+                        height={48}
+                        className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-white"
+                      />
+                    ) : (
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#00C8FF] text-lg font-semibold text-white">
+                        {session.user.name?.charAt(0) || "U"}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-zinc-900">
+                        {session.user.name || "User"}
+                      </p>
+                      <p className="truncate text-xs text-zinc-500">
+                        {session.user.email}
+                      </p>
+                    </div>
+                  </div>
+
+                  <nav
+                    className="flex flex-col gap-0.5"
+                    aria-label="Account shortcuts"
+                  >
+                    <Link href="#" onClick={close} className={overlayRowClass}>
+                      <LuUserRound className={overlayIconClass} />
+                      Profile
+                    </Link>
+                    <Link
+                      href="/saved-properties"
+                      onClick={close}
+                      className={overlayRowClass}
+                    >
+                      <Heart className={overlayIconClass} aria-hidden />
+                      Saved properties
+                    </Link>
+                    <Link
+                      href="#"
+                      onClick={close}
+                      className={overlayRowClass}
+                    >
+                      <Settings className={overlayIconClass} aria-hidden />
+                      Settings
+                    </Link>
+                  </nav>
+
+                  <button
+                    type="button"
                     onClick={() => {
                       close();
                       signOut();
                     }}
-                    className="menu-link-item-holder mt-4 text-left"
+                    className="group mt-2 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-[15px] font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-800"
                   >
-                    Sign Out
+                    <LogOut
+                      className="h-5 w-5 shrink-0 text-red-500 group-hover:text-red-600"
+                      aria-hidden
+                    />
+                    Sign out
                   </button>
-                )}
-              </div>
+                </>
+              )}
             </div>
           </div>
         </Pattern>
