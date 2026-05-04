@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Hamburger from "@/components/hamburger";
@@ -12,6 +12,9 @@ import { LuUserRound } from "react-icons/lu";
 import LoginNavButton from "./LoginNavBtn";
 import { usePathname } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
+import MobileTopChrome from "@/components/MobileTopChrome";
+import { useMenuOverlay } from "@/contexts/MenuOverlayContext";
+import { isExploreMobileLayout } from "@/utils/exploreLayout";
 
 const navLinks = [
   { path: "/", label: "Home" },
@@ -20,10 +23,11 @@ const navLinks = [
 
 const Navbar = () => {
   const { data: session } = useSession();
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { isOpen, toggle, close } = useMenuOverlay();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const pathname = usePathname();
   const profileImage = session?.user?.image;
+  const explore = isExploreMobileLayout(pathname);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -66,27 +70,23 @@ const Navbar = () => {
     );
   };
 
-  const toggleMenu = () => {
-    setIsMobileOpen((prev) => !prev);
-  };
-
   const toggleProfileMenu = () => {
     setIsProfileOpen((prev) => !prev);
   };
 
   useEffect(() => {
-    if (isMobileOpen) {
+    if (isOpen) {
       openMenuAnimation();
     } else {
       closeMenuAnimation();
     }
-  }, [isMobileOpen]);
+  }, [isOpen]);
 
   // Close menus on route change
   useEffect(() => {
-    setIsMobileOpen(false);
+    close();
     setIsProfileOpen(false);
-  }, [pathname]);
+  }, [pathname, close]);
 
   const isActive = (path) => pathname === path;
 
@@ -103,7 +103,37 @@ const Navbar = () => {
 
   return (
     <div>
-      <nav className="menu-container m-0 grid bg-blue/10 backdrop-blur-sm grid-cols-2 lg:grid-cols-[20%_60%_20%] z-50 fixed w-screen h-[8vh]">
+      {explore && (
+        <Suspense
+          fallback={
+            <div
+              className="lg:hidden fixed left-0 right-0 top-0 z-50 h-[7.5rem] bg-white shadow-sm border-b border-zinc-100"
+              aria-hidden
+            />
+          }
+        >
+          <MobileTopChrome />
+        </Suspense>
+      )}
+
+      {!explore && (
+        <nav className="menu-container m-0 grid bg-blue/10 backdrop-blur-sm grid-cols-2 z-50 fixed top-0 w-screen h-[8vh] lg:hidden">
+          <div className="flex items-center ml-4 justify-start align-center">
+            <Link href="/">
+              <Image
+                src={KamaLogo}
+                alt="Kama Properties Logo"
+                className="w-24 h-10 cursor-pointer transition-all duration-300 hover:scale-105"
+              />
+            </Link>
+          </div>
+          <div className="flex w-full items-center justify-end pointer mr-4">
+            <Hamburger clickFunc={toggle} checked={isOpen} />
+          </div>
+        </nav>
+      )}
+
+      <nav className="menu-container m-0 hidden lg:grid bg-blue/10 backdrop-blur-sm grid-cols-[20%_60%_20%] z-50 fixed top-0 w-screen h-[8vh]">
         <div className="flex items-center ml-4 lg:ml-22 justify-start align-center">
           <Link href="/">
             <Image 
@@ -115,7 +145,7 @@ const Navbar = () => {
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden lg:flex space-x-12 p-2 items-center justify-center">
+        <div className="flex space-x-12 p-2 items-center justify-center">
           {navLinks.map((link, index) => (
             <Link
               key={index}
@@ -374,13 +404,11 @@ const Navbar = () => {
               </div>
             </div>
           )}
-
-          <Hamburger clickFunc={toggleMenu} checked={isMobileOpen} />
         </div>
       </nav>
 
       {/* Mobile Overlay Menu */}
-      <div className="mt-[8vh] overlay-wrapper w-screen z-10">
+      <div className="overlay-wrapper w-screen z-10">
         <Pattern>
           <div className="menu-overlay relative text-black w-full h-screen overflow-y-auto px-6 py-12">
             <div className="w-full max-w-lg mx-auto">
@@ -388,7 +416,7 @@ const Navbar = () => {
 
                 {navLinks.map((link, index) => (
                   <Link
-                    onClick={toggleMenu}
+                    onClick={close}
                     className="menu-link-item-holder mt-4"
                     key={index}
                     href={link.path}
@@ -399,7 +427,7 @@ const Navbar = () => {
 
                 {hostNavItem && (
                   <Link
-                    onClick={toggleMenu}
+                    onClick={close}
                     href={hostNavItem.path}
                     className="menu-link-item-holder mt-4"
                   >
@@ -409,7 +437,7 @@ const Navbar = () => {
 
                 {session?.user?.role === "admin" && (
                   <Link
-                    onClick={toggleMenu}
+                    onClick={close}
                     href="/admin/hosts"
                     className="menu-link-item-holder mt-4"
                   >
@@ -447,7 +475,7 @@ const Navbar = () => {
                     <div className="grid grid-cols-2 gap-3 mt-6">
                       <Link
                         href="#"
-                        onClick={toggleMenu}
+                        onClick={close}
                         className="flex items-center gap-2 p-3 rounded-xl bg-zinc-50 text-zinc-700 text-sm font-medium"
                       >
                         <LuUserRound className="w-4 h-4" />
@@ -455,7 +483,7 @@ const Navbar = () => {
                       </Link>
                       <Link
                         href="/saved-properties"
-                        onClick={toggleMenu}
+                        onClick={close}
                         className="flex items-center gap-2 p-3 rounded-xl bg-zinc-50 text-zinc-700 text-sm font-medium"
                       >
                         <svg
@@ -475,7 +503,7 @@ const Navbar = () => {
                       </Link>
                       <Link
                         href="#"
-                        onClick={toggleMenu}
+                        onClick={close}
                         className="flex items-center gap-2 p-3 rounded-xl bg-zinc-50 text-zinc-700 text-sm font-medium"
                       >
                         <svg
@@ -512,7 +540,7 @@ const Navbar = () => {
                 {session && (
                   <button
                     onClick={() => {
-                      toggleMenu();
+                      close();
                       signOut();
                     }}
                     className="menu-link-item-holder mt-4 text-left"

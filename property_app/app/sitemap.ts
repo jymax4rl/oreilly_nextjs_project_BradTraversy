@@ -30,7 +30,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Dynamic property pages
   await connectToDatabase();
-  const properties = await Property.find({}, "_id updatedAt").lean();
+  const properties = await Property.find()
+    .select("_id updatedAt")
+    .lean();
 
   const propertyRoutes = properties.map((property) => ({
     url: `${baseUrl}/properties/${property._id.toString()}`,

@@ -81,10 +81,10 @@ const HomeProperties = ({
       <div className="container mx-auto px-4">
         <div className="w-full text-center mb-12">
           <div className="grid grid-cols-1 md:grid-cols-8 gap-4 items-center">
-            <div className="md:col-span-7 text-left md:text-center">
+            <div className="hidden md:block md:col-span-7 text-left md:text-center">
               <PropertySearch />
             </div>
-            <div className="justify-center md:justify-end flex gap-2 items-center">
+            <div className="flex justify-center md:justify-end gap-2 items-center md:col-span-1">
               <Currency onCurrencyChange={setCurrencyCode} />
               <DateCurrencyUpdated />
             </div>

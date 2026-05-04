@@ -46,7 +46,7 @@ const PropertiesPage = async ({ searchParams }) => {
   }));
 
   return (
-    <div className="min-h-screen min-w-full overflow-x-hidden pt-[10vh]">
+    <div className="min-h-screen min-w-full overflow-x-hidden md:pt-[10vh]">
       <HomeProperties
         key={`${locationQuery || "all"}-${typeQuery || "all"}`}
         initialProperties={serializedProperties}
