@@ -12,10 +12,16 @@ export const POST = async (request) => {
     // but try to associate with user if logged in
     const session = await getServerSession(authOptions);
     let userId = null;
+    let actualCustomerName = null;
+    let actualCustomerEmail = null;
     
     if (session?.user) {
       const user = await User.findOne({ email: session.user.email });
-      if (user) userId = user._id;
+      if (user) {
+        userId = user._id;
+        actualCustomerName = user.username;
+        actualCustomerEmail = user.email;
+      }
     }
 
     const body = await request.json();
@@ -33,8 +39,8 @@ export const POST = async (request) => {
       amount: body.amount || body.charged_amount,
       currency: body.currency,
       status: body.status,
-      customer_name: body.customer?.name,
-      customer_email: body.customer?.email,
+      customer_name: actualCustomerName || body.customer?.name,
+      customer_email: actualCustomerEmail || body.customer?.email,
       charge_response_code: body.charge_response_code,
       charge_response_message: body.charge_response_message,
       flutterwave_created_at: body.created_at ? new Date(body.created_at) : new Date(),
