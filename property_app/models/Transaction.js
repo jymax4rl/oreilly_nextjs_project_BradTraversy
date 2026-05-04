@@ -1,5 +1,5 @@
 import { Schema, models, model } from "mongoose";
-
+//tested
 const TransactionSchema = new Schema(
   {
     transaction_id: {
@@ -65,7 +65,7 @@ const TransactionSchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Bust Mongoose cache in development so schema changes reflect immediately
