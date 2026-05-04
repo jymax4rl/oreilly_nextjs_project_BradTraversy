@@ -2,16 +2,22 @@
 import { useState } from "react";
 
 interface PaymentConfig {
-  amount: number;
-  currency: string; // 'NGN', 'KES', 'GHS', 'ZAR', etc.
+  amount: number | string;
+  currency: string;
   email: string;
   phone_number: string;
   name: string;
   bookingId: string;
-  payment_options?: string; // 'card,mobilemoney,ussd'
+  country?: string;
+  description?: string;
+  property_id?: string;
+  property_name?: string;
+  host_id?: string;
+  host_name?: string;
+  host_email?: string;
 }
 
-export function useFlutterwavePayment() {
+export function useGeniusPayPayment() {
   const [isLoading, setIsLoading] = useState(false);
 
   const initializePayment = async (config: PaymentConfig) => {
@@ -38,3 +44,6 @@ export function useFlutterwavePayment() {
 
   return { initializePayment, isLoading };
 }
+
+// Backward-compatible export to avoid breaking existing imports.
+export const useFlutterwavePayment = useGeniusPayPayment;

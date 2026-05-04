@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "GeniusPay MCP": {
+      "url": "http://localhost:3000/api/mcp",
+      "headers": {
+        "Authorization": "Bearer pk_sandbox_dqCZW1LY9ADia0NkwxjiXq4DC03XEc47"
+      }
+    }
+  }
+}

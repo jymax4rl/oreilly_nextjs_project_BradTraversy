@@ -11,9 +11,8 @@ const TransactionSchema = new Schema(
       type: String,
       required: true,
     },
-    flw_ref: {
+    gateway_reference: {
       type: String,
-      required: true,
     },
     amount: {
       type: Number,
@@ -33,13 +32,7 @@ const TransactionSchema = new Schema(
     customer_email: {
       type: String,
     },
-    charge_response_code: {
-      type: String,
-    },
-    charge_response_message: {
-      type: String,
-    },
-    flutterwave_created_at: {
+    provider_created_at: {
       type: Date,
     },
     user: {

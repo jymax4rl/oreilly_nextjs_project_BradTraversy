@@ -1,8 +1,7 @@
 // components/PaymentButton.tsx
 'use client';
 
-import { useFlutterwavePayment } from '@/hooks/useFlutterwavePayment';
-import { useRouter } from 'next/navigation';
+import { useGeniusPayPayment } from '@/hooks/useGeniusPayPayment';
 import { useState } from 'react';
 
 interface PaymentButtonProps {
@@ -22,8 +21,7 @@ export default function PaymentButton({
   name,
   bookingId,
 }: PaymentButtonProps) {
-  const { initializePayment, isLoading } = useFlutterwavePayment();
-  const router = useRouter();
+  const { initializePayment, isLoading } = useGeniusPayPayment();
   const [error, setError] = useState('');
 
   const handlePayment = async () => {
@@ -38,9 +36,19 @@ export default function PaymentButton({
         bookingId,
       });
 
-      // Redirect to Flutterwave checkout
-      if (response.data?.link) {
-        window.location.href = response.data.link;
+      // Redirect to GeniusPay checkout
+      if (response.data?.checkout_url) {
+        try {
+          if (response.data.payment_reference) {
+            sessionStorage.setItem(
+              'geniuspay_pending_reference',
+              response.data.payment_reference,
+            );
+          }
+        } catch {
+          // ignore
+        }
+        window.location.href = response.data.checkout_url;
       }
     } catch (err: any) {
       setError(err.message || 'Payment failed. Please try again.');
@@ -64,7 +72,7 @@ export default function PaymentButton({
       </button>
       
       <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-        <span>🔒 Secured by Flutterwave</span>
+        <span>🔒 Secured by GeniusPay</span>
       </div>
     </div>
   );

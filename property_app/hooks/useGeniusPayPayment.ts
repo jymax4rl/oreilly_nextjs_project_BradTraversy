@@ -1,0 +1,1 @@
+export { useGeniusPayPayment } from "./useFlutterwavePayment";

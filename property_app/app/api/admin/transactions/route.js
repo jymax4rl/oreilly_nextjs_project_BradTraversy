@@ -25,11 +25,12 @@ export const GET = async (request) => {
       filter = {
         $or: [
           { tx_ref: { $regex: query, $options: "i" } },
+          { gateway_reference: { $regex: query, $options: "i" } },
           { customer_name: { $regex: query, $options: "i" } },
           { customer_email: { $regex: query, $options: "i" } },
-        ]
+        ],
       };
-      // If query is numeric, also search transaction_id exactly
+      // If query is numeric, also search transaction_id exactly (Flutterwave + GeniusPay ids)
       if (!isNaN(query)) {
         filter.$or.push({ transaction_id: Number(query) });
       }

@@ -77,7 +77,7 @@ export default function AdminTransactionsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Transactions</h1>
-            <p className="text-gray-600 mt-1">Review all payments received via Flutterwave</p>
+            <p className="text-gray-600 mt-1">Review all payments received via GeniusPay</p>
           </div>
           <div className="flex gap-3">
             <Link 
@@ -147,16 +147,16 @@ export default function AdminTransactionsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                          tx.status === "successful" ? "bg-green-100 text-green-800" : 
+                          tx.status === "completed" ? "bg-green-100 text-green-800" : 
                           tx.status === "failed" ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800"
                         }`}>
                           {tx.status}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {new Date(tx.flutterwave_created_at || tx.createdAt).toLocaleDateString()}
+                        {new Date(tx.provider_created_at || tx.createdAt).toLocaleDateString()}
                         <div className="text-xs text-gray-400 mt-0.5">
-                          {new Date(tx.flutterwave_created_at || tx.createdAt).toLocaleTimeString()}
+                          {new Date(tx.provider_created_at || tx.createdAt).toLocaleTimeString()}
                         </div>
                       </td>
                     </tr>

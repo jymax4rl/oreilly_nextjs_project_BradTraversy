@@ -3,13 +3,14 @@ import React from "react";
 import { Star } from "lucide-react";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { formatCurrency } from "@/utils/currencyUtils";
-import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 import { useSession, signIn } from "next-auth/react";
+import { useGeniusPayPayment } from "@/hooks/useGeniusPayPayment";
 
 /* Right Column: Sticky Booking Widget */
 function RightColumn({ data }) {
   const { currencyCode, rates } = useCurrency();
   const { data: session } = useSession();
+  const { initializePayment, isLoading } = useGeniusPayPayment();
 
   const basePrice = data.rates.weekly || data.rates.monthly;
   const cleaningFee = 150;
@@ -19,7 +20,7 @@ function RightColumn({ data }) {
     ((basePrice + cleaningFee) * (rates[currencyCode] || 1)).toFixed(2)
   );
 
-  // Flutterwave requires the correct country code to display regional mobile money (e.g. XOF needs CI/SN)
+  // Infer country for better mobile money routing on GeniusPay.
   const getCountry = (currency) => {
     switch (currency) {
       case "XOF": return "CI"; // Ivory Coast
@@ -31,81 +32,56 @@ function RightColumn({ data }) {
       case "ZMW": return "ZM"; // Zambia
       case "ZAR": return "ZA"; // South Africa
       case "NGN": return "NG"; // Nigeria
-      default: return "NG";
+      default: return "CI";
     }
   };
 
-  // Helper to force ONLY mobile money based on currency
-  const getMobileMoneyString = (currency) => {
-    switch (currency) {
-      case "XOF":
-      case "XAF": return "mobilemoneyfranco";
-      case "GHS": return "mobilemoneyghana";
-      case "UGX": return "mobilemoneyuganda";
-      case "RWF": return "mobilemoneyrwanda";
-      case "ZMW": return "mobilemoneyzambia";
-      default: return "mobilemoney"; // Fallback for KES, etc.
-    }
-  };
-
-  const config = {
-    public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY,
-    tx_ref: `KAMA-${Date.now()}`,
-    amount: numericalTotal,
-    currency: currencyCode === "USD" ? "USD" : currencyCode,
-    country: getCountry(currencyCode === "USD" ? "USD" : currencyCode),
-    // Force ONLY mobile money (hides Card option)
-    payment_options: getMobileMoneyString(currencyCode === "USD" ? "USD" : currencyCode),
-    customer: {
-      email: session?.user?.email || "",
-      phone_number: "",
-      name: session?.user?.name || "",
-    },
-    customizations: {
-      title: "Kama Properties",
-      description: `Reservation for ${data.name || "Property"}`,
-      logo: "https://st2.depositphotos.com/4403291/7418/v/450/depositphotos_74189661-stock-illustration-online-shop-log.jpg",
-    },
-  };
-
-  const handleFlutterPayment = useFlutterwave(config);
-
-  const handleReserve = () => {
+  const handleReserve = async () => {
     if (!session) {
       signIn("google");
       return;
     }
-    
-    handleFlutterPayment({
-      callback: async (response) => {
-         console.log("Payment complete:", response);
-         
-         if (response.status === "successful") {
-            try {
-              const res = await fetch("/api/transactions", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  ...response,
-                  property_id: data._id,
-                  property_name: data.name,
-                  host_id: data.owner,
-                  host_name: data.seller_info?.name || "Unknown",
-                  host_email: data.seller_info?.email || "",
-                }),
-              });
-              if (!res.ok) console.error("Failed to save transaction to DB");
-            } catch (err) {
-              console.error("Error saving transaction:", err);
-            }
-         }
-         
-         closePaymentModal();
-      },
-      onClose: () => {
-         console.log("Payment modal closed");
-      },
-    });
+
+    try {
+      const payCurrency = currencyCode === "USD" ? "USD" : currencyCode;
+      // USD/EUR: do not send an inferred African country — it conflicts with card / foreign phone numbers on GeniusPay checkout.
+      const countryHint =
+        payCurrency === "USD" || payCurrency === "EUR"
+          ? undefined
+          : getCountry(currencyCode);
+
+      const paymentResponse = await initializePayment({
+        amount: numericalTotal,
+        currency: payCurrency,
+        country: countryHint,
+        email: session?.user?.email || "",
+        phone_number: "",
+        name: session?.user?.name || "",
+        bookingId: String(data._id),
+        description: `Reservation for ${data.name || "Property"}`,
+        property_id: data._id,
+        property_name: data.name,
+        host_id: data.owner,
+        host_name: data.seller_info?.name || "Unknown",
+        host_email: data.seller_info?.email || "",
+      });
+
+      if (paymentResponse?.data?.checkout_url) {
+        try {
+          if (paymentResponse.data.payment_reference) {
+            sessionStorage.setItem(
+              "geniuspay_pending_reference",
+              paymentResponse.data.payment_reference,
+            );
+          }
+        } catch {
+          // ignore private mode / blocked storage
+        }
+        window.location.href = paymentResponse.data.checkout_url;
+      }
+    } catch (error) {
+      console.error("Unable to initialize GeniusPay checkout:", error);
+    }
   };
 
   return (
@@ -153,13 +129,14 @@ function RightColumn({ data }) {
 
         <button 
           onClick={handleReserve}
+          disabled={isLoading}
           className="w-full cursor-pointer py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-slate-900/20 text-lg"
         >
-          Reserve
+          {isLoading ? "Processing..." : "Reserve"}
         </button>
 
         <div className="text-center text-xs text-slate-400 font-medium">
-          You won't be charged yet
+          You won&apos;t be charged yet
         </div>
 
         {/* Price Breakdown */}
