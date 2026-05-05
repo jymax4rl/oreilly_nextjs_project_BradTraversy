@@ -30,10 +30,14 @@ export default function AdminListingsPage() {
     const fetchListings = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/admin/listings?status=${filter}`, {
-          cache: "no-store",
-          credentials: "include",
-        });
+        const res = await fetch(
+          `/api/admin/listings?status=${encodeURIComponent(filter)}&nc=${Date.now()}`,
+          {
+            cache: "no-store",
+            credentials: "include",
+            headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+          },
+        );
         if (!res.ok) {
           throw new Error(await res.text());
         }
@@ -83,10 +87,14 @@ export default function AdminListingsPage() {
         throw new Error(text || `Server returned ${res.status}`);
       }
 
-      const syncRes = await fetch(`/api/admin/listings?status=${filter}`, {
-        cache: "no-store",
-        credentials: "include",
-      });
+      const syncRes = await fetch(
+        `/api/admin/listings?status=${encodeURIComponent(filter)}&nc=${Date.now()}`,
+        {
+          cache: "no-store",
+          credentials: "include",
+          headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+        },
+      );
       if (syncRes.ok) {
         const syncData = await syncRes.json();
         setProperties(syncData.properties || []);

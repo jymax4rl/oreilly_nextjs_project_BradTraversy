@@ -10,6 +10,7 @@ import {
   isPubliclyVisibleListing,
   isAwaitingListingModeration,
 } from "@/utils/listingApproval";
+import { serializePropertyForClient } from "@/utils/serializePropertyClient";
 
 export async function generateMetadata({ params }) {
   await connectToDatabase();
@@ -79,17 +80,19 @@ export default async function PropertyPage({ params }) {
     notFound();
   }
 
-  const serialized = {
+  const session = await getServerSession(authOptions);
+
+  const rawForAuth = {
     ...property,
     _id: property._id.toString(),
     owner: property.owner?.toString?.() || property.owner,
   };
 
-  const session = await getServerSession(authOptions);
-
-  if (!canUserViewListing(serialized, session)) {
+  if (!canUserViewListing(rawForAuth, session)) {
     notFound();
   }
+
+  const serialized = serializePropertyForClient(property);
 
   const showReviewUi =
     session?.user &&

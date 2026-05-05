@@ -105,9 +105,9 @@ export const GET = async (request) => {
       {
         properties: withOwners,
         counts: {
-          pending: pendingCount,
-          approved: approvedCount,
-          rejected: rejectedCount,
+          pending: Number(pendingCount) || 0,
+          approved: Number(approvedCount) || 0,
+          rejected: Number(rejectedCount) || 0,
         },
       },
       {
