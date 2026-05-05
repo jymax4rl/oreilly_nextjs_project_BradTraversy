@@ -32,6 +32,7 @@ export default function AdminListingsPage() {
       try {
         const res = await fetch(`/api/admin/listings?status=${filter}`, {
           cache: "no-store",
+          credentials: "include",
         });
         if (!res.ok) {
           throw new Error(await res.text());
@@ -39,7 +40,11 @@ export default function AdminListingsPage() {
         const data = await res.json();
         setProperties(data.properties || []);
         if (data.counts) {
-          setCounts(data.counts);
+          setCounts({
+            pending: Number(data.counts.pending) || 0,
+            approved: Number(data.counts.approved) || 0,
+            rejected: Number(data.counts.rejected) || 0,
+          });
         }
       } catch (error) {
         console.error("Failed to fetch listings:", error);
@@ -52,19 +57,25 @@ export default function AdminListingsPage() {
   }, [filter, session, status]);
 
   const handleAction = async (id, action) => {
-    setActionLoading(id);
+    setActionLoading(String(id));
     try {
       const body = { status: action };
       if (action === "rejected") {
-        const reason = window.prompt("Enter rejection reason (optional):");
-        if (reason) body.rejectionReason = reason;
+        const ok = window.confirm(
+          "Permanently delete this listing from the database? This cannot be undone.",
+        );
+        if (!ok) {
+          return;
+        }
       }
 
-      const res = await fetch(`/api/admin/listings/${id}`, {
+      const idStr = String(id);
+      const res = await fetch(`/api/admin/listings/${idStr}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
         cache: "no-store",
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -74,16 +85,21 @@ export default function AdminListingsPage() {
 
       const syncRes = await fetch(`/api/admin/listings?status=${filter}`, {
         cache: "no-store",
+        credentials: "include",
       });
       if (syncRes.ok) {
         const syncData = await syncRes.json();
         setProperties(syncData.properties || []);
         if (syncData.counts) {
-          setCounts(syncData.counts);
+          setCounts({
+            pending: Number(syncData.counts.pending) || 0,
+            approved: Number(syncData.counts.approved) || 0,
+            rejected: Number(syncData.counts.rejected) || 0,
+          });
         }
       } else {
         setProperties((prev) =>
-          prev.filter((p) => String(p._id) !== String(id)),
+          prev.filter((p) => String(p._id) !== idStr),
         );
       }
     } catch (error) {
@@ -148,9 +164,9 @@ export default function AdminListingsPage() {
               Property listings
             </h1>
             <p className="text-gray-600 mt-1">
-              Approve or reject new listings before they appear on the site. Each
-              row is one database listing — the same title can appear more than
-              once if a host created multiple property records.
+              Approve listings to publish them, or reject to permanently remove them
+              from the database. Each row is one listing — duplicate titles can be
+              separate records.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -272,10 +288,10 @@ export default function AdminListingsPage() {
                       <button
                         type="button"
                         onClick={() => handleAction(prop._id, "approved")}
-                        disabled={actionLoading === prop._id}
+                        disabled={actionLoading === String(prop._id)}
                         className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium transition disabled:opacity-50 text-sm"
                       >
-                        {actionLoading === prop._id
+                        {actionLoading === String(prop._id)
                           ? "Processing..."
                           : "Approve"}
                       </button>
@@ -284,12 +300,12 @@ export default function AdminListingsPage() {
                       <button
                         type="button"
                         onClick={() => handleAction(prop._id, "rejected")}
-                        disabled={actionLoading === prop._id}
+                        disabled={actionLoading === String(prop._id)}
                         className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium transition disabled:opacity-50 text-sm"
                       >
-                        {actionLoading === prop._id
+                        {actionLoading === String(prop._id)
                           ? "Processing..."
-                          : "Reject"}
+                          : "Delete"}
                       </button>
                     )}
                   </div>
