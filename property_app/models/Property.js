@@ -96,6 +96,11 @@ const PropertySchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected"],
       required: false,
     },
+    /** Set only when a host submits a new listing for moderation. Legacy rows never have this. */
+    listingModerationRequestedAt: {
+      type: Date,
+      required: false,
+    },
     listingRejectionReason: {
       type: String,
       required: false,

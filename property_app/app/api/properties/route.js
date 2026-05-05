@@ -56,6 +56,7 @@ export const POST = async (request) => {
       },
       owner: session.user.id,
       listingStatus: "pending",
+      listingModerationRequestedAt: new Date(),
     };
 
     // Handle Image Uploads (Local Storage)

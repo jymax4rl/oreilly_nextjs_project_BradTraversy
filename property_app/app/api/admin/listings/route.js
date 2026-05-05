@@ -2,6 +2,7 @@ import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
 import User from "@/models/User";
 import { getSessionFromRequest } from "@/utils/authSessionRoute";
+import { pendingModerationQueueQuery } from "@/utils/listingApproval";
 import mongoose from "mongoose";
 
 /** Do not cache: each ?status= must return a different list (App Router can cache GET otherwise). */
@@ -23,6 +24,25 @@ export const GET = async (request) => {
     const valid = ["pending", "approved", "rejected"];
     const filter = valid.includes(statusFilter) ? statusFilter : "pending";
 
+    // Legacy rows: never "pending" without a moderation request time — normalize DB
+    await Property.updateMany(
+      {
+        listingStatus: "pending",
+        $or: [
+          { listingModerationRequestedAt: { $exists: false } },
+          { listingModerationRequestedAt: null },
+        ],
+      },
+      {
+        $unset: {
+          listingStatus: "",
+          listingRejectionReason: "",
+          listingReviewedAt: "",
+          listingReviewedBy: "",
+        },
+      },
+    );
+
     let listingQuery;
     if (filter === "approved") {
       listingQuery = {
@@ -32,14 +52,18 @@ export const GET = async (request) => {
           { listingStatus: null },
         ],
       };
+    } else if (filter === "pending") {
+      listingQuery = pendingModerationQueueQuery();
     } else {
       listingQuery = { listingStatus: filter };
     }
 
+    const pendingQueue = pendingModerationQueueQuery();
+
     const [properties, pendingCount, approvedCount, rejectedCount] =
       await Promise.all([
         Property.find(listingQuery).sort({ createdAt: -1 }).lean(),
-        Property.countDocuments({ listingStatus: "pending" }),
+        Property.countDocuments(pendingQueue),
         Property.countDocuments({
           $or: [
             { listingStatus: "approved" },

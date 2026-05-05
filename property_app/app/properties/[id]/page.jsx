@@ -8,6 +8,7 @@ import { authOptions } from "@/utils/authOptions";
 import {
   canUserViewListing,
   isPubliclyVisibleListing,
+  isAwaitingListingModeration,
 } from "@/utils/listingApproval";
 
 export async function generateMetadata({ params }) {
@@ -92,7 +93,7 @@ export default async function PropertyPage({ params }) {
 
   const showReviewUi =
     session?.user &&
-    (serialized.listingStatus === "pending" ||
+    (isAwaitingListingModeration(serialized) ||
       serialized.listingStatus === "rejected") &&
     (session.user.role === "admin" ||
       String(serialized.owner) === String(session.user.id));
@@ -118,6 +119,11 @@ export default async function PropertyPage({ params }) {
       <DynamicProperty
         property={serialized}
         listingReviewInfo={listingReviewInfo}
+        canAdminModerate={
+          session?.user?.role === "admin" &&
+          (isAwaitingListingModeration(serialized) ||
+            serialized.listingStatus === "rejected")
+        }
       />
     </div>
   );

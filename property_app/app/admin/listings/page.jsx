@@ -164,9 +164,9 @@ export default function AdminListingsPage() {
               Property listings
             </h1>
             <p className="text-gray-600 mt-1">
-              Approve listings to publish them, or reject to permanently remove them
-              from the database. Each row is one listing — duplicate titles can be
-              separate records.
+              Approve listings to publish them, or delete to remove them from the
+              database. Pending shows only new submissions that requested review;
+              listings already in the database before that stay under Approved.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
