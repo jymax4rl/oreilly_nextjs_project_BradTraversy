@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import mongoose from "mongoose";
 
+export const dynamic = "force-dynamic";
+
 export const PATCH = async (request, { params }) => {
   const { id } = await params;
 
@@ -30,31 +32,41 @@ export const PATCH = async (request, { params }) => {
       });
     }
 
-    const property = await Property.findById(
-      new mongoose.Types.ObjectId(id),
+    const oid = new mongoose.Types.ObjectId(id);
+
+    const $set = {
+      listingStatus: status,
+      listingReviewedAt: new Date(),
+    };
+
+    if (mongoose.Types.ObjectId.isValid(String(session.user.id))) {
+      $set.listingReviewedBy = new mongoose.Types.ObjectId(session.user.id);
+    }
+
+    if (status === "approved") {
+      $set.listingRejectionReason = null;
+    } else {
+      $set.listingRejectionReason = rejectionReason || null;
+    }
+
+    // $set + direct update so legacy documents get new fields even if a doc instance would skip them
+    const result = await Property.updateOne(
+      { _id: oid },
+      { $set },
     );
 
-    if (!property) {
+    if (result.matchedCount === 0) {
       return new Response("Property not found", { status: 404 });
     }
 
-    property.listingStatus = status;
-    property.listingReviewedAt = new Date();
-    property.listingReviewedBy = new mongoose.Types.ObjectId(session.user.id);
-    if (status === "approved") {
-      property.listingRejectionReason = undefined;
-    } else if (status === "rejected" && rejectionReason) {
-      property.listingRejectionReason = rejectionReason;
-    } else if (status === "rejected") {
-      property.listingRejectionReason = undefined;
-    }
-
-    await property.save();
-
-    return Response.json({
-      success: true,
-      message: `Listing ${status}`,
-    });
+    return Response.json(
+      {
+        success: true,
+        message: `Listing ${status}`,
+        modifiedCount: result.modifiedCount,
+      },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (error) {
     console.error("Admin listing PATCH error:", error);
     return new Response(`Failed to update listing: ${error.message}`, {

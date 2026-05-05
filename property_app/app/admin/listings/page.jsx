@@ -9,6 +9,11 @@ export default function AdminListingsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [properties, setProperties] = useState([]);
+  const [counts, setCounts] = useState({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("pending");
   const [actionLoading, setActionLoading] = useState(null);
@@ -25,9 +30,17 @@ export default function AdminListingsPage() {
     const fetchListings = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/admin/listings?status=${filter}`);
+        const res = await fetch(`/api/admin/listings?status=${filter}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          throw new Error(await res.text());
+        }
         const data = await res.json();
         setProperties(data.properties || []);
+        if (data.counts) {
+          setCounts(data.counts);
+        }
       } catch (error) {
         console.error("Failed to fetch listings:", error);
       } finally {
@@ -51,6 +64,7 @@ export default function AdminListingsPage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
+        cache: "no-store",
       });
 
       if (!res.ok) {
@@ -58,7 +72,20 @@ export default function AdminListingsPage() {
         throw new Error(text || `Server returned ${res.status}`);
       }
 
-      setProperties((prev) => prev.filter((p) => p._id !== id));
+      const syncRes = await fetch(`/api/admin/listings?status=${filter}`, {
+        cache: "no-store",
+      });
+      if (syncRes.ok) {
+        const syncData = await syncRes.json();
+        setProperties(syncData.properties || []);
+        if (syncData.counts) {
+          setCounts(syncData.counts);
+        }
+      } else {
+        setProperties((prev) =>
+          prev.filter((p) => String(p._id) !== String(id)),
+        );
+      }
     } catch (error) {
       console.error("handleAction error:", error);
       alert("Failed: " + error.message);
@@ -121,7 +148,9 @@ export default function AdminListingsPage() {
               Property listings
             </h1>
             <p className="text-gray-600 mt-1">
-              Approve or reject new listings before they appear on the site
+              Approve or reject new listings before they appear on the site. Each
+              row is one database listing — the same title can appear more than
+              once if a host created multiple property records.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -153,9 +182,15 @@ export default function AdminListingsPage() {
               }`}
             >
               {statusFilter}
-              {filter === statusFilter && properties.length > 0 && (
-                <span className="ml-2 bg-white text-gray-900 text-xs px-2 py-0.5 rounded-full">
-                  {properties.length}
+              {counts[statusFilter] > 0 && (
+                <span
+                  className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                    filter === statusFilter
+                      ? "bg-white text-gray-900"
+                      : "bg-gray-200 text-gray-800"
+                  }`}
+                >
+                  {counts[statusFilter]}
                 </span>
               )}
             </button>

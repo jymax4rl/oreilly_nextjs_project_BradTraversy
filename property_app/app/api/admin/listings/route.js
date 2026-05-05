@@ -5,6 +5,9 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import mongoose from "mongoose";
 
+/** Do not cache: each ?status= must return a different list (App Router can cache GET otherwise). */
+export const dynamic = "force-dynamic";
+
 export const GET = async (request) => {
   try {
     await connectToDatabase();
@@ -33,9 +36,18 @@ export const GET = async (request) => {
       listingQuery = { listingStatus: filter };
     }
 
-    const properties = await Property.find(listingQuery)
-      .sort({ createdAt: -1 })
-      .lean();
+    const [properties, pendingCount, approvedCount, rejectedCount] =
+      await Promise.all([
+        Property.find(listingQuery).sort({ createdAt: -1 }).lean(),
+        Property.countDocuments({ listingStatus: "pending" }),
+        Property.countDocuments({
+          $or: [
+            { listingStatus: "approved" },
+            { listingStatus: { $exists: false } },
+          ],
+        }),
+        Property.countDocuments({ listingStatus: "rejected" }),
+      ]);
 
     const ownerIds = [
       ...new Set(
@@ -64,7 +76,21 @@ export const GET = async (request) => {
         : null,
     }));
 
-    return Response.json({ properties: withOwners });
+    return Response.json(
+      {
+        properties: withOwners,
+        counts: {
+          pending: pendingCount,
+          approved: approvedCount,
+          rejected: rejectedCount,
+        },
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      },
+    );
   } catch (error) {
     console.error("Failed to fetch listings for admin:", error);
     return new Response("Failed to fetch listings", { status: 500 });
