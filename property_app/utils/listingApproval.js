@@ -8,6 +8,7 @@ export function approvedListingQuery() {
     $or: [
       { listingStatus: "approved" },
       { listingStatus: { $exists: false } },
+      { listingStatus: null },
     ],
   };
 }

@@ -1,10 +1,14 @@
 import "@/assets/styles/globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MainShell from "@/components/MainShell";
+import MobileBottomNavGate from "@/components/MobileBottomNavGate";
 import React from "react";
 import StyledComponentsRegistry from "@/lib/registry";
 import { CurrencyProvider } from "@/utils/CurrencyContext";
 import AuthProvider from "@/components/AuthProvider";
+import { MenuOverlayProvider } from "@/contexts/MenuOverlayContext";
+import { ScrollNavProvider } from "@/contexts/ScrollNavContext";
 
 export const metadata = {
   metadataBase: new URL(
@@ -52,17 +56,22 @@ export const metadata = {
 function MainLayout({ children }) {
   return (
     <AuthProvider>
-      <CurrencyProvider>
-        <StyledComponentsRegistry>
-          <html lang="en">
-            <body className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow">{children}</main>
-              <Footer />
-            </body>
-          </html>
-        </StyledComponentsRegistry>
-      </CurrencyProvider>
+      <MenuOverlayProvider>
+        <ScrollNavProvider>
+          <CurrencyProvider>
+            <StyledComponentsRegistry>
+              <html lang="en">
+                <body className="flex flex-col min-h-screen">
+                  <Navbar />
+                  <MainShell>{children}</MainShell>
+                  <MobileBottomNavGate />
+                  <Footer className="hidden lg:block" />
+                </body>
+              </html>
+            </StyledComponentsRegistry>
+          </CurrencyProvider>
+        </ScrollNavProvider>
+      </MenuOverlayProvider>
     </AuthProvider>
   );
 }

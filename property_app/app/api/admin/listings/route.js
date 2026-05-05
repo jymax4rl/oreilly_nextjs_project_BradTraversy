@@ -1,8 +1,7 @@
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
 import User from "@/models/User";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getSessionFromRequest } from "@/utils/authSessionRoute";
 import mongoose from "mongoose";
 
 /** Do not cache: each ?status= must return a different list (App Router can cache GET otherwise). */
@@ -11,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const GET = async (request) => {
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getSessionFromRequest(request);
 
     if (!session?.user || session.user.role !== "admin") {
       return new Response("Unauthorized - Admin access required", {
@@ -30,6 +29,7 @@ export const GET = async (request) => {
         $or: [
           { listingStatus: "approved" },
           { listingStatus: { $exists: false } },
+          { listingStatus: null },
         ],
       };
     } else {
@@ -44,6 +44,7 @@ export const GET = async (request) => {
           $or: [
             { listingStatus: "approved" },
             { listingStatus: { $exists: false } },
+            { listingStatus: null },
           ],
         }),
         Property.countDocuments({ listingStatus: "rejected" }),

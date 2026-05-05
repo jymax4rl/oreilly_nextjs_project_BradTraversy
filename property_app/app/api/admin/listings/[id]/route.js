@@ -1,7 +1,6 @@
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getSessionFromRequest } from "@/utils/authSessionRoute";
 import mongoose from "mongoose";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +10,7 @@ export const PATCH = async (request, { params }) => {
 
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getSessionFromRequest(request);
 
     if (!session?.user || session.user.role !== "admin") {
       return new Response("Unauthorized - Admin access required", {
