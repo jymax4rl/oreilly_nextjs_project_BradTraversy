@@ -20,7 +20,10 @@ import {
 import { useCurrency } from "@/utils/CurrencyContext";
 import { formatCurrency } from "@/utils/currencyUtils";
 
-export default function DynamicProperty({ property }) {
+export default function DynamicProperty({
+  property,
+  listingReviewInfo = null,
+}) {
   // Fallback for preview if property prop is missing
   const data = property;
   const { currencyCode, rates } = useCurrency();
@@ -28,6 +31,28 @@ export default function DynamicProperty({ property }) {
   return (
     <div className="bg-white min-h-screen text-slate-900 font-sans selection:bg-blue-100 pb-20 pt-[10vh]">
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-10">
+        {listingReviewInfo && (
+          <div
+            className={`rounded-xl border px-4 py-3 ${
+              listingReviewInfo.status === "pending"
+                ? "bg-amber-50 border-amber-200 text-amber-950"
+                : "bg-red-50 border-red-200 text-red-900"
+            }`}
+            role="status"
+          >
+            <p className="font-semibold text-sm sm:text-base">
+              {listingReviewInfo.status === "pending"
+                ? "This listing is pending admin approval and is not visible to the public yet."
+                : "This listing was rejected and is not visible to the public."}
+            </p>
+            {listingReviewInfo.status === "rejected" &&
+              listingReviewInfo.reason && (
+                <p className="text-sm mt-2 opacity-90">
+                  Reason: {listingReviewInfo.reason}
+                </p>
+              )}
+          </div>
+        )}
         {/* Header & Title Section */}
         <header className="space-y-6">
           <div className="space-y-2">

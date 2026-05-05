@@ -5,10 +5,10 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function AdminHostsPage() {
+export default function AdminListingsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [applications, setApplications] = useState([]);
+  const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("pending");
   const [actionLoading, setActionLoading] = useState(null);
@@ -22,20 +22,20 @@ export default function AdminHostsPage() {
   useEffect(() => {
     if (status !== "authenticated" || session?.user?.role !== "admin") return;
 
-    const fetchApplications = async () => {
+    const fetchListings = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/admin/hosts?status=${filter}`);
+        const res = await fetch(`/api/admin/listings?status=${filter}`);
         const data = await res.json();
-        setApplications(data.applications || []);
+        setProperties(data.properties || []);
       } catch (error) {
-        console.error("Failed to fetch applications:", error);
+        console.error("Failed to fetch listings:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchApplications();
+    fetchListings();
   }, [filter, session, status]);
 
   const handleAction = async (id, action) => {
@@ -47,7 +47,7 @@ export default function AdminHostsPage() {
         if (reason) body.rejectionReason = reason;
       }
 
-      const res = await fetch(`/api/admin/hosts/${id}`, {
+      const res = await fetch(`/api/admin/listings/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -58,7 +58,7 @@ export default function AdminHostsPage() {
         throw new Error(text || `Server returned ${res.status}`);
       }
 
-      setApplications((prev) => prev.filter((app) => app._id !== id));
+      setProperties((prev) => prev.filter((p) => p._id !== id));
     } catch (error) {
       console.error("handleAction error:", error);
       alert("Failed: " + error.message);
@@ -118,32 +118,33 @@ export default function AdminHostsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">
-              Host Applications
+              Property listings
             </h1>
             <p className="text-gray-600 mt-1">
-              Review and manage host onboarding applications
+              Approve or reject new listings before they appear on the site
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/admin/listings"
-              className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded transition font-medium"
+              href="/admin/hosts"
+              className="bg-white border text-gray-700 hover:bg-gray-100 px-4 py-2 rounded transition font-medium"
             >
-              Property listings
+              Host applications
             </Link>
             <Link
               href="/admin/transactions"
-              className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded transition font-medium"
+              className="bg-white border text-gray-700 hover:bg-gray-100 px-4 py-2 rounded transition font-medium"
             >
               Transactions
             </Link>
           </div>
         </div>
 
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 flex-wrap">
           {["pending", "approved", "rejected"].map((statusFilter) => (
             <button
               key={statusFilter}
+              type="button"
               onClick={() => setFilter(statusFilter)}
               className={`px-4 py-2 rounded-lg font-medium capitalize transition ${
                 filter === statusFilter
@@ -152,9 +153,9 @@ export default function AdminHostsPage() {
               }`}
             >
               {statusFilter}
-              {filter === statusFilter && applications.length > 0 && (
+              {filter === statusFilter && properties.length > 0 && (
                 <span className="ml-2 bg-white text-gray-900 text-xs px-2 py-0.5 rounded-full">
-                  {applications.length}
+                  {properties.length}
                 </span>
               )}
             </button>
@@ -165,126 +166,95 @@ export default function AdminHostsPage() {
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900"></div>
           </div>
-        ) : applications.length === 0 ? (
+        ) : properties.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
             <p className="text-gray-500 text-lg">
-              No {filter} applications found.
+              No {filter} listings found.
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {applications.map((app) => (
+            {properties.map((prop) => (
               <div
-                key={app._id}
+                key={prop._id}
                 className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition"
               >
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      {app.user?.image ? (
-                        <img
-                          src={app.user.image}
-                          alt={app.user.username}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold text-lg">
-                          {app.user?.username?.charAt(0)?.toUpperCase() || "?"}
-                        </div>
-                      )}
-                      <div>
-                        <h3 className="font-bold text-gray-800">
-                          {app.user?.username || "Unknown User"}
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          {app.user?.email}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <span className="text-gray-500">Phone:</span>{" "}
-                        <span className="font-medium">{app.phone}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">ID Type:</span>{" "}
-                        <span className="font-medium capitalize">
-                          {app.idType.replace("_", " ")}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <h3 className="font-bold text-gray-800 text-lg truncate">
+                        {prop.name || "Untitled listing"}
+                      </h3>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 uppercase">
+                        {prop.type}
+                      </span>
+                      {filter === "approved" && !prop.listingStatus && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                          Legacy (pre-moderation)
                         </span>
-                      </div>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {[prop.location?.city, prop.location?.country]
+                        .filter(Boolean)
+                        .join(", ") || "Location not set"}
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-sm">
                       <div>
-                        <span className="text-gray-500">ID Number:</span>{" "}
-                        <span className="font-medium">{app.idNumber}</span>
+                        <span className="text-gray-500">Host:</span>{" "}
+                        <span className="font-medium">
+                          {prop.ownerUser?.username ||
+                            prop.ownerUser?.email ||
+                            prop.owner ||
+                            "Unknown"}
+                        </span>
                       </div>
                       <div>
                         <span className="text-gray-500">Submitted:</span>{" "}
                         <span className="font-medium">
-                          {new Date(app.createdAt).toLocaleDateString()}
+                          {prop.createdAt
+                            ? new Date(prop.createdAt).toLocaleDateString()
+                            : "—"}
                         </span>
                       </div>
                     </div>
-
-                    {app.address && (
-                      <div className="mt-3 text-sm">
-                        <span className="text-gray-500">Address:</span>{" "}
-                        <span className="font-medium">{app.address}</span>
-                      </div>
-                    )}
-                    {app.bio && (
-                      <div className="mt-3 text-sm">
-                        <span className="text-gray-500">Bio:</span>{" "}
-                        <span className="text-gray-700">{app.bio}</span>
-                      </div>
-                    )}
-                    {app.rejectionReason && (
+                    {prop.listingRejectionReason && filter === "rejected" && (
                       <div className="mt-3 p-3 bg-red-50 rounded text-sm text-red-700">
                         <span className="font-medium">Rejection reason:</span>{" "}
-                        {app.rejectionReason}
+                        {prop.listingRejectionReason}
                       </div>
                     )}
                   </div>
 
-                  <div className="flex lg:flex-col gap-2 items-start">
-                    {/* Status badge for non-pending */}
-                    {filter !== "pending" && (
-                      <div className="flex items-center gap-2 mb-1">
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            app.status === "approved"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {app.status}
-                        </span>
-                        {app.reviewedAt && (
-                          <span className="text-xs text-gray-500">
-                            {new Date(app.reviewedAt).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Approve button — shown on pending + rejected tabs */}
+                  <div className="flex flex-col sm:flex-row lg:flex-col gap-2 items-stretch sm:items-start shrink-0">
+                    <Link
+                      href={`/properties/${prop._id}`}
+                      className="text-center px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium text-sm"
+                    >
+                      View listing
+                    </Link>
                     {filter !== "approved" && (
                       <button
-                        onClick={() => handleAction(app._id, "approved")}
-                        disabled={actionLoading === app._id}
-                        className="w-full lg:w-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium transition disabled:opacity-50"
+                        type="button"
+                        onClick={() => handleAction(prop._id, "approved")}
+                        disabled={actionLoading === prop._id}
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium transition disabled:opacity-50 text-sm"
                       >
-                        {actionLoading === app._id ? "Processing..." : "Approve"}
+                        {actionLoading === prop._id
+                          ? "Processing..."
+                          : "Approve"}
                       </button>
                     )}
-
-                    {/* Reject button — shown on pending + approved tabs */}
                     {filter !== "rejected" && (
                       <button
-                        onClick={() => handleAction(app._id, "rejected")}
-                        disabled={actionLoading === app._id}
-                        className="w-full lg:w-auto bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium transition disabled:opacity-50"
+                        type="button"
+                        onClick={() => handleAction(prop._id, "rejected")}
+                        disabled={actionLoading === prop._id}
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium transition disabled:opacity-50 text-sm"
                       >
-                        {actionLoading === app._id ? "Processing..." : "Reject"}
+                        {actionLoading === prop._id
+                          ? "Processing..."
+                          : "Reject"}
                       </button>
                     )}
                   </div>

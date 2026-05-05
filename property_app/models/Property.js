@@ -91,6 +91,24 @@ const PropertySchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    listingStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      required: false,
+    },
+    listingRejectionReason: {
+      type: String,
+      required: false,
+    },
+    listingReviewedAt: {
+      type: Date,
+      required: false,
+    },
+    listingReviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt

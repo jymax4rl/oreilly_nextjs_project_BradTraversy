@@ -24,7 +24,11 @@ function getCurrencyForCountry(country = "") {
   return "USD";
 }
 
-export default function ServerProperty({ property, canonicalUrl }) {
+export default function ServerProperty({
+  property,
+  canonicalUrl,
+  includeJsonLd = true,
+}) {
   const siteUrl = (
     process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com"
   ).replace(/\/$/, "");
@@ -99,6 +103,10 @@ export default function ServerProperty({ property, canonicalUrl }) {
   };
 
   // ONLY renders invisible SEO scripts — no visible UI
+  if (!includeJsonLd) {
+    return null;
+  }
+
   return (
     <>
       <script

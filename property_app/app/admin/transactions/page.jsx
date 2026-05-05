@@ -79,12 +79,18 @@ export default function AdminTransactionsPage() {
             <h1 className="text-3xl font-bold text-gray-800">Transactions</h1>
             <p className="text-gray-600 mt-1">Review all payments received via Flutterwave</p>
           </div>
-          <div className="flex gap-3">
-            <Link 
-              href="/admin/hosts" 
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/admin/listings"
               className="bg-white border text-gray-700 hover:bg-gray-100 px-4 py-2 rounded transition font-medium"
             >
-              Manage Hosts
+              Property listings
+            </Link>
+            <Link
+              href="/admin/hosts"
+              className="bg-white border text-gray-700 hover:bg-gray-100 px-4 py-2 rounded transition font-medium"
+            >
+              Host applications
             </Link>
           </div>
         </div>

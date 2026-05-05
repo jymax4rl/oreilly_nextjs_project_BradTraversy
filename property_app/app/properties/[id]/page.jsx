@@ -3,6 +3,12 @@ import Property from "@/models/Property";
 import ServerProperty from "@/components/dynamicComponents/ServerProperty";
 import DynamicProperty from "@/components/dynamicComponents/DynamicProperty";
 import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/utils/authOptions";
+import {
+  canUserViewListing,
+  isPubliclyVisibleListing,
+} from "@/utils/listingApproval";
 
 export async function generateMetadata({ params }) {
   await connectToDatabase();
@@ -11,6 +17,19 @@ export async function generateMetadata({ params }) {
 
   if (!property) {
     return { title: "Property Not Found | Kama Properties" };
+  }
+
+  const session = await getServerSession(authOptions);
+  if (
+    !canUserViewListing(
+      { ...property, owner: property.owner?.toString?.() || property.owner },
+      session,
+    )
+  ) {
+    return {
+      title: "Listing | Kama Properties",
+      robots: { index: false, follow: false },
+    };
   }
 
   const siteUrl =
@@ -65,14 +84,41 @@ export default async function PropertyPage({ params }) {
     owner: property.owner?.toString?.() || property.owner,
   };
 
+  const session = await getServerSession(authOptions);
+
+  if (!canUserViewListing(serialized, session)) {
+    notFound();
+  }
+
+  const showReviewUi =
+    session?.user &&
+    (serialized.listingStatus === "pending" ||
+      serialized.listingStatus === "rejected") &&
+    (session.user.role === "admin" ||
+      String(serialized.owner) === String(session.user.id));
+
+  const listingReviewInfo = showReviewUi
+    ? {
+        status: serialized.listingStatus,
+        reason: serialized.listingRejectionReason,
+      }
+    : null;
+
   const canonicalUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/properties/${id}`;
 
   return (
     <div className="pt-[10vh]">
       {" "}
       {/* ← clears fixed navbar */}
-      <ServerProperty property={serialized} canonicalUrl={canonicalUrl} />
-      <DynamicProperty property={serialized} />
+      <ServerProperty
+        property={serialized}
+        canonicalUrl={canonicalUrl}
+        includeJsonLd={isPubliclyVisibleListing(serialized)}
+      />
+      <DynamicProperty
+        property={serialized}
+        listingReviewInfo={listingReviewInfo}
+      />
     </div>
   );
 }

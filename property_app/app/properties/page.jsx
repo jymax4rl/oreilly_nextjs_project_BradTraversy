@@ -2,6 +2,7 @@ import React from "react";
 import HomeProperties from "@/components/HomeProperties";
 import Property from "@/models/Property";
 import connectToDatabase from "@/config/database";
+import { approvedListingQuery } from "@/utils/listingApproval";
 
 const PropertiesPage = async ({ searchParams }) => {
   // Next.js 15+: searchParams is a Promise
@@ -11,31 +12,35 @@ const PropertiesPage = async ({ searchParams }) => {
 
   await connectToDatabase();
 
-  // Build MongoDB query dynamically
-  const mongoQuery = {};
+  const conditions = [approvedListingQuery()];
 
   if (locationQuery) {
     const escaped = locationQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(escaped, "i");
-    mongoQuery.$or = [
-      { "location.city": regex },
-      { "location.state": regex },
-      { "location.country": regex },
-      { "location.street": regex },
-      { "location.zipcode": regex },
-      { name: regex },
-    ];
+    conditions.push({
+      $or: [
+        { "location.city": regex },
+        { "location.state": regex },
+        { "location.country": regex },
+        { "location.street": regex },
+        { "location.zipcode": regex },
+        { name: regex },
+      ],
+    });
   }
 
   if (typeQuery && typeQuery !== "All Properties") {
-    mongoQuery.type = { $regex: new RegExp(typeQuery, "i") };
+    conditions.push({ type: { $regex: new RegExp(typeQuery, "i") } });
   }
 
   const hasFilters =
     locationQuery || (typeQuery && typeQuery !== "All Properties");
   if (!hasFilters) {
-    mongoQuery.is_featured = false;
+    conditions.push({ is_featured: false });
   }
+
+  const mongoQuery =
+    conditions.length === 1 ? conditions[0] : { $and: conditions };
 
   const properties = await Property.find(mongoQuery).lean();
 
