@@ -25,7 +25,10 @@ export default function AdminHostsPage() {
     const fetchApplications = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/admin/hosts?status=${filter}`);
+        const res = await fetch(`/api/admin/hosts?status=${filter}`, {
+          credentials: "include",
+          cache: "no-store",
+        });
         const data = await res.json();
         setApplications(data.applications || []);
       } catch (error) {
@@ -39,7 +42,8 @@ export default function AdminHostsPage() {
   }, [filter, session, status]);
 
   const handleAction = async (id, action) => {
-    setActionLoading(id);
+    const idStr = String(id);
+    setActionLoading(idStr);
     try {
       const body = { status: action };
       if (action === "rejected") {
@@ -47,10 +51,12 @@ export default function AdminHostsPage() {
         if (reason) body.rejectionReason = reason;
       }
 
-      const res = await fetch(`/api/admin/hosts/${id}`, {
+      const res = await fetch(`/api/admin/hosts/${idStr}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
+        credentials: "include",
+        cache: "no-store",
       });
 
       if (!res.ok) {
@@ -58,7 +64,9 @@ export default function AdminHostsPage() {
         throw new Error(text || `Server returned ${res.status}`);
       }
 
-      setApplications((prev) => prev.filter((app) => app._id !== id));
+      setApplications((prev) =>
+        prev.filter((app) => String(app._id) !== idStr),
+      );
     } catch (error) {
       console.error("handleAction error:", error);
       alert("Failed: " + error.message);
@@ -270,10 +278,12 @@ export default function AdminHostsPage() {
                     {filter !== "approved" && (
                       <button
                         onClick={() => handleAction(app._id, "approved")}
-                        disabled={actionLoading === app._id}
+                        disabled={actionLoading === String(app._id)}
                         className="w-full lg:w-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium transition disabled:opacity-50"
                       >
-                        {actionLoading === app._id ? "Processing..." : "Approve"}
+                        {actionLoading === String(app._id)
+                          ? "Processing..."
+                          : "Approve"}
                       </button>
                     )}
 
@@ -281,10 +291,12 @@ export default function AdminHostsPage() {
                     {filter !== "rejected" && (
                       <button
                         onClick={() => handleAction(app._id, "rejected")}
-                        disabled={actionLoading === app._id}
+                        disabled={actionLoading === String(app._id)}
                         className="w-full lg:w-auto bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium transition disabled:opacity-50"
                       >
-                        {actionLoading === app._id ? "Processing..." : "Reject"}
+                        {actionLoading === String(app._id)
+                          ? "Processing..."
+                          : "Reject"}
                       </button>
                     )}
                   </div>

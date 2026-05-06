@@ -1,6 +1,7 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import RightColumn from "./RightColumn";
 import PropertyDetails from "./PropertyDetails";
@@ -23,10 +24,52 @@ import { formatCurrency } from "@/utils/currencyUtils";
 export default function DynamicProperty({
   property,
   listingReviewInfo = null,
+  canAdminModerate = false,
 }) {
   // Fallback for preview if property prop is missing
   const data = property;
   const { currencyCode, rates } = useCurrency();
+  const router = useRouter();
+  const [moderationLoading, setModerationLoading] = useState(null);
+
+  const runModeration = async (action) => {
+    const id = data?._id;
+    if (!id) return;
+    setModerationLoading(action);
+    try {
+      if (action === "rejected") {
+        const ok = window.confirm(
+          "Permanently delete this listing from the database? This cannot be undone.",
+        );
+        if (!ok) {
+          return;
+        }
+      }
+      const body = { status: action };
+      const res = await fetch(`/api/admin/listings/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        credentials: "include",
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Server returned ${res.status}`);
+      }
+      const payload = await res.json().catch(() => ({}));
+      if (payload.deleted) {
+        router.push("/admin/listings");
+        return;
+      }
+      router.refresh();
+    } catch (e) {
+      console.error("Listing moderation failed:", e);
+      alert("Could not update listing: " + e.message);
+    } finally {
+      setModerationLoading(null);
+    }
+  };
 
   return (
     <div className="bg-white min-h-screen text-slate-900 font-sans selection:bg-blue-100 pb-20 pt-[10vh]">
@@ -51,6 +94,30 @@ export default function DynamicProperty({
                   Reason: {listingReviewInfo.reason}
                 </p>
               )}
+            {canAdminModerate && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => runModeration("approved")}
+                  disabled={moderationLoading !== null}
+                  className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700 disabled:opacity-50"
+                >
+                  {moderationLoading === "approved"
+                    ? "Approving…"
+                    : "Approve listing"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => runModeration("rejected")}
+                  disabled={moderationLoading !== null}
+                  className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+                >
+                  {moderationLoading === "rejected"
+                    ? "Deleting…"
+                    : "Delete listing"}
+                </button>
+              </div>
+            )}
           </div>
         )}
         {/* Header & Title Section */}
