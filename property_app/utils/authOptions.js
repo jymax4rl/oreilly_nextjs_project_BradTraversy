@@ -2,6 +2,7 @@ import GoogleProvider from "next-auth/providers/google";
 import connectToDatabase from "@/config/database";
 import User from "@/models/User";
 
+/** @type {import('next-auth').AuthOptions} */
 export const authOptions = {
   session: {
     strategy: "jwt",
