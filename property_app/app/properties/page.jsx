@@ -37,6 +37,9 @@ const PropertiesPage = async ({ searchParams }) => {
     mongoQuery.is_featured = false;
   }
 
+  // Only show approved properties to visitors
+  mongoQuery.status = "approved";
+
   const properties = await Property.find(mongoQuery).lean();
 
   const serializedProperties = properties.map((property) => ({

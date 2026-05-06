@@ -91,6 +91,22 @@ const PropertySchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+      required: true,
+    },
+    rejectionReason: {
+      type: String,
+    },
+    reviewedAt: {
+      type: Date,
+    },
+    reviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt
