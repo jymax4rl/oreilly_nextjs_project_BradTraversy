@@ -30,8 +30,10 @@ export const POST = async (request) => {
       .filter((image) => image.name !== "");
 
     // Create propertyData object
+    const selectedType = formData.get("type");
+
     const propertyData = {
-      type: formData.get("type"),
+      type: selectedType || "Apartment",
       name: formData.get("name"),
       description: formData.get("description"),
       location: {
@@ -58,27 +60,40 @@ export const POST = async (request) => {
       status: "pending",
     };
 
-    // Handle Image Uploads (Local Storage)
-    const imageUrls = [];
-    for (const image of images) {
-      const byteData = await image.arrayBuffer();
-      const buffer = Buffer.from(byteData);
-      const filename = Date.now() + "_" + image.name.replace(/\s/g, "_");
-      const filePath = path.join(
-        process.cwd(),
-        "public/images/properties",
-        filename
-      );
+    // Vercel serverless filesystem is read-only at /var/task.
+    const canWriteToPublic = !process.env.VERCEL;
 
-      await writeFile(filePath, buffer);
-      imageUrls.push(filename);
+    // Handle Image Uploads (Local Storage when writable)
+    const imageUrls = [];
+    if (canWriteToPublic) {
+      for (const image of images) {
+        const byteData = await image.arrayBuffer();
+        const buffer = Buffer.from(byteData);
+        const filename = Date.now() + "_" + image.name.replace(/\s/g, "_");
+        const filePath = path.join(
+          process.cwd(),
+          "public/images/properties",
+          filename
+        );
+
+        await writeFile(filePath, buffer);
+        imageUrls.push(filename);
+      }
+    } else {
+      // Temporary production fallback until external object storage is added.
+      imageUrls.push("g1.jpg");
     }
 
     propertyData.images = imageUrls;
 
     // Handle Audio Upload
     const audioFile = formData.get("audio");
-    if (audioFile && audioFile.size > 0 && audioFile.name !== "undefined") {
+    if (
+      canWriteToPublic &&
+      audioFile &&
+      audioFile.size > 0 &&
+      audioFile.name !== "undefined"
+    ) {
       const audioByteData = await audioFile.arrayBuffer();
       const audioBuffer = Buffer.from(audioByteData);
       const audioFilename =
@@ -100,6 +115,10 @@ export const POST = async (request) => {
     );
   } catch (error) {
     console.error("Failed to add property", error);
-    return new Response("Failed to add property", { status: 500 });
+    const message =
+      error?.name === "ValidationError"
+        ? `Validation failed: ${error.message}`
+        : `Failed to add property: ${error?.message || "Unknown error"}`;
+    return new Response(message, { status: 500 });
   }
 };

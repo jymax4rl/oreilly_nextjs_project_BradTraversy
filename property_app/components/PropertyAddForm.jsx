@@ -1,10 +1,14 @@
 "use client";
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 const PropertyAddForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
+  const router = useRouter();
   const [fileNames, setFileNames] = useState([]);
-  const [propertyType, setPropertyType] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [propertyType, setPropertyType] = useState("Apartment");
   const amenities = [
     { id: "wifi", label: "Wifi" },
     { id: "kitchen", label: "Full Kitchen" },
@@ -56,9 +60,9 @@ const PropertyAddForm = () => {
       weekly: 750,
     },
     seller_info: {
-      name: "Robert Anderson",
-      email: "robert@gmail.com",
-      phone: "254-700-555556",
+      name: "",
+      email: "",
+      phone: "",
     },
     images: ["g1.jpg", "g2.jpg", "g3.jpg"],
     is_featured: false,
@@ -173,7 +177,19 @@ const PropertyAddForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setSubmitError("");
+
     const formData = new FormData(e.target);
+
+    const images = formData.getAll("images").filter((file) => file?.name);
+    if (images.length === 0) {
+      alert("Please upload at least one image before completing the listing.");
+      return;
+    }
+    if (!formData.get("type")) {
+      formData.set("type", propertyType || "Apartment");
+    }
 
     // Append audio blob if existing
     if (audioBlob) {
@@ -181,32 +197,38 @@ const PropertyAddForm = () => {
     }
 
     try {
+      setIsSubmitting(true);
       const res = await fetch("/api/properties", {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
 
       if (res.ok) {
-        // Redirect is handled by the server response usually, but for fetch we might need to handle it
-        // creating a property redirects, but fetch doesn't automatically follow in the way a form does for the browser history if it returns a redirect.
-        // However, my API returns Response.redirect().
-        // If I use fetch, I need to check res.url or handle the redirection manually.
-        // Actually, Response.redirect in API route with fetch: the browser follows it?
-        // No, fetch follows redirects transparently and returns the final response.
-        // I should probably return the ID and redirect client-side, OR assume strict form submission.
-        // BUT, to submit a Blob, I MUST use fetch.
-        // So, I'll check res.url and window.location.href = res.url if it changed.
         if (res.redirected) {
-          window.location.href = res.url;
+          router.push(res.url);
         } else {
-          // Fallback if API didn't redirect but succeeded?
-          // My API does return Response.redirect.
+          // In case response body is JSON instead of redirect in future changes.
+          const payload = await res.json().catch(() => null);
+          if (payload?._id) {
+            router.push(`/properties/${payload._id}`);
+          } else {
+            router.refresh();
+          }
         }
       } else {
-        console.error("Submission failed");
+        const msg = (await res.text()) || `Submission failed (${res.status})`;
+        setSubmitError(msg);
+        alert(msg);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
+      const msg =
+        error?.message || "Network error while submitting. Please try again.";
+      setSubmitError(msg);
+      alert(msg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -779,7 +801,6 @@ const PropertyAddForm = () => {
                       accept="image/*"
                       multiple
                       onChange={handleImageChange}
-                      required
                     />
                     {fileNames.map((name, index) => (
                       <p key={index} className="text-gray-500">
@@ -791,7 +812,13 @@ const PropertyAddForm = () => {
               </div>
             </div>
             <div className="p-8 border-t border-gray-100 bg-white flex justify-between items-center z-10">
+              {submitError && (
+                <p className="text-sm text-red-600 font-medium mr-4 max-w-[60%]">
+                  {submitError}
+                </p>
+              )}
               <button
+                type="button"
                 onClick={prevStep}
                 className={`px-6 py-3 cursor-pointer rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors ${
                   currentStep === 0
@@ -804,12 +831,14 @@ const PropertyAddForm = () => {
               {currentStep === steps.length - 1 ? (
                 <button
                   type="submit"
+                  disabled={isSubmitting}
                   className="lg:px-8 px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:shadow-blue-600/40 hover:-translate-y-0.5 transition-all active:scale-95"
                 >
-                  Complete Listing
+                  {isSubmitting ? "Submitting..." : "Complete Listing"}
                 </button>
               ) : (
                 <button
+                  type="button"
                   onClick={nextStep}
                   className="cursor-pointer lg:px-8 px-4 py-3 rounded-xl bg-gray-900 text-white font-semibold shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all active:scale-95 flex items-center gap-2"
                 >
