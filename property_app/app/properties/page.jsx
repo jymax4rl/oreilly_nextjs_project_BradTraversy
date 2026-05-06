@@ -5,13 +5,13 @@ import connectToDatabase from "@/config/database";
 import { approvedListingQuery } from "@/utils/listingApproval";
 import { serializePropertiesForClient } from "@/utils/serializePropertyClient";
 
+export const dynamic = "force-dynamic";
+
 const PropertiesPage = async ({ searchParams }) => {
   // Next.js 15+: searchParams is a Promise
   const params = await searchParams;
   const locationQuery = params?.location?.trim();
   const typeQuery = params?.type;
-
-  await connectToDatabase();
 
   const conditions = [approvedListingQuery()];
 
@@ -43,7 +43,13 @@ const PropertiesPage = async ({ searchParams }) => {
   const mongoQuery =
     conditions.length === 1 ? conditions[0] : { $and: conditions };
 
-  const properties = await Property.find(mongoQuery).lean();
+  let properties = [];
+  try {
+    await connectToDatabase();
+    properties = await Property.find(mongoQuery).lean();
+  } catch (error) {
+    console.error("PropertiesPage: failed to load properties", error);
+  }
 
   const serializedProperties = serializePropertiesForClient(properties);
 

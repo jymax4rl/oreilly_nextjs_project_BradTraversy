@@ -134,10 +134,10 @@ export default function AdminHostsPage() {
           </div>
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/admin/listings"
+              href="/admin/properties"
               className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded transition font-medium"
             >
-              Property listings
+              Property moderation
             </Link>
             <Link
               href="/admin/transactions"

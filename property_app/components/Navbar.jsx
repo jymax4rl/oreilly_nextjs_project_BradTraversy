@@ -366,27 +366,50 @@ const Navbar = () => {
                 )}
 
                 {session?.user?.role === "admin" && (
-                  <Link
-                    href="/admin/hosts"
-                    className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-purple-600 transition-colors hover:bg-purple-50 hover:text-purple-800"
-                    role="menuitem"
-                    onClick={() => setIsProfileOpen(false)}
-                  >
-                    <svg
-                      className="w-4 h-4 text-purple-400 group-hover:text-purple-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  <>
+                    <Link
+                      href="/admin/properties"
+                      className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-purple-600 transition-colors hover:bg-purple-50 hover:text-purple-800"
+                      role="menuitem"
+                      onClick={() => setIsProfileOpen(false)}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                    <span className="font-medium">Admin Dashboard</span>
-                  </Link>
+                      <svg
+                        className="w-4 h-4 text-purple-400 group-hover:text-purple-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 7h18M3 12h18M3 17h18"
+                        />
+                      </svg>
+                      <span className="font-medium">Admin: Properties</span>
+                    </Link>
+                    <Link
+                      href="/admin/hosts"
+                      className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-purple-600 transition-colors hover:bg-purple-50 hover:text-purple-800"
+                      role="menuitem"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      <svg
+                        className="w-4 h-4 text-purple-400 group-hover:text-purple-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 20h5V4H2v16h5m10 0v-4a3 3 0 10-6 0v4m6 0H7"
+                        />
+                      </svg>
+                      <span className="font-medium">Admin: Hosts</span>
+                    </Link>
+                  </>
                 )}
 
                 <div className="my-2 h-px bg-zinc-100"></div>
@@ -457,14 +480,20 @@ const Navbar = () => {
                 )}
 
                 {session?.user?.role === "admin" && (
-                  <Link
-                    href="/admin/hosts"
-                    onClick={close}
-                    className={overlayRowClass}
-                  >
-                    <Shield className={overlayIconClass} aria-hidden />
-                    Admin Dashboard
-                  </Link>
+                  <>
+                    <Link
+                      href="/admin/properties"
+                      onClick={close}
+                      className={overlayRowClass}
+                    >
+                      <Building2 className={overlayIconClass} aria-hidden />
+                      Admin: Properties
+                    </Link>
+                    <Link href="/admin/hosts" onClick={close} className={overlayRowClass}>
+                      <Shield className={overlayIconClass} aria-hidden />
+                      Admin: Hosts
+                    </Link>
+                  </>
                 )}
               </nav>
 

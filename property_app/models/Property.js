@@ -91,6 +91,25 @@ const PropertySchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+      required: false,
+    },
+    rejectionReason: {
+      type: String,
+      required: false,
+    },
+    reviewedAt: {
+      type: Date,
+      required: false,
+    },
+    reviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
     listingStatus: {
       type: String,
       enum: ["pending", "approved", "rejected"],
