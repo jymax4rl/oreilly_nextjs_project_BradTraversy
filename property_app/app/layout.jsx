@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MainShell from "@/components/MainShell";
 import MobileBottomNavGate from "@/components/MobileBottomNavGate";
+import MobileTopChromeGate from "@/components/MobileTopChromeGate";
 import React from "react";
 import StyledComponentsRegistry from "@/lib/registry";
 import { CurrencyProvider } from "@/utils/CurrencyContext";
@@ -63,6 +64,7 @@ function MainLayout({ children }) {
               <html lang="en">
                 <body className="flex flex-col min-h-screen">
                   <Navbar />
+                  <MobileTopChromeGate />
                   <MainShell>{children}</MainShell>
                   <MobileBottomNavGate />
                   <Footer className="hidden lg:block" />
