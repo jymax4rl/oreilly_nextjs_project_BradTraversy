@@ -125,6 +125,12 @@ export default function AdminHostsPage() {
             </p>
           </div>
           <div className="flex gap-3">
+            <Link
+              href="/admin/properties"
+              className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded transition font-medium"
+            >
+              Property Listings
+            </Link>
             <Link 
               href="/admin/transactions" 
               className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded transition font-medium"

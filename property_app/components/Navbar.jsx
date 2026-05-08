@@ -141,9 +141,11 @@ const Navbar = () => {
 
           {session?.user?.role === "admin" && (
             <Link
-              href="/admin/hosts"
+              href="/admin/properties"
               className={
-                isActive("/admin/hosts") ? "p-2 text-white" : "p-2 text-black"
+                isActive("/admin/properties") || isActive("/admin/hosts")
+                  ? "p-2 text-white"
+                  : "p-2 text-black"
               }
             >
               <NavButton text="Admin" />
@@ -322,27 +324,46 @@ const Navbar = () => {
                 )}
 
                 {session?.user?.role === "admin" && (
-                  <Link
-                    href="/admin/hosts"
-                    className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-purple-600 transition-colors hover:bg-purple-50 hover:text-purple-800"
-                    role="menuitem"
-                    onClick={() => setIsProfileOpen(false)}
-                  >
-                    <svg
-                      className="w-4 h-4 text-purple-400 group-hover:text-purple-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  <>
+                    <Link
+                      href="/admin/properties"
+                      className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-purple-600 transition-colors hover:bg-purple-50 hover:text-purple-800"
+                      role="menuitem"
+                      onClick={() => setIsProfileOpen(false)}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                    <span className="font-medium">Admin Dashboard</span>
-                  </Link>
+                      <svg
+                        className="w-4 h-4 text-purple-400 group-hover:text-purple-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                        <polyline strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} points="9 22 9 12 15 12 15 22" />
+                      </svg>
+                      <span className="font-medium">Admin: Properties</span>
+                    </Link>
+                    <Link
+                      href="/admin/hosts"
+                      className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-purple-600 transition-colors hover:bg-purple-50 hover:text-purple-800"
+                      role="menuitem"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      <svg
+                        className="w-4 h-4 text-purple-400 group-hover:text-purple-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      <span className="font-medium">Admin: Hosts</span>
+                    </Link>
+                  </>
                 )}
 
                 <div className="my-2 h-px bg-zinc-100"></div>
@@ -408,13 +429,22 @@ const Navbar = () => {
                 )}
 
                 {session?.user?.role === "admin" && (
-                  <Link
-                    onClick={toggleMenu}
-                    href="/admin/hosts"
-                    className="menu-link-item-holder mt-4"
-                  >
-                    Admin Dashboard
-                  </Link>
+                  <>
+                    <Link
+                      onClick={toggleMenu}
+                      href="/admin/properties"
+                      className="menu-link-item-holder mt-4"
+                    >
+                      Admin: Properties
+                    </Link>
+                    <Link
+                      onClick={toggleMenu}
+                      href="/admin/hosts"
+                      className="menu-link-item-holder mt-4"
+                    >
+                      Admin: Hosts
+                    </Link>
+                  </>
                 )}
 
                 {/* Mobile Profile Info */}

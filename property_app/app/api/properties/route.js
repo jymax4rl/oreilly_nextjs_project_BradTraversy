@@ -55,6 +55,7 @@ export const POST = async (request) => {
         phone: formData.get("seller_info.phone"),
       },
       owner: session.user.id,
+      status: "pending",
     };
 
     // Handle Image Uploads (Local Storage)
