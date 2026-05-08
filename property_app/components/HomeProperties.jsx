@@ -79,17 +79,25 @@ const HomeProperties = ({
       />
 
       <div className="container mx-auto px-4">
-        <div className="w-full text-center mb-4 md:mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-8 gap-4 items-center">
-            <div className="hidden md:block md:col-span-7 text-left md:text-center">
+        {/* Toolbar: hidden on mobile (search is in MobileTopChrome, currency shown below) */}
+        <div className="hidden md:block w-full text-center mb-12">
+          <div className="grid grid-cols-8 gap-4 items-center">
+            <div className="col-span-7 text-left md:text-center">
               <PropertySearch />
             </div>
-            <div className="flex justify-center md:justify-end items-center md:col-span-1">
+            <div className="flex justify-end items-center col-span-1">
               <div className="flex flex-col items-center gap-1">
                 <Currency onCurrencyChange={setCurrencyCode} />
                 <DateCurrencyUpdated />
               </div>
             </div>
+          </div>
+        </div>
+        {/* Mobile-only: currency selector above cards */}
+        <div className="flex md:hidden justify-end items-center mb-3 pr-1">
+          <div className="flex flex-col items-end gap-0.5">
+            <Currency onCurrencyChange={setCurrencyCode} />
+            <DateCurrencyUpdated />
           </div>
         </div>
 
