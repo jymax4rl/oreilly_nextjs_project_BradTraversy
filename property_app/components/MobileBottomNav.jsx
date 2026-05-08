@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 import {
   Compass,
   Building2,
@@ -12,12 +13,19 @@ import {
 } from "lucide-react";
 import { useScrollNav } from "@/contexts/ScrollNavContext";
 import { useMenuOverlay } from "@/contexts/MenuOverlayContext";
+import { getUnreadMessageCount } from "@/utils/actions/messageActions";
 
 export default function MobileBottomNav() {
   const pathname = usePathname() || "";
   const { navVisible } = useScrollNav();
   const { toggle } = useMenuOverlay();
   const { data: session } = useSession();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!session?.user) return;
+    getUnreadMessageCount().then(setUnreadCount).catch(() => {});
+  }, [session, pathname]);
 
   const active = (check) => (check ? "text-[#00C8FF]" : "text-zinc-400");
 
@@ -58,15 +66,22 @@ export default function MobileBottomNav() {
           Saved
         </Link>
 
-        <button
-          type="button"
-          disabled
-          className="flex flex-1 cursor-not-allowed flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-zinc-300"
-          aria-disabled="true"
+        <Link
+          href="/messages"
+          className={`relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium ${active(
+            pathname.startsWith("/messages"),
+          )}`}
         >
-          <MessageCircle className="h-6 w-6 opacity-50" />
+          <span className="relative">
+            <MessageCircle className="h-6 w-6" strokeWidth={pathname.startsWith("/messages") ? 2.25 : 1.75} />
+            {unreadCount > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-bold text-white">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </span>
           Messages
-        </button>
+        </Link>
 
         {session ? (
           <button
