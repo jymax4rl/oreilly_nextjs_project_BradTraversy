@@ -84,9 +84,11 @@ const HomeProperties = ({
             <div className="md:col-span-7 text-left md:text-center">
               <PropertySearch />
             </div>
-            <div className="justify-center md:justify-end flex gap-2 items-center">
-              <Currency onCurrencyChange={setCurrencyCode} />
-              <DateCurrencyUpdated />
+            <div className="justify-center md:justify-end flex items-center">
+              <div className="flex flex-col items-center gap-1">
+                <Currency onCurrencyChange={setCurrencyCode} />
+                <DateCurrencyUpdated />
+              </div>
             </div>
           </div>
         </div>
