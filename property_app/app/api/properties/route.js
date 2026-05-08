@@ -39,6 +39,7 @@ export const POST = async (request) => {
         city: formData.get("location.city"),
         state: formData.get("location.state"),
         zipcode: formData.get("location.zipcode"),
+        country: formData.get("location.country") || undefined,
       },
       beds: formData.get("beds"),
       baths: formData.get("baths"),
