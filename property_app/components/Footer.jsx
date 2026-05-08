@@ -1,10 +1,12 @@
 import Link from "next/link"; // Or 'react-router-dom'
 import { FaInstagram, FaTwitter, FaLinkedin, FaFacebook } from "react-icons/fa"; // Optional icons
 
-const Footer = () => {
+const Footer = ({ className = "" }) => {
   const currentYear = new Date().getFullYear();
   return (
-    <footer className="bg-zinc-950 text-zinc-400 relative pt-24 pb-12 overflow-hidden font-sans">
+    <footer
+      className={`bg-zinc-950 text-zinc-400 relative pt-24 pb-12 overflow-hidden font-sans ${className}`}
+    >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         {/* Top Section: CTA & Links */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-24">

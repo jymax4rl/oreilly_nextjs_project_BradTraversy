@@ -1,12 +1,18 @@
 // app/api/payments/initialize/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import type { AuthOptions } from "next-auth";
 import { authOptions } from "@/utils/authOptions";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    const session = await getServerSession(authOptions as AuthOptions);
+    if (!session?.user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = (session.user as { id?: string }).id;
+    if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -31,7 +37,7 @@ export async function POST(req: NextRequest) {
       redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/payments/verify`,
       meta: {
         booking_id: bookingId,
-        user_id: session.user.id,
+        user_id: userId,
       },
       customer: {
         email: email,
