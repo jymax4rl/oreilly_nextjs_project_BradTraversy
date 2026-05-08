@@ -18,8 +18,8 @@ function Hero() {
         <div className="absolute inset-0 bg-black/40" aria-hidden />
       </div>
 
-      {/* Mobile: solid background, logo + tagline — vertically centered in viewport below nav */}
-      <div className="md:hidden relative z-10 flex min-h-[calc(100svh-13rem)] flex-col items-center justify-center px-6 pb-32">
+      {/* Mobile: compact logo + tagline above the property grid */}
+      <div className="md:hidden relative z-10 flex flex-col items-center justify-center px-6 py-8">
         <Image
           src={KamaLogo}
           alt="Kama Properties"
