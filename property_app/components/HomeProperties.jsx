@@ -61,7 +61,7 @@ const HomeProperties = ({
     searchQuery || (typeFilter && typeFilter !== "All Properties");
 
   return (
-    <section className="py-16 bg-gray-50 min-h-screen">
+    <section className="pt-4 pb-16 md:py-16 bg-gray-50 min-h-screen">
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -79,7 +79,7 @@ const HomeProperties = ({
       />
 
       <div className="container mx-auto px-4">
-        <div className="w-full text-center mb-12">
+        <div className="w-full text-center mb-4 md:mb-12">
           <div className="grid grid-cols-1 md:grid-cols-8 gap-4 items-center">
             <div className="hidden md:block md:col-span-7 text-left md:text-center">
               <PropertySearch />
