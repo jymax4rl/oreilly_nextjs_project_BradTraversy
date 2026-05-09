@@ -8,6 +8,7 @@ import { formatCurrency, CURRENCIES } from "../utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
 import DateCurrencyUpdated from "./DateCurrencyUpdated";
 import PropertySearch from "./PropertySearch";
+import { Suspense } from "react";
 
 const HomeProperties = ({
   initialProperties = [],
@@ -83,7 +84,9 @@ const HomeProperties = ({
         <div className="hidden md:block w-full text-center mb-12">
           <div className="grid grid-cols-8 gap-4 items-center">
             <div className="col-span-7 text-left md:text-center">
-              <PropertySearch />
+              <Suspense fallback={null}>
+                <PropertySearch />
+              </Suspense>
             </div>
             <div className="flex justify-end items-center col-span-1">
               <div className="flex flex-col items-center gap-1">
