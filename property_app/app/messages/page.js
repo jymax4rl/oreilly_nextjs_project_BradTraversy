@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { redirect } from "next/navigation";
@@ -49,7 +50,9 @@ export default async function MessagesPage({ searchParams }) {
           )}
         </div>
 
-        <MessageFilter currentFilter={filter} />
+        <Suspense fallback={null}>
+          <MessageFilter currentFilter={filter} />
+        </Suspense>
 
         <div className="mt-4 space-y-3">
           {filtered.length === 0 ? (
