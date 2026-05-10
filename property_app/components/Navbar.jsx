@@ -342,27 +342,30 @@ const Navbar = () => {
 
                 {/* Host Actions */}
                 {session?.user?.hostStatus === "verified" && (
-                  <Link
-                    href="/properties/add"
-                    className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
-                    role="menuitem"
-                    onClick={() => setIsProfileOpen(false)}
-                  >
-                    <svg
-                      className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  <>
+                    <Link
+                      href="/host/listings"
+                      className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+                      role="menuitem"
+                      onClick={() => setIsProfileOpen(false)}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                    <span className="font-medium">List Property</span>
-                  </Link>
+                      <svg className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
+                      <span className="font-medium">My Listings</span>
+                    </Link>
+                    <Link
+                      href="/properties/add"
+                      className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+                      role="menuitem"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      <svg className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      <span className="font-medium">List Property</span>
+                    </Link>
+                  </>
                 )}
 
                 {session?.user && session.user.hostStatus !== "verified" && (
@@ -579,6 +582,26 @@ const Navbar = () => {
                       <Heart className={overlayIconClass} aria-hidden />
                       Saved properties
                     </Link>
+                    {session?.user?.hostStatus === "verified" && (
+                      <>
+                        <Link
+                          href="/host/listings"
+                          onClick={close}
+                          className={overlayRowClass}
+                        >
+                          <Building2 className={overlayIconClass} aria-hidden />
+                          My Listings
+                        </Link>
+                        <Link
+                          href="/properties/add"
+                          onClick={close}
+                          className={overlayRowClass}
+                        >
+                          <PlusCircle className={overlayIconClass} aria-hidden />
+                          Add New Listing
+                        </Link>
+                      </>
+                    )}
                     <Link
                       href="#"
                       onClick={close}
