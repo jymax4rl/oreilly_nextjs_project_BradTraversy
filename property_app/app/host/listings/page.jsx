@@ -3,7 +3,6 @@ import { authOptions } from "@/utils/authOptions";
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
 import Link from "next/link";
-import Image from "next/image";
 import { redirect } from "next/navigation";
 import { Building2, PlusCircle, MapPin, BedDouble, Bath, Eye, Clock, CheckCircle, XCircle } from "lucide-react";
 
