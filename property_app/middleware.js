@@ -1,12 +1,42 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import {
+  SITE_ACCESS_COOKIE,
+  SITE_ACCESS_COOKIE_VALUE,
+  isSiteAccessGateEnabled,
+} from "@/utils/siteAccess";
 
-export default withAuth(
+function hasSiteAccess(req) {
+  return req.cookies.get(SITE_ACCESS_COOKIE)?.value === SITE_ACCESS_COOKIE_VALUE;
+}
+
+function isGateExempt(pathname) {
+  return (
+    pathname === "/coming-soon" ||
+    pathname.startsWith("/api/site-access") ||
+    pathname.startsWith("/api/auth")
+  );
+}
+
+function needsAuth(pathname) {
+  return (
+    pathname === "/properties/add" ||
+    pathname === "/properties/my-listings" ||
+    pathname.startsWith("/host/") ||
+    pathname === "/host/onboarding" ||
+    pathname.startsWith("/admin")
+  );
+}
+
+const authMiddleware = withAuth(
   function middleware(req) {
     const token = req.nextauth.token;
     const { pathname } = req.nextUrl;
 
-    if (pathname === "/properties/add") {
+    if (
+      pathname === "/properties/add" ||
+      pathname === "/properties/my-listings"
+    ) {
       if (token?.hostStatus !== "verified") {
         return NextResponse.redirect(new URL("/host/onboarding", req.url));
       }
@@ -18,7 +48,6 @@ export default withAuth(
       }
     }
 
-    // /admin/* → admin role only
     if (pathname.startsWith("/admin")) {
       if (token?.role !== "admin") {
         return NextResponse.redirect(new URL("/", req.url));
@@ -36,6 +65,33 @@ export default withAuth(
   },
 );
 
+export default function middleware(req, event) {
+  const { pathname } = req.nextUrl;
+
+  if (isSiteAccessGateEnabled()) {
+    if (pathname === "/coming-soon" && hasSiteAccess(req)) {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+
+    if (!isGateExempt(pathname) && !hasSiteAccess(req)) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/coming-soon";
+      if (pathname !== "/") {
+        url.searchParams.set("callbackUrl", pathname);
+      }
+      return NextResponse.redirect(url);
+    }
+  }
+
+  if (needsAuth(pathname)) {
+    return authMiddleware(req, event);
+  }
+
+  return NextResponse.next();
+}
+
 export const config = {
-  matcher: ["/properties/add", "/host/:path*", "/admin/:path*"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|icon.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+  ],
 };
