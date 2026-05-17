@@ -15,8 +15,10 @@ const HomeProperties = ({
   searchQuery = "",
   typeFilter = "",
   isSavedView = false,
+  hideSearchToolbar = false,
+  hostListingsView = false,
 }) => {
-  const { currencyCode, setCurrencyCode, rates, loading } = useCurrency();
+  const { currencyCode, rates, loading } = useCurrency();
   const [properties, setProperties] = useState(
     initialProperties.length > 0 ? initialProperties : [],
   );
@@ -81,25 +83,27 @@ const HomeProperties = ({
 
       <div className="container mx-auto px-4">
         {/* Toolbar: hidden on mobile (search is in MobileTopChrome, currency shown below) */}
-        <div className="hidden md:block w-full text-center mb-12">
-          <div className="grid grid-cols-8 gap-4 items-center">
-            <div className="col-span-7 text-left md:text-center">
-              <Suspense fallback={null}>
-                <PropertySearch />
-              </Suspense>
-            </div>
-            <div className="flex justify-end items-center col-span-1">
-              <div className="flex flex-col items-center gap-1">
-                <Currency onCurrencyChange={setCurrencyCode} />
-                <DateCurrencyUpdated />
+        {!hideSearchToolbar && (
+          <div className="hidden md:block w-full text-center mb-12">
+            <div className="grid grid-cols-8 gap-4 items-center">
+              <div className="col-span-7 text-left md:text-center">
+                <Suspense fallback={null}>
+                  <PropertySearch />
+                </Suspense>
+              </div>
+              <div className="flex justify-end items-center col-span-1">
+                <div className="flex flex-col items-center gap-1">
+                  <Currency />
+                  <DateCurrencyUpdated />
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
         {/* Mobile-only: currency selector above cards */}
         <div className="flex md:hidden justify-end items-center mb-3 pr-1">
           <div className="flex flex-col items-end gap-0.5">
-            <Currency onCurrencyChange={setCurrencyCode} />
+            <Currency />
             <DateCurrencyUpdated />
           </div>
         </div>
@@ -151,37 +155,60 @@ const HomeProperties = ({
           </div>
         ) : properties.length === 0 ? (
           <div className="col-span-full flex flex-col items-center justify-center text-center py-24 px-4 bg-white rounded-3xl border border-gray-100 shadow-sm">
-            <div className="bg-indigo-50 p-8 rounded-full mb-6 inline-flex items-center justify-center animate-pulse-slow">
-              <Search className="w-16 h-16 text-indigo-300" />
-            </div>
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">
-              No Properties Found
-            </h3>
-            <p className="text-gray-500 text-lg max-w-md mx-auto leading-relaxed">
-              We couldn&apos;t find any listings that match your current
-              criteria.
-              {searchQuery && (
-                <>
-                  {" "}
-                  Try adjusting your search for{" "}
-                  <strong>&quot;{searchQuery}&quot;</strong>.
-                </>
-              )}
-            </p>
-            <div className="flex gap-4">
-              <Link
-                href="/"
-                className="mt-8 px-8 py-3 cursor-pointer bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors duration-300 shadow-md"
-              >
-                Go Home
-              </Link>
-              <Link
-                href="/properties"
-                className="mt-8 px-8 py-3 cursor-pointer bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors duration-300 shadow-md"
-              >
-                View All Properties
-              </Link>
-            </div>
+            {hostListingsView ? (
+              <>
+                <div className="bg-indigo-50 p-8 rounded-full mb-6 inline-flex items-center justify-center animate-pulse-slow">
+                  <Home className="w-16 h-16 text-indigo-300" />
+                </div>
+                <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                  No listings yet
+                </h3>
+                <p className="text-gray-500 text-lg max-w-md mx-auto leading-relaxed">
+                  When you publish a property, it will show up here. Open the
+                  listing form to create your first one.
+                </p>
+                <Link
+                  href="/properties/add"
+                  className="mt-8 px-8 py-3 cursor-pointer bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors duration-300 shadow-md"
+                >
+                  List a property
+                </Link>
+              </>
+            ) : (
+              <>
+                <div className="bg-indigo-50 p-8 rounded-full mb-6 inline-flex items-center justify-center animate-pulse-slow">
+                  <Search className="w-16 h-16 text-indigo-300" />
+                </div>
+                <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                  No Properties Found
+                </h3>
+                <p className="text-gray-500 text-lg max-w-md mx-auto leading-relaxed">
+                  We couldn&apos;t find any listings that match your current
+                  criteria.
+                  {searchQuery && (
+                    <>
+                      {" "}
+                      Try adjusting your search for{" "}
+                      <strong>&quot;{searchQuery}&quot;</strong>.
+                    </>
+                  )}
+                </p>
+                <div className="flex gap-4">
+                  <Link
+                    href="/"
+                    className="mt-8 px-8 py-3 cursor-pointer bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors duration-300 shadow-md"
+                  >
+                    Go Home
+                  </Link>
+                  <Link
+                    href="/properties"
+                    className="mt-8 px-8 py-3 cursor-pointer bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors duration-300 shadow-md"
+                  >
+                    View All Properties
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8">

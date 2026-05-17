@@ -7,6 +7,7 @@ import {
   getFlutterwaveCountry,
   getFlutterwavePaymentOption,
   isMobileMoneyCurrency,
+  normalizeCurrencyCode,
 } from "@/utils/mobileMoney";
 import MobileMoneyReserveButton from "@/components/MobileMoneyReserveButton";
 import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
@@ -19,7 +20,7 @@ function RightColumn({ data }) {
 
   const basePrice = data.rates.weekly || data.rates.monthly;
   const cleaningFee = 150;
-  const paymentCurrency = currencyCode === "USD" ? "USD" : currencyCode;
+  const paymentCurrency = normalizeCurrencyCode(currencyCode);
   const mobileMoneyActive = isMobileMoneyCurrency(paymentCurrency);
 
   const numericalTotal = parseFloat(

@@ -1,15 +1,20 @@
 "use client";
 
 import { Smartphone } from "lucide-react";
-import { getMobileMoneySupport, isMobileMoneyCurrency } from "@/utils/mobileMoney";
+import {
+  getMobileMoneySupport,
+  isMobileMoneyCurrency,
+  normalizeCurrencyCode,
+} from "@/utils/mobileMoney";
 
 export default function MobileMoneyReserveButton({
   currencyCode,
   onClick,
   disabled = false,
 }) {
-  const support = getMobileMoneySupport(currencyCode);
-  const isMobileMoney = isMobileMoneyCurrency(currencyCode);
+  const code = normalizeCurrencyCode(currencyCode);
+  const support = getMobileMoneySupport(code);
+  const isMobileMoney = isMobileMoneyCurrency(code);
 
   if (!isMobileMoney || !support) {
     return (

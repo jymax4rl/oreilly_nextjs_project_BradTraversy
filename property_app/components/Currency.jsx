@@ -1,22 +1,16 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import {
-  FaChevronDown,
-  FaMoneyBillWave,
-  Banknote,
-  ChevronDown,
-} from "lucide-react";
-// IMPORT the shared data
+import { Banknote, ChevronDown } from "lucide-react";
 import { CURRENCIES } from "../utils/currencyUtils";
+import { useCurrency } from "@/utils/CurrencyContext";
 
-const Currency = ({ onCurrencyChange }) => {
+const Currency = () => {
+  const { currencyCode, setCurrencyCode } = useCurrency();
   const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState(CURRENCIES[0]);
-
-  // Initialize with the first currency from our shared list
-  const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]);
-
   const dropdownRef = useRef(null);
+
+  const selected =
+    CURRENCIES.find((c) => c.code === currencyCode) || CURRENCIES[0];
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -31,17 +25,14 @@ const Currency = ({ onCurrencyChange }) => {
   }, []);
 
   const handleSelect = (currency) => {
-    setSelectedCurrency(currency);
+    setCurrencyCode(currency.code);
     setIsOpen(false);
-    if (onCurrencyChange) {
-      onCurrencyChange(currency.code);
-      setSelected(currency);
-    }
   };
 
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`cursor-pointer flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition-all duration-200 outline-none focus:ring-2 focus:ring-indigo-500/20 ${
           isOpen ? "ring-2 ring-indigo-500/20 border-indigo-500" : ""
@@ -60,7 +51,6 @@ const Currency = ({ onCurrencyChange }) => {
         />
       </button>
 
-      {/* Dropdown */}
       <div
         className={`absolute right-0 mt-2 w-56 bg-white/90 backdrop-blur-xl border border-gray-100 rounded-2xl shadow-xl z-50 transform transition-all duration-200 origin-top-right overflow-hidden ${
           isOpen
@@ -68,10 +58,11 @@ const Currency = ({ onCurrencyChange }) => {
             : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
         }`}
       >
-        <div className="p-1.5">
+        <div className="p-1.5 max-h-72 overflow-y-auto">
           {CURRENCIES.map((c) => (
             <button
               key={c.code}
+              type="button"
               onClick={() => handleSelect(c)}
               className={`cursor-pointer w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-colors ${
                 selected.code === c.code

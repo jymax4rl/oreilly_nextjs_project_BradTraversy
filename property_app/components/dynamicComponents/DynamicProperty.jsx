@@ -17,13 +17,11 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
-import { useCurrency } from "@/utils/CurrencyContext";
-import { formatCurrency } from "@/utils/currencyUtils";
+import Currency from "@/components/Currency";
 
 export default function DynamicProperty({ property }) {
   // Fallback for preview if property prop is missing
   const data = property;
-  const { currencyCode, rates } = useCurrency();
 
   return (
     <div className="bg-white min-h-screen text-slate-900 font-sans selection:bg-blue-100 pb-20 pt-[10vh]">
@@ -115,9 +113,12 @@ export default function DynamicProperty({ property }) {
           </div>
         </header>
 
+        <div className="flex justify-end -mt-2 mb-4 lg:mb-6">
+          <Currency />
+        </div>
+
         {/* Content Layout: 2/3 Left, 1/3 Right */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-24 relative">
-          {/* Left Column: Property Details */}
           <PropertyDetails data={data} />
           <RightColumn data={data} />
         </div>

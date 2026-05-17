@@ -78,9 +78,16 @@ export const MOBILE_MONEY_BY_CURRENCY = {
   },
 };
 
+export function normalizeCurrencyCode(currencyCode) {
+  return String(currencyCode || "")
+    .trim()
+    .toUpperCase();
+}
+
 export function getMobileMoneySupport(currencyCode) {
-  if (!currencyCode || currencyCode === "USD") return null;
-  return MOBILE_MONEY_BY_CURRENCY[currencyCode] ?? null;
+  const code = normalizeCurrencyCode(currencyCode);
+  if (!code || code === "USD") return null;
+  return MOBILE_MONEY_BY_CURRENCY[code] ?? null;
 }
 
 export function isMobileMoneyCurrency(currencyCode) {
