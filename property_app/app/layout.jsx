@@ -1,15 +1,19 @@
 import "@/assets/styles/globals.css";
-import LayoutShell from "@/components/LayoutShell";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import MainShell from "@/components/MainShell";
+import MobileBottomNavGate from "@/components/MobileBottomNavGate";
+import MobileTopChromeGate from "@/components/MobileTopChromeGate";
 import React from "react";
 import StyledComponentsRegistry from "@/lib/registry";
 import { CurrencyProvider } from "@/utils/CurrencyContext";
 import AuthProvider from "@/components/AuthProvider";
 import { MenuOverlayProvider } from "@/contexts/MenuOverlayContext";
 import { ScrollNavProvider } from "@/contexts/ScrollNavContext";
-import { Analytics } from "@vercel/analytics/next"
+
 export const metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://www.isisel.com",
+    process.env.NEXT_PUBLIC_SITE_URL || "https://kamaproperties.com",
   ),
   title: {
     default: "Kama Properties | African Vacation Rentals",
@@ -59,7 +63,11 @@ function MainLayout({ children }) {
             <StyledComponentsRegistry>
               <html lang="en">
                 <body className="flex flex-col min-h-screen">
-                  <LayoutShell>{children}</LayoutShell>
+                  <Navbar />
+                  <MobileTopChromeGate />
+                  <MainShell>{children}</MainShell>
+                  <MobileBottomNavGate />
+                  <Footer className="hidden lg:block" />
                 </body>
               </html>
             </StyledComponentsRegistry>
