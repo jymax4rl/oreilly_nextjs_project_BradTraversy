@@ -3,6 +3,12 @@ import React from "react";
 import { Star } from "lucide-react";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { formatCurrency } from "@/utils/currencyUtils";
+import {
+  getFlutterwaveCountry,
+  getFlutterwavePaymentOption,
+  isMobileMoneyCurrency,
+} from "@/utils/mobileMoney";
+import MobileMoneyReserveButton from "@/components/MobileMoneyReserveButton";
 import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 import { useSession, signIn } from "next-auth/react";
 
@@ -13,49 +19,20 @@ function RightColumn({ data }) {
 
   const basePrice = data.rates.weekly || data.rates.monthly;
   const cleaningFee = 150;
-  
-  // Calculate exact numeric total based on active currency rate
+  const paymentCurrency = currencyCode === "USD" ? "USD" : currencyCode;
+  const mobileMoneyActive = isMobileMoneyCurrency(paymentCurrency);
+
   const numericalTotal = parseFloat(
-    ((basePrice + cleaningFee) * (rates[currencyCode] || 1)).toFixed(2)
+    ((basePrice + cleaningFee) * (rates[currencyCode] || 1)).toFixed(2),
   );
-
-  // Flutterwave requires the correct country code to display regional mobile money (e.g. XOF needs CI/SN)
-  const getCountry = (currency) => {
-    switch (currency) {
-      case "XOF": return "CI"; // Ivory Coast
-      case "XAF": return "CM"; // Cameroon
-      case "GHS": return "GH"; // Ghana
-      case "KES": return "KE"; // Kenya
-      case "RWF": return "RW"; // Rwanda
-      case "UGX": return "UG"; // Uganda
-      case "ZMW": return "ZM"; // Zambia
-      case "ZAR": return "ZA"; // South Africa
-      case "NGN": return "NG"; // Nigeria
-      default: return "NG";
-    }
-  };
-
-  // Helper to force ONLY mobile money based on currency
-  const getMobileMoneyString = (currency) => {
-    switch (currency) {
-      case "XOF":
-      case "XAF": return "mobilemoneyfranco";
-      case "GHS": return "mobilemoneyghana";
-      case "UGX": return "mobilemoneyuganda";
-      case "RWF": return "mobilemoneyrwanda";
-      case "ZMW": return "mobilemoneyzambia";
-      default: return "mobilemoney"; // Fallback for KES, etc.
-    }
-  };
 
   const config = {
     public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY,
     tx_ref: `KAMA-${Date.now()}`,
     amount: numericalTotal,
-    currency: currencyCode === "USD" ? "USD" : currencyCode,
-    country: getCountry(currencyCode === "USD" ? "USD" : currencyCode),
-    // Force ONLY mobile money (hides Card option)
-    payment_options: getMobileMoneyString(currencyCode === "USD" ? "USD" : currencyCode),
+    currency: paymentCurrency,
+    country: getFlutterwaveCountry(paymentCurrency),
+    payment_options: getFlutterwavePaymentOption(paymentCurrency),
     customer: {
       email: session?.user?.email || "",
       phone_number: "",
@@ -75,36 +52,32 @@ function RightColumn({ data }) {
       signIn("google");
       return;
     }
-    
+
     handleFlutterPayment({
       callback: async (response) => {
-         console.log("Payment complete:", response);
-         
-         if (response.status === "successful") {
-            try {
-              const res = await fetch("/api/transactions", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  ...response,
-                  property_id: data._id,
-                  property_name: data.name,
-                  host_id: data.owner,
-                  host_name: data.seller_info?.name || "Unknown",
-                  host_email: data.seller_info?.email || "",
-                }),
-              });
-              if (!res.ok) console.error("Failed to save transaction to DB");
-            } catch (err) {
-              console.error("Error saving transaction:", err);
-            }
-         }
-         
-         closePaymentModal();
+        if (response.status === "successful") {
+          try {
+            const res = await fetch("/api/transactions", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ...response,
+                property_id: data._id,
+                property_name: data.name,
+                host_id: data.owner,
+                host_name: data.seller_info?.name || "Unknown",
+                host_email: data.seller_info?.email || "",
+              }),
+            });
+            if (!res.ok) console.error("Failed to save transaction to DB");
+          } catch (err) {
+            console.error("Error saving transaction:", err);
+          }
+        }
+
+        closePaymentModal();
       },
-      onClose: () => {
-         console.log("Payment modal closed");
-      },
+      onClose: () => {},
     });
   };
 
@@ -118,12 +91,12 @@ function RightColumn({ data }) {
                 ? formatCurrency(
                     data.rates.monthly,
                     rates[currencyCode],
-                    currencyCode === "USD" ? "$" : currencyCode
+                    currencyCode === "USD" ? "$" : currencyCode,
                   )
                 : formatCurrency(
                     data.rates.weekly,
                     rates[currencyCode],
-                    currencyCode === "USD" ? "$" : currencyCode
+                    currencyCode === "USD" ? "$" : currencyCode,
                   )}
             </span>
             <span className="text-slate-500 font-medium">
@@ -135,7 +108,6 @@ function RightColumn({ data }) {
           </div>
         </div>
 
-        {/* Date Selection Inputs */}
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div className="p-4 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors cursor-pointer bg-white group">
             <span className="block text-xs text-slate-500 uppercase font-bold mb-1 group-hover:text-blue-600">
@@ -151,18 +123,17 @@ function RightColumn({ data }) {
           </div>
         </div>
 
-        <button 
+        <MobileMoneyReserveButton
+          currencyCode={paymentCurrency}
           onClick={handleReserve}
-          className="w-full cursor-pointer py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-slate-900/20 text-lg"
-        >
-          Reserve
-        </button>
+        />
 
         <div className="text-center text-xs text-slate-400 font-medium">
-          You won't be charged yet
+          {mobileMoneyActive
+            ? "Checkout opens with mobile money options"
+            : "You won't be charged yet"}
         </div>
 
-        {/* Price Breakdown */}
         <div className="pt-6 border-t border-slate-100 space-y-3 text-slate-600 text-sm">
           <div className="flex justify-between">
             <span className="underline decoration-slate-300 decoration-dotted underline-offset-4">
@@ -172,7 +143,7 @@ function RightColumn({ data }) {
               {formatCurrency(
                 data.rates.weekly || data.rates.monthly,
                 rates[currencyCode],
-                currencyCode === "USD" ? "$" : currencyCode
+                currencyCode === "USD" ? "$" : currencyCode,
               )}
             </span>
           </div>
@@ -184,18 +155,17 @@ function RightColumn({ data }) {
               {formatCurrency(
                 150,
                 rates[currencyCode],
-                currencyCode === "USD" ? "$" : currencyCode
+                currencyCode === "USD" ? "$" : currencyCode,
               )}
             </span>
           </div>
           <div className="flex justify-between font-bold text-slate-900 pt-4 border-t border-slate-100 mt-4 text-base">
             <span>Total</span>
             <span>
-              {/* Simple total calculation example */}
               {formatCurrency(
                 basePrice + cleaningFee,
                 rates[currencyCode],
-                currencyCode === "USD" ? "$" : currencyCode
+                currencyCode === "USD" ? "$" : currencyCode,
               )}
             </span>
           </div>
