@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Bed, Bath, Ruler, MapPin, Heart } from "lucide-react";
 import { formatCurrency } from "../utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
+import MobileMoneyBadge from "@/components/MobileMoneyBadge";
 import { useSession } from "next-auth/react";
 
 const PropertyCard = ({ property, isSaved = false }) => {
@@ -105,7 +106,7 @@ const PropertyCard = ({ property, isSaved = false }) => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80"></div>
 
           {/* Top Badges */}
-          <div className="absolute top-4 left-4 flex gap-2 z-10">
+          <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-10 max-w-[85%]">
             {is_featured && (
               <span className="bg-black/70 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg border border-white/10 shadow-sm">
                 Featured
@@ -114,6 +115,7 @@ const PropertyCard = ({ property, isSaved = false }) => {
             <span className="bg-white/90 backdrop-blur-md text-gray-900 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shadow-sm">
               {type}
             </span>
+            <MobileMoneyBadge currencyCode={currencyCode} />
           </div>
 
           {/* Price Tag Overlay */}
