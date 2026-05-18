@@ -1,3 +1,5 @@
+import { normalizeRates } from "@/utils/propertyRates";
+
 /**
  * Mongoose .lean() docs may include ObjectIds and Dates.
  * Next.js Server → Client Component props must be plain serializable values.
@@ -33,5 +35,6 @@ export function serializePropertyForClient(property) {
       property.listingModerationRequestedAt instanceof Date
         ? property.listingModerationRequestedAt.toISOString()
         : property.listingModerationRequestedAt,
+    rates: normalizeRates(property.rates),
   };
 }

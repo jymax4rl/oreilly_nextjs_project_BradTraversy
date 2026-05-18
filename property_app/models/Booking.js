@@ -33,7 +33,12 @@ const BookingSchema = new mongoose.Schema(
     },
     transactionId: {
       type: Number,
+      sparse: true,
+      unique: true,
     },
+    propertyName: { type: String },
+    amount: { type: Number },
+    currency: { type: String },
   },
   {
     timestamps: true,

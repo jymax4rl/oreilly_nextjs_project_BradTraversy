@@ -220,9 +220,8 @@ const HomeProperties = ({
               >
                 <PropertyCard
                   property={property}
-                  rate={rate}
-                  symbol={symbol}
                   isSaved={isSavedView}
+                  hostListingsView={hostListingsView}
                 />
               </div>
             ))}

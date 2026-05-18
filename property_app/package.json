@@ -14,7 +14,9 @@
     "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "setup:email-templates": "node scripts/setup-resend-booking-templates.mjs",
+    "docs:track-record-pdf": "node scripts/generate-track-record-pdf.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -33,6 +35,7 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-icons": "^5.5.0",
+    "resend": "^6.12.3",
     "styled-components": "^6.1.19"
   },
   "devDependencies": {
@@ -42,6 +45,7 @@
     "baseline-browser-mapping": "^2.9.7",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
+    "puppeteer": "^25.0.2",
     "tailwindcss": "^4"
   }
 }

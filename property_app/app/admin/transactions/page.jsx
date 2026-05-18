@@ -13,6 +13,40 @@ export default function AdminTransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [repairingId, setRepairingId] = useState(null);
+
+  const createBookingFromTx = async (tx) => {
+    let checkIn = tx.check_in;
+    let checkOut = tx.check_out;
+    if (!checkIn || !checkOut) {
+      checkIn = window.prompt("Check-in (YYYY-MM-DD)", checkIn || "");
+      checkOut = window.prompt("Check-out (YYYY-MM-DD)", checkOut || "");
+      if (!checkIn || !checkOut) return;
+    }
+    setRepairingId(tx._id);
+    try {
+      const res = await fetch(
+        `/api/admin/transactions/${tx._id}/create-booking`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ check_in: checkIn, check_out: checkOut }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed");
+      alert(`Booking created: ${data.bookingId}`);
+      const listRes = await fetch(
+        `/api/admin/transactions${debouncedSearch ? `?query=${encodeURIComponent(debouncedSearch)}` : ""}`,
+      );
+      const listData = await listRes.json();
+      setTransactions(listData.transactions || []);
+    } catch (e) {
+      alert(e.message || "Could not create booking");
+    } finally {
+      setRepairingId(null);
+    }
+  };
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.role !== "admin") {
@@ -116,12 +150,13 @@ export default function AdminTransactionsPage() {
                   <th className="px-6 py-4">Amount</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Date</th>
+                  <th className="px-6 py-4">Booking</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {transactions.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
                       {searchQuery ? "No transactions match your search." : "No transactions found."}
                     </td>
                   </tr>
@@ -158,6 +193,24 @@ export default function AdminTransactionsPage() {
                         <div className="text-xs text-gray-400 mt-0.5">
                           {new Date(tx.flutterwave_created_at || tx.createdAt).toLocaleTimeString()}
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {tx.booking ? (
+                          <span className="text-xs font-medium text-emerald-700">
+                            Linked
+                          </span>
+                        ) : tx.status === "successful" ? (
+                          <button
+                            type="button"
+                            disabled={repairingId === tx._id}
+                            onClick={() => createBookingFromTx(tx)}
+                            className="text-xs font-semibold text-indigo-600 hover:underline disabled:opacity-50"
+                          >
+                            {repairingId === tx._id ? "Creating…" : "Create booking"}
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
+                        )}
                       </td>
                     </tr>
                   ))

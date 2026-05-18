@@ -62,6 +62,21 @@ const TransactionSchema = new Schema(
     host_email: {
       type: String,
     },
+    check_in: {
+      type: String,
+      match: /^\d{4}-\d{2}-\d{2}$/,
+    },
+    check_out: {
+      type: String,
+      match: /^\d{4}-\d{2}-\d{2}$/,
+    },
+    nights: {
+      type: Number,
+    },
+    booking: {
+      type: Schema.Types.ObjectId,
+      ref: "Booking",
+    },
   },
   {
     timestamps: true,

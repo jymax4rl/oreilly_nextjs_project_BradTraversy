@@ -13,7 +13,7 @@ import { ScrollNavProvider } from "@/contexts/ScrollNavContext";
 
 export const metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://kamaproperties.com",
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.isisel.com",
   ),
   title: {
     default: "Kama Properties | African Vacation Rentals",

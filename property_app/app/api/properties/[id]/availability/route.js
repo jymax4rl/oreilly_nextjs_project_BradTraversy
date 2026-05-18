@@ -10,6 +10,7 @@ import {
   ensurePropertyAvailability,
   getAvailabilityPayload,
   validateHostBlocks,
+  validateCustomDayRates,
   getConfirmedBookings,
 } from "@/utils/availability/availabilityService";
 
@@ -61,6 +62,7 @@ export async function PUT(request, { params }) {
     const body = await request.json();
     const hostBlocks = body.hostBlocks ?? [];
     const defaultAvailability = body.defaultAvailability;
+    const customDayRatesInput = body.customDayRates;
 
     if (
       defaultAvailability != null &&
@@ -79,10 +81,25 @@ export async function PUT(request, { params }) {
       return Response.json({ error: "Validation failed", details: errors }, { status: 400 });
     }
 
+    let normalizedCustom = null;
+    if (customDayRatesInput != null) {
+      const customResult = validateCustomDayRates(customDayRatesInput);
+      if (customResult.errors.length) {
+        return Response.json(
+          { error: "Validation failed", details: customResult.errors },
+          { status: 400 },
+        );
+      }
+      normalizedCustom = customResult.normalized;
+    }
+
     const availability = await ensurePropertyAvailability(id);
     availability.hostBlocks = normalized;
     if (defaultAvailability != null) {
       availability.defaultAvailability = defaultAvailability;
+    }
+    if (normalizedCustom != null) {
+      availability.customDayRates = normalizedCustom;
     }
     await availability.save();
 

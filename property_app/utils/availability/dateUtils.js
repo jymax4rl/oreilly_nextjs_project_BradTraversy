@@ -71,6 +71,24 @@ export function validateRange(range) {
  * Merge overlapping/adjacent ranges (same source not required).
  * @param {Array<{ startDate: string, endDate: string, source?: string }>} ranges
  */
+/**
+ * Each booked night from checkIn (inclusive) to checkOut (exclusive).
+ * @returns {string[]} YYYY-MM-DD
+ */
+export function enumerateStayNights(checkIn, checkOut) {
+  const start = parseDateOnly(checkIn);
+  const end = parseDateOnly(checkOut);
+  if (start == null || end == null || end <= start) return [];
+
+  const nights = [];
+  let t = start;
+  while (t < end) {
+    nights.push(formatDateOnly(t));
+    t += 24 * 60 * 60 * 1000;
+  }
+  return nights;
+}
+
 export function mergeRanges(ranges) {
   const valid = ranges
     .filter((r) => isValidDateOnly(r.startDate) && isValidDateOnly(r.endDate))

@@ -6,6 +6,10 @@ import {
   validateRange,
   mergeRanges,
 } from "@/utils/availability/dateUtils";
+import {
+  normalizeCustomDayRates,
+  validateCustomDayRates,
+} from "@/utils/availability/customDayRates";
 
 export async function ensurePropertyAvailability(propertyId) {
   const oid = new mongoose.Types.ObjectId(propertyId);
@@ -15,10 +19,13 @@ export async function ensurePropertyAvailability(propertyId) {
       propertyId: oid,
       defaultAvailability: "open",
       hostBlocks: [],
+      customDayRates: [],
     });
   }
   return doc;
 }
+
+export { validateCustomDayRates };
 
 export async function getConfirmedBookings(propertyId) {
   return Booking.find({
@@ -109,10 +116,13 @@ export async function getAvailabilityPayload(propertyId, { isOwner = false } = {
     includeNotes: isOwner,
   });
 
+  const customDayRates = normalizeCustomDayRates(availability.customDayRates || []);
+
   const payload = {
     propertyId: String(propertyId),
     defaultAvailability: availability.defaultAvailability || "open",
     unavailableRanges,
+    customDayRates,
   };
 
   if (isOwner) {

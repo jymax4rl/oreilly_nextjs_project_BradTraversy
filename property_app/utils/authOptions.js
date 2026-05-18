@@ -4,6 +4,7 @@ import User from "@/models/User";
 
 /** @type {import('next-auth').AuthOptions} */
 export const authOptions = {
+  trustHost: true,
   session: {
     strategy: "jwt",
   },

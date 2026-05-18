@@ -16,6 +16,7 @@ import {
   LayoutList,
   Shield,
   Heart,
+  CalendarCheck,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -291,6 +292,16 @@ const Navbar = () => {
                       />
                     </svg>
                     <span className="font-medium">Saved Properties</span>
+                  </Link>
+
+                  <Link
+                    href="/my-bookings"
+                    className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+                    role="menuitem"
+                    onClick={() => setIsProfileOpen(false)}
+                  >
+                    <CalendarCheck className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600" />
+                    <span className="font-medium">My Bookings</span>
                   </Link>
 
                   <Link
@@ -622,6 +633,14 @@ const Navbar = () => {
                     >
                       <Heart className={overlayIconClass} aria-hidden />
                       Saved properties
+                    </Link>
+                    <Link
+                      href="/my-bookings"
+                      onClick={close}
+                      className={overlayRowClass}
+                    >
+                      <CalendarCheck className={overlayIconClass} aria-hidden />
+                      My bookings
                     </Link>
                     {session?.user?.hostStatus === "verified" && (
                       <>

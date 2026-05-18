@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kama Properties — Platform Track Record &amp; Potential</title>
+  <style>
+    @page { margin: 16mm 14mm; size: A4; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.5;
+      color: #1e293b;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 10mm 12mm;
+    }
+    .cover {
+      text-align: center;
+      padding: 28px 0 36px;
+      border-bottom: 4px solid #00c8ff;
+      margin-bottom: 28px;
+    }
+    .cover h1 {
+      font-size: 26pt;
+      color: #0f172a;
+      margin: 0 0 8px;
+      letter-spacing: -0.02em;
+    }
+    .cover .tagline { font-size: 13pt; color: #475569; margin: 0 0 16px; }
+    .cover .url { font-size: 11pt; color: #00a8d8; font-weight: 600; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 20px; }
+    .badge {
+      background: #ecfeff;
+      color: #0e7490;
+      font-size: 9pt;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid #a5f3fc;
+    }
+    h2 {
+      font-size: 14pt;
+      color: #0f172a;
+      margin: 24px 0 10px;
+      padding-bottom: 4px;
+      border-bottom: 2px solid #e2e8f0;
+      page-break-after: avoid;
+    }
+    h3 { font-size: 11pt; color: #334155; margin: 14px 0 6px; page-break-after: avoid; }
+    p { margin: 0 0 10px; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 9.5pt; }
+    th, td { border: 1px solid #cbd5e1; padding: 7px 9px; text-align: left; vertical-align: top; }
+    th { background: #f1f5f9; font-weight: 600; color: #0f172a; }
+    ul { margin: 6px 0 12px; padding-left: 18px; }
+    li { margin-bottom: 4px; }
+    .highlight {
+      background: linear-gradient(135deg, #f0fdfa 0%, #eff6ff 100%);
+      border: 1px solid #bae6fd;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin: 14px 0;
+    }
+    .highlight strong { color: #0369a1; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+    .card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .card h4 { margin: 0 0 6px; font-size: 10pt; color: #1e40af; }
+    .card p { margin: 0; font-size: 9.5pt; color: #475569; }
+    .metric { font-size: 18pt; font-weight: 800; color: #00c8ff; line-height: 1.2; }
+    .footer {
+      margin-top: 32px;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 9pt;
+      color: #64748b;
+      text-align: center;
+    }
+    .timeline { border-left: 3px solid #00c8ff; padding-left: 14px; margin: 10px 0; }
+    .timeline-item { margin-bottom: 12px; }
+    .timeline-item strong { color: #0f172a; }
+  </style>
+</head>
+<body>
+
+  <div class="cover">
+    <h1>Kama Properties</h1>
+    <p class="tagline">African vacation rentals — marketplace, payments, and host tools</p>
+    <p class="url">https://www.isisel.com</p>
+    <div class="badge-row">
+      <span class="badge">Next.js 16</span>
+      <span class="badge">MongoDB Atlas</span>
+      <span class="badge">Flutterwave</span>
+      <span class="badge">Google OAuth</span>
+      <span class="badge">Resend Email</span>
+      <span class="badge">Vercel Production</span>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <strong>Executive summary.</strong> Kama Properties is a production-ready short-stay rental platform
+    with verified listings, real-time availability, dynamic pricing, secure checkout, automated booking
+  confirmation emails, and separate experiences for guests, hosts, and admins — positioned to scale
+    across West Africa and beyond.
+  </div>
+
+  <h2>1. Product vision &amp; market potential</h2>
+  <p>
+    The platform addresses a growing demand for trusted, bookable vacation stays in markets where
+    inventory is fragmented and payments cross borders. By combining discovery, messaging, calendar
+    control, and card/mobile money checkout in one product, Kama Properties can capture both
+    leisure travelers and diaspora visitors booking stays for family and events.
+  </p>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Guests</h4>
+      <p>Browse listings, save favorites, book with transparent fees, receive branded confirmation emails, and manage trips from My Bookings.</p>
+    </div>
+    <div class="card">
+      <h4>Hosts</h4>
+      <p>List properties, set nightly/weekly/monthly rates, block dates, apply custom day pricing, and get notified on every new reservation.</p>
+    </div>
+    <div class="card">
+      <h4>Platform</h4>
+      <p>Admin moderation, transaction ledger, booking repair tools, and SEO-ready property pages on a verified domain.</p>
+    </div>
+    <div class="card">
+      <h4>Revenue levers</h4>
+      <p>Service fee (7%) + cleaning fee (15% of stay base), multi-currency display (XOF, USD), and future subscription tiers for hosts.</p>
+    </div>
+  </div>
+
+  <h2>2. Live capabilities (shipped)</h2>
+  <table>
+    <tr><th>Area</th><th>Capability</th><th>Business value</th></tr>
+    <tr>
+      <td>Discovery</td>
+      <td>Property grid, filters, saved properties, rich listing pages with images &amp; maps context</td>
+      <td>Conversion from browse to intent</td>
+    </tr>
+    <tr>
+      <td>Auth</td>
+      <td>Google sign-in, roles (guest / host / admin), host onboarding &amp; verification flow</td>
+      <td>Low-friction trust &amp; moderation</td>
+    </tr>
+    <tr>
+      <td>Availability</td>
+      <td>Per-property calendar API, host blocks, booking blocks, guest date-range picker</td>
+      <td>No double-bookings</td>
+    </tr>
+    <tr>
+      <td>Pricing</td>
+      <td>Nightly / weekly / monthly rates, custom per-day overrides on host calendar, fee breakdown at checkout</td>
+      <td>Revenue optimization per listing</td>
+    </tr>
+    <tr>
+      <td>Payments</td>
+      <td>Flutterwave checkout, transaction records, idempotent confirmed bookings linked to payments</td>
+      <td>Monetization with audit trail</td>
+    </tr>
+    <tr>
+      <td>Bookings</td>
+      <td>Guest My Bookings, host My Listings, admin create-booking repair for legacy transactions</td>
+      <td>Operational resilience</td>
+    </tr>
+    <tr>
+      <td>Email</td>
+      <td>Resend-powered guest &amp; host templates with property photo, stay details, amounts (XOF), Kama logo</td>
+      <td>Professional post-purchase experience</td>
+    </tr>
+    <tr>
+      <td>Messaging</td>
+      <td>Guest–host threads tied to listings</td>
+      <td>Pre-booking qualification</td>
+    </tr>
+  </table>
+
+  <h2>3. Technical architecture</h2>
+  <table>
+    <tr><th>Layer</th><th>Stack</th></tr>
+    <tr><td>Frontend</td><td>Next.js 16 App Router, React 19, Tailwind CSS 4, responsive mobile chrome</td></tr>
+    <tr><td>Backend</td><td>Route handlers, Mongoose 9, MongoDB Atlas</td></tr>
+    <tr><td>Auth</td><td>NextAuth.js + Google OAuth, JWT sessions, trustHost for Vercel</td></tr>
+    <tr><td>Payments</td><td>Flutterwave (initialize + webhook + client verify)</td></tr>
+    <tr><td>Email</td><td>Resend SDK, HTML templates, optional dashboard templates (kama-booking-guest / host)</td></tr>
+    <tr><td>Hosting</td><td>Vercel production → www.isisel.com (project kemika02)</td></tr>
+  </table>
+
+  <h2>4. Booking &amp; email flow (end-to-end)</h2>
+  <div class="timeline">
+    <div class="timeline-item"><strong>1.</strong> Guest selects dates on listing → availability API validates stay nights.</div>
+    <div class="timeline-item"><strong>2.</strong> Checkout shows stay total + 15% cleaning + 7% service fee in local currency.</div>
+    <div class="timeline-item"><strong>3.</strong> Flutterwave payment succeeds → transaction saved → confirmed booking created (idempotent on transaction ID).</div>
+    <div class="timeline-item"><strong>4.</strong> Branded emails sent to guest and host with property image, location, stay window, amount, and dashboard CTA.</div>
+    <div class="timeline-item"><strong>5.</strong> Calendar blocks booked nights; host sees reservation in My Listings.</div>
+  </div>
+
+  <h2>5. Growth &amp; roadmap potential</h2>
+  <ul>
+    <li><strong>Geographic expansion</strong> — duplicate playbooks for Senegal, Ghana, Côte d’Ivoire with localized payment rails.</li>
+    <li><strong>Host analytics</strong> — occupancy, ADR, and revenue dashboards from existing booking + transaction data.</li>
+    <li><strong>Reviews &amp; trust</strong> — post-stay ratings layered on verified bookings only.</li>
+    <li><strong>Instant Book vs Request</strong> — host-configurable booking modes on top of calendar API.</li>
+    <li><strong>Mobile app</strong> — API-first design supports React Native or Flutter client later.</li>
+    <li><strong>B2B</strong> — property managers with multi-listing calendars and team roles.</li>
+  </ul>
+
+  <h2>6. Traction indicators &amp; readiness</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="metric">Production</div>
+      <p>Deployed on Vercel with custom domain, MongoDB connected at build/runtime, payment + email env configured.</p>
+    </div>
+    <div class="card">
+      <div class="metric">Multi-role</div>
+      <p>Guest, verified host, and admin paths implemented with middleware protection.</p>
+    </div>
+    <div class="card">
+      <div class="metric">Real $</div>
+      <p>Flutterwave live/test integration with transaction → booking linkage and admin repair path.</p>
+    </div>
+    <div class="card">
+      <div class="metric">Comms</div>
+      <p>Transactional email on isisel.com domain (noreply@isisel.com) with property-coherent templates.</p>
+    </div>
+  </div>
+
+  <h2>7. Repository &amp; delivery</h2>
+  <p>
+    <strong>GitHub:</strong> jymax4rl/oreilly_nextjs_project_BradTraversy<br />
+    <strong>Active line of work:</strong> feature/property-calendar-ui (bookings, rates, calendar UI, email templates)<br />
+    <strong>Documentation:</strong> availability-calendar-design.pdf, this track record
+  </p>
+
+  <div class="footer">
+    Kama Properties · Track record &amp; potential · May 2026 · Confidential — for partners and investors
+  </div>
+
+</body>
+</html>

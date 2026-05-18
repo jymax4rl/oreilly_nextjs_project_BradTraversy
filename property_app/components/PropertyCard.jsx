@@ -2,13 +2,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { Bed, Bath, Ruler, MapPin, Heart } from "lucide-react";
+import { Bed, Bath, Ruler, MapPin, Heart, Calendar, DollarSign } from "lucide-react";
+import { getPrimaryDisplayRate, normalizeRates } from "@/utils/propertyRates";
 import { formatCurrency } from "../utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
 import MobileMoneyBadge from "@/components/MobileMoneyBadge";
 import { useSession } from "next-auth/react";
 
-const PropertyCard = ({ property, isSaved = false }) => {
+const PropertyCard = ({ property, isSaved = false, hostListingsView = false }) => {
   const { data: session } = useSession();
   const { currencyCode, rates } = useCurrency();
   const {
@@ -30,33 +31,20 @@ const PropertyCard = ({ property, isSaved = false }) => {
 
   const mainImage = `/properties/${images?.[1] || images?.[0] || "default.jpg"}`;
 
+  const normalizedPropertyRates = normalizeRates(propertyRates);
+
   const getDisplayPrice = (ratesObj) => {
-    if (!ratesObj) return { price: "N/A", label: "" };
+    const primary = getPrimaryDisplayRate(ratesObj);
+    if (!primary) return { price: "Contact", label: " for rates" };
     const currentRate = rates[currencyCode];
     const currentSymbol = currencyCode === "USD" ? "$" : currencyCode;
-
-    if (ratesObj.nightly) {
-      return {
-        price: formatCurrency(ratesObj.nightly, currentRate, currentSymbol),
-        label: "/ night",
-      };
-    }
-    if (ratesObj.weekly) {
-      return {
-        price: formatCurrency(ratesObj.weekly, currentRate, currentSymbol),
-        label: "/ week",
-      };
-    }
-    if (ratesObj.monthly) {
-      return {
-        price: formatCurrency(ratesObj.monthly, currentRate, currentSymbol),
-        label: "/ month",
-      };
-    }
-    return { price: "Contact", label: "for rates" };
+    return {
+      price: formatCurrency(primary.amount, currentRate, currentSymbol),
+      label: primary.suffix,
+    };
   };
 
-  const displayRate = getDisplayPrice(propertyRates);
+  const displayRate = getDisplayPrice(normalizedPropertyRates);
 
   const handleLikeToggle = async (e) => {
     e.preventDefault();
@@ -216,6 +204,25 @@ const PropertyCard = ({ property, isSaved = false }) => {
           </div>
         </div>
       </Link>
+
+      {hostListingsView && (
+        <div className="grid grid-cols-2 gap-2 border-t border-gray-100 px-4 pb-4 pt-3">
+          <Link
+            href={`/properties/${_id}/calendar`}
+            className="flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2.5 text-sm font-semibold text-indigo-800 transition hover:bg-indigo-100 active:scale-[0.99]"
+          >
+            <Calendar size={18} strokeWidth={2} aria-hidden />
+            Calendar
+          </Link>
+          <Link
+            href={`/properties/${_id}/rates`}
+            className="flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100 active:scale-[0.99]"
+          >
+            <DollarSign size={18} strokeWidth={2} aria-hidden />
+            Rates
+          </Link>
+        </div>
+      )}
     </div>
   );
 };

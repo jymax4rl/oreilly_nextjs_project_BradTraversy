@@ -20,6 +20,26 @@ const HostBlockSchema = new mongoose.Schema(
   { _id: true },
 );
 
+const CustomDayRateSchema = new mongoose.Schema(
+  {
+    date: {
+      type: String,
+      required: true,
+      match: /^\d{4}-\d{2}-\d{2}$/,
+    },
+    priceUsd: {
+      type: Number,
+      required: true,
+      min: 0.01,
+    },
+    note: {
+      type: String,
+      maxlength: 200,
+    },
+  },
+  { _id: false },
+);
+
 const PropertyAvailabilitySchema = new mongoose.Schema(
   {
     propertyId: {
@@ -36,6 +56,10 @@ const PropertyAvailabilitySchema = new mongoose.Schema(
     },
     hostBlocks: {
       type: [HostBlockSchema],
+      default: [],
+    },
+    customDayRates: {
+      type: [CustomDayRateSchema],
       default: [],
     },
   },
