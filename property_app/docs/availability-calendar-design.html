@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Property Availability API — Design Flow</title>
+  <style>
+    @page { margin: 18mm 16mm; size: A4; }
+    body { font-family: "Segoe UI", system-ui, sans-serif; font-size: 11pt; line-height: 1.45; color: #1e293b; max-width: 210mm; margin: 0 auto; padding: 12mm; }
+    h1 { font-size: 20pt; color: #0f172a; border-bottom: 3px solid #2563eb; padding-bottom: 8px; margin-top: 0; }
+    h2 { font-size: 14pt; color: #1e40af; margin-top: 22px; page-break-after: avoid; }
+    h3 { font-size: 12pt; color: #334155; margin-top: 14px; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10pt; }
+    th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; }
+    th { background: #f1f5f9; font-weight: 600; }
+    pre, code { font-family: Consolas, monospace; font-size: 9pt; background: #f8fafc; }
+    pre { padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
+    .meta { color: #64748b; font-size: 10pt; margin-bottom: 20px; }
+    .flow { background: #f8fafc; border-left: 4px solid #2563eb; padding: 10px 14px; margin: 12px 0; font-family: Consolas, monospace; font-size: 9pt; white-space: pre; }
+    .phase { background: #eff6ff; border: 1px solid #93c5fd; border-radius: 8px; padding: 10px 14px; margin-top: 20px; }
+    ul { margin: 6px 0; padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Property availability &amp; bookings</h1>
+  <p class="meta"><strong>Kama Properties / isisel.com</strong> · Phase 1: Schema + API · May 2026</p>
+
+  <h2>1. Goals</h2>
+  <table>
+    <tr><th>Goal</th><th>Detail</th></tr>
+    <tr><td>One calendar per property</td><td>Every listing has availability in MongoDB</td></tr>
+    <tr><td>Host blocks</td><td>Owner marks unavailable dates</td></tr>
+    <tr><td>Booking blocks</td><td>Confirmed stays auto-block dates</td></tr>
+    <tr><td>APIs</td><td>GET/PUT availability; GET bookings (host)</td></tr>
+  </table>
+
+  <h2>2. Date rules</h2>
+  <pre>Stay: checkIn 2026-06-10, checkOut 2026-06-15
+Blocked nights: 10, 11, 12, 13, 14 (checkOut day = departure, not booked)
+
+Storage: YYYY-MM-DD (UTC date-only)
+checkIn inclusive · checkOut exclusive</pre>
+
+  <h2>3. Schema</h2>
+  <h3>PropertyAvailability (1 doc / property)</h3>
+  <table>
+    <tr><th>Field</th><th>Type</th></tr>
+    <tr><td>propertyId</td><td>ObjectId (unique)</td></tr>
+    <tr><td>defaultAvailability</td><td>open | closed</td></tr>
+    <tr><td>hostBlocks[]</td><td>startDate, endDate, note?</td></tr>
+  </table>
+
+  <h3>Booking</h3>
+  <table>
+    <tr><th>Field</th><th>Type</th></tr>
+    <tr><td>propertyId, guestId</td><td>ObjectId / String</td></tr>
+    <tr><td>checkIn, checkOut</td><td>YYYY-MM-DD</td></tr>
+    <tr><td>status</td><td>pending | confirmed | cancelled</td></tr>
+    <tr><td>transactionId</td><td>optional</td></tr>
+  </table>
+
+  <h2>4. API flow — GET availability</h2>
+  <div class="flow">Client          API                    MongoDB
+  |-- GET /availability -->|
+  |                        |-- Property, Availability, Bookings
+  |                        |-- merge → unavailableRanges
+  |&lt;-- JSON --------------|</div>
+
+  <h3>GET /api/properties/[id]/availability</h3>
+  <p><strong>Public response:</strong> propertyId, defaultAvailability, unavailableRanges[{ startDate, endDate, source }]</p>
+  <p><strong>Owner session:</strong> also returns hostBlocks with notes.</p>
+
+  <h2>5. API flow — PUT host blocks</h2>
+  <div class="flow">Host (My listings → Calendar UI, Phase 2)
+  |-- PUT { hostBlocks, defaultAvailability } -->|
+  |                        | assert property.owner
+  |                        | reject overlap with confirmed bookings
+  |                        | upsert PropertyAvailability
+  |&lt;-- 200 -------------------------------------|</div>
+
+  <h3>PUT /api/properties/[id]/availability</h3>
+  <p>Auth: verified host + owner only.</p>
+
+  <h2>6. API — GET bookings</h2>
+  <p><strong>GET /api/properties/[id]/bookings</strong> — owner only. Lists stays with guest snapshot and status filter.</p>
+
+  <h2>7. Authorization</h2>
+  <table>
+    <tr><th>Endpoint</th><th>Guest</th><th>Owner</th></tr>
+    <tr><td>GET availability (ranges)</td><td>✓</td><td>✓</td></tr>
+    <tr><td>PUT availability</td><td>✗</td><td>✓</td></tr>
+    <tr><td>GET bookings</td><td>✗</td><td>✓</td></tr>
+  </table>
+
+  <h2>8. Lifecycle hooks</h2>
+  <ul>
+    <li><strong>POST /api/properties</strong> → create empty PropertyAvailability</li>
+    <li><strong>Payment confirmed</strong> (later) → Booking confirmed → blocks dates</li>
+  </ul>
+
+  <div class="phase">
+    <strong>Phase 2 (UI):</strong> My listings → Calendar button → /properties/[id]/calendar · Guest date pickers · Reserve validation
+  </div>
+
+  <p class="meta" style="margin-top:24px">Generated for Kama Properties engineering · property_app/docs/</p>
+</body>
+</html>
