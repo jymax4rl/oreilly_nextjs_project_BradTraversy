@@ -2,6 +2,7 @@ import React from "react";
 import HomeProperties from "@/components/HomeProperties";
 import Property from "@/models/Property";
 import connectToDatabase from "@/config/database";
+import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 
 const PropertiesPage = async ({ searchParams }) => {
   // Next.js 15+: searchParams is a Promise
@@ -39,11 +40,7 @@ const PropertiesPage = async ({ searchParams }) => {
 
   const properties = await Property.find(mongoQuery).lean();
 
-  const serializedProperties = properties.map((property) => ({
-    ...property,
-    _id: property._id.toString(),
-    owner: property.owner?.toString?.() || property.owner,
-  }));
+  const serializedProperties = properties.map(serializePropertyForClient);
 
   return (
     <div className="min-h-screen min-w-full overflow-x-hidden md:pt-[10vh]">

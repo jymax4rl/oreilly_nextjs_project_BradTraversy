@@ -13,6 +13,7 @@ import {
   Home,
   Building2,
   PlusCircle,
+  LayoutList,
   Shield,
   Heart,
   Settings,
@@ -342,27 +343,50 @@ const Navbar = () => {
 
                 {/* Host Actions */}
                 {session?.user?.hostStatus === "verified" && (
-                  <Link
-                    href="/properties/add"
-                    className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
-                    role="menuitem"
-                    onClick={() => setIsProfileOpen(false)}
-                  >
-                    <svg
-                      className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  <>
+                    <Link
+                      href="/properties/my-listings"
+                      className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+                      role="menuitem"
+                      onClick={() => setIsProfileOpen(false)}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                    <span className="font-medium">List Property</span>
-                  </Link>
+                      <svg
+                        className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 6h16M4 10h16M4 14h16M4 18h16"
+                        />
+                      </svg>
+                      <span className="font-medium">My listings</span>
+                    </Link>
+                    <Link
+                      href="/properties/add"
+                      className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+                      role="menuitem"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      <svg
+                        className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                      <span className="font-medium">List Property</span>
+                    </Link>
+                  </>
                 )}
 
                 {session?.user && session.user.hostStatus !== "verified" && (
@@ -469,14 +493,34 @@ const Navbar = () => {
                   );
                 })}
 
-                {hostNavItem && (
+                {session?.user?.hostStatus === "verified" && (
+                  <>
+                    <Link
+                      href="/properties/my-listings"
+                      onClick={close}
+                      className={overlayRowClass}
+                    >
+                      <LayoutList className={overlayIconClass} aria-hidden />
+                      My listings
+                    </Link>
+                    <Link
+                      href="/properties/add"
+                      onClick={close}
+                      className={overlayRowClass}
+                    >
+                      <PlusCircle className={overlayIconClass} aria-hidden />
+                      List Property
+                    </Link>
+                  </>
+                )}
+                {session?.user && session.user.hostStatus !== "verified" && (
                   <Link
-                    href={hostNavItem.path}
+                    href="/host/onboarding"
                     onClick={close}
                     className={overlayRowClass}
                   >
                     <PlusCircle className={overlayIconClass} aria-hidden />
-                    {hostNavItem.label}
+                    Become a Host
                   </Link>
                 )}
 

@@ -4,10 +4,16 @@ import { Banknote, ChevronDown } from "lucide-react";
 import { CURRENCIES } from "../utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
 
-const Currency = () => {
+/** @param {{ align?: "start" | "end" }} props */
+const Currency = ({ align = "end" }) => {
   const { currencyCode, setCurrencyCode } = useCurrency();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  const menuAlign =
+    align === "start"
+      ? "left-0 right-auto origin-top-left"
+      : "right-0 left-auto origin-top-right";
 
   const selected =
     CURRENCIES.find((c) => c.code === currencyCode) || CURRENCIES[0];
@@ -52,27 +58,27 @@ const Currency = () => {
       </button>
 
       <div
-        className={`absolute right-0 mt-2 w-56 bg-white/90 backdrop-blur-xl border border-gray-100 rounded-2xl shadow-xl z-50 transform transition-all duration-200 origin-top-right overflow-hidden ${
+        className={`absolute ${menuAlign} z-50 mt-2 w-[min(16rem,calc(100vw-1.5rem))] max-w-[calc(100vw-1.5rem)] transform overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl backdrop-blur-xl transition-all duration-200 sm:w-64 ${
           isOpen
             ? "opacity-100 scale-100 translate-y-0"
             : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
         }`}
       >
-        <div className="p-1.5 max-h-72 overflow-y-auto">
+        <div className="max-h-[min(18rem,50vh)] overflow-y-auto overscroll-contain p-1.5">
           {CURRENCIES.map((c) => (
             <button
               key={c.code}
               type="button"
               onClick={() => handleSelect(c)}
-              className={`cursor-pointer w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-colors ${
+              className={`flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-xl px-3 py-3 text-left text-sm transition-colors sm:px-4 ${
                 selected.code === c.code
                   ? "bg-indigo-50 text-indigo-700"
                   : "text-gray-600 hover:bg-gray-50"
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                 <span
-                  className={`font-bold ${
+                  className={`shrink-0 font-bold ${
                     selected.code === c.code
                       ? "text-indigo-700"
                       : "text-gray-900"
@@ -80,9 +86,13 @@ const Currency = () => {
                 >
                   {c.code}
                 </span>
-                <span className="text-gray-400 font-medium">{c.name}</span>
+                <span className="min-w-0 truncate font-medium text-gray-400">
+                  {c.name.trim()}
+                </span>
               </div>
-              <span className="text-gray-500 font-mono">{c.symbol}</span>
+              <span className="shrink-0 font-mono text-xs text-gray-500 sm:text-sm">
+                {c.symbol}
+              </span>
             </button>
           ))}
         </div>

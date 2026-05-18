@@ -6,14 +6,15 @@ import { formatCurrency } from "@/utils/currencyUtils";
 import {
   getFlutterwaveCountry,
   getFlutterwavePaymentOption,
-  isMobileMoneyCurrency,
   normalizeCurrencyCode,
 } from "@/utils/mobileMoney";
+import Currency from "@/components/Currency";
+import PaymentMethodBadge from "@/components/PaymentMethodBadge";
 import MobileMoneyReserveButton from "@/components/MobileMoneyReserveButton";
+import MessageOwnerButton from "@/components/MessageOwnerButton";
 import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 import { useSession, signIn } from "next-auth/react";
 
-/* Right Column: Sticky Booking Widget */
 function RightColumn({ data }) {
   const { currencyCode, rates } = useCurrency();
   const { data: session } = useSession();
@@ -21,7 +22,6 @@ function RightColumn({ data }) {
   const basePrice = data.rates.weekly || data.rates.monthly;
   const cleaningFee = 150;
   const paymentCurrency = normalizeCurrencyCode(currencyCode);
-  const mobileMoneyActive = isMobileMoneyCurrency(paymentCurrency);
 
   const numericalTotal = parseFloat(
     ((basePrice + cleaningFee) * (rates[currencyCode] || 1)).toFixed(2),
@@ -82,42 +82,39 @@ function RightColumn({ data }) {
     });
   };
 
+  const symbol = currencyCode === "USD" ? "$" : currencyCode;
+
   return (
-    <div className="relative">
-      <div className="sticky  top-32 p-8 rounded-3xl border border-slate-200  shadow-xl/20 shadow-black-900 bg-white space-y-8">
-        <div className="flex items-baseline justify-between">
-          <div className="flex flex-col">
-            <span className="text-3xl font-extrabold text-slate-900">
+    <div className="relative min-w-0">
+      <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-lg shadow-slate-900/5 sm:p-5 lg:sticky lg:top-24 lg:space-y-5 lg:p-6">
+        <Currency align="start" />
+        <PaymentMethodBadge currencyCode={paymentCurrency} />
+
+        <div className="flex min-w-0 items-baseline justify-between gap-3 border-t border-slate-100 pt-3">
+          <div className="min-w-0">
+            <span className="text-2xl font-extrabold tabular-nums text-slate-900 sm:text-3xl">
               {data.rates.monthly
-                ? formatCurrency(
-                    data.rates.monthly,
-                    rates[currencyCode],
-                    currencyCode === "USD" ? "$" : currencyCode,
-                  )
-                : formatCurrency(
-                    data.rates.weekly,
-                    rates[currencyCode],
-                    currencyCode === "USD" ? "$" : currencyCode,
-                  )}
+                ? formatCurrency(data.rates.monthly, rates[currencyCode], symbol)
+                : formatCurrency(data.rates.weekly, rates[currencyCode], symbol)}
             </span>
-            <span className="text-slate-500 font-medium">
-              {data.rates.monthly ? "/ month" : "/ week"}
+            <span className="ml-1 text-sm font-medium text-slate-500">
+              {data.rates.monthly ? "/ mo" : "/ wk"}
             </span>
           </div>
-          <div className="flex items-center gap-1 text-sm font-bold bg-slate-50 px-2 py-1 rounded-md">
-            <Star size={14} className="fill-slate-900" /> 5.0
+          <div className="flex shrink-0 items-center gap-1 rounded-md bg-slate-50 px-2 py-1 text-xs font-bold">
+            <Star size={12} className="fill-slate-900" aria-hidden /> 5.0
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-sm">
-          <div className="p-4 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors cursor-pointer bg-white group">
-            <span className="block text-xs text-slate-500 uppercase font-bold mb-1 group-hover:text-blue-600">
+          <div className="cursor-pointer rounded-xl border border-slate-200 bg-white p-3 transition-colors hover:border-slate-300">
+            <span className="mb-0.5 block text-[10px] font-bold uppercase text-slate-500">
               Check-in
             </span>
             <span className="font-medium text-slate-900">Add date</span>
           </div>
-          <div className="p-4 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors cursor-pointer bg-white group">
-            <span className="block text-xs text-slate-500 uppercase font-bold mb-1 group-hover:text-blue-600">
+          <div className="cursor-pointer rounded-xl border border-slate-200 bg-white p-3 transition-colors hover:border-slate-300">
+            <span className="mb-0.5 block text-[10px] font-bold uppercase text-slate-500">
               Check-out
             </span>
             <span className="font-medium text-slate-900">Add date</span>
@@ -129,48 +126,49 @@ function RightColumn({ data }) {
           onClick={handleReserve}
         />
 
-        <div className="text-center text-xs text-slate-400 font-medium">
-          {mobileMoneyActive
-            ? "Checkout opens with mobile money options"
-            : "You won't be charged yet"}
-        </div>
+        <MessageOwnerButton
+          propertyId={data._id}
+          ownerId={data.owner}
+          ownerName={data.seller_info?.name || "host"}
+          variant="compact"
+          className="w-full justify-center"
+        />
 
-        <div className="pt-6 border-t border-slate-100 space-y-3 text-slate-600 text-sm">
-          <div className="flex justify-between">
-            <span className="underline decoration-slate-300 decoration-dotted underline-offset-4">
-              Base price
+        <p className="text-center text-xs text-slate-400">
+          You won&apos;t be charged until checkout
+        </p>
+
+        <details className="group border-t border-slate-100 pt-3 text-sm text-slate-600">
+          <summary className="cursor-pointer list-none font-medium text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+            <span className="underline decoration-slate-300 decoration-dotted underline-offset-4 group-open:mb-3 group-open:inline-block">
+              Price breakdown
             </span>
-            <span>
-              {formatCurrency(
-                data.rates.weekly || data.rates.monthly,
-                rates[currencyCode],
-                currencyCode === "USD" ? "$" : currencyCode,
-              )}
-            </span>
+          </summary>
+          <div className="mt-3 space-y-2">
+            <div className="flex justify-between gap-3">
+              <span>Base</span>
+              <span className="tabular-nums">
+                {formatCurrency(
+                  data.rates.weekly || data.rates.monthly,
+                  rates[currencyCode],
+                  symbol,
+                )}
+              </span>
+            </div>
+            <div className="flex justify-between gap-3">
+              <span>Cleaning</span>
+              <span className="tabular-nums">
+                {formatCurrency(150, rates[currencyCode], symbol)}
+              </span>
+            </div>
+            <div className="flex justify-between gap-3 border-t border-slate-100 pt-2 font-bold text-slate-900">
+              <span>Total</span>
+              <span className="tabular-nums">
+                {formatCurrency(basePrice + cleaningFee, rates[currencyCode], symbol)}
+              </span>
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span className="underline decoration-slate-300 decoration-dotted underline-offset-4">
-              Cleaning fee
-            </span>
-            <span>
-              {formatCurrency(
-                150,
-                rates[currencyCode],
-                currencyCode === "USD" ? "$" : currencyCode,
-              )}
-            </span>
-          </div>
-          <div className="flex justify-between font-bold text-slate-900 pt-4 border-t border-slate-100 mt-4 text-base">
-            <span>Total</span>
-            <span>
-              {formatCurrency(
-                basePrice + cleaningFee,
-                rates[currencyCode],
-                currencyCode === "USD" ? "$" : currencyCode,
-              )}
-            </span>
-          </div>
-        </div>
+        </details>
       </div>
     </div>
   );
