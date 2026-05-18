@@ -1,5 +1,6 @@
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
+import { ensurePropertyAvailability } from "@/utils/availability/availabilityService";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { writeFile } from "fs/promises";
@@ -94,6 +95,8 @@ export const POST = async (request) => {
 
     const newProperty = new Property(propertyData);
     await newProperty.save();
+
+    await ensurePropertyAvailability(newProperty._id.toString());
 
     return Response.redirect(
       new URL(`/properties/${newProperty._id}`, request.url)
