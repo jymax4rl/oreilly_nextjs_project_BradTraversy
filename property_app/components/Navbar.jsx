@@ -13,6 +13,7 @@ import {
   Home,
   Building2,
   PlusCircle,
+  LayoutList,
   Shield,
   Heart,
   Settings,
@@ -344,15 +345,25 @@ const Navbar = () => {
                 {session?.user?.hostStatus === "verified" && (
                   <>
                     <Link
-                      href="/host/listings"
+                      href="/properties/my-listings"
                       className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
                       role="menuitem"
                       onClick={() => setIsProfileOpen(false)}
                     >
-                      <svg className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      <svg
+                        className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 6h16M4 10h16M4 14h16M4 18h16"
+                        />
                       </svg>
-                      <span className="font-medium">My Listings</span>
+                      <span className="font-medium">My listings</span>
                     </Link>
                     <Link
                       href="/properties/add"
@@ -360,8 +371,18 @@ const Navbar = () => {
                       role="menuitem"
                       onClick={() => setIsProfileOpen(false)}
                     >
-                      <svg className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      <svg
+                        className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 4v16m8-8H4"
+                        />
                       </svg>
                       <span className="font-medium">List Property</span>
                     </Link>
@@ -472,14 +493,34 @@ const Navbar = () => {
                   );
                 })}
 
-                {hostNavItem && (
+                {session?.user?.hostStatus === "verified" && (
+                  <>
+                    <Link
+                      href="/properties/my-listings"
+                      onClick={close}
+                      className={overlayRowClass}
+                    >
+                      <LayoutList className={overlayIconClass} aria-hidden />
+                      My listings
+                    </Link>
+                    <Link
+                      href="/properties/add"
+                      onClick={close}
+                      className={overlayRowClass}
+                    >
+                      <PlusCircle className={overlayIconClass} aria-hidden />
+                      List Property
+                    </Link>
+                  </>
+                )}
+                {session?.user && session.user.hostStatus !== "verified" && (
                   <Link
-                    href={hostNavItem.path}
+                    href="/host/onboarding"
                     onClick={close}
                     className={overlayRowClass}
                   >
                     <PlusCircle className={overlayIconClass} aria-hidden />
-                    {hostNavItem.label}
+                    Become a Host
                   </Link>
                 )}
 

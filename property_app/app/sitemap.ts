@@ -4,7 +4,7 @@ import Property from "@/models/Property";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://kamaproperties.com";
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.isisel.com";
 
   // Static pages
   const staticRoutes = [

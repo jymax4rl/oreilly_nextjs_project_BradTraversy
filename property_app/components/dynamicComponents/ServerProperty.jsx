@@ -26,7 +26,7 @@ function getCurrencyForCountry(country = "") {
 
 export default function ServerProperty({ property, canonicalUrl }) {
   const siteUrl = (
-    process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.isisel.com"
   ).replace(/\/$/, "");
 
   const rawImagePath = property.images?.[0] || "/properties/default.jpg";
