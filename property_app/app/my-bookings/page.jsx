@@ -105,8 +105,8 @@ export default async function MyBookingsPage({ searchParams }) {
 
         {confirmedBanner && (
           <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-            Payment successful — your booking is confirmed. A confirmation email
-            will arrive if email is configured on the server.
+            Payment successful — your booking is confirmed. Check your inbox for
+            the confirmation email from Kama Properties.
           </div>
         )}
 

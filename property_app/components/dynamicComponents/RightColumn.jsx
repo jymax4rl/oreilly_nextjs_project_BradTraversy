@@ -1,5 +1,6 @@
 "use client";
 import React, { useCallback, useState } from "react";
+import Link from "next/link";
 import { Star } from "lucide-react";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { formatCurrency } from "@/utils/currencyUtils";
@@ -33,6 +34,7 @@ function RightColumn({ data }) {
   const [checkIn, setCheckIn] = useState(null);
   const [checkOut, setCheckOut] = useState(null);
   const [dateError, setDateError] = useState("");
+  const [paymentNotice, setPaymentNotice] = useState(null);
   const [unavailableRanges, setUnavailableRanges] = useState([]);
   const [customDayRates, setCustomDayRates] = useState([]);
 
@@ -74,6 +76,20 @@ function RightColumn({ data }) {
       }`,
       logo: "https://st2.depositphotos.com/4403291/7418/v/450/depositphotos_74189661-stock-illustration-online-shop-log.jpg",
     },
+    ...(checkIn && checkOut
+      ? {
+          meta: {
+            property_id: String(data._id),
+            property_name: data.name || "Property",
+            host_id: String(data.owner || ""),
+            host_name: data.seller_info?.name || "",
+            host_email: data.seller_info?.email || "",
+            check_in: checkIn,
+            check_out: checkOut,
+            nights: String(nights),
+          },
+        }
+      : {}),
   };
 
   const handleFlutterPayment = useFlutterwave(config);
@@ -156,6 +172,7 @@ function RightColumn({ data }) {
     }
 
     setDateError("");
+    setPaymentNotice(null);
 
     handleFlutterPayment({
       callback: async (response) => {
@@ -180,15 +197,31 @@ function RightColumn({ data }) {
             });
             const payload = await res.json().catch(() => ({}));
             if (!res.ok) {
-              console.error("Failed to save transaction to DB", payload);
+              setPaymentNotice({
+                type: "error",
+                title: "Could not confirm payment",
+                message:
+                  payload.message ||
+                  "Payment may have gone through, but we could not verify it. Save your receipt and contact support.",
+              });
             } else if (payload.bookingId) {
               window.location.href = "/my-bookings?confirmed=1";
               return;
             } else if (payload.bookingError) {
-              console.error("Booking error:", payload.bookingError);
+              setPaymentNotice({
+                type: "warning",
+                title: "Payment received",
+                message: `Your payment was saved, but the booking could not be completed: ${payload.bookingError}`,
+              });
             }
           } catch (err) {
             console.error("Error saving transaction:", err);
+            setPaymentNotice({
+              type: "error",
+              title: "Connection error",
+              message:
+                "Payment may have succeeded. Check My Bookings in a moment or contact support with your receipt.",
+            });
           }
         }
 
@@ -265,6 +298,26 @@ function RightColumn({ data }) {
               <p className="rounded-lg bg-red-50 px-3 py-2 text-center text-sm text-red-700">
                 {dateError}
               </p>
+            )}
+
+            {paymentNotice && (
+              <div
+                className={`rounded-xl border px-3 py-3 text-sm ${
+                  paymentNotice.type === "error"
+                    ? "border-red-200 bg-red-50 text-red-900"
+                    : "border-amber-200 bg-amber-50 text-amber-950"
+                }`}
+                role="alert"
+              >
+                <p className="font-semibold">{paymentNotice.title}</p>
+                <p className="mt-1 leading-snug">{paymentNotice.message}</p>
+                <Link
+                  href="/my-bookings"
+                  className="mt-2 inline-block font-semibold underline"
+                >
+                  View My Bookings
+                </Link>
+              </div>
             )}
 
             <MobileMoneyReserveButton

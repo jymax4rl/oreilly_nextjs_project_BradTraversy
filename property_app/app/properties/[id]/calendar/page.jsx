@@ -2,6 +2,7 @@ import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import HostAvailabilityCalendar from "@/components/calendar/HostAvailabilityCalendar";
+import HostPropertyBookings from "@/components/bookings/HostPropertyBookings";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -101,6 +102,8 @@ export default async function PropertyCalendarPage({ params }) {
           propertyId={serialized._id}
           baseRates={serialized.rates}
         />
+
+        <HostPropertyBookings propertyId={serialized._id} />
       </div>
     </div>
   );

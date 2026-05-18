@@ -1,6 +1,7 @@
-// app/api/payments/webhook/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import connectToDatabase from "@/config/database";
+import { finalizeFromFlutterwaveCharge } from "@/utils/bookings/finalizePaidTransaction";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,7 +17,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify webhook signature
     const hash = crypto
       .createHmac("sha256", secret)
       .update(payload)
@@ -29,14 +29,12 @@ export async function POST(req: NextRequest) {
 
     const event = JSON.parse(payload);
 
-    // Only process successful charges
     if (
       event.event === "charge.completed" &&
       event.data?.status === "successful"
     ) {
-      const { tx_ref, id: transactionId, amount, currency } = event.data;
+      const transactionId = event.data.id;
 
-      // Double-verify with Flutterwave API (prevents spoofed webhooks)
       const verifyRes = await fetch(
         `https://api.flutterwave.com/v3/transactions/${transactionId}/verify`,
         {
@@ -50,19 +48,24 @@ export async function POST(req: NextRequest) {
 
       if (
         verifyData.status === "success" &&
-        verifyData.data.status === "successful"
+        verifyData.data?.status === "successful"
       ) {
-        // TODO: Update your MongoDB booking status here
-        // await db.collection('bookings').updateOne(
-        //   { txRef },
-        //   { $set: { status: 'paid', paidAt: new Date() } }
-        // );
+        await connectToDatabase();
+        const result = await finalizeFromFlutterwaveCharge(verifyData.data);
 
-        console.log("Payment confirmed:", tx_ref, amount, currency);
+        if (result.bookingError) {
+          console.warn(
+            "Webhook: payment ok, booking issue:",
+            result.bookingError,
+            "tx",
+            transactionId,
+          );
+        } else if (result.bookingId) {
+          console.log("Webhook: booking confirmed", result.bookingId);
+        }
       }
     }
 
-    // Always return 200 so Flutterwave doesn't retry
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Webhook error:", error);
