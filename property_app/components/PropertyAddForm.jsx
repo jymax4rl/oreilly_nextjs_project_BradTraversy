@@ -859,6 +859,7 @@ const PropertyAddForm = () => {
                   </div>
                 </div>
               </div>
+              </div>
             </div>
             <nav
               className="sticky bottom-0 z-10 flex shrink-0 items-center justify-between gap-3 border-t border-slate-100 bg-white p-4 sm:p-6"
