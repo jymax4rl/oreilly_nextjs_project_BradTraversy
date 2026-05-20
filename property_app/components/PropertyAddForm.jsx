@@ -1,74 +1,84 @@
 "use client";
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
+
+const AMENITIES = [
+  { id: "wifi", label: "Wifi" },
+  { id: "kitchen", label: "Full Kitchen" },
+  { id: "washer_dryer", label: "Washer & Dryer" },
+  { id: "free_parking", label: "Free Parking" },
+  { id: "pool", label: "Swimming Pool" },
+  { id: "hot_tub", label: "Hot Tub" },
+  { id: "24_7_security", label: "24/7 Security" },
+  { id: "24_7_electricity", label: "24/7 Electricity" },
+  { id: "wheelchair", label: "Wheelchair Accessible" },
+  { id: "elevator", label: "Elevator" },
+  { id: "dishwasher", label: "Dishwasher" },
+  { id: "gym", label: "Gym" },
+  { id: "ac", label: "Air Conditioning" },
+  { id: "patio", label: "Balcony/Patio" },
+  { id: "smart_tv", label: "Smart TV" },
+];
+
+const PHOTO_SUGGESTIONS = [
+  { id: "exterior", label: "Exterior", hint: "Front of the home or building" },
+  { id: "living", label: "Living room", hint: "Lounge or saloon — seating area" },
+  { id: "kitchen", label: "Kitchen", hint: "Cooking area, appliances, counters" },
+  { id: "bedroom", label: "Bedroom", hint: "Each bedroom guests will use" },
+  { id: "bathroom", label: "Bathroom", hint: "Shower, tub, sink" },
+  { id: "toilet", label: "Toilet", hint: "WC if separate from bathroom" },
+  { id: "balcony", label: "Balcony", hint: "Balcony, terrace, or patio" },
+  { id: "garden", label: "Garden", hint: "Yard, pool, or outdoor space" },
+];
+
+const STEPS = [
+  "Property type",
+  "Listing details",
+  "Location",
+  "Amenities",
+  "Pricing",
+  "Photos & contact",
+];
+
+const emptyFields = {
+  name: "",
+  description: "",
+  location: {
+    country: "Kenya",
+    street: "",
+    city: "",
+    state: "",
+    zipcode: "",
+  },
+  beds: "",
+  baths: "",
+  square_feet: "",
+  amenities: [],
+  rates: {
+    nightly: "",
+    weekly: "",
+    monthly: "",
+  },
+  seller_info: {
+    name: "",
+    email: "",
+    phone: "",
+  },
+};
 
 const PropertyAddForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [fileNames, setFileNames] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [propertyType, setPropertyType] = useState("");
-  const amenities = [
-    { id: "wifi", label: "Wifi" },
-    { id: "kitchen", label: "Full Kitchen" },
-    { id: "washer_dryer", label: "Washer & Dryer" },
-    { id: "free_parking", label: "Free Parking" },
-    { id: "pool", label: "Swimming Pool" },
-    { id: "hot_tub", label: "Hot Tub" },
-    { id: "24_7_security", label: "24/7 Security" },
-    { id: "wheelchair", label: "Wheelchair Accessible" },
-    { id: "elevator", label: "Elevator" },
-    { id: "dishwasher", label: "Dishwasher" },
-    { id: "gym", label: "Gym" },
-    { id: "ac", label: "Air Conditioning" },
-    { id: "patio", label: "Balcony/Patio" },
-    { id: "smart_tv", label: "Smart TV" },
-  ];
-  const [fields, setFields] = useState({
-    owner: "4",
-    name: "Karen Suburb Cottage",
-    type: "Cottage Or Cabin",
-    description:
-      "Experience tranquility in this cozy cottage located in Karen.",
-    location: {
-      country: "Kenya",
-      street: "789 Karen Lane",
-      city: "Nairobi",
-      state: "Nairobi County",
-      zipcode: "00502",
-    },
-    beds: 2,
-    baths: 1,
-    square_feet: 1100,
-    amenities: [
-      "Wifi",
-      "Free Parking",
-      "Swimming Pool",
-      "Hot Tub",
-      "24/7 Security",
-      "Wheelchair Accessible",
-      "Elevator",
-      "Dishwasher",
-      "Gym",
-      "Air Conditioning",
-      "Balcony/Patio",
-      "Smart TV",
-    ],
-    rates: {
-      nightly: 120,
-      weekly: 750,
-    },
-    seller_info: {
-      name: "Robert Anderson",
-      email: "robert@gmail.com",
-      phone: "254-700-555556",
-    },
-    images: ["g1.jpg", "g2.jpg", "g3.jpg"],
-    is_featured: false,
-    createdAt: "2024-01-07T00:00:00.000Z",
-    updatedAt: "2024-01-07T00:00:00.000Z",
-  });
+  const [submitting, setSubmitting] = useState(false);
+  const [fields, setFields] = useState(emptyFields);
 
-  //check if the name includes a dot or nested object
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach((p) => URL.revokeObjectURL(p.url));
+    };
+  }, [imagePreviews]);
+
   const handleChange = (e) => {
-    console.log("Target", e.target);
     const { name, value } = e.target;
     if (name.includes(".")) {
       const [outerKey, innerKey] = name.split(".");
@@ -80,30 +90,21 @@ const PropertyAddForm = () => {
         },
       }));
     } else {
-      //not nested object
       setFields((prevFields) => ({
         ...prevFields,
         [name]: value,
       }));
     }
-    console.log("InnerKey", prevFields);
   };
+
   const handleAmenitiesChange = (e) => {
     const { value, checked } = e.target;
-
-    //clone the current array
     const updatedAmenities = [...fields.amenities];
     if (checked) {
-      updatedAmenities.push(value);
-      console.log("Checked", value);
-      console.log("UpdatedAmenities", updatedAmenities);
+      if (!updatedAmenities.includes(value)) updatedAmenities.push(value);
     } else {
-      // remove the value from the array
       const index = updatedAmenities.indexOf(value);
-      updatedAmenities.splice(index, 1);
-      console.log("Unchecked", value);
-      console.log("Index", index);
-      console.log("UpdatedAmenities", updatedAmenities);
+      if (index > -1) updatedAmenities.splice(index, 1);
     }
     setFields((prevFields) => ({
       ...prevFields,
@@ -162,20 +163,20 @@ const PropertyAddForm = () => {
 
   const handleImageChange = (e) => {
     const { files } = e.target;
-    if (files && files.length > 0) {
-      const newFileNames = Array.from(files).map((file) => {
-        const name = file.name;
-        return name.length > 20 ? `${name.substring(0, 20)}...` : name;
-      });
-      setFileNames(newFileNames);
-    }
+    if (!files?.length) return;
+    imagePreviews.forEach((p) => URL.revokeObjectURL(p.url));
+    const previews = Array.from(files).map((file) => ({
+      name: file.name.length > 24 ? `${file.name.slice(0, 24)}…` : file.name,
+      url: URL.createObjectURL(file),
+    }));
+    setImagePreviews(previews);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     const formData = new FormData(e.target);
 
-    // Append audio blob if existing
     if (audioBlob) {
       formData.append("audio", audioBlob, "recording.wav");
     }
@@ -186,38 +187,18 @@ const PropertyAddForm = () => {
         body: formData,
       });
 
-      if (res.ok) {
-        // Redirect is handled by the server response usually, but for fetch we might need to handle it
-        // creating a property redirects, but fetch doesn't automatically follow in the way a form does for the browser history if it returns a redirect.
-        // However, my API returns Response.redirect().
-        // If I use fetch, I need to check res.url or handle the redirection manually.
-        // Actually, Response.redirect in API route with fetch: the browser follows it?
-        // No, fetch follows redirects transparently and returns the final response.
-        // I should probably return the ID and redirect client-side, OR assume strict form submission.
-        // BUT, to submit a Blob, I MUST use fetch.
-        // So, I'll check res.url and window.location.href = res.url if it changed.
-        if (res.redirected) {
-          window.location.href = res.url;
-        } else {
-          // Fallback if API didn't redirect but succeeded?
-          // My API does return Response.redirect.
-        }
-      } else {
-        console.error("Submission failed");
+      if (res.ok && res.redirected) {
+        window.location.href = res.url;
+      } else if (!res.ok) {
+        alert("Could not save listing. Check required fields and try again.");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
-
-  const steps = [
-    "Property Type",
-    "Listing Name",
-    "Description",
-    "Location",
-    "Amenities",
-    "Price",
-  ];
 
   const propertyOptions = [
     {
@@ -364,8 +345,9 @@ const PropertyAddForm = () => {
 
   const nextStep = (e) => {
     e.preventDefault();
-    if (currentStep < steps.length - 1) {
+    if (currentStep < STEPS.length - 1) {
       setCurrentStep((prev) => prev + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -373,8 +355,11 @@ const PropertyAddForm = () => {
     e.preventDefault();
     if (currentStep > 0) {
       setCurrentStep((prev) => prev - 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+
+  const progress = ((currentStep + 1) / STEPS.length) * 100;
 
   // Handler to fix the "action" prop warning in client-side preview
   // const handleSubmit = (e) => {
@@ -384,31 +369,54 @@ const PropertyAddForm = () => {
   // };
 
   return (
-    <div className="min-h-screen min-w-full overflow-x-hidden pt-[10vh]">
-      <div className="container mx-auto w-full ">
-        <div className="bg-white shadow-md rounded-md ">
+    <div className="min-h-screen w-full overflow-x-hidden bg-slate-50 pt-20 pb-28 sm:pt-24 sm:pb-8">
+      <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
+        <header className="mb-6 sm:mb-8">
+          <p className="text-sm font-medium text-blue-600">Host listing</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            Add your property
+          </h1>
+          <p className="mt-2 text-sm text-slate-600 sm:text-base">
+            Step {currentStep + 1} of {STEPS.length}: {STEPS[currentStep]}
+          </p>
+          <div
+            className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-slate-200"
+            role="progressbar"
+            aria-valuenow={progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            <div
+              className="h-full rounded-full bg-blue-600 transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </header>
+
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <form className="w-full" onSubmit={handleSubmit}>
             {/* The Slider Track */}
             <div
-              className="flex-1 w-full flex lg:gap-4 transition-transform duration-500 ease-in-out"
+              className="flex w-full transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${currentStep * 100}%)` }}
             >
               {/*Step 1: Modern Grid Selection */}
-              <div className="w-full flex-shrink-0 lg:px-2 px-0 py-2 overflow-y-auto">
-                <label className="block text-sm font-medium text-gray-900 mb-4">
-                  Property Type
+              <div className="w-full shrink-0 px-4 py-5 sm:px-6 sm:py-6">
+                <label className="mb-4 block text-base font-semibold text-slate-900">
+                  What kind of place is it?
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 lg:p-3 ">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {propertyOptions.map((option) => (
-                    <div
+                    <button
                       key={option.value}
+                      type="button"
                       onClick={() => setPropertyType(option.value)}
                       className={`
-                          relative lg:w-48 w-32 cursor-pointer m-auto rounded-xl border p-4 flex flex-col items-center justify-center gap-4 transition-all aspect-[4/3 ] sm:aspect-square
+                          relative w-full cursor-pointer rounded-2xl border p-3 sm:p-4 flex flex-col items-center justify-center gap-2 sm:gap-3 transition-all min-h-[5.5rem] sm:min-h-[6.5rem] touch-manipulation
                           ${
                             propertyType === option.value
-                              ? "border-gray-900 bg-gray-50 ring-1 ring-gray-900 shadow-sm"
-                              : "border-gray-200 hover:border-gray-900 hover:shadow-md bg-white"
+                              ? "border-blue-600 bg-blue-50 ring-2 ring-blue-600/30 shadow-sm"
+                              : "border-slate-200 bg-white hover:border-slate-400 active:bg-slate-50"
                           }
                         `}
                     >
@@ -430,14 +438,14 @@ const PropertyAddForm = () => {
                       >
                         {option.label}
                       </span>
-                    </div>
+                    </button>
                   ))}
                 </div>
                 {/* Hidden input to pass the value to the form handler */}
-                <input type="hidden" name="type" value={propertyType} />
+                <input type="hidden" name="type" value={propertyType} required />
               </div>
               {/*Step 2: Listing name & description */}
-              <div className="w-full flex-shrink-0 lg:px-20  px-5 overflow-y-auto">
+              <div className="w-full shrink-0 px-4 py-5 sm:px-6 sm:py-6">
                 <div className="my-4 ">
                   <label className="block text-sm font-medium text-gray-900 mb-2">
                     Listing Name
@@ -476,7 +484,7 @@ const PropertyAddForm = () => {
                     <label className="block text-sm font-medium text-gray-900 mb-2">
                       Audio Description
                     </label>
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                       {!recording ? (
                         <button
                           type="button"
@@ -511,7 +519,7 @@ const PropertyAddForm = () => {
                 </div>
               </div>
               {/* --- STEP 2: Location --- */}
-              <div className="w-full flex-shrink-0 px-8 py-4 overflow-y-auto ">
+              <div className="w-full shrink-0 px-4 py-5 sm:px-6 sm:py-6">
                 <div className="space-y-6 max-w-2xl lg:max-w-4xl lg:mx-auto">
                   <div className="bg-white shadow-md rounded-2xl p-6 border border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -537,15 +545,15 @@ const PropertyAddForm = () => {
                         placeholder="City"
                         required
                       />
-                      <div className="flex gap-4">
+                      <div className="flex flex-col gap-4 sm:flex-row">
                         <input
                           value={fields.location.state}
                           onChange={handleChange}
                           type="text"
                           id="state"
                           name="location.state"
-                          className="w-1/2 rounded-xl border-white bg-white shadow-sm p-4 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                          placeholder="State"
+                          className="w-full rounded-xl border-slate-200 bg-slate-50 p-4 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none sm:w-1/2"
+                          placeholder="State / county"
                           required
                         />
                         <input
@@ -554,8 +562,8 @@ const PropertyAddForm = () => {
                           type="text"
                           id="zipcode"
                           name="location.zipcode"
-                          className="w-1/2 rounded-xl border-white bg-white shadow-sm p-4 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                          placeholder="Zipcode"
+                          className="w-full rounded-xl border-slate-200 bg-slate-50 p-4 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none sm:w-1/2"
+                          placeholder="Postal code"
                         />
                       </div>
                     </div>
@@ -563,7 +571,7 @@ const PropertyAddForm = () => {
                 </div>
               </div>
               {/* --- STEP 3: Details & Amenities --- */}
-              <div className="w-full flex-shrink-0 px-8 py-4 overflow-y-auto">
+              <div className="w-full shrink-0 px-4 py-5 sm:px-6 sm:py-6">
                 <div className="lg:max-w-6xl mx-auto space-y-8">
                   {/* Specs */}
                   <div className="grid grid-cols-3 gap-4">
@@ -616,11 +624,11 @@ const PropertyAddForm = () => {
                     <label className="block text-lg font-semibold text-gray-900 mb-4">
                       What does it offer?
                     </label>
-                    <div className="grid lg:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-3">
-                      {amenities.map((amenity) => (
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {AMENITIES.map((amenity) => (
                         <label
                           key={amenity.id}
-                          className="relative flex items-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50"
+                          className="relative flex min-h-[44px] cursor-pointer items-center rounded-xl border border-slate-200 p-3 transition-colors hover:bg-slate-50 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 touch-manipulation"
                         >
                           <input
                             type="checkbox"
@@ -641,7 +649,7 @@ const PropertyAddForm = () => {
                 </div>
               </div>
               {/* --- STEP 4: Rates --- */}
-              <div className="w-full flex-shrink-0 px-8 py-4 overflow-y-auto">
+              <div className="w-full shrink-0 px-4 py-5 sm:px-6 sm:py-6">
                 <div className="max-w-2xl mx-auto">
                   <div className="bg-green-50 rounded-3xl p-8 border border-green-100 text-center space-y-6">
                     <h3 className="text-xl font-bold text-green-900">
@@ -708,7 +716,7 @@ const PropertyAddForm = () => {
                 </div>
               </div>
               {/* --- STEP 5: Contact & Images --- */}
-              <div className="w-full flex-shrink-0 px-8 py-4 overflow-y-auto">
+              <div className="w-full shrink-0 px-4 py-5 sm:px-6 sm:py-6">
                 <div className="max-w-2xl mx-auto space-y-8">
                   {/* Contact Info */}
                   <div className="space-y-4">
@@ -742,9 +750,43 @@ const PropertyAddForm = () => {
                     />
                   </div>
 
-                  {/* Image Upload */}
-                  <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:bg-gray-50 transition-colors">
-                    <div className="mx-auto h-12 w-12 text-gray-400 mb-3">
+                  {/* Photos */}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-900">
+                        Property photos
+                      </h3>
+                      <p className="mt-1 text-sm text-slate-600">
+                        Clear, well-lit photos help guests book with confidence.
+                        Include as many of these areas as you can:
+                      </p>
+                    </div>
+                    <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {PHOTO_SUGGESTIONS.map((shot) => (
+                        <li
+                          key={shot.id}
+                          className="flex gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-left"
+                        >
+                          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
+                            ✓
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-sm font-semibold text-slate-900">
+                              {shot.label}
+                            </span>
+                            <span className="block text-xs text-slate-500">
+                              {shot.hint}
+                            </span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <label
+                      htmlFor="images"
+                      className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center transition-colors hover:border-blue-400 hover:bg-blue-50/50 active:bg-blue-50 touch-manipulation"
+                    >
+                    <div className="mx-auto mb-3 h-10 w-10 text-slate-400">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -759,38 +801,55 @@ const PropertyAddForm = () => {
                         />
                       </svg>
                     </div>
-                    <label
-                      htmlFor="images"
-                      className="block text-sm font-medium text-gray-900 cursor-pointer"
-                    >
-                      <span className="text-blue-600 hover:text-blue-500">
-                        Upload images
-                      </span>{" "}
-                      or drag and drop
+                      <span className="text-sm font-semibold text-blue-600">
+                        Tap to add photos
+                      </span>
+                      <span className="mt-1 text-xs text-slate-500">
+                        JPG or PNG · multiple files · up to 10MB each
+                      </span>
+                      <input
+                        type="file"
+                        id="images"
+                        name="images"
+                        className="sr-only"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageChange}
+                        required
+                      />
                     </label>
-                    <p className="text-xs text-gray-500 mt-1">
-                      PNG, JPG, GIF up to 10MB
-                    </p>
-                    <input
-                      type="file"
-                      id="images"
-                      name="images"
-                      className="hidden"
-                      accept="image/*"
-                      multiple
-                      onChange={handleImageChange}
-                      required
-                    />
-                    {fileNames.map((name, index) => (
-                      <p key={index} className="text-gray-500">
-                        {name}
-                      </p>
-                    ))}
+
+                    {imagePreviews.length > 0 && (
+                      <div>
+                        <p className="mb-2 text-sm font-medium text-slate-700">
+                          {imagePreviews.length} photo
+                          {imagePreviews.length === 1 ? "" : "s"} selected
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                          {imagePreviews.map((preview, index) => (
+                            <figure
+                              key={`${preview.name}-${index}`}
+                              className="overflow-hidden rounded-xl border border-slate-200 bg-slate-100"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={preview.url}
+                                alt={preview.name}
+                                className="aspect-[4/3] w-full object-cover"
+                              />
+                              <figcaption className="truncate px-2 py-1 text-xs text-slate-600">
+                                {preview.name}
+                              </figcaption>
+                            </figure>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
-            <div className="p-8 border-t border-gray-100 bg-white flex justify-between items-center z-10">
+            <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 border-t border-slate-100 bg-white/95 p-4 backdrop-blur sm:p-6">
               <button
                 onClick={prevStep}
                 className={`px-6 py-3 cursor-pointer rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors ${
@@ -801,12 +860,13 @@ const PropertyAddForm = () => {
               >
                 Back
               </button>
-              {currentStep === steps.length - 1 ? (
+              {currentStep === STEPS.length - 1 ? (
                 <button
                   type="submit"
-                  className="lg:px-8 px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:shadow-blue-600/40 hover:-translate-y-0.5 transition-all active:scale-95"
+                  disabled={submitting}
+                  className="min-h-[44px] rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition-all hover:bg-blue-700 active:scale-95 disabled:opacity-60 sm:px-8"
                 >
-                  Complete Listing
+                  {submitting ? "Saving…" : "Complete listing"}
                 </button>
               ) : (
                 <button

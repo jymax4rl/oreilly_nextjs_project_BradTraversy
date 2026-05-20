@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import PropertyAvailability from "@/models/PropertyAvailability";
+import Property from "@/models/Property";
 import Booking from "@/models/Booking";
 import {
   rangesOverlap,
@@ -11,17 +12,36 @@ import {
   validateCustomDayRates,
 } from "@/utils/availability/customDayRates";
 
-export async function ensurePropertyAvailability(propertyId) {
+async function resolveHostId(propertyId) {
+  const property = await Property.findById(propertyId).select("owner").lean();
+  return property?.owner || undefined;
+}
+
+/**
+ * One doc per property. `hostId` = property owner's user id (from Property.owner).
+ * `hostBlocks` = date ranges the host blocked (unchanged).
+ */
+export async function ensurePropertyAvailability(propertyId, hostIdHint) {
   const oid = new mongoose.Types.ObjectId(propertyId);
   let doc = await PropertyAvailability.findOne({ propertyId: oid });
+
+  const hostId = hostIdHint || doc?.hostId || (await resolveHostId(propertyId));
+
   if (!doc) {
-    doc = await PropertyAvailability.create({
+    return PropertyAvailability.create({
       propertyId: oid,
+      hostId,
       defaultAvailability: "open",
       hostBlocks: [],
       customDayRates: [],
     });
   }
+
+  if (hostId && doc.hostId !== hostId) {
+    doc.hostId = hostId;
+    await doc.save();
+  }
+
   return doc;
 }
 

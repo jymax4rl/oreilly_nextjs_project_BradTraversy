@@ -102,7 +102,10 @@ export const POST = async (request) => {
     const newProperty = new Property(propertyData);
     await newProperty.save();
 
-    await ensurePropertyAvailability(newProperty._id.toString());
+    await ensurePropertyAvailability(
+      newProperty._id.toString(),
+      newProperty.owner,
+    );
 
     return Response.redirect(
       new URL(`/properties/${newProperty._id}`, request.url)

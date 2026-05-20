@@ -16,7 +16,8 @@
     "start": "next start",
     "lint": "eslint",
     "setup:email-templates": "node scripts/setup-resend-booking-templates.mjs",
-    "docs:track-record-pdf": "node scripts/generate-track-record-pdf.mjs"
+    "docs:track-record-pdf": "node scripts/generate-track-record-pdf.mjs",
+    "db:backfill-availability-host": "node scripts/backfill-availability-host-id.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

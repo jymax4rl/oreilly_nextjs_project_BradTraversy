@@ -49,6 +49,11 @@ const PropertyAvailabilitySchema = new mongoose.Schema(
       unique: true,
       index: true,
     },
+    /** Added: id of the user who owns the property (copied from Property.owner) */
+    hostId: {
+      type: String,
+      index: true,
+    },
     defaultAvailability: {
       type: String,
       enum: ["open", "closed"],
