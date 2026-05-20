@@ -1,5 +1,11 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
+import { compressListingImage } from "@/utils/compressListingImage";
+import {
+  cloudinaryResultToAudioEntry,
+  cloudinaryResultToImageEntry,
+  uploadFileToCloudinary,
+} from "@/utils/cloudinary/uploadFromBrowser";
 import { hasAnyRate } from "@/utils/propertyRates";
 
 const AMENITIES = [
@@ -46,6 +52,122 @@ const STEP_SLIDE_FLEX = `0 0 ${100 / STEP_COUNT}%`;
 const STEP_PANEL_CLASS =
   "h-full shrink-0 grow-0 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6 sm:py-6";
 
+const STEP_FIELD_KEYS = [
+  ["type"],
+  ["name", "description"],
+  ["location.city", "location.state"],
+  ["beds", "baths", "square_feet"],
+  ["rates"],
+  ["seller_info.email", "images"],
+];
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function isPositiveNumber(value) {
+  if (value === "" || value === null || value === undefined) return false;
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0;
+}
+
+function getStepErrors(step, { propertyType, fields, imageCount }) {
+  const errors = {};
+  switch (step) {
+    case 0:
+      if (!propertyType) errors.type = "Choose a property type.";
+      break;
+    case 1:
+      if (!fields.name.trim()) errors.name = "Enter a listing name.";
+      if (!fields.description.trim()) errors.description = "Enter a description.";
+      break;
+    case 2:
+      if (!fields.location.city.trim()) {
+        errors["location.city"] = "Enter the city.";
+      }
+      if (!fields.location.state.trim()) {
+        errors["location.state"] = "Enter the state or county.";
+      }
+      break;
+    case 3:
+      if (!isPositiveNumber(fields.beds)) {
+        errors.beds = "Enter the number of beds.";
+      }
+      if (!isPositiveNumber(fields.baths)) {
+        errors.baths = "Enter the number of baths.";
+      }
+      if (!isPositiveNumber(fields.square_feet)) {
+        errors.square_feet = "Enter the square footage.";
+      }
+      break;
+    case 4:
+      if (!hasAnyRate(fields.rates)) {
+        errors.rates =
+          "Set at least one price greater than zero (nightly, weekly, or monthly).";
+      }
+      break;
+    case 5:
+      if (!fields.seller_info.email.trim()) {
+        errors["seller_info.email"] = "Enter your email address.";
+      } else if (!EMAIL_RE.test(fields.seller_info.email.trim())) {
+        errors["seller_info.email"] = "Enter a valid email address.";
+      }
+      if (imageCount < 1) {
+        errors.images = "Add at least one property photo.";
+      }
+      break;
+    default:
+      break;
+  }
+  return errors;
+}
+
+function getAllFormErrors(ctx) {
+  const errors = {};
+  for (let step = 0; step < STEP_COUNT; step += 1) {
+    Object.assign(errors, getStepErrors(step, ctx));
+  }
+  return errors;
+}
+
+function firstStepWithErrors(errors) {
+  for (let step = 0; step < STEP_FIELD_KEYS.length; step += 1) {
+    if (STEP_FIELD_KEYS[step].some((key) => errors[key])) return step;
+  }
+  return 0;
+}
+
+const SERVER_MESSAGE_TO_FIELD = {
+  "Choose a property type.": "type",
+  "Enter a listing name.": "name",
+  "Enter a description.": "description",
+  "Enter the city.": "location.city",
+  "Enter the state or county.": "location.state",
+  "Enter the number of beds.": "beds",
+  "Enter the number of baths.": "baths",
+  "Enter the square footage.": "square_feet",
+  "Set at least one rate (nightly, weekly, or monthly).": "rates",
+  "Set at least one rate greater than zero (nightly, weekly, or monthly).":
+    "rates",
+  "Enter your email address.": "seller_info.email",
+  "Add at least one property photo.": "images",
+};
+
+function fieldErrorsFromServerMessage(message) {
+  const errors = {};
+  for (const [text, key] of Object.entries(SERVER_MESSAGE_TO_FIELD)) {
+    if (message.includes(text)) errors[key] = text;
+  }
+  return errors;
+}
+
+function FieldError({ id, message }) {
+  if (!message) return null;
+  return (
+    <p id={id} className="mt-1.5 text-sm font-medium text-red-600" role="alert">
+      {message}
+    </p>
+  );
+}
+
 const emptyFields = {
   name: "",
   description: "",
@@ -79,6 +201,8 @@ const PropertyAddForm = () => {
   const [propertyType, setPropertyType] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [fields, setFields] = useState(emptyFields);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
   const stepViewportRef = useRef(null);
   const imageFilesRef = useRef([]);
   const galleryInputRef = useRef(null);
@@ -90,8 +214,50 @@ const PropertyAddForm = () => {
     };
   }, [imagePreviews]);
 
+  const validationCtx = () => ({
+    propertyType,
+    fields,
+    imageCount: imageFilesRef.current.length,
+  });
+
+  const clearFieldError = (key) => {
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  const mergeStepErrors = (step) => {
+    const stepErrors = getStepErrors(step, validationCtx());
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      STEP_FIELD_KEYS[step].forEach((key) => delete next[key]);
+      return { ...next, ...stepErrors };
+    });
+    return stepErrors;
+  };
+
+  const fieldClass = (base, key) =>
+    fieldErrors[key]
+      ? `${base} border-red-500 ring-2 ring-red-200 bg-red-50/40`
+      : base;
+
+  const scrollToFirstStepError = (step) => {
+    requestAnimationFrame(() => {
+      const panel =
+        stepViewportRef.current?.querySelectorAll("[data-step-panel]")[step];
+      panel
+        ?.querySelector("[role='alert']")
+        ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    clearFieldError(name);
+    if (name.startsWith("rates.")) clearFieldError("rates");
     if (name.includes(".")) {
       const [outerKey, innerKey] = name.split(".");
       setFields((prevFields) => ({
@@ -203,6 +369,7 @@ const PropertyAddForm = () => {
         url: URL.createObjectURL(file),
       })),
     ]);
+    clearFieldError("images");
   }
 
   const handleGalleryChange = async (e) => {
@@ -224,68 +391,49 @@ const PropertyAddForm = () => {
       if (removed?.url) URL.revokeObjectURL(removed.url);
       return prev.filter((_, i) => i !== index);
     });
+    if (nextFiles.length > 0) {
+      clearFieldError("images");
+    }
   };
 
-  function validateListing() {
-    if (!propertyType) {
-      return { ok: false, message: "Choose a property type.", step: 0 };
-    }
-    if (!fields.name.trim()) {
-      return { ok: false, message: "Enter a listing name.", step: 1 };
-    }
-    if (!fields.description.trim()) {
-      return { ok: false, message: "Enter a description.", step: 1 };
-    }
-    if (!fields.location.city.trim() || !fields.location.state.trim()) {
-      return { ok: false, message: "Enter city and state / county.", step: 2 };
-    }
-    if (!fields.beds || !fields.baths || !fields.square_feet) {
-      return {
-        ok: false,
-        message: "Enter beds, baths, and square footage.",
-        step: 3,
-      };
-    }
-    if (!hasAnyRate(fields.rates)) {
-      return {
-        ok: false,
-        message: "Set at least one price (nightly, weekly, or monthly).",
-        step: 4,
-      };
-    }
-    if (!fields.seller_info.email.trim()) {
-      return { ok: false, message: "Enter your contact email.", step: 5 };
-    }
-    if (imageFilesRef.current.length < 1) {
-      return {
-        ok: false,
-        message: "Add at least one property photo.",
-        step: 5,
-      };
-    }
-    return { ok: true };
+  function buildListingPayload() {
+    return {
+      type: propertyType,
+      name: fields.name,
+      description: fields.description,
+      location: { ...fields.location, country: fields.location.country || "Kenya" },
+      beds: fields.beds,
+      baths: fields.baths,
+      square_feet: fields.square_feet,
+      amenities: fields.amenities,
+      rates: fields.rates,
+      seller_info: fields.seller_info,
+      imageCount: imageFilesRef.current.length,
+      hasAudio: Boolean(audioBlob),
+    };
   }
 
   function buildFormData() {
     const formData = new FormData();
-    formData.append("type", propertyType);
-    formData.append("name", fields.name);
-    formData.append("description", fields.description);
-    formData.append("location.street", fields.location.street);
-    formData.append("location.city", fields.location.city);
-    formData.append("location.state", fields.location.state);
-    formData.append("location.zipcode", fields.location.zipcode);
-    formData.append("location.country", fields.location.country || "Kenya");
-    formData.append("beds", fields.beds);
-    formData.append("baths", fields.baths);
-    formData.append("square_feet", fields.square_feet);
-    fields.amenities.forEach((amenity) => formData.append("amenities", amenity));
-    formData.append("rates.nightly", fields.rates.nightly);
-    formData.append("rates.weekly", fields.rates.weekly);
-    formData.append("rates.monthly", fields.rates.monthly);
-    formData.append("seller_info.name", fields.seller_info.name);
-    formData.append("seller_info.email", fields.seller_info.email);
-    formData.append("seller_info.phone", fields.seller_info.phone);
+    const payload = buildListingPayload();
+    formData.append("type", payload.type);
+    formData.append("name", payload.name);
+    formData.append("description", payload.description);
+    formData.append("location.street", payload.location.street);
+    formData.append("location.city", payload.location.city);
+    formData.append("location.state", payload.location.state);
+    formData.append("location.zipcode", payload.location.zipcode);
+    formData.append("location.country", payload.location.country);
+    formData.append("beds", payload.beds);
+    formData.append("baths", payload.baths);
+    formData.append("square_feet", payload.square_feet);
+    payload.amenities.forEach((amenity) => formData.append("amenities", amenity));
+    formData.append("rates.nightly", payload.rates.nightly);
+    formData.append("rates.weekly", payload.rates.weekly);
+    formData.append("rates.monthly", payload.rates.monthly);
+    formData.append("seller_info.name", payload.seller_info.name);
+    formData.append("seller_info.email", payload.seller_info.email);
+    formData.append("seller_info.phone", payload.seller_info.phone);
     imageFilesRef.current.forEach((file) => formData.append("images", file));
     if (audioBlob) {
       formData.append("audio", audioBlob, "recording.wav");
@@ -293,36 +441,154 @@ const PropertyAddForm = () => {
     return formData;
   }
 
+  async function rollbackDraftProperty(propertyId) {
+    try {
+      await fetch(`/api/properties/${propertyId}`, { method: "DELETE" });
+    } catch (err) {
+      console.warn("Could not roll back draft listing:", err);
+    }
+  }
+
+  function handleSaveError(message) {
+    setSubmitError(message);
+    const serverFieldErrors = fieldErrorsFromServerMessage(message);
+    if (Object.keys(serverFieldErrors).length > 0) {
+      setFieldErrors((prev) => ({ ...prev, ...serverFieldErrors }));
+      const step = firstStepWithErrors(serverFieldErrors);
+      setCurrentStep(step);
+      scrollToFirstStepError(step);
+    } else {
+      setCurrentStep(STEPS.length - 1);
+      scrollToFirstStepError(STEPS.length - 1);
+    }
+  }
+
+  async function submitViaCloudinaryDirect() {
+    const createRes = await fetch("/api/properties", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(buildListingPayload()),
+    });
+
+    if (createRes.status === 501) {
+      return false;
+    }
+
+    if (!createRes.ok) {
+      const text = await createRes.text();
+      handleSaveError(text || "Could not save listing.");
+      return true;
+    }
+
+    const createData = await createRes.json();
+
+    if (!createData.directUpload?.images) {
+      return false;
+    }
+
+    const { propertyId, directUpload } = createData;
+
+    try {
+      const imageEntries = await Promise.all(
+        imageFilesRef.current.map((file) =>
+          uploadFileToCloudinary(file, directUpload.images).then(
+            cloudinaryResultToImageEntry,
+          ),
+        ),
+      );
+
+      let audioEntry = null;
+      if (audioBlob && directUpload.audio) {
+        const audioResult = await uploadFileToCloudinary(
+          audioBlob,
+          directUpload.audio,
+        );
+        audioEntry = cloudinaryResultToAudioEntry(audioResult);
+      }
+
+      const mediaRes = await fetch(`/api/properties/${propertyId}/media`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          images: imageEntries,
+          audio: audioEntry,
+        }),
+      });
+
+      if (!mediaRes.ok) {
+        throw new Error((await mediaRes.text()) || "Failed to save photos.");
+      }
+
+      window.location.href = `/properties/${propertyId}`;
+      return true;
+    } catch (uploadError) {
+      console.error("Direct Cloudinary upload failed:", uploadError);
+      await rollbackDraftProperty(propertyId);
+      handleSaveError(
+        uploadError.message ||
+          "Photo upload to Cloudinary failed. Please try again.",
+      );
+      return true;
+    }
+  }
+
+  async function submitViaMultipart() {
+    const res = await fetch("/api/properties", {
+      method: "POST",
+      body: buildFormData(),
+      redirect: "follow",
+    });
+
+    if (res.redirected && res.url) {
+      window.location.href = res.url;
+      return;
+    }
+    if (res.ok) {
+      const location = res.headers.get("Location");
+      if (location) {
+        window.location.href = location;
+        return;
+      }
+    }
+    if (!res.ok) {
+      let message =
+        (await res.text()) ||
+        "Could not save listing. Check the fields and try again.";
+      if (res.status === 413) {
+        message =
+          "Photos are too large for server upload. Refresh and try again — uploads should go directly to Cloudinary.";
+      }
+      handleSaveError(message);
+      return;
+    }
+    setSubmitError(
+      "We could not confirm the listing was saved. Check My Listings or try again.",
+    );
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const validation = validateListing();
-    if (!validation.ok) {
-      setCurrentStep(validation.step);
-      alert(validation.message);
+    const allErrors = getAllFormErrors(validationCtx());
+    if (Object.keys(allErrors).length > 0) {
+      setFieldErrors(allErrors);
+      const step = firstStepWithErrors(allErrors);
+      setCurrentStep(step);
+      setSubmitError("Fix the highlighted fields before submitting.");
+      scrollToFirstStepError(step);
       return;
     }
 
+    setSubmitError("");
     setSubmitting(true);
-    const formData = buildFormData();
 
     try {
-      const res = await fetch("/api/properties", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (res.ok && res.redirected) {
-        window.location.href = res.url;
-        return;
-      }
-      if (!res.ok) {
-        const message = (await res.text()) || "Could not save listing.";
-        alert(message);
-        return;
+      const usedDirect = await submitViaCloudinaryDirect();
+      if (!usedDirect) {
+        await submitViaMultipart();
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("Something went wrong. Please try again.");
+      setSubmitError("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -473,33 +739,13 @@ const PropertyAddForm = () => {
 
   const nextStep = (e) => {
     e.preventDefault();
-    const checks = [
-      () =>
-        propertyType
-          ? null
-          : "Choose a property type before continuing.",
-      () =>
-        fields.name.trim() && fields.description.trim()
-          ? null
-          : "Enter a listing name and description.",
-      () =>
-        fields.location.city.trim() && fields.location.state.trim()
-          ? null
-          : "Enter city and state / county.",
-      () =>
-        fields.beds && fields.baths && fields.square_feet
-          ? null
-          : "Enter beds, baths, and square footage.",
-      () =>
-        hasAnyRate(fields.rates)
-          ? null
-          : "Set at least one price (nightly, weekly, or monthly).",
-    ];
-    const message = checks[currentStep]?.();
-    if (message) {
-      alert(message);
+    const stepErrors = mergeStepErrors(currentStep);
+    if (Object.keys(stepErrors).length > 0) {
+      setSubmitError("");
+      scrollToFirstStepError(currentStep);
       return;
     }
+    setSubmitError("");
     if (currentStep < STEPS.length - 1) {
       setCurrentStep((prev) => prev + 1);
     }
@@ -554,6 +800,14 @@ const PropertyAddForm = () => {
             noValidate
             aria-label={`Add property — step ${currentStep + 1} of ${STEPS.length}`}
           >
+            {submitError ? (
+              <div
+                className="mx-4 mt-4 shrink-0 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+                role="alert"
+              >
+                {submitError}
+              </div>
+            ) : null}
             <div
               ref={stepViewportRef}
               className="relative min-h-0 flex-1 overflow-hidden"
@@ -575,12 +829,19 @@ const PropertyAddForm = () => {
                 <label className="mb-4 block text-base font-semibold text-slate-900">
                   What kind of place is it?
                 </label>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                <div
+                  className={`grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 ${
+                    fieldErrors.type ? "rounded-2xl ring-2 ring-red-300 p-1" : ""
+                  }`}
+                >
                   {propertyOptions.map((option) => (
                     <button
                       key={option.value}
                       type="button"
-                      onClick={() => setPropertyType(option.value)}
+                      onClick={() => {
+                        setPropertyType(option.value);
+                        clearFieldError("type");
+                      }}
                       className={`
                           relative w-full cursor-pointer rounded-2xl border p-3 sm:p-4 flex flex-col items-center justify-center gap-2 sm:gap-3 transition-all min-h-[5.5rem] sm:min-h-[6.5rem] touch-manipulation
                           ${
@@ -611,7 +872,7 @@ const PropertyAddForm = () => {
                     </button>
                   ))}
                 </div>
-                {/* Hidden input to pass the value to the form handler */}
+                <FieldError id="type-error" message={fieldErrors.type} />
                 <input type="hidden" name="type" value={propertyType} />
               </div>
               {/*Step 2: Listing name & description */}
@@ -630,10 +891,15 @@ const PropertyAddForm = () => {
                     type="text"
                     id="name"
                     name="name"
-                    className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                    aria-invalid={Boolean(fieldErrors.name)}
+                    aria-describedby={fieldErrors.name ? "name-error" : undefined}
+                    className={fieldClass(
+                      "w-full rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none",
+                      "name",
+                    )}
                     placeholder="e.g. Beautiful Apartment In Miami"
-                    required
                   />
+                  <FieldError id="name-error" message={fieldErrors.name} />
                 </div>
 
                 <div className="my-4">
@@ -648,11 +914,21 @@ const PropertyAddForm = () => {
                     onChange={handleChange}
                     id="description"
                     name="description"
-                    className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none resize-none"
+                    aria-invalid={Boolean(fieldErrors.description)}
+                    aria-describedby={
+                      fieldErrors.description ? "description-error" : undefined
+                    }
+                    className={fieldClass(
+                      "w-full rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none resize-none",
+                      "description",
+                    )}
                     rows="5"
                     placeholder="Tell us about your property..."
-                    required
                   ></textarea>
+                  <FieldError
+                    id="description-error"
+                    message={fieldErrors.description}
+                  />
                   {/* Audio Recorder UI */}
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -713,27 +989,55 @@ const PropertyAddForm = () => {
                         className="w-full rounded-xl border-white bg-white shadow-sm p-4 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
                         placeholder="Street Address"
                       />
-                      <input
-                        value={fields.location.city}
-                        onChange={handleChange}
-                        type="text"
-                        id="city"
-                        name="location.city"
-                        className="w-full rounded-xl border-white bg-white shadow-sm p-4 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                        placeholder="City"
-                        required
-                      />
-                      <div className="flex flex-col gap-4 sm:flex-row">
+                      <div>
                         <input
-                          value={fields.location.state}
+                          value={fields.location.city}
                           onChange={handleChange}
                           type="text"
-                          id="state"
-                          name="location.state"
-                          className="w-full rounded-xl border-slate-200 bg-slate-50 p-4 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none sm:w-1/2"
-                          placeholder="State / county"
-                          required
+                          id="city"
+                          name="location.city"
+                          aria-invalid={Boolean(fieldErrors["location.city"])}
+                          aria-describedby={
+                            fieldErrors["location.city"]
+                              ? "location-city-error"
+                              : undefined
+                          }
+                          className={fieldClass(
+                            "w-full rounded-xl border border-white bg-white shadow-sm p-4 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none",
+                            "location.city",
+                          )}
+                          placeholder="City"
                         />
+                        <FieldError
+                          id="location-city-error"
+                          message={fieldErrors["location.city"]}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-4 sm:flex-row">
+                        <div className="sm:w-1/2">
+                          <input
+                            value={fields.location.state}
+                            onChange={handleChange}
+                            type="text"
+                            id="state"
+                            name="location.state"
+                            aria-invalid={Boolean(fieldErrors["location.state"])}
+                            aria-describedby={
+                              fieldErrors["location.state"]
+                                ? "location-state-error"
+                                : undefined
+                            }
+                            className={fieldClass(
+                              "w-full rounded-xl border border-slate-200 bg-slate-50 p-4 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none",
+                              "location.state",
+                            )}
+                            placeholder="State / county"
+                          />
+                          <FieldError
+                            id="location-state-error"
+                            message={fieldErrors["location.state"]}
+                          />
+                        </div>
                         <input
                           value={fields.location.zipcode}
                           onChange={handleChange}
@@ -765,11 +1069,17 @@ const PropertyAddForm = () => {
                         value={fields.beds}
                         onChange={handleChange}
                         type="number"
+                        min="1"
                         id="beds"
                         name="beds"
-                        className="w-full text-center rounded-xl border-gray-200 bg-gray-50 p-3 font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                        required
+                        aria-invalid={Boolean(fieldErrors.beds)}
+                        aria-describedby={fieldErrors.beds ? "beds-error" : undefined}
+                        className={fieldClass(
+                          "w-full text-center rounded-xl border border-gray-200 bg-gray-50 p-3 font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none",
+                          "beds",
+                        )}
                       />
+                      <FieldError id="beds-error" message={fieldErrors.beds} />
                     </div>
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
@@ -779,11 +1089,17 @@ const PropertyAddForm = () => {
                         value={fields.baths}
                         onChange={handleChange}
                         type="number"
+                        min="1"
                         id="baths"
                         name="baths"
-                        className="w-full text-center rounded-xl border-gray-200 bg-gray-50 p-3 font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                        required
+                        aria-invalid={Boolean(fieldErrors.baths)}
+                        aria-describedby={fieldErrors.baths ? "baths-error" : undefined}
+                        className={fieldClass(
+                          "w-full text-center rounded-xl border border-gray-200 bg-gray-50 p-3 font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none",
+                          "baths",
+                        )}
                       />
+                      <FieldError id="baths-error" message={fieldErrors.baths} />
                     </div>
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
@@ -793,10 +1109,21 @@ const PropertyAddForm = () => {
                         value={fields.square_feet}
                         onChange={handleChange}
                         type="number"
+                        min="1"
                         id="square_feet"
                         name="square_feet"
-                        className="w-full text-center rounded-xl border-gray-200 bg-gray-50 p-3 font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                        required
+                        aria-invalid={Boolean(fieldErrors.square_feet)}
+                        aria-describedby={
+                          fieldErrors.square_feet ? "square-feet-error" : undefined
+                        }
+                        className={fieldClass(
+                          "w-full text-center rounded-xl border border-gray-200 bg-gray-50 p-3 font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none",
+                          "square_feet",
+                        )}
+                      />
+                      <FieldError
+                        id="square-feet-error"
+                        message={fieldErrors.square_feet}
                       />
                     </div>
                   </div>
@@ -890,6 +1217,7 @@ const PropertyAddForm = () => {
                         </label>
                         <input
                           type="number"
+                          min="0"
                           id="nightly_rate"
                           name="rates.nightly"
                           className="w-full rounded-xl border-transparent bg-white shadow-sm pt-8 pb-3 px-4 text-lg font-semibold text-gray-900 focus:ring-2 focus:ring-green-500 outline-none placeholder:text-gray-300"
@@ -899,6 +1227,7 @@ const PropertyAddForm = () => {
                         />
                       </div>
                     </div>
+                    <FieldError id="rates-error" message={fieldErrors.rates} />
                   </div>
                 </div>
               </div>
@@ -922,14 +1251,30 @@ const PropertyAddForm = () => {
                       value={fields.seller_info.name}
                       onChange={handleChange}
                     />
-                    <input
-                      type="email"
-                      name="seller_info.email"
-                      className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
-                      placeholder="Email Address"
-                      value={fields.seller_info.email}
-                      onChange={handleChange}
-                    />
+                    <div>
+                      <input
+                        type="email"
+                        id="seller_email"
+                        name="seller_info.email"
+                        aria-invalid={Boolean(fieldErrors["seller_info.email"])}
+                        aria-describedby={
+                          fieldErrors["seller_info.email"]
+                            ? "seller-email-error"
+                            : undefined
+                        }
+                        className={fieldClass(
+                          "w-full rounded-xl border border-gray-200 bg-gray-50 p-4 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all",
+                          "seller_info.email",
+                        )}
+                        placeholder="Email Address"
+                        value={fields.seller_info.email}
+                        onChange={handleChange}
+                      />
+                      <FieldError
+                        id="seller-email-error"
+                        message={fieldErrors["seller_info.email"]}
+                      />
+                    </div>
                     <input
                       type="tel"
                       name="seller_info.phone"
@@ -972,7 +1317,12 @@ const PropertyAddForm = () => {
                       ))}
                     </ul>
 
-                    <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4 sm:p-6">
+                    <div
+                      className={fieldClass(
+                        "rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4 sm:p-6",
+                        "images",
+                      )}
+                    >
                       <p className="text-center text-sm font-semibold text-slate-800">
                         {imageFiles.length > 0
                           ? `${imageFiles.length} photo${imageFiles.length === 1 ? "" : "s"} added`
@@ -980,7 +1330,8 @@ const PropertyAddForm = () => {
                       </p>
                       <p className="mt-1 text-center text-xs text-slate-500">
                         Take one photo at a time or choose several from your
-                        gallery. Each new photo is added to the list.
+                        gallery. Photos upload directly to Cloudinary (not
+                        through our server), so you can add many at once.
                       </p>
                       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <button
@@ -1019,6 +1370,7 @@ const PropertyAddForm = () => {
                         tabIndex={-1}
                       />
                     </div>
+                    <FieldError id="images-error" message={fieldErrors.images} />
 
                     {imagePreviews.length > 0 && (
                       <div>
@@ -1082,7 +1434,7 @@ const PropertyAddForm = () => {
                   disabled={submitting}
                   className="min-h-[44px] rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition-all hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:scale-95 disabled:opacity-60 sm:px-8"
                 >
-                  {submitting ? "Saving…" : "Complete listing"}
+                  {submitting ? "Uploading…" : "Complete listing"}
                 </button>
               ) : (
                 <button
