@@ -18,9 +18,5 @@ export default async function AddPropertyPage() {
     redirect("/host/onboarding");
   }
 
-  return (
-    <main className="min-h-screen bg-slate-50">
-      <PropertyAddForm />
-    </main>
-  );
+  return <PropertyAddForm />;
 }

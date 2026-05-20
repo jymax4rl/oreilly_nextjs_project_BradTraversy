@@ -15,6 +15,20 @@ export function isValidDateOnly(value) {
   return parseDateOnly(value) !== null;
 }
 
+/** Coerce stored values to YYYY-MM-DD for UTC-safe comparisons. */
+export function toDateOnlyString(value) {
+  if (typeof value === "string") {
+    const trimmed = value.trim().slice(0, 10);
+    if (DATE_ONLY.test(trimmed)) return trimmed;
+  }
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return formatDateOnly(
+      Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()),
+    );
+  }
+  return null;
+}
+
 /** @param {number} ts UTC midnight ms */
 export function formatDateOnly(ts) {
   const d = new Date(ts);

@@ -39,6 +39,9 @@ const STEPS = [
   "Photos & contact",
 ];
 
+const STEP_PANEL_CLASS =
+  "h-full w-full shrink-0 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6 sm:py-6";
+
 const emptyFields = {
   name: "",
   description: "",
@@ -71,6 +74,7 @@ const PropertyAddForm = () => {
   const [propertyType, setPropertyType] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [fields, setFields] = useState(emptyFields);
+  const stepViewportRef = useRef(null);
 
   useEffect(() => {
     return () => {
@@ -347,7 +351,6 @@ const PropertyAddForm = () => {
     e.preventDefault();
     if (currentStep < STEPS.length - 1) {
       setCurrentStep((prev) => prev + 1);
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -355,23 +358,23 @@ const PropertyAddForm = () => {
     e.preventDefault();
     if (currentStep > 0) {
       setCurrentStep((prev) => prev - 1);
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
-  // Handler to fix the "action" prop warning in client-side preview
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   const formData = new FormData(e.currentTarget);
-  //   addProperty(formData);
-  // };
+  useEffect(() => {
+    const panels = stepViewportRef.current?.querySelectorAll("[data-step-panel]");
+    panels?.[currentStep]?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentStep]);
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-slate-50 pt-20 pb-28 sm:pt-24 sm:pb-8">
-      <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
-        <header className="mb-6 sm:mb-8">
+    <div
+      className="flex h-screen max-h-screen w-full flex-col overflow-hidden bg-slate-50 supports-[height:100dvh]:h-[100dvh] supports-[height:100dvh]:max-h-[100dvh]"
+      aria-label="Add property listing"
+    >
+      <div className="mx-auto flex h-full w-full min-h-0 max-w-3xl flex-1 flex-col overflow-hidden px-4 pb-4 pt-20 sm:px-6 sm:pt-24">
+        <header className="mb-4 shrink-0 sm:mb-5">
           <p className="text-sm font-medium text-blue-600">Host listing</p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
             Add your property
@@ -393,15 +396,23 @@ const PropertyAddForm = () => {
           </div>
         </header>
 
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <form className="w-full" onSubmit={handleSubmit}>
-            {/* The Slider Track */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <form
+            className="flex min-h-0 flex-1 flex-col"
+            onSubmit={handleSubmit}
+            aria-label={`Add property — step ${currentStep + 1} of ${STEPS.length}`}
+          >
             <div
-              className="flex w-full transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentStep * 100}%)` }}
+              ref={stepViewportRef}
+              className="relative min-h-0 flex-1 overflow-hidden"
+              aria-live="polite"
             >
-              {/*Step 1: Modern Grid Selection */}
-              <div className="w-full shrink-0 px-4 py-5 sm:px-6 sm:py-6">
+              <div
+                className="flex h-full w-full transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentStep * 100}%)` }}
+              >
+              {/* Step 1: Property type */}
+              <div data-step-panel className={STEP_PANEL_CLASS}>
                 <label className="mb-4 block text-base font-semibold text-slate-900">
                   What kind of place is it?
                 </label>
@@ -445,7 +456,7 @@ const PropertyAddForm = () => {
                 <input type="hidden" name="type" value={propertyType} required />
               </div>
               {/*Step 2: Listing name & description */}
-              <div className="w-full shrink-0 px-4 py-5 sm:px-6 sm:py-6">
+              <div data-step-panel className={STEP_PANEL_CLASS}>
                 <div className="my-4 ">
                   <label className="block text-sm font-medium text-gray-900 mb-2">
                     Listing Name
@@ -519,7 +530,7 @@ const PropertyAddForm = () => {
                 </div>
               </div>
               {/* --- STEP 2: Location --- */}
-              <div className="w-full shrink-0 px-4 py-5 sm:px-6 sm:py-6">
+              <div data-step-panel className={STEP_PANEL_CLASS}>
                 <div className="space-y-6 max-w-2xl lg:max-w-4xl lg:mx-auto">
                   <div className="bg-white shadow-md rounded-2xl p-6 border border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -571,7 +582,7 @@ const PropertyAddForm = () => {
                 </div>
               </div>
               {/* --- STEP 3: Details & Amenities --- */}
-              <div className="w-full shrink-0 px-4 py-5 sm:px-6 sm:py-6">
+              <div data-step-panel className={STEP_PANEL_CLASS}>
                 <div className="lg:max-w-6xl mx-auto space-y-8">
                   {/* Specs */}
                   <div className="grid grid-cols-3 gap-4">
@@ -649,7 +660,7 @@ const PropertyAddForm = () => {
                 </div>
               </div>
               {/* --- STEP 4: Rates --- */}
-              <div className="w-full shrink-0 px-4 py-5 sm:px-6 sm:py-6">
+              <div data-step-panel className={STEP_PANEL_CLASS}>
                 <div className="max-w-2xl mx-auto">
                   <div className="bg-green-50 rounded-3xl p-8 border border-green-100 text-center space-y-6">
                     <h3 className="text-xl font-bold text-green-900">
@@ -716,7 +727,7 @@ const PropertyAddForm = () => {
                 </div>
               </div>
               {/* --- STEP 5: Contact & Images --- */}
-              <div className="w-full shrink-0 px-4 py-5 sm:px-6 sm:py-6">
+              <div data-step-panel className={STEP_PANEL_CLASS}>
                 <div className="max-w-2xl mx-auto space-y-8">
                   {/* Contact Info */}
                   <div className="space-y-4">
@@ -849,12 +860,18 @@ const PropertyAddForm = () => {
                 </div>
               </div>
             </div>
-            <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 border-t border-slate-100 bg-white/95 p-4 backdrop-blur sm:p-6">
+            <nav
+              className="sticky bottom-0 z-10 flex shrink-0 items-center justify-between gap-3 border-t border-slate-100 bg-white p-4 sm:p-6"
+              aria-label="Form navigation"
+            >
               <button
+                type="button"
                 onClick={prevStep}
-                className={`px-6 py-3 cursor-pointer rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors ${
+                aria-hidden={currentStep === 0}
+                tabIndex={currentStep === 0 ? -1 : 0}
+                className={`min-h-[44px] rounded-xl px-6 py-3 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
                   currentStep === 0
-                    ? "opacity-0 pointer-events-none"
+                    ? "pointer-events-none opacity-0"
                     : "opacity-100"
                 }`}
               >
@@ -864,14 +881,15 @@ const PropertyAddForm = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="min-h-[44px] rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition-all hover:bg-blue-700 active:scale-95 disabled:opacity-60 sm:px-8"
+                  className="min-h-[44px] rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition-all hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:scale-95 disabled:opacity-60 sm:px-8"
                 >
                   {submitting ? "Saving…" : "Complete listing"}
                 </button>
               ) : (
                 <button
+                  type="button"
                   onClick={nextStep}
-                  className="cursor-pointer lg:px-8 px-4 py-3 rounded-xl bg-gray-900 text-white font-semibold shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all active:scale-95 flex items-center gap-2"
+                  className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:scale-95 sm:px-8"
                 >
                   Next Step
                   <svg
@@ -890,7 +908,7 @@ const PropertyAddForm = () => {
                   </svg>
                 </button>
               )}
-            </div>
+            </nav>
           </form>
         </div>
       </div>

@@ -62,7 +62,7 @@ function MainLayout({ children }) {
           <CurrencyProvider>
             <StyledComponentsRegistry>
               <html lang="en">
-                <body className="flex flex-col min-h-screen">
+                <body className="flex min-h-screen flex-col overflow-x-hidden">
                   <Navbar />
                   <MobileTopChromeGate />
                   <MainShell>{children}</MainShell>

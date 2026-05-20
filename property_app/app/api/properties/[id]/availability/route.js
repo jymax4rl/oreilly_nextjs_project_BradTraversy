@@ -7,11 +7,8 @@ import {
   assertVerifiedHost,
 } from "@/utils/availability/propertyAccess";
 import {
-  ensurePropertyAvailability,
   getAvailabilityPayload,
-  validateHostBlocks,
-  validateCustomDayRates,
-  getConfirmedBookings,
+  updatePropertyAvailability,
 } from "@/utils/availability/availabilityService";
 
 export async function GET(request, { params }) {
@@ -35,79 +32,45 @@ export async function GET(request, { params }) {
   }
 }
 
+/**
+ * PUT /api/properties/[id]/availability
+ * Owner-only: update host calendar blocks (and optional default/custom rates).
+ * Loads confirmed bookings, rejects overlapping host blocks (UTC date-only ranges),
+ * then applies an atomic MongoDB upsert.
+ */
 export async function PUT(request, { params }) {
   try {
     await connectToDatabase();
     const { id } = await params;
 
-    const hostCheck = await (async () => {
-      const session = await getServerSession(authOptions);
-      const verified = assertVerifiedHost(session);
-      if (!verified.ok) return verified;
-
-      const property = await getPropertyForApi(id);
-      if (!property) {
-        return { ok: false, status: 404, message: "Property not found" };
-      }
-      if (!isPropertyOwner(property, session.user.id)) {
-        return { ok: false, status: 403, message: "Only the property owner can update availability" };
-      }
-      return { ok: true, session, property };
-    })();
-
-    if (!hostCheck.ok) {
-      return Response.json({ error: hostCheck.message }, { status: hostCheck.status });
+    const session = await getServerSession(authOptions);
+    const verified = assertVerifiedHost(session);
+    if (!verified.ok) {
+      return Response.json({ error: verified.message }, { status: verified.status });
     }
 
-    const body = await request.json();
-    const hostBlocks = body.hostBlocks ?? [];
-    const defaultAvailability = body.defaultAvailability;
-    const customDayRatesInput = body.customDayRates;
-
-    if (
-      defaultAvailability != null &&
-      defaultAvailability !== "open" &&
-      defaultAvailability !== "closed"
-    ) {
+    const property = await getPropertyForApi(id);
+    if (!property) {
+      return Response.json({ error: "Property not found" }, { status: 404 });
+    }
+    if (!isPropertyOwner(property, session.user.id)) {
       return Response.json(
-        { error: "defaultAvailability must be 'open' or 'closed'" },
-        { status: 400 },
+        { error: "Only the property owner can update availability" },
+        { status: 403 },
       );
     }
 
-    const confirmedBookings = await getConfirmedBookings(id);
-    const { errors, normalized } = validateHostBlocks(hostBlocks, confirmedBookings);
-    if (errors.length) {
-      return Response.json({ error: "Validation failed", details: errors }, { status: 400 });
+    const body = await request.json();
+    const result = await updatePropertyAvailability(id, property.owner, body);
+
+    if (!result.ok) {
+      return Response.json(
+        { error: result.error, details: result.details },
+        { status: result.status },
+      );
     }
 
-    let normalizedCustom = null;
-    if (customDayRatesInput != null) {
-      const customResult = validateCustomDayRates(customDayRatesInput);
-      if (customResult.errors.length) {
-        return Response.json(
-          { error: "Validation failed", details: customResult.errors },
-          { status: 400 },
-        );
-      }
-      normalizedCustom = customResult.normalized;
-    }
-
-    const availability = await ensurePropertyAvailability(id);
-    availability.hostBlocks = normalized;
-    if (defaultAvailability != null) {
-      availability.defaultAvailability = defaultAvailability;
-    }
-    if (normalizedCustom != null) {
-      availability.customDayRates = normalizedCustom;
-    }
-    await availability.save();
-
-    const payload = await getAvailabilityPayload(id, { isOwner: true });
-    return Response.json({
-      success: true,
-      ...payload,
-    });
+    return Response.json(result.payload);
   } catch (error) {
     console.error("PUT availability:", error);
     return Response.json({ error: "Failed to update availability" }, { status: 500 });

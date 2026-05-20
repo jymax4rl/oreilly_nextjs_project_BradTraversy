@@ -292,6 +292,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
         throw new Error(msg);
       }
       setHostBlocks(data.hostBlocks || []);
+      setDefaultAvailability(data.defaultAvailability || "open");
       setCustomDayRates(data.customDayRates || []);
       setUnavailableRanges(data.unavailableRanges || []);
       setDirty(false);
