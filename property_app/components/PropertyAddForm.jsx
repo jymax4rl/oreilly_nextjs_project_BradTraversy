@@ -43,7 +43,7 @@ const STEPS = [
   "Location",
   "Amenities",
   "Pricing",
-  "Photos & contact",
+  "Photos",
 ];
 
 const STEP_COUNT = STEPS.length;
@@ -58,7 +58,7 @@ const STEP_FIELD_KEYS = [
   ["location.city", "location.state"],
   ["beds", "baths", "square_feet"],
   ["rates"],
-  ["seller_info.email", "images"],
+  ["images", "contact.email"],
 ];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -69,7 +69,7 @@ function isPositiveNumber(value) {
   return Number.isFinite(n) && n > 0;
 }
 
-function getStepErrors(step, { propertyType, fields, imageCount }) {
+function getStepErrors(step, { propertyType, fields, imageCount, contactMode, customContact }) {
   const errors = {};
   switch (step) {
     case 0:
@@ -105,13 +105,14 @@ function getStepErrors(step, { propertyType, fields, imageCount }) {
       }
       break;
     case 5:
-      if (!fields.seller_info.email.trim()) {
-        errors["seller_info.email"] = "Enter your email address.";
-      } else if (!EMAIL_RE.test(fields.seller_info.email.trim())) {
-        errors["seller_info.email"] = "Enter a valid email address.";
-      }
       if (imageCount < 1) {
         errors.images = "Add at least one property photo.";
+      }
+      if (contactMode === "custom") {
+        const email = customContact?.email?.trim() || "";
+        if (email && !EMAIL_RE.test(email)) {
+          errors["contact.email"] = "Enter a valid email address.";
+        }
       }
       break;
     default:
@@ -149,6 +150,7 @@ const SERVER_MESSAGE_TO_FIELD = {
     "rates",
   "Enter your email address.": "seller_info.email",
   "Add at least one property photo.": "images",
+  "Enter a valid email address for guest contact.": "contact.email",
 };
 
 function fieldErrorsFromServerMessage(message) {
@@ -187,11 +189,6 @@ const emptyFields = {
     weekly: "",
     monthly: "",
   },
-  seller_info: {
-    name: "",
-    email: "",
-    phone: "",
-  },
 };
 
 const PropertyAddForm = () => {
@@ -203,6 +200,8 @@ const PropertyAddForm = () => {
   const [fields, setFields] = useState(emptyFields);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
+  const [contactMode, setContactMode] = useState("profile");
+  const [customContact, setCustomContact] = useState({ email: "", phone: "" });
   const stepViewportRef = useRef(null);
   const imageFilesRef = useRef([]);
   const galleryInputRef = useRef(null);
@@ -218,7 +217,15 @@ const PropertyAddForm = () => {
     propertyType,
     fields,
     imageCount: imageFilesRef.current.length,
+    contactMode,
+    customContact,
   });
+
+  const handleCustomContactChange = (e) => {
+    const { name, value } = e.target;
+    clearFieldError(name);
+    setCustomContact((prev) => ({ ...prev, [name.replace("contact.", "")]: value }));
+  };
 
   const clearFieldError = (key) => {
     setFieldErrors((prev) => {
@@ -407,9 +414,16 @@ const PropertyAddForm = () => {
       square_feet: fields.square_feet,
       amenities: fields.amenities,
       rates: fields.rates,
-      seller_info: fields.seller_info,
       imageCount: imageFilesRef.current.length,
       hasAudio: Boolean(audioBlob),
+      contact:
+        contactMode === "custom"
+          ? {
+              mode: "custom",
+              email: customContact.email.trim(),
+              phone: customContact.phone.trim(),
+            }
+          : { mode: "profile" },
     };
   }
 
@@ -431,9 +445,11 @@ const PropertyAddForm = () => {
     formData.append("rates.nightly", payload.rates.nightly);
     formData.append("rates.weekly", payload.rates.weekly);
     formData.append("rates.monthly", payload.rates.monthly);
-    formData.append("seller_info.name", payload.seller_info.name);
-    formData.append("seller_info.email", payload.seller_info.email);
-    formData.append("seller_info.phone", payload.seller_info.phone);
+    formData.append("contact.mode", payload.contact.mode);
+    if (payload.contact.mode === "custom") {
+      formData.append("contact.email", payload.contact.email);
+      formData.append("contact.phone", payload.contact.phone);
+    }
     imageFilesRef.current.forEach((file) => formData.append("images", file));
     if (audioBlob) {
       formData.append("audio", audioBlob, "recording.wav");
@@ -1231,61 +1247,106 @@ const PropertyAddForm = () => {
                   </div>
                 </div>
               </div>
-              {/* --- STEP 5: Contact & Images --- */}
+              {/* --- STEP 6: Photos --- */}
               <div
                 data-step-panel
                 className={STEP_PANEL_CLASS}
                 style={{ flex: STEP_SLIDE_FLEX }}
               >
                 <div className="max-w-2xl mx-auto space-y-8">
-                  {/* Contact Info */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Seller Information
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-semibold text-slate-900">
+                      Guest contact
                     </h3>
-                    <input
-                      type="text"
-                      name="seller_info.name"
-                      className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
-                      placeholder="Seller Name"
-                      value={fields.seller_info.name}
-                      onChange={handleChange}
-                    />
-                    <div>
-                      <input
-                        type="email"
-                        id="seller_email"
-                        name="seller_info.email"
-                        aria-invalid={Boolean(fieldErrors["seller_info.email"])}
-                        aria-describedby={
-                          fieldErrors["seller_info.email"]
-                            ? "seller-email-error"
-                            : undefined
-                        }
-                        className={fieldClass(
-                          "w-full rounded-xl border border-gray-200 bg-gray-50 p-4 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all",
-                          "seller_info.email",
-                        )}
-                        placeholder="Email Address"
-                        value={fields.seller_info.email}
-                        onChange={handleChange}
-                      />
-                      <FieldError
-                        id="seller-email-error"
-                        message={fieldErrors["seller_info.email"]}
-                      />
+                    <p className="text-sm text-slate-600">
+                      Choose how guests reach you for this listing. Your display
+                      name always comes from your host profile.
+                    </p>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setContactMode("profile");
+                          clearFieldError("contact.email");
+                        }}
+                        className={`min-h-[44px] rounded-xl border px-4 py-3 text-left text-sm font-semibold transition touch-manipulation ${
+                          contactMode === "profile"
+                            ? "border-blue-600 bg-blue-50 text-blue-900 ring-2 ring-blue-600/25"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                        }`}
+                      >
+                        Use host profile
+                        <span className="mt-0.5 block text-xs font-normal text-slate-500">
+                          Account email & onboarding phone
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setContactMode("custom")}
+                        className={`min-h-[44px] rounded-xl border px-4 py-3 text-left text-sm font-semibold transition touch-manipulation ${
+                          contactMode === "custom"
+                            ? "border-blue-600 bg-blue-50 text-blue-900 ring-2 ring-blue-600/25"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                        }`}
+                      >
+                        Different contact
+                        <span className="mt-0.5 block text-xs font-normal text-slate-500">
+                          Optional email and/or phone for this listing
+                        </span>
+                      </button>
                     </div>
-                    <input
-                      type="tel"
-                      name="seller_info.phone"
-                      className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
-                      placeholder="Phone Number"
-                      value={fields.seller_info.phone}
-                      onChange={handleChange}
-                    />
+                    {contactMode === "custom" && (
+                      <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                        <p className="text-xs text-slate-500">
+                          Leave a field blank to keep using your host profile
+                          value for that detail.
+                        </p>
+                        <div>
+                          <label
+                            htmlFor="contact_email"
+                            className="mb-1.5 block text-sm font-medium text-slate-800"
+                          >
+                            Listing email (optional)
+                          </label>
+                          <input
+                            type="email"
+                            id="contact_email"
+                            name="contact.email"
+                            value={customContact.email}
+                            onChange={handleCustomContactChange}
+                            aria-invalid={Boolean(fieldErrors["contact.email"])}
+                            className={fieldClass(
+                              "w-full rounded-xl border border-slate-200 bg-white p-3 text-slate-900 outline-none focus:ring-2 focus:ring-blue-500",
+                              "contact.email",
+                            )}
+                            placeholder="e.g. listings@example.com"
+                          />
+                          <FieldError
+                            id="contact-email-error"
+                            message={fieldErrors["contact.email"]}
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="contact_phone"
+                            className="mb-1.5 block text-sm font-medium text-slate-800"
+                          >
+                            Listing phone (optional)
+                          </label>
+                          <input
+                            type="tel"
+                            id="contact_phone"
+                            name="contact.phone"
+                            value={customContact.phone}
+                            onChange={handleCustomContactChange}
+                            className="w-full rounded-xl border border-slate-200 bg-white p-3 text-slate-900 outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="e.g. +254 7XX XXX XXX"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Photos */}
                   <div className="space-y-4">
                     <div>
                       <h3 className="text-lg font-semibold text-slate-900">

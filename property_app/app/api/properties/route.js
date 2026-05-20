@@ -15,6 +15,11 @@ import {
   uploadPropertyImage,
 } from "@/utils/cloudinary/uploadPropertyMedia";
 import {
+  applyListingContactChoice,
+  resolveSellerInfoForHost,
+  validateHostSellerInfo,
+} from "@/utils/hostSellerInfo";
+import {
   normalizeRates,
   parseRatesFromFormData,
   validateRatesPayload,
@@ -50,9 +55,6 @@ function collectValidationMessages(data, { requireImages }) {
   }
   if (!Number.isFinite(squareFeet) || squareFeet <= 0) {
     messages.push("Enter the square footage.");
-  }
-  if (!String(data.seller_info?.email || "").trim()) {
-    messages.push("Enter your email address.");
   }
   if (requireImages && (!data.imageCount || data.imageCount < 1)) {
     messages.push("Add at least one property photo.");
@@ -95,6 +97,46 @@ async function savePropertyAndAvailability(propertyData, hostId) {
   return propertyId;
 }
 
+function parseContactChoice(body) {
+  const contact = body?.contact;
+  if (!contact || contact.mode !== "custom") {
+    return { mode: "profile" };
+  }
+  return {
+    mode: "custom",
+    email: String(contact.email || "").trim(),
+    phone: String(contact.phone || "").trim(),
+  };
+}
+
+function parseContactFromFormData(formData) {
+  const mode = formData.get("contact.mode");
+  if (mode !== "custom") {
+    return { mode: "profile" };
+  }
+  return {
+    mode: "custom",
+    email: String(formData.get("contact.email") || "").trim(),
+    phone: String(formData.get("contact.phone") || "").trim(),
+  };
+}
+
+async function withHostSellerInfo(propertyData, hostId, contact) {
+  const base = await resolveSellerInfoForHost(hostId);
+  const seller_info = applyListingContactChoice(base, contact);
+  const sellerError = validateHostSellerInfo(seller_info, contact);
+  if (sellerError) {
+    return { error: sellerError };
+  }
+  return {
+    data: {
+      ...propertyData,
+      seller_info,
+      owner: hostId,
+    },
+  };
+}
+
 /** JSON create: listing metadata only; browser uploads media straight to Cloudinary. */
 async function handleJsonCreate(request, hostId) {
   const body = await request.json();
@@ -117,29 +159,31 @@ async function handleJsonCreate(request, hostId) {
     return new Response(rateValidation.error, { status: 400 });
   }
 
-  const propertyData = {
-    type: body.type,
-    name: body.name,
-    description: body.description,
-    location: {
-      street: body.location?.street,
-      city: body.location?.city,
-      state: body.location?.state,
-      zipcode: body.location?.zipcode,
-      country: body.location?.country || undefined,
+  const built = await withHostSellerInfo(
+    {
+      type: body.type,
+      name: body.name,
+      description: body.description,
+      location: {
+        street: body.location?.street,
+        city: body.location?.city,
+        state: body.location?.state,
+        zipcode: body.location?.zipcode,
+        country: body.location?.country || undefined,
+      },
+      beds,
+      baths,
+      square_feet: squareFeet,
+      amenities: Array.isArray(body.amenities) ? body.amenities : [],
+      rates: rateValidation.rates,
     },
-    beds,
-    baths,
-    square_feet: squareFeet,
-    amenities: Array.isArray(body.amenities) ? body.amenities : [],
-    rates: rateValidation.rates,
-    seller_info: {
-      name: body.seller_info?.name,
-      email: body.seller_info?.email,
-      phone: body.seller_info?.phone,
-    },
-    owner: hostId,
-  };
+    hostId,
+    parseContactChoice(body),
+  );
+  if (built.error) {
+    return new Response(built.error, { status: 400 });
+  }
+  const propertyData = built.data;
 
   if (!isCloudinaryConfigured()) {
     return Response.json(
@@ -191,7 +235,6 @@ async function handleMultipartCreate(request, hostId) {
       beds: formData.get("beds"),
       baths: formData.get("baths"),
       square_feet: formData.get("square_feet"),
-      seller_info: { email: formData.get("seller_info.email") },
       imageCount: images.length,
     },
     { requireImages: true },
@@ -201,35 +244,37 @@ async function handleMultipartCreate(request, hostId) {
     return new Response(messages.join(" "), { status: 400 });
   }
 
-  const propertyData = {
-    type: formData.get("type"),
-    name: formData.get("name"),
-    description: formData.get("description"),
-    location: {
-      street: formData.get("location.street"),
-      city: formData.get("location.city"),
-      state: formData.get("location.state"),
-      zipcode: formData.get("location.zipcode"),
-      country: formData.get("location.country") || undefined,
-    },
-    beds,
-    baths,
-    square_feet: squareFeet,
-    amenities,
-    rates: parseRatesFromFormData(formData),
-    seller_info: {
-      name: formData.get("seller_info.name"),
-      email: formData.get("seller_info.email"),
-      phone: formData.get("seller_info.phone"),
-    },
-    owner: hostId,
-  };
-
-  const rateValidation = validateRatesPayload(propertyData.rates);
+  const rates = parseRatesFromFormData(formData);
+  const rateValidation = validateRatesPayload(rates);
   if (!rateValidation.ok) {
     return new Response(rateValidation.error, { status: 400 });
   }
-  propertyData.rates = rateValidation.rates;
+
+  const built = await withHostSellerInfo(
+    {
+      type: formData.get("type"),
+      name: formData.get("name"),
+      description: formData.get("description"),
+      location: {
+        street: formData.get("location.street"),
+        city: formData.get("location.city"),
+        state: formData.get("location.state"),
+        zipcode: formData.get("location.zipcode"),
+        country: formData.get("location.country") || undefined,
+      },
+      beds,
+      baths,
+      square_feet: squareFeet,
+      amenities,
+      rates: rateValidation.rates,
+    },
+    hostId,
+    parseContactFromFormData(formData),
+  );
+  if (built.error) {
+    return new Response(built.error, { status: 400 });
+  }
+  const propertyData = built.data;
 
   const useCloudinary = isCloudinaryConfigured();
   const propertyId = await savePropertyAndAvailability(propertyData, hostId);
