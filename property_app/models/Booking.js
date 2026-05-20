@@ -1,5 +1,28 @@
 import mongoose from "mongoose";
 
+const PricingSnapshotSchema = new mongoose.Schema(
+  {
+    nightlyRate: { type: Number },
+    accommodationBase: { type: Number },
+    cleaningFee: { type: Number },
+    platformFee: { type: Number },
+    total: { type: Number },
+    nights: { type: Number },
+    currency: { type: String, default: "USD" },
+  },
+  { _id: false },
+);
+
+const EmailStatusSchema = new mongoose.Schema(
+  {
+    modifiedGuest: { type: String, enum: ["sent", "failed", "skipped"] },
+    modifiedHost: { type: String, enum: ["sent", "failed", "skipped"] },
+    cancelledGuest: { type: String, enum: ["sent", "failed", "skipped"] },
+    cancelledHost: { type: String, enum: ["sent", "failed", "skipped"] },
+  },
+  { _id: false },
+);
+
 const BookingSchema = new mongoose.Schema(
   {
     propertyId: {
@@ -39,6 +62,24 @@ const BookingSchema = new mongoose.Schema(
     propertyName: { type: String },
     amount: { type: Number },
     currency: { type: String },
+    version: { type: Number, default: 0 },
+    cancelledAt: { type: Date },
+    cancelledBy: { type: String },
+    cancellationReason: { type: String, maxlength: 500 },
+    modifiedAt: { type: Date },
+    previousCheckIn: { type: String, match: /^\d{4}-\d{2}-\d{2}$/ },
+    previousCheckOut: { type: String, match: /^\d{4}-\d{2}-\d{2}$/ },
+    modificationCount: { type: Number, default: 0 },
+    refundStatus: {
+      type: String,
+      enum: ["none", "pending", "completed", "failed"],
+      default: "none",
+    },
+    refundAmount: { type: Number },
+    refundCurrency: { type: String },
+    refundReference: { type: String },
+    pricingSnapshot: { type: PricingSnapshotSchema },
+    emailStatus: { type: EmailStatusSchema, default: () => ({}) },
   },
   {
     timestamps: true,

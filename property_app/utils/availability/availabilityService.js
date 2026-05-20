@@ -57,6 +57,23 @@ export async function getConfirmedBookings(propertyId) {
     .lean();
 }
 
+/**
+ * Unavailable ranges for validation, optionally excluding one confirmed booking
+ * (so guests can modify their own stay without self-conflict).
+ */
+export async function getUnavailableRangesForProperty(
+  propertyId,
+  { excludeBookingId } = {},
+) {
+  const availability = await ensurePropertyAvailability(propertyId);
+  let bookings = await getConfirmedBookings(propertyId);
+  if (excludeBookingId) {
+    const exclude = String(excludeBookingId);
+    bookings = bookings.filter((b) => String(b._id) !== exclude);
+  }
+  return buildUnavailableRanges(availability.hostBlocks || [], bookings);
+}
+
 function bookingToRange(booking) {
   return {
     startDate: toDateOnlyString(booking.checkIn),

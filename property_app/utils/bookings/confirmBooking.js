@@ -60,6 +60,15 @@ export async function confirmBookingFromPayment({
     amount: amount != null ? Number(amount) : undefined,
     currency: currency || undefined,
     propertyName: propertyName || undefined,
+    version: 0,
+    pricingSnapshot:
+      amount != null
+        ? {
+            total: Number(amount),
+            currency: currency || "USD",
+            nights: countNights(validation.checkIn, validation.checkOut),
+          }
+        : undefined,
   });
 
   return {

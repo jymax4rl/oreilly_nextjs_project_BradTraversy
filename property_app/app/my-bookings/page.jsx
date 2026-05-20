@@ -5,6 +5,7 @@ import connectToDatabase from "@/config/database";
 import Booking from "@/models/Booking";
 import Property from "@/models/Property";
 import BookingCard from "@/components/bookings/BookingCard";
+import { bookingActionFlags } from "@/utils/bookings/bookingPolicy";
 import { ArrowLeft, CalendarCheck } from "lucide-react";
 
 export const metadata = {
@@ -60,16 +61,19 @@ export default async function MyBookingsPage({ searchParams }) {
 
   const items = bookings.map((b) => {
     const property = propertyById.get(String(b.propertyId));
+    const flags = bookingActionFlags(b);
     return {
       _id: b._id.toString(),
       propertyId: String(b.propertyId),
       checkIn: b.checkIn,
       checkOut: b.checkOut,
       status: b.status,
+      version: b.version ?? 0,
       transactionId: b.transactionId,
       amount: b.amount,
       currency: b.currency,
       propertyName: b.propertyName || property?.name,
+      ...flags,
       property: property
         ? {
             _id: String(property._id),

@@ -67,6 +67,7 @@ export async function GET(request, { params }) {
         propertyName: b.propertyName,
         amount: b.amount,
         currency: b.currency,
+        version: b.version ?? 0,
         createdAt: b.createdAt,
         updatedAt: b.updatedAt,
       })),

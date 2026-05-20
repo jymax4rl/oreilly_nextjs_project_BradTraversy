@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Calendar, MapPin } from "lucide-react";
-import { formatGuestDate } from "@/utils/availability/validateStay";
-import { countNights } from "@/utils/availability/validateStay";
+import { formatGuestDate, countNights } from "@/utils/availability/validateStay";
+import BookingManageActions from "@/components/bookings/BookingManageActions";
 
 function propertyImageSrc(images) {
   const file = images?.[0] || images?.[1];
@@ -69,6 +69,9 @@ export default function BookingCard({ booking }) {
           )}
         </div>
       </Link>
+      {booking.status === "confirmed" && (
+        <BookingManageActions booking={booking} />
+      )}
     </article>
   );
 }
