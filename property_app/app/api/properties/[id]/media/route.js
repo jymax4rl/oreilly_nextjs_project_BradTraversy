@@ -31,7 +31,11 @@ export async function PATCH(request, { params }) {
     const auth = await requireVerifiedHost();
     if (auth.error) return auth.error;
 
-    const propertyId = String(params.id || "");
+    const { id } = await params;
+    const propertyId = String(id || "");
+    if (!propertyId) {
+      return new Response("Missing property id", { status: 400 });
+    }
     const property = await Property.findById(propertyId);
     if (!property) {
       return new Response("Property not found", { status: 404 });
@@ -83,6 +87,10 @@ export async function PATCH(request, { params }) {
     return Response.json({ ok: true, propertyId });
   } catch (error) {
     console.error("Failed to attach property media", error);
-    return new Response("Failed to save photos.", { status: 500 });
+    const detail =
+      error?.message && typeof error.message === "string"
+        ? error.message
+        : "Failed to save photos.";
+    return new Response(detail, { status: 500 });
   }
 }

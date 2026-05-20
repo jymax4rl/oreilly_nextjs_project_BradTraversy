@@ -12,7 +12,11 @@ export async function DELETE(_request, { params }) {
       return new Response("Unauthorized", { status: 401 });
     }
 
-    const propertyId = String(params.id || "");
+    const { id } = await params;
+    const propertyId = String(id || "");
+    if (!propertyId) {
+      return new Response("Missing property id", { status: 400 });
+    }
     const property = await Property.findById(propertyId);
     if (!property) {
       return new Response("Not found", { status: 404 });
