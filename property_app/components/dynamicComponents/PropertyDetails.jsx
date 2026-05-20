@@ -6,6 +6,7 @@ import { useCurrency } from "@/utils/CurrencyContext";
 import { formatCurrency } from "@/utils/currencyUtils";
 import AmenitiesAccordion from "@/components/AmenitiesAccordion";
 import MessageOwnerButton from "@/components/MessageOwnerButton";
+import { resolvePropertyAudioSrc } from "@/utils/cloudinary/propertyMediaUrls";
 
 function RateRow({ label, amount, currencyCode, rates, available }) {
   const symbol = currencyCode === "USD" ? "$" : currencyCode;
@@ -102,7 +103,7 @@ function PropertyDetails({ data }) {
         </p>
       </section>
 
-      {data.audio && (
+      {resolvePropertyAudioSrc(data.audio) && (
         <section className="min-w-0">
           <h2 className="mb-3 text-xl font-bold text-slate-900 sm:mb-4 sm:text-2xl">
             Listen to the host
@@ -110,7 +111,7 @@ function PropertyDetails({ data }) {
           <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-6">
             <audio
               controls
-              src={`/audio/properties/${data.audio}`}
+              src={resolvePropertyAudioSrc(data.audio)}
               className="w-full max-w-full"
             />
           </div>

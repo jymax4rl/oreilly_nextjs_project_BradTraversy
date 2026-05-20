@@ -99,7 +99,7 @@ function buildLifecycleGuestVars({
     STATUS_BADGE_COLOR: statusColor,
     RECIPIENT_NAME: guestName || "there",
     PROPERTY_NAME: propertyName || "Property",
-    PROPERTY_IMAGE_URL: propertyImageAbsoluteUrl(property?.images?.[0]),
+    PROPERTY_IMAGE_URL: propertyImageAbsoluteUrl(property?.images),
     PROPERTY_URL: propertyUrl,
     PROPERTY_META: propertyMeta || locationLabel,
     STAY_LABEL: stayLabel,

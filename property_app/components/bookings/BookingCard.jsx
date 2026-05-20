@@ -3,11 +3,7 @@ import Link from "next/link";
 import { Calendar, MapPin } from "lucide-react";
 import { formatGuestDate, countNights } from "@/utils/availability/validateStay";
 import BookingManageActions from "@/components/bookings/BookingManageActions";
-
-function propertyImageSrc(images) {
-  const file = images?.[0] || images?.[1];
-  return `/properties/${file || "default.jpg"}`;
-}
+import { propertyCardImageSrc } from "@/utils/cloudinary/propertyMediaUrls";
 
 export default function BookingCard({ booking }) {
   const property = booking.property;
@@ -28,7 +24,7 @@ export default function BookingCard({ booking }) {
       <Link href={`/properties/${booking.propertyId}`} className="flex gap-4 p-4 sm:p-5">
         <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100 sm:h-28 sm:w-32">
           <Image
-            src={propertyImageSrc(property?.images)}
+            src={propertyCardImageSrc(property?.images)}
             alt=""
             fill
             sizes="128px"

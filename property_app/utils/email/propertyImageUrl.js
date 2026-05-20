@@ -1,4 +1,5 @@
 import { appUrl, getAppBaseUrl } from "@/utils/appUrl";
+import { propertyImageAbsoluteFromImages } from "@/utils/cloudinary/propertyMediaUrls";
 
 export function getAbsoluteAppUrl(path = "") {
   return appUrl(path);
@@ -11,12 +12,7 @@ export { getAppBaseUrl };
  * @param {string[] | undefined} images
  */
 export function propertyImageAbsoluteUrl(images) {
-  const file = images?.[1] || images?.[0] || "default.jpg";
-  const cleaned = String(file)
-    .replace(/^\//, "")
-    .replace(/^properties\//, "")
-    .replace(/^images\/properties\//, "");
-  return appUrl(`/properties/${cleaned}`);
+  return propertyImageAbsoluteFromImages(images, appUrl);
 }
 
 /**

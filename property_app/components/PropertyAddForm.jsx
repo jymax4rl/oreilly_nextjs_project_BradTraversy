@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
+import { hasAnyRate } from "@/utils/propertyRates";
 
 const AMENITIES = [
   { id: "wifi", label: "Wifi" },
@@ -39,8 +40,11 @@ const STEPS = [
   "Photos & contact",
 ];
 
+const STEP_COUNT = STEPS.length;
+const STEP_SLIDE_FLEX = `0 0 ${100 / STEP_COUNT}%`;
+
 const STEP_PANEL_CLASS =
-  "h-full w-full shrink-0 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6 sm:py-6";
+  "h-full shrink-0 grow-0 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6 sm:py-6";
 
 const emptyFields = {
   name: "",
@@ -70,11 +74,15 @@ const emptyFields = {
 
 const PropertyAddForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [propertyType, setPropertyType] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [fields, setFields] = useState(emptyFields);
   const stepViewportRef = useRef(null);
+  const imageFilesRef = useRef([]);
+  const galleryInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   useEffect(() => {
     return () => {
@@ -165,25 +173,137 @@ const PropertyAddForm = () => {
     setAudioBlob(null);
   };
 
-  const handleImageChange = (e) => {
-    const { files } = e.target;
-    if (!files?.length) return;
-    imagePreviews.forEach((p) => URL.revokeObjectURL(p.url));
-    const previews = Array.from(files).map((file) => ({
-      name: file.name.length > 24 ? `${file.name.slice(0, 24)}…` : file.name,
-      url: URL.createObjectURL(file),
-    }));
-    setImagePreviews(previews);
+  /** Clone immediately — mobile browsers invalidate prior File refs on the same input. */
+  async function persistPickedFiles(fileList) {
+    const picked = Array.from(fileList || []);
+    if (!picked.length) return;
+
+    const clones = await Promise.all(
+      picked.map(async (file, index) => {
+        const buffer = await file.arrayBuffer();
+        const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+        const safeName = file.name
+          ? file.name.replace(/[/\\]/g, "_")
+          : `photo_${Date.now()}_${index}.${ext}`;
+        return new File([buffer], safeName, {
+          type: file.type || "image/jpeg",
+          lastModified: file.lastModified,
+        });
+      }),
+    );
+
+    const nextFiles = [...imageFilesRef.current, ...clones];
+    imageFilesRef.current = nextFiles;
+    setImageFiles(nextFiles);
+    setImagePreviews((prev) => [
+      ...prev,
+      ...clones.map((file) => ({
+        id: `${file.name}-${file.lastModified}-${Math.random()}`,
+        name: file.name.length > 24 ? `${file.name.slice(0, 24)}…` : file.name,
+        url: URL.createObjectURL(file),
+      })),
+    ]);
+  }
+
+  const handleGalleryChange = async (e) => {
+    await persistPickedFiles(e.target.files);
+    e.target.value = "";
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    const formData = new FormData(e.target);
+  const handleCameraChange = async (e) => {
+    await persistPickedFiles(e.target.files);
+    e.target.value = "";
+  };
 
+  const removeImageAt = (index) => {
+    const nextFiles = imageFilesRef.current.filter((_, i) => i !== index);
+    imageFilesRef.current = nextFiles;
+    setImageFiles(nextFiles);
+    setImagePreviews((prev) => {
+      const removed = prev[index];
+      if (removed?.url) URL.revokeObjectURL(removed.url);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  function validateListing() {
+    if (!propertyType) {
+      return { ok: false, message: "Choose a property type.", step: 0 };
+    }
+    if (!fields.name.trim()) {
+      return { ok: false, message: "Enter a listing name.", step: 1 };
+    }
+    if (!fields.description.trim()) {
+      return { ok: false, message: "Enter a description.", step: 1 };
+    }
+    if (!fields.location.city.trim() || !fields.location.state.trim()) {
+      return { ok: false, message: "Enter city and state / county.", step: 2 };
+    }
+    if (!fields.beds || !fields.baths || !fields.square_feet) {
+      return {
+        ok: false,
+        message: "Enter beds, baths, and square footage.",
+        step: 3,
+      };
+    }
+    if (!hasAnyRate(fields.rates)) {
+      return {
+        ok: false,
+        message: "Set at least one price (nightly, weekly, or monthly).",
+        step: 4,
+      };
+    }
+    if (!fields.seller_info.email.trim()) {
+      return { ok: false, message: "Enter your contact email.", step: 5 };
+    }
+    if (imageFilesRef.current.length < 1) {
+      return {
+        ok: false,
+        message: "Add at least one property photo.",
+        step: 5,
+      };
+    }
+    return { ok: true };
+  }
+
+  function buildFormData() {
+    const formData = new FormData();
+    formData.append("type", propertyType);
+    formData.append("name", fields.name);
+    formData.append("description", fields.description);
+    formData.append("location.street", fields.location.street);
+    formData.append("location.city", fields.location.city);
+    formData.append("location.state", fields.location.state);
+    formData.append("location.zipcode", fields.location.zipcode);
+    formData.append("location.country", fields.location.country || "Kenya");
+    formData.append("beds", fields.beds);
+    formData.append("baths", fields.baths);
+    formData.append("square_feet", fields.square_feet);
+    fields.amenities.forEach((amenity) => formData.append("amenities", amenity));
+    formData.append("rates.nightly", fields.rates.nightly);
+    formData.append("rates.weekly", fields.rates.weekly);
+    formData.append("rates.monthly", fields.rates.monthly);
+    formData.append("seller_info.name", fields.seller_info.name);
+    formData.append("seller_info.email", fields.seller_info.email);
+    formData.append("seller_info.phone", fields.seller_info.phone);
+    imageFilesRef.current.forEach((file) => formData.append("images", file));
     if (audioBlob) {
       formData.append("audio", audioBlob, "recording.wav");
     }
+    return formData;
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const validation = validateListing();
+    if (!validation.ok) {
+      setCurrentStep(validation.step);
+      alert(validation.message);
+      return;
+    }
+
+    setSubmitting(true);
+    const formData = buildFormData();
 
     try {
       const res = await fetch("/api/properties", {
@@ -193,8 +313,12 @@ const PropertyAddForm = () => {
 
       if (res.ok && res.redirected) {
         window.location.href = res.url;
-      } else if (!res.ok) {
-        alert("Could not save listing. Check required fields and try again.");
+        return;
+      }
+      if (!res.ok) {
+        const message = (await res.text()) || "Could not save listing.";
+        alert(message);
+        return;
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -349,6 +473,33 @@ const PropertyAddForm = () => {
 
   const nextStep = (e) => {
     e.preventDefault();
+    const checks = [
+      () =>
+        propertyType
+          ? null
+          : "Choose a property type before continuing.",
+      () =>
+        fields.name.trim() && fields.description.trim()
+          ? null
+          : "Enter a listing name and description.",
+      () =>
+        fields.location.city.trim() && fields.location.state.trim()
+          ? null
+          : "Enter city and state / county.",
+      () =>
+        fields.beds && fields.baths && fields.square_feet
+          ? null
+          : "Enter beds, baths, and square footage.",
+      () =>
+        hasAnyRate(fields.rates)
+          ? null
+          : "Set at least one price (nightly, weekly, or monthly).",
+    ];
+    const message = checks[currentStep]?.();
+    if (message) {
+      alert(message);
+      return;
+    }
     if (currentStep < STEPS.length - 1) {
       setCurrentStep((prev) => prev + 1);
     }
@@ -400,6 +551,7 @@ const PropertyAddForm = () => {
           <form
             className="flex min-h-0 flex-1 flex-col"
             onSubmit={handleSubmit}
+            noValidate
             aria-label={`Add property — step ${currentStep + 1} of ${STEPS.length}`}
           >
             <div
@@ -408,11 +560,18 @@ const PropertyAddForm = () => {
               aria-live="polite"
             >
               <div
-                className="flex h-full w-full transition-transform duration-500 ease-in-out"
-                style={{ transform: `translateX(-${currentStep * 100}%)` }}
+                className="flex h-full transition-transform duration-500 ease-in-out"
+                style={{
+                  width: `${STEP_COUNT * 100}%`,
+                  transform: `translateX(-${(currentStep / STEP_COUNT) * 100}%)`,
+                }}
               >
               {/* Step 1: Property type */}
-              <div data-step-panel className={STEP_PANEL_CLASS}>
+              <div
+                data-step-panel
+                className={STEP_PANEL_CLASS}
+                style={{ flex: STEP_SLIDE_FLEX }}
+              >
                 <label className="mb-4 block text-base font-semibold text-slate-900">
                   What kind of place is it?
                 </label>
@@ -453,10 +612,14 @@ const PropertyAddForm = () => {
                   ))}
                 </div>
                 {/* Hidden input to pass the value to the form handler */}
-                <input type="hidden" name="type" value={propertyType} required />
+                <input type="hidden" name="type" value={propertyType} />
               </div>
               {/*Step 2: Listing name & description */}
-              <div data-step-panel className={STEP_PANEL_CLASS}>
+              <div
+                data-step-panel
+                className={STEP_PANEL_CLASS}
+                style={{ flex: STEP_SLIDE_FLEX }}
+              >
                 <div className="my-4 ">
                   <label className="block text-sm font-medium text-gray-900 mb-2">
                     Listing Name
@@ -530,7 +693,11 @@ const PropertyAddForm = () => {
                 </div>
               </div>
               {/* --- STEP 2: Location --- */}
-              <div data-step-panel className={STEP_PANEL_CLASS}>
+              <div
+                data-step-panel
+                className={STEP_PANEL_CLASS}
+                style={{ flex: STEP_SLIDE_FLEX }}
+              >
                 <div className="space-y-6 max-w-2xl lg:max-w-4xl lg:mx-auto">
                   <div className="bg-white shadow-md rounded-2xl p-6 border border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -582,7 +749,11 @@ const PropertyAddForm = () => {
                 </div>
               </div>
               {/* --- STEP 3: Details & Amenities --- */}
-              <div data-step-panel className={STEP_PANEL_CLASS}>
+              <div
+                data-step-panel
+                className={STEP_PANEL_CLASS}
+                style={{ flex: STEP_SLIDE_FLEX }}
+              >
                 <div className="lg:max-w-6xl mx-auto space-y-8">
                   {/* Specs */}
                   <div className="grid grid-cols-3 gap-4">
@@ -660,14 +831,19 @@ const PropertyAddForm = () => {
                 </div>
               </div>
               {/* --- STEP 4: Rates --- */}
-              <div data-step-panel className={STEP_PANEL_CLASS}>
+              <div
+                data-step-panel
+                className={STEP_PANEL_CLASS}
+                style={{ flex: STEP_SLIDE_FLEX }}
+              >
                 <div className="max-w-2xl mx-auto">
                   <div className="bg-green-50 rounded-3xl p-8 border border-green-100 text-center space-y-6">
                     <h3 className="text-xl font-bold text-green-900">
                       Set Your Pricing
                     </h3>
                     <p className="text-green-700/80 text-sm">
-                      Leave fields blank if they don't apply.
+                      Add at least one rate (nightly, weekly, or monthly). Leave
+                      the others blank if they do not apply.
                     </p>
 
                     <div className="space-y-4">
@@ -727,7 +903,11 @@ const PropertyAddForm = () => {
                 </div>
               </div>
               {/* --- STEP 5: Contact & Images --- */}
-              <div data-step-panel className={STEP_PANEL_CLASS}>
+              <div
+                data-step-panel
+                className={STEP_PANEL_CLASS}
+                style={{ flex: STEP_SLIDE_FLEX }}
+              >
                 <div className="max-w-2xl mx-auto space-y-8">
                   {/* Contact Info */}
                   <div className="space-y-4">
@@ -747,7 +927,6 @@ const PropertyAddForm = () => {
                       name="seller_info.email"
                       className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
                       placeholder="Email Address"
-                      required
                       value={fields.seller_info.email}
                       onChange={handleChange}
                     />
@@ -793,42 +972,53 @@ const PropertyAddForm = () => {
                       ))}
                     </ul>
 
-                    <label
-                      htmlFor="images"
-                      className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center transition-colors hover:border-blue-400 hover:bg-blue-50/50 active:bg-blue-50 touch-manipulation"
-                    >
-                    <div className="mx-auto mb-3 h-10 w-10 text-slate-400">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-                        />
-                      </svg>
-                    </div>
-                      <span className="text-sm font-semibold text-blue-600">
-                        Tap to add photos
-                      </span>
-                      <span className="mt-1 text-xs text-slate-500">
-                        JPG or PNG · multiple files · up to 10MB each
-                      </span>
+                    <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4 sm:p-6">
+                      <p className="text-center text-sm font-semibold text-slate-800">
+                        {imageFiles.length > 0
+                          ? `${imageFiles.length} photo${imageFiles.length === 1 ? "" : "s"} added`
+                          : "Add property photos"}
+                      </p>
+                      <p className="mt-1 text-center text-xs text-slate-500">
+                        Take one photo at a time or choose several from your
+                        gallery. Each new photo is added to the list.
+                      </p>
+                      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <button
+                          type="button"
+                          onClick={() => cameraInputRef.current?.click()}
+                          className="min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.99] touch-manipulation"
+                        >
+                          Take photo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => galleryInputRef.current?.click()}
+                          className="min-h-[48px] rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 active:scale-[0.99] touch-manipulation"
+                        >
+                          Choose from gallery
+                        </button>
+                      </div>
                       <input
+                        ref={cameraInputRef}
                         type="file"
-                        id="images"
-                        name="images"
+                        className="sr-only"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleCameraChange}
+                        aria-hidden
+                        tabIndex={-1}
+                      />
+                      <input
+                        ref={galleryInputRef}
+                        type="file"
                         className="sr-only"
                         accept="image/*"
                         multiple
-                        onChange={handleImageChange}
-                        required
+                        onChange={handleGalleryChange}
+                        aria-hidden
+                        tabIndex={-1}
                       />
-                    </label>
+                    </div>
 
                     {imagePreviews.length > 0 && (
                       <div>
@@ -839,9 +1029,17 @@ const PropertyAddForm = () => {
                         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                           {imagePreviews.map((preview, index) => (
                             <figure
-                              key={`${preview.name}-${index}`}
-                              className="overflow-hidden rounded-xl border border-slate-200 bg-slate-100"
+                              key={preview.id ?? `preview-${index}`}
+                              className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-100"
                             >
+                              <button
+                                type="button"
+                                onClick={() => removeImageAt(index)}
+                                className="absolute right-1 top-1 z-10 rounded-full bg-black/60 px-2 py-0.5 text-xs font-semibold text-white"
+                                aria-label={`Remove ${preview.name}`}
+                              >
+                                Remove
+                              </button>
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={preview.url}

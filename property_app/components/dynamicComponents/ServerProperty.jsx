@@ -1,4 +1,5 @@
 import React from "react";
+import { propertyPrimaryImageSrc } from "@/utils/cloudinary/propertyMediaUrls";
 
 function stripHtml(html = "") {
   return String(html).replace(/<\/?[^>]+(>|$)/g, "");
@@ -29,13 +30,10 @@ export default function ServerProperty({ property, canonicalUrl }) {
     process.env.NEXT_PUBLIC_SITE_URL || "https://www.isisel.com"
   ).replace(/\/$/, "");
 
-  const rawImagePath = property.images?.[0] || "/properties/default.jpg";
-  const localImagePath = rawImagePath.startsWith("/")
-    ? rawImagePath
-    : `/images/properties/${rawImagePath}`;
-  const absoluteImageUrl = rawImagePath.startsWith("http")
-    ? rawImagePath
-    : `${siteUrl}${localImagePath}`;
+  const displaySrc = propertyPrimaryImageSrc(property.images);
+  const absoluteImageUrl = displaySrc.startsWith("http")
+    ? displaySrc
+    : `${siteUrl}${displaySrc.startsWith("/") ? displaySrc : `/properties/${displaySrc}`}`;
 
   const raw = stripHtml(property.description || "");
   const shortDescription = truncate(raw, 150);

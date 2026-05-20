@@ -31,6 +31,9 @@ const UserSchema = new Schema(
       enum: ["none", "onboarding", "verified", "rejected"],
       default: "none",
     },
+    cloudinaryRootFolder: {
+      type: String,
+    },
   },
   {
     timestamps: true,

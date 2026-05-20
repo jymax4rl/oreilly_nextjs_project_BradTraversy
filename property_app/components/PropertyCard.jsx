@@ -8,6 +8,7 @@ import { formatCurrency } from "../utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
 import MobileMoneyBadge from "@/components/MobileMoneyBadge";
 import { useSession } from "next-auth/react";
+import { propertyCardImageSrc } from "@/utils/cloudinary/propertyMediaUrls";
 
 const PropertyCard = ({ property, isSaved = false, hostListingsView = false }) => {
   const { data: session } = useSession();
@@ -29,7 +30,7 @@ const PropertyCard = ({ property, isSaved = false, hostListingsView = false }) =
   const [isLiked, setIsLiked] = useState(isSaved);
   const [isLoading, setIsLoading] = useState(false);
 
-  const mainImage = `/properties/${images?.[1] || images?.[0] || "default.jpg"}`;
+  const mainImage = propertyCardImageSrc(images);
 
   const normalizedPropertyRates = normalizeRates(propertyRates);
 

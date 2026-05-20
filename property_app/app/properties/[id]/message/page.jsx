@@ -8,6 +8,7 @@ import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { ArrowLeft, MapPin } from "lucide-react";
+import { propertyPrimaryImageSrc } from "@/utils/cloudinary/propertyMediaUrls";
 
 export async function generateMetadata({ params }) {
   await connectToDatabase();
@@ -23,10 +24,6 @@ export async function generateMetadata({ params }) {
     title: `Message ${owner} | ${property.name}`,
     robots: { index: false, follow: false },
   };
-}
-
-function propertyImageSrc(filename) {
-  return `/properties/${filename || "default.jpg"}`;
 }
 
 export default async function PropertyMessagePage({ params }) {
@@ -79,7 +76,7 @@ export default async function PropertyMessagePage({ params }) {
         <div className="mb-6 flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100">
             <Image
-              src={propertyImageSrc(serialized.images?.[0])}
+              src={propertyPrimaryImageSrc(serialized.images)}
               alt=""
               fill
               sizes="80px"

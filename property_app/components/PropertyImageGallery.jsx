@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, LayoutGrid, X } from "lucide-react";
+import { normalizePropertyImageUrls } from "@/utils/cloudinary/propertyMediaUrls";
 
-function imageSrc(filename) {
-  return `/properties/${filename || "default.jpg"}`;
+function galleryImageKey(src, index) {
+  return `${src}-${index}`;
 }
 
 function GalleryOpenButton({ count, onClick, className = "" }) {
@@ -126,8 +127,8 @@ function PropertyImageCarousel({ images, propertyName, initialIndex, onClose }) 
           }}
         >
           <Image
-            key={current}
-            src={imageSrc(current)}
+            key={galleryImageKey(current, index)}
+            src={current}
             alt={`${propertyName} — photo ${index + 1}`}
             fill
             priority
@@ -147,7 +148,7 @@ function PropertyImageCarousel({ images, propertyName, initialIndex, onClose }) 
           <div className="mx-auto flex max-w-4xl gap-2 overflow-x-auto pb-1">
             {images.map((file, i) => (
               <button
-                key={`${file}-${i}`}
+                key={galleryImageKey(file, i)}
                 type="button"
                 onClick={() => setIndex(i)}
                 className={`relative h-12 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition sm:h-14 sm:w-20 ${
@@ -159,7 +160,7 @@ function PropertyImageCarousel({ images, propertyName, initialIndex, onClose }) 
                 aria-current={i === index}
               >
                 <Image
-                  src={imageSrc(file)}
+                  src={file}
                   alt=""
                   fill
                   sizes="80px"
@@ -178,10 +179,10 @@ export default function PropertyImageGallery({ images = [], propertyName }) {
   const [open, setOpen] = useState(false);
   const [startIndex, setStartIndex] = useState(0);
 
-  const galleryImages = useMemo(() => {
-    const list = (images || []).filter(Boolean);
-    return list.length > 0 ? list : ["default.jpg"];
-  }, [images]);
+  const galleryImages = useMemo(
+    () => normalizePropertyImageUrls(images),
+    [images],
+  );
 
   const openAt = (idx = 0) => {
     setStartIndex(idx);
@@ -202,7 +203,7 @@ export default function PropertyImageGallery({ images = [], propertyName }) {
           aria-label="View photos"
         >
           <Image
-            src={imageSrc(galleryImages[0])}
+            src={galleryImages[0]}
             alt={propertyName}
             fill
             priority
@@ -223,7 +224,7 @@ export default function PropertyImageGallery({ images = [], propertyName }) {
           aria-label="View photos"
         >
           <Image
-            src={imageSrc(galleryImages[0])}
+            src={galleryImages[0]}
             alt={propertyName}
             fill
             priority
@@ -244,7 +245,7 @@ export default function PropertyImageGallery({ images = [], propertyName }) {
               aria-label={`View photo ${i + 1}`}
             >
               <Image
-                src={imageSrc(galleryImages[i] || galleryImages[0])}
+                src={galleryImages[i] || galleryImages[0]}
                 alt=""
                 fill
                 quality={90}
@@ -262,7 +263,7 @@ export default function PropertyImageGallery({ images = [], propertyName }) {
           aria-label="View photos"
         >
           <Image
-            src={imageSrc(galleryImages[3] || galleryImages[0])}
+            src={galleryImages[3] || galleryImages[0]}
             alt=""
             fill
             quality={90}

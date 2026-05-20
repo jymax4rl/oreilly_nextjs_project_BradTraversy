@@ -82,14 +82,25 @@ const PropertySchema = new mongoose.Schema(
         type: String,
       },
     },
+    cloudinaryFolder: {
+      type: String,
+    },
+    cloudinaryImagesFolder: {
+      type: String,
+    },
     images: [
       {
-        type: String,
+        type: Schema.Types.Mixed,
       },
     ],
     audio: {
-      type: String,
+      type: Schema.Types.Mixed,
       required: false,
+    },
+    cloudinaryMigrationStatus: {
+      type: String,
+      enum: ["none", "partial", "completed"],
+      default: "none",
     },
   },
   {

@@ -1,6 +1,19 @@
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
+import User from "@/models/User";
 import { ensurePropertyAvailability } from "@/utils/availability/availabilityService";
+import {
+  isCloudinaryConfigured,
+} from "@/utils/cloudinary/cloudinary";
+import {
+  hostRootFolder,
+  propertyFolder,
+  propertyImagesFolder,
+} from "@/utils/cloudinary/generateFolderPath";
+import {
+  uploadPropertyAudio,
+  uploadPropertyImage,
+} from "@/utils/cloudinary/uploadPropertyMedia";
 import {
   parseRatesFromFormData,
   validateRatesPayload,
@@ -10,31 +23,59 @@ import { authOptions } from "@/utils/authOptions";
 import { writeFile } from "fs/promises";
 import path from "path";
 
+async function saveImagesLocally(images) {
+  const imageUrls = [];
+  for (const image of images) {
+    const byteData = await image.arrayBuffer();
+    const buffer = Buffer.from(byteData);
+    const filename = Date.now() + "_" + image.name.replace(/\s/g, "_");
+      const filePath = path.join(process.cwd(), "public/properties", filename);
+    await writeFile(filePath, buffer);
+    imageUrls.push(filename);
+  }
+  return imageUrls;
+}
+
+async function saveAudioLocally(audioFile) {
+  const audioByteData = await audioFile.arrayBuffer();
+  const audioBuffer = Buffer.from(audioByteData);
+  const audioFilename =
+    Date.now() + "_" + audioFile.name.replace(/\s/g, "_");
+  const audioFilePath = path.join(
+    process.cwd(),
+    "public/audio/properties",
+    audioFilename,
+  );
+  await writeFile(audioFilePath, audioBuffer);
+  return audioFilename;
+}
+
 export const POST = async (request) => {
   try {
     await connectToDatabase();
 
-    // Check for session/user
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return new Response("Unauthorized", { status: 401 });
     }
-// HOST VERIFICATION GUARD
+
     if (session.user.hostStatus !== "verified") {
       return new Response(
         "Access denied. Only verified hosts can list properties.",
-        { status: 403 }
+        { status: 403 },
       );
     }
-    const formData = await request.formData();
 
-    // Access all values from amenities and images
+    const hostId = String(session.user.id);
+    const formData = await request.formData();
     const amenities = formData.getAll("amenities");
     const images = formData
       .getAll("images")
       .filter((image) => image.name !== "");
+    const audioFile = formData.get("audio");
+    const hasAudio =
+      audioFile && audioFile.size > 0 && audioFile.name !== "undefined";
 
-    // Create propertyData object
     const propertyData = {
       type: formData.get("type"),
       name: formData.get("name"),
@@ -56,42 +97,8 @@ export const POST = async (request) => {
         email: formData.get("seller_info.email"),
         phone: formData.get("seller_info.phone"),
       },
-      owner: session.user.id,
+      owner: hostId,
     };
-
-    // Handle Image Uploads (Local Storage)
-    const imageUrls = [];
-    for (const image of images) {
-      const byteData = await image.arrayBuffer();
-      const buffer = Buffer.from(byteData);
-      const filename = Date.now() + "_" + image.name.replace(/\s/g, "_");
-      const filePath = path.join(
-        process.cwd(),
-        "public/images/properties",
-        filename
-      );
-
-      await writeFile(filePath, buffer);
-      imageUrls.push(filename);
-    }
-
-    propertyData.images = imageUrls;
-
-    // Handle Audio Upload
-    const audioFile = formData.get("audio");
-    if (audioFile && audioFile.size > 0 && audioFile.name !== "undefined") {
-      const audioByteData = await audioFile.arrayBuffer();
-      const audioBuffer = Buffer.from(audioByteData);
-      const audioFilename =
-        Date.now() + "_" + audioFile.name.replace(/\s/g, "_");
-      const audioFilePath = path.join(
-        process.cwd(),
-        "public/audio/properties",
-        audioFilename
-      );
-      await writeFile(audioFilePath, audioBuffer);
-      propertyData.audio = audioFilename;
-    }
 
     const rateValidation = validateRatesPayload(propertyData.rates);
     if (!rateValidation.ok) {
@@ -99,16 +106,70 @@ export const POST = async (request) => {
     }
     propertyData.rates = rateValidation.rates;
 
+    const useCloudinary = isCloudinaryConfigured();
     const newProperty = new Property(propertyData);
     await newProperty.save();
 
-    await ensurePropertyAvailability(
-      newProperty._id.toString(),
-      newProperty.owner,
-    );
+    const propertyId = newProperty._id.toString();
+
+    if (useCloudinary && (images.length > 0 || hasAudio)) {
+      const listingFolder = propertyFolder(hostId, propertyId);
+      const imagesFolder = propertyImagesFolder(hostId, propertyId);
+      const imageEntries = [];
+
+      for (const image of images) {
+        const byteData = await image.arrayBuffer();
+        const buffer = Buffer.from(byteData);
+        const entry = await uploadPropertyImage({
+          buffer,
+          filename: image.name,
+          hostId,
+          propertyId,
+        });
+        imageEntries.push(entry);
+      }
+
+      const mediaUpdate = {
+        cloudinaryFolder: listingFolder,
+        cloudinaryImagesFolder: imagesFolder,
+        cloudinaryMigrationStatus: "completed",
+      };
+      if (imageEntries.length > 0) {
+        mediaUpdate.images = imageEntries;
+      }
+
+      if (hasAudio) {
+        const audioByteData = await audioFile.arrayBuffer();
+        const audioBuffer = Buffer.from(audioByteData);
+        mediaUpdate.audio = await uploadPropertyAudio({
+          buffer: audioBuffer,
+          filename: audioFile.name || "recording.wav",
+          hostId,
+          propertyId,
+        });
+      }
+
+      await Property.findByIdAndUpdate(propertyId, { $set: mediaUpdate });
+      await User.findByIdAndUpdate(hostId, {
+        $set: { cloudinaryRootFolder: hostRootFolder(hostId) },
+      });
+    } else {
+      const localUpdate = {};
+      if (images.length > 0) {
+        localUpdate.images = await saveImagesLocally(images);
+      }
+      if (hasAudio) {
+        localUpdate.audio = await saveAudioLocally(audioFile);
+      }
+      if (Object.keys(localUpdate).length > 0) {
+        await Property.findByIdAndUpdate(propertyId, { $set: localUpdate });
+      }
+    }
+
+    await ensurePropertyAvailability(propertyId, hostId);
 
     return Response.redirect(
-      new URL(`/properties/${newProperty._id}`, request.url)
+      new URL(`/properties/${propertyId}`, request.url),
     );
   } catch (error) {
     console.error("Failed to add property", error);

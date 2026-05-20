@@ -9,6 +9,7 @@ import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { ArrowLeft, MapPin } from "lucide-react";
+import { propertyPrimaryImageSrc } from "@/utils/cloudinary/propertyMediaUrls";
 
 export async function generateMetadata({ params }) {
   await connectToDatabase();
@@ -20,10 +21,6 @@ export async function generateMetadata({ params }) {
       : "Calendar | Kama Properties",
     robots: { index: false, follow: false },
   };
-}
-
-function propertyImageSrc(filename) {
-  return `/properties/${filename || "default.jpg"}`;
 }
 
 export default async function PropertyCalendarPage({ params }) {
@@ -75,7 +72,7 @@ export default async function PropertyCalendarPage({ params }) {
         <div className="mb-6 flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100">
             <Image
-              src={propertyImageSrc(serialized.images?.[0])}
+              src={propertyPrimaryImageSrc(serialized.images)}
               alt=""
               fill
               sizes="64px"

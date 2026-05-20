@@ -5,6 +5,7 @@ import Property from "@/models/Property";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Building2, PlusCircle, MapPin, BedDouble, Bath, Eye, Clock, CheckCircle, XCircle } from "lucide-react";
+import { resolvePropertyImageEntry } from "@/utils/cloudinary/propertyMediaUrls";
 
 export const metadata = {
   title: "My Listings | Kama Properties",
@@ -103,7 +104,7 @@ export default async function HostListingsPage() {
               const status = property.status || "pending";
               const cfg = statusConfig[status] || statusConfig.pending;
               const StatusIcon = cfg.Icon;
-              const image = property.images?.[0];
+              const imageSrc = resolvePropertyImageEntry(property.images?.[0]);
 
               return (
                 <div
@@ -112,10 +113,10 @@ export default async function HostListingsPage() {
                 >
                   {/* Thumbnail */}
                   <div className="shrink-0 w-full sm:w-32 h-40 sm:h-28 rounded-xl overflow-hidden bg-gray-100">
-                    {image ? (
+                    {imageSrc ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={`/images/properties/${image}`}
+                        src={imageSrc}
                         alt={property.name}
                         className="w-full h-full object-cover"
                         onError={(e) => { e.target.style.display = "none"; }}

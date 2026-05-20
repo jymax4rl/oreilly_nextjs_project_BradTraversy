@@ -4,6 +4,7 @@ import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import ServerProperty from "@/components/dynamicComponents/ServerProperty";
 import DynamicProperty from "@/components/dynamicComponents/DynamicProperty";
 import { notFound } from "next/navigation";
+import { propertyPrimaryImageSrc } from "@/utils/cloudinary/propertyMediaUrls";
 
 export async function generateMetadata({ params }) {
   await connectToDatabase();
@@ -17,9 +18,10 @@ export async function generateMetadata({ params }) {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://www.isisel.com";
   const canonicalUrl = `${siteUrl}/properties/${id}`;
-  const ogImage = property.images?.[0]
-    ? `${siteUrl}/images/properties/${property.images[0]}`
-    : `${siteUrl}/og-image.jpg`;
+  const primarySrc = propertyPrimaryImageSrc(property.images);
+  const ogImage = primarySrc.startsWith("http")
+    ? primarySrc
+    : `${siteUrl}${primarySrc.startsWith("/") ? primarySrc : `/properties/${primarySrc}`}`;
 
   return {
     title: `${property.name} | ${property.location?.city || "Africa"}`,
