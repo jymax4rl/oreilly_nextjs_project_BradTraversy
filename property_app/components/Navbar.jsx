@@ -123,6 +123,10 @@ const Navbar = () => {
 
   const hostNavItem = getHostNavItem();
 
+  if (pathname === "/onboarding") {
+    return null;
+  }
+
   return (
     <div>
       {explore && (

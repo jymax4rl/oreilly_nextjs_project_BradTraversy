@@ -6,6 +6,7 @@ declare module "next-auth" {
       id: string;
       role: string;
       hostStatus: string;
+      hasCompletedHostOnboarding: boolean;
     } & DefaultSession["user"];
   }
 }

@@ -1,6 +1,7 @@
 import "@/assets/styles/globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import FooterGate from "@/components/FooterGate";
 import MainShell from "@/components/MainShell";
 import MobileBottomNavGate from "@/components/MobileBottomNavGate";
 import MobileTopChromeGate from "@/components/MobileTopChromeGate";
@@ -67,7 +68,9 @@ function MainLayout({ children }) {
                   <MobileTopChromeGate />
                   <MainShell>{children}</MainShell>
                   <MobileBottomNavGate />
-                  <Footer className="hidden lg:block" />
+                  <FooterGate>
+                    <Footer className="hidden lg:block" />
+                  </FooterGate>
                 </body>
               </html>
             </StyledComponentsRegistry>

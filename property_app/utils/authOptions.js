@@ -36,26 +36,21 @@ export const authOptions = {
       }
       return true;
     },
-    async jwt({ token, trigger, session }) {
-      // Hydrate token from DB on first sign-in
-      if (!token.role || !token.hostStatus || !token.id) {
-        await connectToDatabase();
-        const user = await User.findOne({ email: token.email });
-        if (user) {
-          token.id = user._id.toString();
-          token.role = user.role;
-          token.hostStatus = user.hostStatus;
-        }
-      }
+    async jwt({ token, trigger }) {
+      const needsHydrate =
+        typeof token.id !== "string" ||
+        typeof token.role !== "string" ||
+        typeof token.hostStatus !== "string" ||
+        typeof token.hasCompletedHostOnboarding !== "boolean";
 
-      // Re-hydrate from DB on explicit session update (e.g. after admin approval)
-      if (trigger === "update") {
+      if (needsHydrate || trigger === "update") {
         await connectToDatabase();
         const user = await User.findOne({ email: token.email });
         if (user) {
           token.id = user._id.toString();
           token.role = user.role;
           token.hostStatus = user.hostStatus;
+          token.hasCompletedHostOnboarding = !!user.hasCompletedHostOnboarding;
         }
       }
 
@@ -66,6 +61,8 @@ export const authOptions = {
         session.user.id = token.id;
         session.user.role = token.role;
         session.user.hostStatus = token.hostStatus;
+        session.user.hasCompletedHostOnboarding =
+          token.hasCompletedHostOnboarding === true;
       }
       return session;
     },

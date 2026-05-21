@@ -31,6 +31,11 @@ const UserSchema = new Schema(
       enum: ["none", "onboarding", "verified", "rejected"],
       default: "none",
     },
+    /** Cinematic pre-listing welcome flow at /onboarding (hosts only). */
+    hasCompletedHostOnboarding: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
