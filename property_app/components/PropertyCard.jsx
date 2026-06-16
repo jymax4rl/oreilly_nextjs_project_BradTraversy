@@ -64,7 +64,7 @@ const PropertyCard = ({ property, isSaved = false }) => {
 
     if (!session?.user) {
       // Redirect to sign in if not logged in
-      window.location.href = "/api/auth/signin";
+      window.location.href = "/login";
       return;
     }
 

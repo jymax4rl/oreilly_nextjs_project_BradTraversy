@@ -4,6 +4,9 @@ import User from "@/models/User";
 
 /** @type {import('next-auth').AuthOptions} */
 export const authOptions = {
+  pages: {
+    signIn: "/login",
+  },
   session: {
     strategy: "jwt",
   },

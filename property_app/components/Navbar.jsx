@@ -26,6 +26,7 @@ import { getUnreadMessageCount } from "@/utils/actions/messageActions";
 import MobileTopChrome from "@/components/MobileTopChrome";
 import { useMenuOverlay } from "@/contexts/MenuOverlayContext";
 import { isExploreMobileLayout } from "@/utils/exploreLayout";
+import { isFullscreenRoute } from "@/utils/fullscreenRoutes";
 
 const navLinks = [
   { path: "/", label: "Home", Icon: Home },
@@ -123,7 +124,7 @@ const Navbar = () => {
 
   const hostNavItem = getHostNavItem();
 
-  if (pathname === "/onboarding") {
+  if (isFullscreenRoute(pathname)) {
     return null;
   }
 

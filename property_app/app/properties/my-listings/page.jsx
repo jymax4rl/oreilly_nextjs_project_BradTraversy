@@ -18,7 +18,7 @@ const MyListingsPage = async () => {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    redirect("/api/auth/signin");
+    redirect("/login");
   }
 
   if (session.user.hostStatus !== "verified") {

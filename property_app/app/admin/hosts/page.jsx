@@ -81,7 +81,7 @@ export default function AdminHostsPage() {
         <div className="text-center">
           <p className="mb-4 text-gray-700">Please sign in to access admin.</p>
           <Link
-            href="/api/auth/signin"
+            href="/login"
             className="bg-gray-900 text-white px-6 py-2 rounded hover:bg-gray-800 transition"
           >
             Sign In

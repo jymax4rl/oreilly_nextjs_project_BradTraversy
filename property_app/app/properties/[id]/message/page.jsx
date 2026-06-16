@@ -43,7 +43,7 @@ export default async function PropertyMessagePage({ params }) {
 
   if (!session) {
     redirect(
-      `/api/auth/signin?callbackUrl=${encodeURIComponent(messagePath)}`,
+      `/login?callbackUrl=${encodeURIComponent(messagePath)}`,
     );
   }
 

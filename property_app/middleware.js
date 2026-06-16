@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 const signInUrl = (req, callbackUrl) => {
-  const u = new URL("/api/auth/signin", req.url);
-  u.searchParams.set("callbackUrl", callbackUrl);
+  const u = new URL("/login", req.url);
+  if (callbackUrl) {
+    u.searchParams.set("callbackUrl", callbackUrl);
+  }
   return u;
 };
 

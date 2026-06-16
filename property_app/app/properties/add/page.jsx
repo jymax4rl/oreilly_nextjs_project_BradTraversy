@@ -12,7 +12,7 @@ export default async function AddPropertyPage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    redirect("/api/auth/signin?callbackUrl=/properties/add");
+    redirect("/login?callbackUrl=/properties/add");
   }
 
   if (session.user.hostStatus !== "verified") {

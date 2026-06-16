@@ -14,7 +14,7 @@ export default async function MessagesPage({ searchParams }) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    redirect("/api/auth/signin");
+    redirect("/login");
   }
 
   const params = await searchParams;
