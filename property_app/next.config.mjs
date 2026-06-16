@@ -26,9 +26,6 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    viewTransition: true,
-  },
   turbopack: {},
   webpack: (config) => {
     config.resolve.fallback = {

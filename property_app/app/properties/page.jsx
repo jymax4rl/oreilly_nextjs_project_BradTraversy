@@ -6,31 +6,47 @@ import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 
 export const dynamic = "force-dynamic";
 
+function renderPropertiesList({
+  initialProperties,
+  locationQuery,
+  typeQuery,
+  minPrice,
+  maxPrice,
+}) {
+  return (
+    <div className="min-h-screen min-w-full overflow-x-hidden md:pt-[10vh]">
+      <HomeProperties
+        key={`${locationQuery || "all"}-${typeQuery || "all"}-${minPrice ?? ""}-${maxPrice ?? ""}`}
+        initialProperties={initialProperties}
+        searchQuery={locationQuery || ""}
+        typeFilter={typeQuery || ""}
+        minPrice={minPrice}
+        maxPrice={maxPrice}
+      />
+    </div>
+  );
+}
+
 const PropertiesPage = async ({ searchParams }) => {
-  // Next.js 15+: searchParams is a Promise
   const params = await searchParams;
   const locationQuery = params?.location?.trim();
   const typeQuery = params?.type;
   const minPrice = params?.minPrice ? Number(params.minPrice) : null;
   const maxPrice = params?.maxPrice ? Number(params.maxPrice) : null;
 
+  const emptyList = () =>
+    renderPropertiesList({
+      initialProperties: [],
+      locationQuery,
+      typeQuery,
+      minPrice,
+      maxPrice,
+    });
+
   if (!process.env.MONGODB_URI) {
-    return (
-      <div className="min-h-screen min-w-full overflow-x-hidden md:pt-[10vh]">
-        <HomeProperties
-          initialProperties={[]}
-          searchQuery={locationQuery || ""}
-          typeFilter={typeQuery || ""}
-          minPrice={minPrice}
-          maxPrice={maxPrice}
-        />
-      </div>
-    );
+    return emptyList();
   }
 
-  await connectToDatabase();
-
-  // Build MongoDB query dynamically
   const mongoQuery = {};
 
   if (locationQuery) {
@@ -78,22 +94,22 @@ const PropertiesPage = async ({ searchParams }) => {
     mongoQuery.is_featured = false;
   }
 
-  const properties = await Property.find(mongoQuery).lean();
+  try {
+    await connectToDatabase();
+    const properties = await Property.find(mongoQuery).lean();
+    const serializedProperties = properties.map(serializePropertyForClient);
 
-  const serializedProperties = properties.map(serializePropertyForClient);
-
-  return (
-    <div className="min-h-screen min-w-full overflow-x-hidden md:pt-[10vh]">
-      <HomeProperties
-        key={`${locationQuery || "all"}-${typeQuery || "all"}-${minPrice ?? ""}-${maxPrice ?? ""}`}
-        initialProperties={serializedProperties}
-        searchQuery={locationQuery || ""}
-        typeFilter={typeQuery || ""}
-        minPrice={minPrice}
-        maxPrice={maxPrice}
-      />
-    </div>
-  );
+    return renderPropertiesList({
+      initialProperties: serializedProperties,
+      locationQuery,
+      typeQuery,
+      minPrice,
+      maxPrice,
+    });
+  } catch (error) {
+    console.error("Properties page failed:", error);
+    return emptyList();
+  }
 };
 
 export default PropertiesPage;

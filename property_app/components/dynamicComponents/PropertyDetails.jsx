@@ -31,6 +31,7 @@ function RateRow({ label, amount, currencyCode, rates, available }) {
 function PropertyDetails({ data }) {
   const { currencyCode, rates } = useCurrency();
   const ownerName = data.seller_info?.name || "host";
+  const propertyRates = data.rates || {};
 
   return (
     <div className="min-w-0 space-y-6 sm:space-y-10 lg:col-span-2">
@@ -71,24 +72,24 @@ function PropertyDetails({ data }) {
         <div className="flex flex-col gap-3 sm:gap-4">
           <RateRow
             label="Monthly"
-            amount={data.rates.monthly}
+            amount={propertyRates.monthly}
             currencyCode={currencyCode}
             rates={rates}
-            available={Boolean(data.rates.monthly)}
+            available={Boolean(propertyRates.monthly)}
           />
           <RateRow
             label="Weekly"
-            amount={data.rates.weekly}
+            amount={propertyRates.weekly}
             currencyCode={currencyCode}
             rates={rates}
-            available={Boolean(data.rates.weekly)}
+            available={Boolean(propertyRates.weekly)}
           />
           <RateRow
             label="Nightly"
-            amount={data.rates.nightly}
+            amount={propertyRates.nightly}
             currencyCode={currencyCode}
             rates={rates}
-            available={Boolean(data.rates.nightly)}
+            available={Boolean(propertyRates.nightly)}
           />
         </div>
       </section>

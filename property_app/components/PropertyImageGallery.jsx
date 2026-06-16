@@ -149,7 +149,11 @@ function PropertyImageCarousel({ images, propertyName, initialIndex, onClose }) 
           <div className="mx-auto flex max-w-4xl gap-2 overflow-x-auto pb-1">
             {images.map((file, i) => (
               <button
-                key={`${file}-${i}`}
+                key={
+                  typeof file === "string"
+                    ? `${file}-${i}`
+                    : `${file?.url || file?.publicId || "image"}-${i}`
+                }
                 type="button"
                 onClick={() => setIndex(i)}
                 className={`relative h-12 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition sm:h-14 sm:w-20 ${

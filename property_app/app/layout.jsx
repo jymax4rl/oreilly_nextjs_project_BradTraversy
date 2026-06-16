@@ -11,6 +11,7 @@ import { CurrencyProvider } from "@/utils/CurrencyContext";
 import AuthProvider from "@/components/AuthProvider";
 import { MenuOverlayProvider } from "@/contexts/MenuOverlayContext";
 import { ScrollNavProvider } from "@/contexts/ScrollNavContext";
+import ChunkErrorRecovery from "@/components/ChunkErrorRecovery";
 
 export const metadata = {
   metadataBase: new URL(
@@ -64,6 +65,7 @@ function MainLayout({ children }) {
             <StyledComponentsRegistry>
               <html lang="en">
                 <body className="flex flex-col min-h-screen">
+                  <ChunkErrorRecovery />
                   <Navbar />
                   <MobileTopChromeGate />
                   <MainShell>{children}</MainShell>

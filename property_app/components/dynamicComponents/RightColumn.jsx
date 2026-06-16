@@ -18,8 +18,9 @@ import { useSession, signIn } from "next-auth/react";
 function RightColumn({ data }) {
   const { currencyCode, rates } = useCurrency();
   const { data: session } = useSession();
+  const propertyRates = data.rates || {};
 
-  const basePrice = data.rates.weekly || data.rates.monthly;
+  const basePrice = propertyRates.weekly || propertyRates.monthly || propertyRates.nightly || 0;
   const cleaningFee = 150;
   const paymentCurrency = normalizeCurrencyCode(currencyCode);
 
@@ -93,12 +94,14 @@ function RightColumn({ data }) {
         <div className="flex min-w-0 items-baseline justify-between gap-3 border-t border-slate-100 pt-3">
           <div className="min-w-0">
             <span className="text-2xl font-extrabold tabular-nums text-slate-900 sm:text-3xl">
-              {data.rates.monthly
-                ? formatCurrency(data.rates.monthly, rates[currencyCode], symbol)
-                : formatCurrency(data.rates.weekly, rates[currencyCode], symbol)}
+              {propertyRates.monthly
+                ? formatCurrency(propertyRates.monthly, rates[currencyCode], symbol)
+                : propertyRates.weekly
+                  ? formatCurrency(propertyRates.weekly, rates[currencyCode], symbol)
+                  : formatCurrency(propertyRates.nightly || 0, rates[currencyCode], symbol)}
             </span>
             <span className="ml-1 text-sm font-medium text-slate-500">
-              {data.rates.monthly ? "/ mo" : "/ wk"}
+              {propertyRates.monthly ? "/ mo" : propertyRates.weekly ? "/ wk" : "/ night"}
             </span>
           </div>
           <div className="flex shrink-0 items-center gap-1 rounded-md bg-slate-50 px-2 py-1 text-xs font-bold">
@@ -149,7 +152,7 @@ function RightColumn({ data }) {
               <span>Base</span>
               <span className="tabular-nums">
                 {formatCurrency(
-                  data.rates.weekly || data.rates.monthly,
+                  propertyRates.weekly || propertyRates.monthly || propertyRates.nightly || 0,
                   rates[currencyCode],
                   symbol,
                 )}
