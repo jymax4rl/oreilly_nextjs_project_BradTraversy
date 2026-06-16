@@ -33,5 +33,26 @@ export function serializePropertyForClient(property) {
       property.listingModerationRequestedAt instanceof Date
         ? property.listingModerationRequestedAt.toISOString()
         : property.listingModerationRequestedAt,
+    images: serializePropertyImages(property.images),
+    audio: serializePropertyAudio(property.audio),
   };
+}
+
+function serializePropertyImages(images) {
+  if (!Array.isArray(images)) return images;
+  return images.map((entry) => {
+    if (!entry || typeof entry !== "object") return entry;
+    return {
+      ...entry,
+      uploadedAt:
+        entry.uploadedAt instanceof Date
+          ? entry.uploadedAt.toISOString()
+          : entry.uploadedAt,
+    };
+  });
+}
+
+function serializePropertyAudio(audio) {
+  if (!audio || typeof audio !== "object") return audio;
+  return { ...audio };
 }

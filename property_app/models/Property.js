@@ -47,8 +47,8 @@ const PropertySchema = new mongoose.Schema(
       email: { type: String },
       phone: { type: String },
     },
-    images: [{ type: String }],
-    audio: { type: String, required: false },
+    images: [{ type: Schema.Types.Mixed }],
+    audio: { type: Schema.Types.Mixed, required: false },
   },
   {
     timestamps: true,

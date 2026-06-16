@@ -1,4 +1,5 @@
 import connectToDatabase from "@/config/database";
+import { propertyImageUrl } from "@/utils/propertyImageUrl";
 import Property from "@/models/Property";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import PropertyContactForm from "@/components/PropertyContactForm";
@@ -25,8 +26,8 @@ export async function generateMetadata({ params }) {
   };
 }
 
-function propertyImageSrc(filename) {
-  return `/properties/${filename || "default.jpg"}`;
+function propertyImageSrc(entry) {
+  return propertyImageUrl(entry);
 }
 
 export default async function PropertyMessagePage({ params }) {
