@@ -3,6 +3,38 @@ import User from "@/models/User";
 import HostApplication from "@/models/HostApplication";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
+import { normalizeAddressInput } from "@/utils/address";
+
+function parseApplicationBody(body) {
+  const { phone, idType, idNumber, address, bio } = body;
+
+  if (!phone?.trim() || !idType?.trim() || !idNumber?.trim()) {
+    return { error: "Missing required fields" };
+  }
+
+  const normalizedAddress = normalizeAddressInput(address);
+  if (!normalizedAddress) {
+    return {
+      error:
+        "A complete address is required (street, city, and country).",
+    };
+  }
+
+  return {
+    data: {
+      phone: phone.trim(),
+      idType: idType.trim(),
+      idNumber: idNumber.trim(),
+      address: normalizedAddress,
+      bio: bio?.trim() || "",
+    },
+  };
+}
+
+async function syncUserHostAddress(user, address) {
+  user.hostAddress = address;
+  await user.save();
+}
 
 // GET — return the caller's own application (used to pre-populate the edit form)
 export const GET = async () => {
@@ -32,11 +64,12 @@ export const POST = async (request) => {
     if (!session?.user) return new Response("Unauthorized", { status: 401 });
 
     const body = await request.json();
-    const { phone, idType, idNumber, address, bio } = body;
-
-    if (!phone || !idType || !idNumber || !address) {
-      return new Response("Missing required fields", { status: 400 });
+    const parsed = parseApplicationBody(body);
+    if (parsed.error) {
+      return new Response(parsed.error, { status: 400 });
     }
+
+    const { phone, idType, idNumber, address, bio } = parsed.data;
 
     const user = await User.findOne({ email: session.user.email });
     if (!user) return new Response("User not found", { status: 404 });
@@ -50,12 +83,22 @@ export const POST = async (request) => {
       return new Response("Application already submitted", { status: 409 });
     }
 
-    await HostApplication.create({ user: user._id, phone, idType, idNumber, address, bio });
+    await HostApplication.create({
+      user: user._id,
+      phone,
+      idType,
+      idNumber,
+      address,
+      bio,
+    });
 
     user.hostStatus = "onboarding";
-    await user.save();
+    await syncUserHostAddress(user, address);
 
-    return Response.json({ success: true, message: "Application submitted for review" });
+    return Response.json({
+      success: true,
+      message: "Application submitted for review",
+    });
   } catch (error) {
     console.error("Onboarding POST error:", error);
     return new Response("Failed to submit application", { status: 500 });
@@ -70,11 +113,12 @@ export const PUT = async (request) => {
     if (!session?.user) return new Response("Unauthorized", { status: 401 });
 
     const body = await request.json();
-    const { phone, idType, idNumber, address, bio } = body;
-
-    if (!phone || !idType || !idNumber || !address) {
-      return new Response("Missing required fields", { status: 400 });
+    const parsed = parseApplicationBody(body);
+    if (parsed.error) {
+      return new Response(parsed.error, { status: 400 });
     }
+
+    const { phone, idType, idNumber, address, bio } = parsed.data;
 
     const user = await User.findOne({ email: session.user.email });
     if (!user) return new Response("User not found", { status: 404 });
@@ -86,7 +130,6 @@ export const PUT = async (request) => {
     const application = await HostApplication.findOne({ user: user._id });
     if (!application) return new Response("Application not found", { status: 404 });
 
-    // Update fields and reset for re-review
     application.phone = phone;
     application.idType = idType;
     application.idNumber = idNumber;
@@ -99,9 +142,12 @@ export const PUT = async (request) => {
     await application.save();
 
     user.hostStatus = "onboarding";
-    await user.save();
+    await syncUserHostAddress(user, address);
 
-    return Response.json({ success: true, message: "Application resubmitted for review" });
+    return Response.json({
+      success: true,
+      message: "Application resubmitted for review",
+    });
   } catch (error) {
     console.error("Onboarding PUT error:", error);
     return new Response("Failed to resubmit application", { status: 500 });

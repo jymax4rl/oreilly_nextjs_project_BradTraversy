@@ -61,6 +61,9 @@ export const PATCH = async (request, { params }) => {
     if (user) {
       user.hostStatus = status === "approved" ? "verified" : "rejected";
       user.role = status === "approved" ? "host" : "guest";
+      if (status === "approved" && application.address) {
+        user.hostAddress = application.address;
+      }
       await user.save();
     } else {
       console.warn(

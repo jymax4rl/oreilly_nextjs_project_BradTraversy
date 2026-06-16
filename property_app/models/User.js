@@ -1,4 +1,5 @@
 import { Schema, models, model } from "mongoose";
+import { AddressSchema } from "./AddressSchema";
 
 const UserSchema = new Schema(
   {
@@ -36,6 +37,8 @@ const UserSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    /** Verified host mailing address (synced from host application). */
+    hostAddress: AddressSchema,
   },
   {
     timestamps: true,

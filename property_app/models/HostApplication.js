@@ -1,4 +1,5 @@
 import { Schema, models, model } from "mongoose";
+import { AddressSchema } from "./AddressSchema";
 
 const HostApplicationSchema = new Schema(
   {
@@ -11,7 +12,7 @@ const HostApplicationSchema = new Schema(
     phone: { type: String, required: true },
     idType: { type: String, required: true },
     idNumber: { type: String, required: true },
-    address: { type: String, required: true },
+    address: { type: AddressSchema, required: true },
     bio: { type: String },
     status: {
       type: String,
@@ -22,7 +23,7 @@ const HostApplicationSchema = new Schema(
     reviewedBy: { type: Schema.Types.ObjectId, ref: "User" },
     rejectionReason: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const HostApplication =

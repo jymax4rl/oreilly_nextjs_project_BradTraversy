@@ -8,6 +8,8 @@ const requiredMockEnv = [
   "MONGODB_URI",
 ];
 
+const optionalEnv = ["NEXT_PUBLIC_GOOGLE_MAPS_API_KEY"];
+
 console.log("--- Environment Variable Check ---");
 requiredMockEnv.forEach((key) => {
   if (process.env[key]) {
@@ -16,6 +18,13 @@ requiredMockEnv.forEach((key) => {
     );
   } else {
     console.log(`${key}: MISSING`);
+  }
+});
+optionalEnv.forEach((key) => {
+  if (process.env[key]) {
+    console.log(`${key}: Exists`);
+  } else {
+    console.log(`${key}: not set (address autocomplete will use manual fields)`);
   }
 });
 console.log("----------------------------------");

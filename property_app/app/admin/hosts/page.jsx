@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { formatAddress } from "@/utils/address";
 
 export default function AdminHostsPage() {
   const { data: session, status } = useSession();
@@ -219,10 +220,12 @@ export default function AdminHostsPage() {
                       </div>
                     </div>
 
-                    {app.address && (
+                    {(app.address || app.user?.hostAddress) && (
                       <div className="mt-3 text-sm">
                         <span className="text-gray-500">Address:</span>{" "}
-                        <span className="font-medium">{app.address}</span>
+                        <span className="font-medium">
+                          {formatAddress(app.address || app.user?.hostAddress)}
+                        </span>
                       </div>
                     )}
                     {app.bio && (
