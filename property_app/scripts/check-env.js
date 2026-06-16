@@ -8,7 +8,13 @@ const requiredMockEnv = [
   "MONGODB_URI",
 ];
 
-const optionalEnv = ["NEXT_PUBLIC_GOOGLE_MAPS_API_KEY"];
+const optionalEnv = [
+  "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY",
+  "CLOUDINARY_CLOUD_NAME",
+  "CLOUDINARY_API_KEY",
+  "CLOUDINARY_API_SECRET",
+  "BLOB_READ_WRITE_TOKEN",
+];
 
 console.log("--- Environment Variable Check ---");
 requiredMockEnv.forEach((key) => {

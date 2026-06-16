@@ -14,6 +14,16 @@ const nextConfig = {
         hostname: "lh3.googleusercontent.com",
         pathname: "**",
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.public.blob.vercel-storage.com",
+        pathname: "**",
+      },
     ],
   },
   experimental: {

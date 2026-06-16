@@ -4,12 +4,15 @@ import { ensurePropertyAvailability } from "@/utils/availability/availabilitySer
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { computeListingPrice } from "@/utils/listingPricing";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { uploadPropertyImages } from "@/utils/uploadPropertyImages";
 
 function num(value) {
   const n = Number(value);
   return Number.isFinite(n) ? n : undefined;
+}
+
+function str(value) {
+  return typeof value === "string" ? value.trim() : "";
 }
 
 export const POST = async (request) => {
@@ -17,22 +20,55 @@ export const POST = async (request) => {
     await connectToDatabase();
 
     const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return new Response("Unauthorized", { status: 401 });
+    if (!session?.user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (session.user.hostStatus !== "verified") {
-      return new Response(
-        "Access denied. Only verified hosts can list properties.",
+      return Response.json(
+        { error: "Only verified hosts can list properties." },
         { status: 403 },
       );
     }
 
     const formData = await request.formData();
     const amenities = formData.getAll("amenities");
-    const images = formData
+    const imageFiles = formData
       .getAll("images")
-      .filter((image) => image.name !== "");
+      .filter((image) => image?.name && image.size > 0);
+
+    const type = str(formData.get("type"));
+    const name = str(formData.get("name"));
+    const street = str(formData.get("location.street"));
+    const city = str(formData.get("location.city"));
+    const country = str(formData.get("location.country"));
+    const beds = num(formData.get("beds"));
+    const baths = num(formData.get("baths"));
+
+    if (!type) {
+      return Response.json({ error: "Property type is required." }, { status: 400 });
+    }
+    if (!name) {
+      return Response.json({ error: "Listing title is required." }, { status: 400 });
+    }
+    if (!street || !city || !country) {
+      return Response.json(
+        { error: "A complete address (street, city, country) is required." },
+        { status: 400 },
+      );
+    }
+    if (!beds || !baths) {
+      return Response.json(
+        { error: "Beds and bathrooms are required." },
+        { status: 400 },
+      );
+    }
+    if (imageFiles.length === 0) {
+      return Response.json(
+        { error: "At least one photo is required." },
+        { status: 400 },
+      );
+    }
 
     const rates = {
       nightly: num(formData.get("rates.nightly")),
@@ -41,83 +77,77 @@ export const POST = async (request) => {
       weekendPremium: num(formData.get("rates.weekendPremium")) || 0,
     };
 
+    if (!rates.nightly || rates.nightly <= 0) {
+      return Response.json(
+        { error: "A valid nightly price is required." },
+        { status: 400 },
+      );
+    }
+
     const lat = num(formData.get("location.lat"));
     const lng = num(formData.get("location.lng"));
 
+    const imageUrls = await uploadPropertyImages(imageFiles);
+
     const propertyData = {
-      type: formData.get("type"),
-      name: formData.get("name"),
-      description: formData.get("description"),
+      type,
+      name,
+      description: str(formData.get("description")),
       location: {
-        street: formData.get("location.street"),
-        streetLine2: formData.get("location.streetLine2") || undefined,
-        city: formData.get("location.city"),
-        state: formData.get("location.state") || undefined,
-        zipcode: formData.get("location.zipcode") || undefined,
-        country: formData.get("location.country") || undefined,
-        formatted: formData.get("location.formatted") || undefined,
-        placeId: formData.get("location.placeId") || undefined,
+        street,
+        streetLine2: str(formData.get("location.streetLine2")) || undefined,
+        city,
+        state: str(formData.get("location.state")) || undefined,
+        zipcode: str(formData.get("location.zipcode")) || undefined,
+        country,
+        formatted:
+          str(formData.get("location.formatted")) ||
+          [street, city, country].filter(Boolean).join(", "),
+        placeId: str(formData.get("location.placeId")) || undefined,
         lat,
         lng,
         showExactLocation:
           formData.get("location.showExactLocation") === "true",
       },
       listing: {
-        privacyType: formData.get("listing.privacyType") || "entire_place",
+        privacyType: str(formData.get("listing.privacyType")) || "entire_place",
         maxGuests: num(formData.get("listing.maxGuests")) || 2,
         bedroomHasLock: formData.get("listing.bedroomHasLock") === "true",
       },
-      beds: num(formData.get("beds")),
-      baths: num(formData.get("baths")),
+      beds,
+      baths,
       square_feet: num(formData.get("square_feet")) || 500,
       amenities,
       rates,
       listingPrice: computeListingPrice(rates),
       seller_info: {
-        name: formData.get("seller_info.name"),
-        email: formData.get("seller_info.email"),
-        phone: formData.get("seller_info.phone"),
+        name: str(formData.get("seller_info.name")) || session.user.name || "",
+        email:
+          str(formData.get("seller_info.email")) || session.user.email || "",
+        phone: str(formData.get("seller_info.phone")),
       },
       owner: session.user.id,
+      images: imageUrls,
     };
-
-    const imageDir = path.join(process.cwd(), "public/images/properties");
-    await mkdir(imageDir, { recursive: true });
-
-    const imageUrls = [];
-    for (const image of images) {
-      const byteData = await image.arrayBuffer();
-      const buffer = Buffer.from(byteData);
-      const filename = Date.now() + "_" + image.name.replace(/\s/g, "_");
-      const filePath = path.join(imageDir, filename);
-      await writeFile(filePath, buffer);
-      imageUrls.push(filename);
-    }
-
-    propertyData.images = imageUrls;
-
-    const audioFile = formData.get("audio");
-    if (audioFile && audioFile.size > 0 && audioFile.name !== "undefined") {
-      const audioDir = path.join(process.cwd(), "public/audio/properties");
-      await mkdir(audioDir, { recursive: true });
-      const audioByteData = await audioFile.arrayBuffer();
-      const audioBuffer = Buffer.from(audioByteData);
-      const audioFilename =
-        Date.now() + "_" + audioFile.name.replace(/\s/g, "_");
-      await writeFile(path.join(audioDir, audioFilename), audioBuffer);
-      propertyData.audio = audioFilename;
-    }
 
     const newProperty = new Property(propertyData);
     await newProperty.save();
 
-    await ensurePropertyAvailability(newProperty._id.toString());
+    try {
+      await ensurePropertyAvailability(newProperty._id.toString());
+    } catch (availabilityError) {
+      console.error("Availability init warning:", availabilityError);
+    }
 
-    return Response.redirect(
-      new URL(`/properties/${newProperty._id}`, request.url),
-    );
+    return Response.json({
+      success: true,
+      id: newProperty._id.toString(),
+      redirectUrl: `/properties/${newProperty._id}`,
+    });
   } catch (error) {
     console.error("Failed to add property", error);
-    return new Response("Failed to add property", { status: 500 });
+    const message =
+      error?.message || "Failed to add property. Please try again.";
+    return Response.json({ error: message }, { status: 500 });
   }
 };

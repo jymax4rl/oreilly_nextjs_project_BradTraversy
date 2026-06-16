@@ -190,16 +190,15 @@ export default function ListingWizard() {
       const res = await fetch("/api/properties", {
         method: "POST",
         body: formData,
-        redirect: "follow",
       });
 
+      const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Failed to create listing");
+        throw new Error(payload.error || "Failed to create listing");
       }
 
-      if (res.redirected) {
-        window.location.href = res.url;
+      if (payload.redirectUrl) {
+        router.push(payload.redirectUrl);
         return;
       }
 

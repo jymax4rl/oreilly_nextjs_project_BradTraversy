@@ -4,8 +4,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, LayoutGrid, X } from "lucide-react";
 
+import { propertyImageUrl } from "@/utils/propertyImageUrl";
+
 function imageSrc(filename) {
-  return `/properties/${filename || "default.jpg"}`;
+  return propertyImageUrl(filename);
 }
 
 function GalleryOpenButton({ count, onClick, className = "" }) {

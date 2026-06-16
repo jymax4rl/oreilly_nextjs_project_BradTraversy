@@ -1,4 +1,5 @@
 import React from "react";
+import { propertyImageUrl } from "@/utils/propertyImageUrl";
 
 function stripHtml(html = "") {
   return String(html).replace(/<\/?[^>]+(>|$)/g, "");
@@ -29,12 +30,10 @@ export default function ServerProperty({ property, canonicalUrl }) {
     process.env.NEXT_PUBLIC_SITE_URL || "https://www.isisel.com"
   ).replace(/\/$/, "");
 
-  const rawImagePath = property.images?.[0] || "/properties/default.jpg";
-  const localImagePath = rawImagePath.startsWith("/")
-    ? rawImagePath
-    : `/images/properties/${rawImagePath}`;
-  const absoluteImageUrl = rawImagePath.startsWith("http")
-    ? rawImagePath
+  const rawImagePath = property.images?.[0];
+  const localImagePath = propertyImageUrl(rawImagePath || null);
+  const absoluteImageUrl = localImagePath.startsWith("http")
+    ? localImagePath
     : `${siteUrl}${localImagePath}`;
 
   const raw = stripHtml(property.description || "");

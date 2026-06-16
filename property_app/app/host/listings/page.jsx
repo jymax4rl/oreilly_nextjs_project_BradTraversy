@@ -3,6 +3,7 @@ import { authOptions } from "@/utils/authOptions";
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
 import Link from "next/link";
+import { propertyImageUrl } from "@/utils/propertyImageUrl";
 import { redirect } from "next/navigation";
 import { Building2, PlusCircle, MapPin, BedDouble, Bath, Eye, Clock, CheckCircle, XCircle } from "lucide-react";
 
@@ -115,7 +116,7 @@ export default async function HostListingsPage() {
                     {image ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={`/images/properties/${image}`}
+                        src={propertyImageUrl(image)}
                         alt={property.name}
                         className="w-full h-full object-cover"
                         onError={(e) => { e.target.style.display = "none"; }}

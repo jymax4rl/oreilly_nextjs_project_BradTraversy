@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Bed, Bath, Ruler, MapPin, Heart } from "lucide-react";
 import { formatCurrency } from "../utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
-import MobileMoneyBadge from "@/components/MobileMoneyBadge";
+import { propertyImageUrl } from "@/utils/propertyImageUrl";
 import { useSession } from "next-auth/react";
 
 const PropertyCard = ({ property, isSaved = false }) => {
@@ -28,7 +28,7 @@ const PropertyCard = ({ property, isSaved = false }) => {
   const [isLiked, setIsLiked] = useState(isSaved);
   const [isLoading, setIsLoading] = useState(false);
 
-  const mainImage = `/properties/${images?.[1] || images?.[0] || "default.jpg"}`;
+  const mainImage = propertyImageUrl(images?.[0] || images?.[1]);
 
   const getDisplayPrice = (ratesObj) => {
     if (!ratesObj) return { price: "N/A", label: "" };
