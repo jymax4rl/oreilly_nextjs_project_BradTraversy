@@ -13,7 +13,7 @@ export const POST = async () => {
       return new Response("Unauthorized", { status: 401 });
     }
 
-    if (session.user.role !== "host") {
+    if (session.user.hostStatus !== "verified") {
       return new Response("Forbidden", { status: 403 });
     }
 

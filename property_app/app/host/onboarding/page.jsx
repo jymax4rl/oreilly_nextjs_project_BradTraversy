@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { needsHostWelcome } from "@/utils/hostWelcomeOnboarding";
 
 export default function HostOnboardingPage() {
   const { data: session, update } = useSession();
@@ -93,7 +94,9 @@ export default function HostOnboardingPage() {
   }
 
   if (session.user.hostStatus === "verified") {
-    router.push("/properties/add");
+    router.push(
+      needsHostWelcome(session.user) ? "/onboarding" : "/properties/add",
+    );
     return null;
   }
 

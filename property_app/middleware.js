@@ -7,6 +7,13 @@ const signInUrl = (req, callbackUrl) => {
   return u;
 };
 
+function needsWelcome(token) {
+  return (
+    token?.hostStatus === "verified" &&
+    token.hasCompletedHostOnboarding !== true
+  );
+}
+
 export async function middleware(req) {
   const token = await getToken({
     req,
@@ -28,6 +35,9 @@ export async function middleware(req) {
     if (token.hostStatus !== "verified") {
       return NextResponse.redirect(new URL("/host/onboarding", req.url));
     }
+    if (needsWelcome(token)) {
+      return NextResponse.redirect(new URL("/onboarding", req.url));
+    }
     return NextResponse.next();
   }
 
@@ -36,16 +46,16 @@ export async function middleware(req) {
       return NextResponse.redirect(signInUrl(req, pathname));
     }
     if (pathname === "/host/onboarding" && token.hostStatus === "verified") {
+      if (needsWelcome(token)) {
+        return NextResponse.redirect(new URL("/onboarding", req.url));
+      }
       return NextResponse.redirect(new URL("/properties/add", req.url));
     }
     return NextResponse.next();
   }
 
   if (pathname === "/") {
-    if (
-      token?.role === "host" &&
-      token.hasCompletedHostOnboarding !== true
-    ) {
+    if (needsWelcome(token)) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }
     return NextResponse.next();
@@ -55,7 +65,7 @@ export async function middleware(req) {
     if (!token) {
       return NextResponse.redirect(new URL("/", req.url));
     }
-    if (token.role !== "host") {
+    if (token.hostStatus !== "verified") {
       return NextResponse.redirect(new URL("/", req.url));
     }
     if (token.hasCompletedHostOnboarding === true) {
