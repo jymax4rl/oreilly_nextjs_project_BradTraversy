@@ -1,6 +1,14 @@
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
+import User from "@/models/User";
 import { ensurePropertyAvailability } from "@/utils/availability/availabilityService";
+import { isCloudinaryConfigured } from "@/utils/cloudinary/cloudinary";
+import {
+  hostRootFolder,
+  propertyFolder,
+  propertyImagesFolder,
+} from "@/utils/cloudinary/generateFolderPath";
+import { uploadPropertyImage } from "@/utils/cloudinary/uploadPropertyMedia";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { computeListingPrice } from "@/utils/listingPricing";
@@ -86,8 +94,7 @@ export const POST = async (request) => {
 
     const lat = num(formData.get("location.lat"));
     const lng = num(formData.get("location.lng"));
-
-    const imageUrls = await uploadPropertyImages(imageFiles);
+    const hostId = String(session.user.id);
 
     const propertyData = {
       type,
@@ -126,12 +133,50 @@ export const POST = async (request) => {
           str(formData.get("seller_info.email")) || session.user.email || "",
         phone: str(formData.get("seller_info.phone")),
       },
-      owner: session.user.id,
-      images: imageUrls,
+      owner: hostId,
     };
 
     const newProperty = new Property(propertyData);
     await newProperty.save();
+
+    const propertyId = newProperty._id.toString();
+    let images = [];
+
+    if (isCloudinaryConfigured()) {
+      const imageEntries = [];
+      for (const image of imageFiles) {
+        const byteData = await image.arrayBuffer();
+        const buffer = Buffer.from(byteData);
+        const entry = await uploadPropertyImage({
+          buffer,
+          filename: image.name,
+          hostId,
+          propertyId,
+        });
+        imageEntries.push(entry);
+      }
+      images = imageEntries;
+
+      await Property.findByIdAndUpdate(propertyId, {
+        $set: {
+          images: imageEntries,
+          cloudinaryFolder: propertyFolder(hostId, propertyId),
+          cloudinaryImagesFolder: propertyImagesFolder(hostId, propertyId),
+          cloudinaryMigrationStatus: "completed",
+        },
+      });
+
+      await User.findByIdAndUpdate(hostId, {
+        $set: { cloudinaryRootFolder: hostRootFolder(hostId) },
+      }).catch(() => {});
+    } else {
+      images = await uploadPropertyImages(imageFiles);
+      if (images.length > 0) {
+        await Property.findByIdAndUpdate(propertyId, { $set: { images } });
+      }
+    }
+
+    newProperty.images = images;
 
     try {
       await ensurePropertyAvailability(newProperty._id.toString());
