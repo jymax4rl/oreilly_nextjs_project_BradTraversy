@@ -6,6 +6,7 @@ import { Bed, Bath, Ruler, MapPin, Heart } from "lucide-react";
 import { formatCurrency } from "../utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { propertyCardImageUrl } from "@/utils/propertyImageUrl";
+import MobileMoneyBadge from "@/components/MobileMoneyBadge";
 import { useSession } from "next-auth/react";
 
 const PropertyCard = ({ property, isSaved = false }) => {
