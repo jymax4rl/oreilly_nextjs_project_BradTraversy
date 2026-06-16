@@ -1,8 +1,10 @@
 import React from "react";
 import Hero from "@/components/Hero";
 import InfoBoxes from "@/components/InfoBoxes";
-import HomeProperties from "@/components/HomeProperties";
 import PropertiesPage from "./properties/page";
+
+export const dynamic = "force-dynamic";
+
 const HomePage = () => {
   return (
     <div className="m-0 p-0  ">

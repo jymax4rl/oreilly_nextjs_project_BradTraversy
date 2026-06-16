@@ -4,11 +4,25 @@ import Property from "@/models/Property";
 import connectToDatabase from "@/config/database";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 
+export const dynamic = "force-dynamic";
+
 const PropertiesPage = async ({ searchParams }) => {
   // Next.js 15+: searchParams is a Promise
   const params = await searchParams;
   const locationQuery = params?.location?.trim();
   const typeQuery = params?.type;
+
+  if (!process.env.MONGODB_URI) {
+    return (
+      <div className="min-h-screen min-w-full overflow-x-hidden md:pt-[10vh]">
+        <HomeProperties
+          initialProperties={[]}
+          searchQuery={locationQuery || ""}
+          typeFilter={typeQuery || ""}
+        />
+      </div>
+    );
+  }
 
   await connectToDatabase();
 

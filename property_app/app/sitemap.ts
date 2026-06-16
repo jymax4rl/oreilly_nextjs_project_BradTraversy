@@ -28,22 +28,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Dynamic property pages — only approved listings
-  await connectToDatabase();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const properties = await (Property as any)
-    .find({ status: "approved" })
-    .select("_id updatedAt")
-    .lean() as Array<{ _id: { toString(): string }; updatedAt?: Date }>;
+  // Dynamic property pages — only when database is available at build/runtime
+  let propertyRoutes: MetadataRoute.Sitemap = [];
+  if (process.env.MONGODB_URI) {
+    try {
+      await connectToDatabase();
+      const properties = (await (Property as any)
+        .find({ status: "approved" })
+        .select("_id updatedAt")
+        .lean()) as Array<{ _id: { toString(): string }; updatedAt?: Date }>;
 
-  const propertyRoutes = properties.map((property) => ({
-    url: `${baseUrl}/properties/${property._id.toString()}`,
-    lastModified: property.updatedAt
-      ? new Date(property.updatedAt)
-      : new Date(),
-    changeFrequency: "weekly" as const,
-    priority: 0.8,
-  }));
+      propertyRoutes = properties.map((property) => ({
+        url: `${baseUrl}/properties/${property._id.toString()}`,
+        lastModified: property.updatedAt
+          ? new Date(property.updatedAt)
+          : new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.8,
+      }));
+    } catch (error) {
+      console.error("sitemap: failed to load properties", error);
+    }
+  }
 
   return [...staticRoutes, ...propertyRoutes];
 }
