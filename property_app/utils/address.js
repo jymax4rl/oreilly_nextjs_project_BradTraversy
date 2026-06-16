@@ -1,3 +1,5 @@
+import { loadGoogleMapsApi } from "@/utils/googleMaps";
+
 const COMPONENT_TYPES = {
   streetNumber: "street_number",
   route: "route",
@@ -151,38 +153,7 @@ export function isAddressComplete(address) {
   return Boolean(normalized?.streetLine1 && normalized?.city && normalized?.country);
 }
 
-let mapsLoaderPromise = null;
-
-/** Load Google Maps JS (Places) once in the browser. */
+/** @deprecated Use loadGoogleMapsApi from @/utils/googleMaps */
 export function loadGoogleMapsPlaces() {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  if (!apiKey) {
-    return Promise.reject(new Error("Google Maps API key is not configured"));
-  }
-
-  if (typeof window !== "undefined" && window.google?.maps?.places) {
-    return Promise.resolve(window.google);
-  }
-
-  if (!mapsLoaderPromise) {
-    mapsLoaderPromise = new Promise((resolve, reject) => {
-      const existing = document.querySelector('script[data-google-maps="true"]');
-      if (existing) {
-        existing.addEventListener("load", () => resolve(window.google));
-        existing.addEventListener("error", reject);
-        return;
-      }
-
-      const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
-      script.async = true;
-      script.defer = true;
-      script.dataset.googleMaps = "true";
-      script.onload = () => resolve(window.google);
-      script.onerror = () => reject(new Error("Failed to load Google Maps"));
-      document.head.appendChild(script);
-    });
-  }
-
-  return mapsLoaderPromise;
+  return loadGoogleMapsApi(["places"]);
 }

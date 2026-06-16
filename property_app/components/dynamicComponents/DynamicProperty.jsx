@@ -3,6 +3,8 @@ import React from "react";
 import RightColumn from "./RightColumn";
 import PropertyImageGallery from "@/components/PropertyImageGallery";
 import PropertyDetails from "./PropertyDetails";
+import PropertyLocationMap from "@/components/maps/PropertyLocationMap";
+import { formatLocationLine } from "@/utils/listingPricing";
 import { MapPin, Star } from "lucide-react";
 
 export default function DynamicProperty({ property }) {
@@ -31,8 +33,7 @@ export default function DynamicProperty({ property }) {
           <div className="flex items-start gap-2 text-sm text-slate-500">
             <MapPin size={16} className="mt-0.5 shrink-0" aria-hidden />
             <span className="min-w-0 break-words">
-              {data.location.street}, {data.location.city},{" "}
-              {data.location.country}
+              {formatLocationLine(data.location)}
             </span>
           </div>
         </header>
@@ -41,7 +42,8 @@ export default function DynamicProperty({ property }) {
           <div className="order-1 min-w-0 lg:order-2 lg:col-span-1">
             <RightColumn data={data} />
           </div>
-          <div className="order-2 min-w-0 lg:order-1 lg:col-span-2">
+          <div className="order-2 min-w-0 space-y-8 lg:order-1 lg:col-span-2">
+            <PropertyLocationMap location={data.location} />
             <PropertyDetails data={data} />
           </div>
         </div>

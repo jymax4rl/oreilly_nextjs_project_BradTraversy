@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { redirect } from "next/navigation";
-import PropertyAddForm from "@/components/PropertyAddForm";
+import ListingWizard from "@/components/listing/ListingWizard";
 import { needsHostWelcome } from "@/utils/hostWelcomeOnboarding";
 
 export const metadata = {
@@ -23,5 +23,5 @@ export default async function AddPropertyPage() {
     redirect("/onboarding");
   }
 
-  return <PropertyAddForm />;
+  return <ListingWizard />;
 }

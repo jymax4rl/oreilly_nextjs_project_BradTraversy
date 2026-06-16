@@ -24,6 +24,8 @@ const PropertySearch = () => {
   const [propertyType, setPropertyType] = useState(
     searchParams.get("type") || "All Properties",
   );
+  const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
+  const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
@@ -46,6 +48,8 @@ const PropertySearch = () => {
     if (propertyType && propertyType !== "All Properties") {
       params.set("type", propertyType);
     }
+    if (minPrice.trim()) params.set("minPrice", minPrice.trim());
+    if (maxPrice.trim()) params.set("maxPrice", maxPrice.trim());
     const queryString = params.toString();
     router.push(`/properties${queryString ? `?${queryString}` : ""}`);
 
@@ -56,10 +60,16 @@ const PropertySearch = () => {
   const clearSearch = () => {
     setLocation("");
     setPropertyType("All Properties");
+    setMinPrice("");
+    setMaxPrice("");
     inputRef.current?.focus();
   };
 
-  const hasActiveFilters = location.trim() || propertyType !== "All Properties";
+  const hasActiveFilters =
+    location.trim() ||
+    propertyType !== "All Properties" ||
+    minPrice.trim() ||
+    maxPrice.trim();
 
   return (
     <section className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-[12vh] mb-12">
@@ -130,6 +140,26 @@ const PropertySearch = () => {
             )}
           </div>
 
+          {/* Price range */}
+          <div className="w-full md:flex-[1.2] grid grid-cols-2 gap-2">
+            <input
+              type="number"
+              min={0}
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              placeholder="Min $/night"
+              className="w-full py-4 px-4 rounded-2xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all shadow-sm"
+            />
+            <input
+              type="number"
+              min={0}
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              placeholder="Max $/night"
+              className="w-full py-4 px-4 rounded-2xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all shadow-sm"
+            />
+          </div>
+
           {/* Search Button */}
           <button
             type="submit"
@@ -152,6 +182,11 @@ const PropertySearch = () => {
             {propertyType !== "All Properties" && (
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">
                 <Home className="h-3 w-3" /> {propertyType}
+              </span>
+            )}
+            {(minPrice.trim() || maxPrice.trim()) && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">
+                ${minPrice || "0"} – ${maxPrice || "∞"} / night
               </span>
             )}
             <button

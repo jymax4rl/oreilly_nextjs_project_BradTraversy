@@ -11,6 +11,8 @@ const PropertiesPage = async ({ searchParams }) => {
   const params = await searchParams;
   const locationQuery = params?.location?.trim();
   const typeQuery = params?.type;
+  const minPrice = params?.minPrice ? Number(params.minPrice) : null;
+  const maxPrice = params?.maxPrice ? Number(params.maxPrice) : null;
 
   if (!process.env.MONGODB_URI) {
     return (
@@ -19,6 +21,8 @@ const PropertiesPage = async ({ searchParams }) => {
           initialProperties={[]}
           searchQuery={locationQuery || ""}
           typeFilter={typeQuery || ""}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
         />
       </div>
     );
@@ -46,8 +50,30 @@ const PropertiesPage = async ({ searchParams }) => {
     mongoQuery.type = { $regex: new RegExp(typeQuery, "i") };
   }
 
+  if (minPrice != null || maxPrice != null) {
+    const priceCond = {};
+    if (minPrice != null && !Number.isNaN(minPrice)) priceCond.$gte = minPrice;
+    if (maxPrice != null && !Number.isNaN(maxPrice)) priceCond.$lte = maxPrice;
+
+    if (Object.keys(priceCond).length) {
+      mongoQuery.$and = mongoQuery.$and || [];
+      mongoQuery.$and.push({
+        $or: [
+          { listingPrice: priceCond },
+          {
+            listingPrice: { $exists: false },
+            "rates.nightly": priceCond,
+          },
+        ],
+      });
+    }
+  }
+
   const hasFilters =
-    locationQuery || (typeQuery && typeQuery !== "All Properties");
+    locationQuery ||
+    (typeQuery && typeQuery !== "All Properties") ||
+    minPrice != null ||
+    maxPrice != null;
   if (!hasFilters) {
     mongoQuery.is_featured = false;
   }
@@ -59,10 +85,12 @@ const PropertiesPage = async ({ searchParams }) => {
   return (
     <div className="min-h-screen min-w-full overflow-x-hidden md:pt-[10vh]">
       <HomeProperties
-        key={`${locationQuery || "all"}-${typeQuery || "all"}`}
+        key={`${locationQuery || "all"}-${typeQuery || "all"}-${minPrice ?? ""}-${maxPrice ?? ""}`}
         initialProperties={serializedProperties}
         searchQuery={locationQuery || ""}
         typeFilter={typeQuery || ""}
+        minPrice={minPrice}
+        maxPrice={maxPrice}
       />
     </div>
   );
