@@ -6,6 +6,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Building2, PlusCircle, MapPin, BedDouble, Bath, Eye, Clock, CheckCircle, XCircle } from "lucide-react";
 import { resolvePropertyImageEntry } from "@/utils/cloudinary/propertyMediaUrls";
+import HostListingThumbnail from "@/components/HostListingThumbnail";
 
 export const metadata = {
   title: "My Listings | Kama Properties",
@@ -111,21 +112,9 @@ export default async function HostListingsPage() {
                   key={property._id}
                   className="flex flex-col sm:flex-row gap-4 rounded-2xl border border-gray-200 bg-white p-4 hover:shadow-md transition"
                 >
-                  {/* Thumbnail */}
+                  {/* Thumbnail — client component owns onError (RSC cannot pass handlers) */}
                   <div className="shrink-0 w-full sm:w-32 h-40 sm:h-28 rounded-xl overflow-hidden bg-gray-100">
-                    {imageSrc ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={imageSrc}
-                        alt={property.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => { e.target.style.display = "none"; }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Building2 className="h-8 w-8 text-gray-300" />
-                      </div>
-                    )}
+                    <HostListingThumbnail src={imageSrc} alt={property.name} />
                   </div>
 
                   {/* Info */}
