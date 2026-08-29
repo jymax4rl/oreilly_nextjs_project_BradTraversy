@@ -67,6 +67,13 @@ function MainLayout({ children }) {
                   <MobileTopChromeGate />
                   <MainShell>{children}</MainShell>
                   <MobileBottomNavGate />
+                  {/* Footer is desktop-only; keep deploy marker visible on mobile too */}
+                  <span
+                    aria-hidden="true"
+                    className="lg:hidden fixed bottom-20 right-3 z-50 border border-zinc-400 rounded px-2 py-0.5 text-xs text-zinc-700 bg-white/95 shadow-sm"
+                  >
+                    Deploy check · Aug 29
+                  </span>
                   <Footer className="hidden lg:block" />
                 </body>
               </html>
