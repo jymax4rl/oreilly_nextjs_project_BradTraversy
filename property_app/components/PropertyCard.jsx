@@ -30,11 +30,19 @@ const PropertyCard = ({ property, isSaved = false, hostListingsView = false }) =
   const [isLiked, setIsLiked] = useState(isSaved);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [imageSrc, setImageSrc] = useState(() => propertyCardImageSrc(images));
+  const safeCardImageSrc = (value) => {
+    const src = typeof value === "string" ? value.trim() : "";
+    if (!src || src.includes("[object Object]")) return "/properties/a1.jpg";
+    return src;
+  };
+
+  const [imageSrc, setImageSrc] = useState(() =>
+    safeCardImageSrc(propertyCardImageSrc(images)),
+  );
 
   // Keep card image in sync when list data changes; fall back if next/image rejects src
   useEffect(() => {
-    setImageSrc(propertyCardImageSrc(images));
+    setImageSrc(safeCardImageSrc(propertyCardImageSrc(images)));
   }, [images]);
 
   const normalizedPropertyRates = normalizeRates(propertyRates);
@@ -235,3 +243,4 @@ const PropertyCard = ({ property, isSaved = false, hostListingsView = false }) =
 };
 
 export default PropertyCard;
+

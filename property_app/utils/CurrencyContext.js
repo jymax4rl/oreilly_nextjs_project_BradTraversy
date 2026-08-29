@@ -4,12 +4,20 @@ import { fetchExchangeRates } from "./currencyUtils";
 
 const STORAGE_KEY = "kama_currency_code";
 
-const CurrencyContext = createContext();
+const DEFAULT_RATES = { USD: 1 };
+
+const CurrencyContext = createContext({
+  currencyCode: "USD",
+  setCurrencyCode: () => {},
+  rates: DEFAULT_RATES,
+  loading: false,
+});
 
 export const CurrencyProvider = ({ children }) => {
   const [currencyCode, setCurrencyCodeState] = useState("USD");
-  const [rates, setRates] = useState({});
-  const [loading, setLoading] = useState(true);
+  // Start with USD=1 so listing grids can SSR/hydrate immediately; live rates refresh in background.
+  const [rates, setRates] = useState(DEFAULT_RATES);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     try {
@@ -35,7 +43,9 @@ export const CurrencyProvider = ({ children }) => {
       setLoading(true);
       try {
         const fetchedRates = await fetchExchangeRates();
-        setRates(fetchedRates || {});
+        if (fetchedRates && typeof fetchedRates === "object") {
+          setRates({ ...DEFAULT_RATES, ...fetchedRates });
+        }
       } catch (error) {
         console.error("Failed to load rates", error);
       } finally {
@@ -55,4 +65,14 @@ export const CurrencyProvider = ({ children }) => {
   );
 };
 
-export const useCurrency = () => useContext(CurrencyContext);
+export const useCurrency = () => {
+  const ctx = useContext(CurrencyContext);
+  return (
+    ctx || {
+      currencyCode: "USD",
+      setCurrencyCode: () => {},
+      rates: DEFAULT_RATES,
+      loading: false,
+    }
+  );
+};

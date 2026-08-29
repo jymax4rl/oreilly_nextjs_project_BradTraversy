@@ -16,9 +16,9 @@ function isChunkLoadError(error) {
 }
 
 /**
- * Segment error UI (replaces page children; layout/nav stay mounted).
- * Auto-reloads once on deploy/chunk skew; otherwise surfaces a clean recovery UI
- * and logs the real exception for DevTools.
+ * Segment error UI. Prefer fixing root throws so this rarely appears.
+ * Chunk skew after deploy: one automatic reload. Otherwise log + recover without
+ * wiping the shell (layout/nav stay mounted).
  */
 export default function Error({ error, reset }) {
   useEffect(() => {
@@ -47,15 +47,15 @@ export default function Error({ error, reset }) {
   }
 
   return (
-    <div className="flex min-h-[50vh] flex-col items-center justify-center px-6 py-16 text-center">
-      <h2 className="text-2xl font-semibold tracking-tight text-zinc-900">
+    <div className="flex min-h-[40vh] flex-col items-center justify-center px-6 py-12 text-center">
+      <h2 className="text-xl font-semibold tracking-tight text-zinc-900">
         Something went wrong
       </h2>
       <p className="mt-3 max-w-md text-sm font-semibold leading-relaxed text-zinc-600">
-        The page hit an unexpected error. Try again — if you just deployed, a
-        hard refresh may be needed to load the latest version.
+        A client-side error interrupted this view. Your listing data may still be
+        fine — try again or reload. Check the browser console for details.
       </p>
-      {process.env.NODE_ENV === "development" && error?.message ? (
+      {error?.message ? (
         <pre className="mt-4 max-w-lg overflow-auto rounded-lg bg-zinc-100 p-3 text-left text-xs text-red-700">
           {error.message}
         </pre>

@@ -6,6 +6,14 @@
 /** Brad Traversy course assets are served from /public/properties */
 const DEFAULT_IMAGE = "/properties/a1.jpg";
 
+function asSafeImageSrc(value) {
+  if (typeof value !== "string") return null;
+  const src = value.trim();
+  if (!src || src.includes("[object Object]")) return null;
+  return src;
+}
+
+
 function isHttpUrl(value) {
   return /^https?:\/\//i.test(String(value || ""));
 }
@@ -85,8 +93,8 @@ export function propertyCardImageSrc(images) {
   const preferred =
     images.length > 1 ? resolvePropertyImageEntry(images[1]) : null;
   return (
-    preferred ||
-    resolvePropertyImageEntry(images[0]) ||
+    asSafeImageSrc(preferred) ||
+    asSafeImageSrc(resolvePropertyImageEntry(images[0])) ||
     DEFAULT_IMAGE
   );
 }
@@ -118,3 +126,4 @@ export function propertyImageAbsoluteFromImages(images, appUrlFn) {
   if (isHttpUrl(src)) return src;
   return appUrlFn(src.startsWith("/") ? src : `/properties/${src}`);
 }
+
