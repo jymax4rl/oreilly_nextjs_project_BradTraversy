@@ -51,7 +51,7 @@ export default function Error({ error, reset }) {
       <h2 className="text-2xl font-semibold tracking-tight text-zinc-900">
         Something went wrong
       </h2>
-      <p className="mt-3 max-w-md text-sm leading-relaxed text-zinc-600">
+      <p className="mt-3 max-w-md text-sm font-semibold leading-relaxed text-zinc-600">
         The page hit an unexpected error. Try again — if you just deployed, a
         hard refresh may be needed to load the latest version.
       </p>
