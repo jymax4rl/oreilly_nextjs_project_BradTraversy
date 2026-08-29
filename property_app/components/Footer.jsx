@@ -79,9 +79,14 @@ const Footer = ({ className = "" }) => {
               <FaFacebook />
             </a>
           </div>
-          <p className="text-sm hover:text-white transition-colors cursor-pointer ">
-            © {currentYear} Kama Properties Inc.
-          </p>
+          <div className="flex flex-col items-end gap-2 md:flex-row md:items-center md:gap-3">
+            <span className="border border-zinc-300 rounded px-2 py-0.5 text-xs text-zinc-300">
+              Deploy check · Aug 29
+            </span>
+            <p className="text-sm hover:text-white transition-colors cursor-pointer ">
+              © {currentYear} Kama Properties Inc.
+            </p>
+          </div>
         </div>
 
         {/* Giant Footer Title (Modern Trend) */}
