@@ -3,6 +3,7 @@ import HomeProperties from "@/components/HomeProperties";
 import Property from "@/models/Property";
 import connectToDatabase from "@/config/database";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
+import { filterDemoQualityListings } from "@/utils/listingPublicQuality";
 
 const PropertiesPage = async ({ searchParams }) => {
   // Next.js 15+: searchParams is a Promise
@@ -40,8 +41,11 @@ const PropertiesPage = async ({ searchParams }) => {
 
   const properties = await Property.find(mongoQuery).lean();
 
+  // Public browse only: hide thin/junk imagery; hosts still see all in my-listings.
+  const publicProperties = filterDemoQualityListings(properties);
+
   const serializedProperties = [];
-  for (const property of properties) {
+  for (const property of publicProperties) {
     try {
       serializedProperties.push(serializePropertyForClient(property));
     } catch (err) {
