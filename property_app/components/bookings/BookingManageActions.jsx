@@ -106,11 +106,11 @@ export default function BookingManageActions({ booking }) {
         )}
       </div>
 
-      {error && (
+      {error ? (
         <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
-          {error}
+          {typeof error === "string" ? error : "Something went wrong"}
         </p>
-      )}
+      ) : null}
 
       {showModify && (
         <div className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">

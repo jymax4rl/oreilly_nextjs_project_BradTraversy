@@ -294,11 +294,16 @@ function RightColumn({ data }) {
               </p>
             )}
 
-            {dateError && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-center text-sm text-red-700">
-                {dateError}
+            {dateError ? (
+              <p
+                className="rounded-lg bg-red-50 px-3 py-2 text-center text-sm text-red-700"
+                role="alert"
+              >
+                {typeof dateError === "string"
+                  ? dateError
+                  : "Please choose valid dates."}
               </p>
-            )}
+            ) : null}
 
             {paymentNotice && (
               <div

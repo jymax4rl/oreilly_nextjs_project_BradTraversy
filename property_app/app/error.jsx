@@ -57,7 +57,9 @@ export default function Error({ error, reset }) {
       </p>
       {error?.message ? (
         <pre className="mt-4 max-w-lg overflow-auto rounded-lg bg-zinc-100 p-3 text-left text-xs text-red-700">
-          {error.message}
+          {typeof error.message === "string"
+            ? error.message
+            : "Unexpected client error (see console)"}
         </pre>
       ) : null}
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

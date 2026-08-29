@@ -9,6 +9,7 @@ import { useCurrency } from "@/utils/CurrencyContext";
 import MobileMoneyBadge from "@/components/MobileMoneyBadge";
 import { useSession } from "next-auth/react";
 import { propertyCardImageSrc } from "@/utils/cloudinary/propertyMediaUrls";
+import { toReactText } from "@/utils/toReactText";
 
 const PropertyCard = ({ property, isSaved = false, hostListingsView = false }) => {
   const { data: session } = useSession();
@@ -24,9 +25,19 @@ const PropertyCard = ({ property, isSaved = false, hostListingsView = false }) =
     images,
     is_featured,
     _id,
-  } = property;
+  } = property || {};
 
-  // Initialize from prop (server knows if it's saved)
+  const displayName = toReactText(name, "Property");
+  const displayType = toReactText(type, "Listing");
+  const displayCity = toReactText(location?.city);
+  const displayCountry = toReactText(location?.country);
+  const displayBeds = toReactText(beds, "—");
+  const displayBaths = toReactText(baths, "—");
+  const displaySqFt =
+    typeof square_feet === "number" && Number.isFinite(square_feet)
+      ? square_feet.toLocaleString()
+      : toReactText(square_feet, "—");
+  const locationLine = [displayCity, displayCountry].filter(Boolean).join(", ");
   const [isLiked, setIsLiked] = useState(isSaved);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -98,7 +109,7 @@ const PropertyCard = ({ property, isSaved = false, hostListingsView = false }) =
           <Image
             loading="eager"
             src={imageSrc}
-            alt={name || "Property"}
+            alt={displayName}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out"
@@ -116,7 +127,7 @@ const PropertyCard = ({ property, isSaved = false, hostListingsView = false }) =
               </span>
             )}
             <span className="bg-white/90 backdrop-blur-md text-gray-900 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shadow-sm">
-              {type}
+              {displayType}
             </span>
             <MobileMoneyBadge currencyCode={currencyCode} />
           </div>
@@ -156,15 +167,13 @@ const PropertyCard = ({ property, isSaved = false, hostListingsView = false }) =
           <div className="mb-4">
             <h3
               className="text-xl font-bold text-gray-900 leading-tight mb-2 group-hover:text-indigo-600 transition-colors line-clamp-1"
-              title={name}
+              title={displayName}
             >
-              {name}
+              {displayName}
             </h3>
             <div className="flex items-center text-gray-500 text-sm font-medium">
               <MapPin size={16} className="text-gray-400 mr-1.5" />
-              <p>
-                {location?.city}, {location?.country}
-              </p>
+              <p>{locationLine || "Location TBD"}</p>
             </div>
           </div>
 
@@ -177,7 +186,7 @@ const PropertyCard = ({ property, isSaved = false, hostListingsView = false }) =
                     className="mr-2 text-indigo-500"
                     strokeWidth={2.5}
                   />
-                  {beds}
+                  {displayBeds}
                 </span>
                 <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mt-0.5">
                   Beds
@@ -193,7 +202,7 @@ const PropertyCard = ({ property, isSaved = false, hostListingsView = false }) =
                     className="mr-2 text-indigo-500"
                     strokeWidth={2.5}
                   />
-                  {baths}
+                  {displayBaths}
                 </span>
                 <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mt-0.5">
                   Baths
@@ -209,7 +218,7 @@ const PropertyCard = ({ property, isSaved = false, hostListingsView = false }) =
                     className="mr-2 text-indigo-500"
                     strokeWidth={2.5}
                   />
-                  {square_feet?.toLocaleString()}
+                  {displaySqFt}
                 </span>
                 <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mt-0.5">
                   Sq Ft

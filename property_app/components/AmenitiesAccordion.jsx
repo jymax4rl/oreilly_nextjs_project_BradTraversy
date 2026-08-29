@@ -63,7 +63,9 @@ export default function AmenitiesAccordion({ amenities = [] }) {
                   aria-hidden
                 />
                 <span className="min-w-0 text-sm font-medium break-words">
-                  {amenity}
+                  {typeof amenity === "string" || typeof amenity === "number"
+                    ? String(amenity)
+                    : ""}
                 </span>
               </li>
             ))}

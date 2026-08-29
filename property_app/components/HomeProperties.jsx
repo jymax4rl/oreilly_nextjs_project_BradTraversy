@@ -109,13 +109,15 @@ const HomeProperties = ({
                 found
               </h2>
               <p className="text-gray-500 mt-1 flex items-center gap-2 flex-wrap">
-                {searchQuery && (
+                {typeof searchQuery === "string" && searchQuery ? (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium">
                     <MapPin className="h-3.5 w-3.5" />
                     {searchQuery}
                   </span>
-                )}
-                {typeFilter && typeFilter !== "All Properties" && (
+                ) : null}
+                {typeof typeFilter === "string" &&
+                  typeFilter &&
+                  typeFilter !== "All Properties" && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium">
                     <Home className="h-3.5 w-3.5" />
                     {typeFilter}
