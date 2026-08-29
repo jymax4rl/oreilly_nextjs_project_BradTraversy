@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bed, Bath, Ruler, MapPin, Heart, Calendar, DollarSign } from "lucide-react";
 import { getPrimaryDisplayRate, normalizeRates } from "@/utils/propertyRates";
 import { formatCurrency } from "../utils/currencyUtils";
@@ -30,7 +30,12 @@ const PropertyCard = ({ property, isSaved = false, hostListingsView = false }) =
   const [isLiked, setIsLiked] = useState(isSaved);
   const [isLoading, setIsLoading] = useState(false);
 
-  const mainImage = propertyCardImageSrc(images);
+  const [imageSrc, setImageSrc] = useState(() => propertyCardImageSrc(images));
+
+  // Keep card image in sync when list data changes; fall back if next/image rejects src
+  useEffect(() => {
+    setImageSrc(propertyCardImageSrc(images));
+  }, [images]);
 
   const normalizedPropertyRates = normalizeRates(propertyRates);
 
@@ -84,11 +89,12 @@ const PropertyCard = ({ property, isSaved = false, hostListingsView = false }) =
         <div className="relative cursor-pointer h-72 overflow-hidden">
           <Image
             loading="eager"
-            src={mainImage}
-            alt={name}
+            src={imageSrc}
+            alt={name || "Property"}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out"
+            onError={() => setImageSrc("/properties/a1.jpg")}
           />
 
           {/* Gradient Overlay */}

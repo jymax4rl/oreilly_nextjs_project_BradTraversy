@@ -40,7 +40,18 @@ const PropertiesPage = async ({ searchParams }) => {
 
   const properties = await Property.find(mongoQuery).lean();
 
-  const serializedProperties = properties.map(serializePropertyForClient);
+  const serializedProperties = [];
+  for (const property of properties) {
+    try {
+      serializedProperties.push(serializePropertyForClient(property));
+    } catch (err) {
+      console.error(
+        "[properties] skip unserializable listing",
+        property?._id?.toString?.() || property?._id,
+        err,
+      );
+    }
+  }
 
   return (
     <div className="min-h-screen min-w-full overflow-x-hidden md:pt-[10vh]">

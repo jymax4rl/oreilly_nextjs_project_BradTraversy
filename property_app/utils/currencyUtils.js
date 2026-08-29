@@ -67,7 +67,10 @@ export const fetchExchangeRates = async () => {
 // 6. Format currency with fallback
 export const formatCurrency = (amount, rate, symbol) => {
   if (!amount) return "N/A";
-  const converted = amount * rate;
+  const safeRate =
+    typeof rate === "number" && Number.isFinite(rate) && rate > 0 ? rate : 1;
+  const converted = amount * safeRate;
+  if (!Number.isFinite(converted)) return "N/A";
   const safeSymbol = symbol || "$";
 
   return `${safeSymbol} ${converted.toLocaleString(undefined, {

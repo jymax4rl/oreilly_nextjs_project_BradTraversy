@@ -10,22 +10,40 @@ function isHttpUrl(value) {
   return /^https?:\/\//i.test(String(value || ""));
 }
 
+function cloudinaryDeliveryUrl(publicId, resourceType = "image") {
+  const cloud =
+    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dyrjziqft";
+  const id = String(publicId || "").replace(/^\/+/, "");
+  if (!id) return null;
+  return `https://res.cloudinary.com/${cloud}/${resourceType}/upload/${id}`;
+}
+
 /**
- * @param {string | { url?: string; publicId?: string } | null | undefined} entry
+ * @param {string | { url?: string; publicId?: string; resourceType?: string } | null | undefined} entry
  * @returns {string | null}
  */
 export function resolvePropertyImageEntry(entry) {
   if (entry == null || entry === "") return null;
+  // Never allow objects to stringify into "/properties/[object Object]"
+  if (typeof entry === "object" && !Array.isArray(entry)) {
+    if (entry.url && typeof entry.url === "string") return entry.url;
+    if (entry.publicId) {
+      return cloudinaryDeliveryUrl(
+        entry.publicId,
+        entry.resourceType === "video" ? "video" : "image",
+      );
+    }
+    return null;
+  }
   if (typeof entry === "string") {
     if (isHttpUrl(entry)) return entry;
     const cleaned = entry
       .replace(/^\//, "")
       .replace(/^properties\//, "")
       .replace(/^images\/properties\//, "");
+    // Guard against accidental Object stringification
+    if (!cleaned || cleaned === "[object Object]") return null;
     return `/images/properties/${cleaned}`;
-  }
-  if (typeof entry === "object" && entry.url) {
-    return entry.url;
   }
   return null;
 }
