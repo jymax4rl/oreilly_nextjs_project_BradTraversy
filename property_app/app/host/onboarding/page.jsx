@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { formatHostAddress } from "@/utils/formatHostAddress";
 
 export default function HostOnboardingPage() {
   const { data: session, update } = useSession();
@@ -36,7 +37,7 @@ export default function HostOnboardingPage() {
             phone: phone || "",
             idType: idType || "passport",
             idNumber: idNumber || "",
-            address: address || "",
+            address: formatHostAddress(address) || "",
             bio: bio || "",
           });
         }
