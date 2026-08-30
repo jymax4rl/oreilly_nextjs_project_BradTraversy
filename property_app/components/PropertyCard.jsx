@@ -23,7 +23,12 @@ const PropertyCard = ({ property, isSaved = false }) => {
     images,
     is_featured,
     _id,
+    host,
+    seller_info,
   } = property;
+
+  const hostName = host?.name || seller_info?.name || null;
+  const hostImage = host?.image || null;
 
   // Initialize from prop (server knows if it's saved)
   const [isLiked, setIsLiked] = useState(isSaved);
@@ -164,6 +169,26 @@ const PropertyCard = ({ property, isSaved = false }) => {
                 {location?.city}, {location?.country}
               </p>
             </div>
+            {hostName && (
+              <div className="mt-3 flex items-center gap-2">
+                {hostImage ? (
+                  <Image
+                    src={hostImage}
+                    alt=""
+                    width={28}
+                    height={28}
+                    className="h-7 w-7 rounded-full object-cover ring-1 ring-[var(--kama-accent-soft)]"
+                  />
+                ) : (
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--kama-accent-soft)] text-xs font-semibold text-[var(--kama-accent)]">
+                    {hostName.charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <span className="truncate text-xs font-medium text-[var(--kama-ink-muted)]">
+                  Hosted by {hostName}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="mt-auto border-t border-dashed border-gray-200 pt-4">

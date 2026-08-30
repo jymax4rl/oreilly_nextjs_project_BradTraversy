@@ -248,7 +248,7 @@ const Navbar = () => {
 
                 <div className="space-y-0.5">
                   <Link
-                    href="#"
+                    href="/profile"
                     className={profileItemClass}
                     role="menuitem"
                     onClick={() => setIsProfileOpen(false)}
@@ -560,7 +560,7 @@ const Navbar = () => {
                       aria-label="Account shortcuts"
                     >
                       <Link
-                        href="#"
+                        href="/profile"
                         onClick={close}
                         className="kama-menu-row"
                       >

@@ -4,6 +4,7 @@ import { authOptions } from "@/utils/authOptions";
 import connectToDatabase from "@/config/database";
 import User from "@/models/User";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
+import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
 import HomeProperties from "@/components/HomeProperties";
 import Link from "next/link";
 import { Heart, ArrowLeft } from "lucide-react";
@@ -44,7 +45,9 @@ const SavedPropertiesPage = async () => {
     .populate("bookmarks")
     .lean();
 
-  const savedProperties = (user?.bookmarks || []).map(serializePropertyForClient);
+  const savedProperties = await attachOwnerProfiles(
+    (user?.bookmarks || []).map(serializePropertyForClient),
+  );
 
   return (
     <div className="pt-[10vh] bg-gray-50 min-h-screen">

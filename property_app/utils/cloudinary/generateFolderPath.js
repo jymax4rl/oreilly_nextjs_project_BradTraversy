@@ -24,6 +24,12 @@ export function hostRootFolder(hostId) {
   return `${CLOUDINARY_ROOT}/hosts/${safeHostId}`;
 }
 
+/** Profile avatars live under users/{id}/avatar (separate from listing media). */
+export function userAvatarFolder(userId) {
+  const safeUserId = assertSafeMongoId(userId, "userId");
+  return `${CLOUDINARY_ROOT}/users/${safeUserId}/avatar`;
+}
+
 export function propertyFolder(hostId, propertyId, subfolder) {
   const safeHostId = assertSafeMongoId(hostId, "hostId");
   const safePropertyId = assertSafeMongoId(propertyId, "propertyId");

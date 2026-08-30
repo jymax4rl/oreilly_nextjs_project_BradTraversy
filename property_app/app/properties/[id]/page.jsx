@@ -2,6 +2,7 @@ import connectToDatabase from "@/config/database";
 import { propertyImageAbsoluteUrl } from "@/utils/propertyImageUrl";
 import Property from "@/models/Property";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
+import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
 import ServerProperty from "@/components/dynamicComponents/ServerProperty";
 import DynamicProperty from "@/components/dynamicComponents/DynamicProperty";
 import { notFound } from "next/navigation";
@@ -62,7 +63,9 @@ export default async function PropertyPage({ params }) {
     notFound();
   }
 
-  const serialized = serializePropertyForClient(property);
+  const serialized = await attachOwnerProfiles(
+    serializePropertyForClient(property),
+  );
 
   const canonicalUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/properties/${id}`;
 
