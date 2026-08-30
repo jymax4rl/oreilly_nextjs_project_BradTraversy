@@ -85,7 +85,15 @@ h1 {
 /* Never allow currency controls / letter badges near bottom nav (NGN → “N” bug) */
 [data-mobile-bottom-nav] [data-currency-control],
 [data-mobile-bottom-nav] [data-currency-letter],
-[data-currency-letter] {
+[data-currency-letter],
+[data-currency-control="letter"] {
+  display: none !important;
+}
+
+/* Fullscreen auth/wizard: kill any leftover fixed letter FAB (bottom-left “N”) */
+body:has([data-listing-wizard]) [data-currency-control],
+body:has(main#main-content) a[aria-label^="Currency"].fixed,
+body:has(main#main-content) button[aria-label^="Currency"].fixed {
   display: none !important;
 }
 

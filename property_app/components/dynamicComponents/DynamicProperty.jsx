@@ -14,7 +14,11 @@ export default function DynamicProperty({ property }) {
     <div className="min-h-screen bg-[var(--kama-canvas)] pb-[calc(var(--kama-chrome-clearance,4.25rem)+5.5rem)] pt-14 font-sans text-[var(--kama-ink)] selection:bg-[var(--kama-accent-soft)] sm:pt-16 md:pt-20 lg:pb-20">
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-4 sm:space-y-8 sm:px-6 sm:py-6">
         <div className="min-w-0 overflow-x-clip">
-          <PropertyImageGallery images={data.images} propertyName={data.name} />
+          <PropertyImageGallery
+            images={data.images}
+            propertyName={data.name}
+            audio={data.audio}
+          />
         </div>
 
         <header className="min-w-0 space-y-3">
