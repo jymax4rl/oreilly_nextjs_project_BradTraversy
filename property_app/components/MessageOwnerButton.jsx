@@ -29,7 +29,7 @@ export default function MessageOwnerButton({
       <MessageCircle
         size={18}
         strokeWidth={2}
-        className="shrink-0 text-blue-600"
+        className="shrink-0 text-[var(--kama-accent)]"
         aria-hidden
       />
       <span className="truncate">{label}</span>

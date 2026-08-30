@@ -158,7 +158,7 @@ function PropertyImageCarousel({ images, propertyName, initialIndex, onClose }) 
                 onClick={() => setIndex(i)}
                 className={`relative h-12 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition sm:h-14 sm:w-20 ${
                   i === index
-                    ? "border-[#00C8FF]"
+                    ? "border-[var(--kama-accent)]"
                     : "border-transparent opacity-60 hover:opacity-100"
                 }`}
                 aria-label={`View photo ${i + 1}`}
@@ -222,23 +222,25 @@ export default function PropertyImageGallery({ images = [], propertyName }) {
 
       {/* Desktop: bento */}
       <div className="hidden h-[400px] grid-cols-4 gap-3 overflow-hidden rounded-2xl md:grid lg:h-[460px]">
-        <button
-          type="button"
-          onClick={() => openAt(0)}
-          className="group relative cursor-pointer bg-slate-100 md:col-span-2"
-          aria-label="View photos"
-        >
-          <Image
-            src={imageSrc(galleryImages[0])}
-            alt={propertyName}
-            fill
-            priority
-            quality={90}
-            sizes="50vw"
-            className="object-cover transition duration-300 group-hover:scale-[1.01]"
-          />
+        <div className="group relative bg-slate-100 md:col-span-2">
+          <button
+            type="button"
+            onClick={() => openAt(0)}
+            className="relative block h-full w-full cursor-pointer"
+            aria-label="View photos"
+          >
+            <Image
+              src={imageSrc(galleryImages[0])}
+              alt={propertyName}
+              fill
+              priority
+              quality={90}
+              sizes="50vw"
+              className="object-cover transition duration-300 group-hover:scale-[1.01]"
+            />
+          </button>
           <GalleryOpenButton count={count} onClick={() => openAt(0)} />
-        </button>
+        </div>
 
         <div className="grid grid-rows-2 gap-3 md:col-span-1">
           {[1, 2].map((i) => (

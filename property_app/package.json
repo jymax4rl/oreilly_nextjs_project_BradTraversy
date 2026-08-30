@@ -14,7 +14,8 @@
     "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "setup:email-templates": "node scripts/setup-resend-booking-templates.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -35,6 +36,7 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-icons": "^5.5.0",
+    "resend": "^6.25.0",
     "styled-components": "^6.1.19"
   },
   "devDependencies": {

@@ -14,7 +14,14 @@ function getPaymentLabel(code, support) {
   return "Card or bank";
 }
 
-export default function PaymentMethodBadge({ currencyCode, compact = false }) {
+/**
+ * Restrained payment hint — chip by default (not a peach callout panel).
+ * Orange Money keeps a small brand cue; chrome stays ocean teal.
+ */
+export default function PaymentMethodBadge({
+  currencyCode,
+  compact = true,
+}) {
   const code = normalizeCurrencyCode(currencyCode);
   const support = getMobileMoneySupport(code);
   const isMobile = isMobileMoneyCurrency(code);
@@ -24,56 +31,67 @@ export default function PaymentMethodBadge({ currencyCode, compact = false }) {
   if (compact) {
     return (
       <span
-        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-          orange
-            ? "bg-orange-100 text-orange-900"
-            : isMobile
-              ? "bg-emerald-100 text-emerald-900"
-              : "bg-slate-100 text-slate-700"
-        }`}
+        className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-[var(--kama-border)] bg-[var(--kama-field)] px-2.5 py-1 text-[12px] font-medium text-[var(--kama-ink-muted)]"
+        role="status"
+        aria-live="polite"
       >
-        {isMobile ? <Smartphone size={12} /> : <CreditCard size={12} />}
-        {label}
+        {isMobile ? (
+          <Smartphone
+            size={12}
+            className={
+              orange ? "shrink-0 text-orange-600" : "shrink-0 text-[var(--kama-accent)]"
+            }
+            aria-hidden
+          />
+        ) : (
+          <CreditCard
+            size={12}
+            className="shrink-0 text-[var(--kama-accent)]"
+            aria-hidden
+          />
+        )}
+        <span className="truncate text-[var(--kama-ink)]">{label}</span>
+        <span className="shrink-0 opacity-60">{code}</span>
       </span>
     );
   }
 
   return (
     <div
-      className={`rounded-xl border px-3 py-2.5 ${
-        orange
-          ? "border-orange-200 bg-orange-50"
-          : isMobile
-            ? "border-emerald-200 bg-emerald-50"
-            : "border-slate-200 bg-slate-50"
-      }`}
+      className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3.5 py-3"
       role="status"
       aria-live="polite"
     >
-      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-        Payment method
+      <p className="text-[11px] font-medium tracking-wide text-[var(--kama-ink-muted)]">
+        Payment
       </p>
-      <p
-        className={`mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-semibold ${
-          orange
-            ? "text-orange-900"
-            : isMobile
-              ? "text-emerald-900"
-              : "text-slate-800"
-        }`}
-      >
+      <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-semibold text-[var(--kama-ink)]">
         {isMobile ? (
-          <Smartphone size={18} className="shrink-0" aria-hidden />
+          <Smartphone
+            size={16}
+            className={
+              orange ? "shrink-0 text-orange-600" : "shrink-0 text-[var(--kama-accent)]"
+            }
+            aria-hidden
+          />
         ) : (
-          <CreditCard size={18} className="shrink-0" aria-hidden />
+          <CreditCard
+            size={16}
+            className="shrink-0 text-[var(--kama-accent)]"
+            aria-hidden
+          />
         )}
         <span>{label}</span>
-        <span className="font-normal text-slate-500">({code})</span>
+        <span className="font-normal text-[var(--kama-ink-muted)]">({code})</span>
       </p>
       {support?.hint && isMobile ? (
-        <p className="mt-1 text-xs leading-snug text-slate-600">{support.hint}</p>
+        <p className="mt-1 text-xs leading-snug text-[var(--kama-ink-muted)]">
+          {support.hint}
+        </p>
       ) : !isMobile ? (
-        <p className="mt-1 text-xs text-slate-600">Card or bank at checkout</p>
+        <p className="mt-1 text-xs text-[var(--kama-ink-muted)]">
+          Card or bank at checkout
+        </p>
       ) : null}
     </div>
   );

@@ -15,13 +15,33 @@ export function isValidDateOnly(value) {
   return parseDateOnly(value) !== null;
 }
 
-/** @param {number} ts UTC midnight ms */
+/**
+ * Format a UTC midnight timestamp as YYYY-MM-DD.
+ * @param {number} ts UTC midnight ms
+ */
 export function formatDateOnly(ts) {
   const d = new Date(ts);
   const y = d.getUTCFullYear();
   const m = String(d.getUTCMonth() + 1).padStart(2, "0");
   const day = String(d.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+}
+
+/**
+ * Coerce string/Date to YYYY-MM-DD, or null.
+ * Kept as a separate export from formatDateOnly (timestamp → string).
+ */
+export function toDateOnlyString(value) {
+  if (typeof value === "string") {
+    const trimmed = value.trim().slice(0, 10);
+    if (DATE_ONLY.test(trimmed)) return trimmed;
+  }
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return formatDateOnly(
+      Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()),
+    );
+  }
+  return null;
 }
 
 /**
@@ -65,6 +85,21 @@ export function validateRange(range) {
     }
   }
   return errors;
+}
+
+/** Night dates in [checkIn, checkOut) as YYYY-MM-DD. */
+export function enumerateStayNights(checkIn, checkOut) {
+  const start = parseDateOnly(checkIn);
+  const end = parseDateOnly(checkOut);
+  if (start == null || end == null || end <= start) return [];
+
+  const nights = [];
+  let t = start;
+  while (t < end) {
+    nights.push(formatDateOnly(t));
+    t += 24 * 60 * 60 * 1000;
+  }
+  return nights;
 }
 
 /**

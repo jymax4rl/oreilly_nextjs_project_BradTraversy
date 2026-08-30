@@ -6,33 +6,58 @@ import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 
 export const dynamic = "force-dynamic";
 
+function parsePositiveInt(value) {
+  if (value == null || value === "") return null;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 1) return null;
+  return Math.floor(n);
+}
+
 function renderPropertiesList({
   initialProperties,
   locationQuery,
   typeQuery,
   minPrice,
   maxPrice,
+  minBeds,
+  minBaths,
+  hideSearchToolbar = false,
+  maxProperties,
 }) {
+  let list = initialProperties;
+  if (typeof maxProperties === "number" && maxProperties > 0) {
+    list = initialProperties.slice(0, maxProperties);
+  }
+
   return (
     <div className="min-h-screen min-w-full overflow-x-hidden md:pt-[10vh]">
       <HomeProperties
-        key={`${locationQuery || "all"}-${typeQuery || "all"}-${minPrice ?? ""}-${maxPrice ?? ""}`}
-        initialProperties={initialProperties}
+        key={`${locationQuery || "all"}-${typeQuery || "all"}-${minPrice ?? ""}-${maxPrice ?? ""}-${minBeds ?? ""}-${minBaths ?? ""}`}
+        initialProperties={list}
         searchQuery={locationQuery || ""}
         typeFilter={typeQuery || ""}
         minPrice={minPrice}
         maxPrice={maxPrice}
+        minBeds={minBeds}
+        minBaths={minBaths}
+        hideSearchToolbar={hideSearchToolbar}
       />
     </div>
   );
 }
 
-const PropertiesPage = async ({ searchParams }) => {
-  const params = await searchParams;
+const PropertiesPage = async ({
+  searchParams,
+  hideSearchToolbar = false,
+  maxProperties,
+}) => {
+  const params = (await searchParams) || {};
   const locationQuery = params?.location?.trim();
   const typeQuery = params?.type;
   const minPrice = params?.minPrice ? Number(params.minPrice) : null;
   const maxPrice = params?.maxPrice ? Number(params.maxPrice) : null;
+  const minBeds = parsePositiveInt(params?.minBeds);
+  const minBaths = parsePositiveInt(params?.minBaths);
 
   const emptyList = () =>
     renderPropertiesList({
@@ -41,6 +66,10 @@ const PropertiesPage = async ({ searchParams }) => {
       typeQuery,
       minPrice,
       maxPrice,
+      minBeds,
+      minBaths,
+      hideSearchToolbar,
+      maxProperties,
     });
 
   if (!process.env.MONGODB_URI) {
@@ -85,11 +114,21 @@ const PropertiesPage = async ({ searchParams }) => {
     }
   }
 
+  if (minBeds != null) {
+    mongoQuery.beds = { $gte: minBeds };
+  }
+
+  if (minBaths != null) {
+    mongoQuery.baths = { $gte: minBaths };
+  }
+
   const hasFilters =
     locationQuery ||
     (typeQuery && typeQuery !== "All Properties") ||
     minPrice != null ||
-    maxPrice != null;
+    maxPrice != null ||
+    minBeds != null ||
+    minBaths != null;
   if (!hasFilters) {
     mongoQuery.is_featured = false;
   }
@@ -105,6 +144,10 @@ const PropertiesPage = async ({ searchParams }) => {
       typeQuery,
       minPrice,
       maxPrice,
+      minBeds,
+      minBaths,
+      hideSearchToolbar,
+      maxProperties,
     });
   } catch (error) {
     console.error("Properties page failed:", error);

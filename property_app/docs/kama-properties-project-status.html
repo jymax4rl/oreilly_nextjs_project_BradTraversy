@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kama Properties — Project Status &amp; Next Steps</title>
+  <style>
+    @page { margin: 14mm 12mm; size: A4; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.5;
+      color: #1e293b;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 8mm 10mm;
+    }
+    .cover {
+      text-align: center;
+      padding: 24px 0 32px;
+      border-bottom: 4px solid #00c8ff;
+      margin-bottom: 24px;
+    }
+    .cover h1 { font-size: 24pt; color: #0f172a; margin: 0 0 8px; }
+    .cover .subtitle { font-size: 13pt; color: #475569; margin: 0 0 12px; }
+    .cover .meta { font-size: 10pt; color: #64748b; }
+    .cover .url { font-size: 11pt; color: #00a8d8; font-weight: 600; margin-top: 12px; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 18px; }
+    .badge {
+      background: #ecfeff;
+      color: #0e7490;
+      font-size: 8.5pt;
+      font-weight: 600;
+      padding: 4px 11px;
+      border-radius: 999px;
+      border: 1px solid #a5f3fc;
+    }
+    h2 {
+      font-size: 13.5pt;
+      color: #0f172a;
+      margin: 22px 0 8px;
+      padding-bottom: 4px;
+      border-bottom: 2px solid #e2e8f0;
+      page-break-after: avoid;
+    }
+    h3 { font-size: 11pt; color: #334155; margin: 12px 0 6px; page-break-after: avoid; }
+    p { margin: 0 0 8px; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 9.5pt; }
+    th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; vertical-align: top; }
+    th { background: #f1f5f9; font-weight: 600; }
+    ul { margin: 4px 0 10px; padding-left: 18px; }
+    li { margin-bottom: 3px; }
+    .highlight {
+      background: linear-gradient(135deg, #f0fdfa 0%, #eff6ff 100%);
+      border: 1px solid #bae6fd;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin: 12px 0;
+    }
+    .success {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin: 12px 0;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+    .card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .card h4 { margin: 0 0 4px; font-size: 9.5pt; color: #1e40af; }
+    .card p { margin: 0; font-size: 9pt; color: #475569; }
+    .status-done { color: #15803d; font-weight: 600; }
+    .status-progress { color: #b45309; font-weight: 600; }
+    .status-next { color: #1d4ed8; font-weight: 600; }
+    .footer {
+      margin-top: 28px;
+      padding-top: 10px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 8.5pt;
+      color: #64748b;
+      text-align: center;
+    }
+    code { font-size: 9pt; background: #f1f5f9; padding: 1px 4px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+  <div class="cover">
+    <h1>Kama Properties</h1>
+    <p class="subtitle">Project advancement report &amp; next steps</p>
+    <p class="meta">Prepared: May 2026 · Branch: <code>feature/booking-modify-cancel</code></p>
+    <p class="url">https://www.isisel.com</p>
+    <div class="badge-row">
+      <span class="badge">Production live</span>
+      <span class="badge">Cloudinary media</span>
+      <span class="badge">Direct browser uploads</span>
+      <span class="badge">Bookings &amp; payments</span>
+      <span class="badge">Host onboarding</span>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <strong>Summary.</strong> Kama Properties is a live African vacation-rentals marketplace on
+    <strong>www.isisel.com</strong>, built with Next.js 16, MongoDB Atlas, and Vercel. Recent work
+    focused on <strong>Cloudinary</strong> for property images (migration complete for seed data,
+    direct uploads for new listings), a reliable <strong>add-listing wizard</strong>, and
+    <strong>guest booking modify/cancel</strong> with lifecycle emails. The platform is usable end-to-end
+    for verified hosts and guests; remaining work is mainly merge/integration, SEO, and operational polish.
+  </div>
+
+  <h2>1. Production &amp; infrastructure</h2>
+  <table>
+    <tr><th>Item</th><th>Detail</th></tr>
+    <tr><td>Live site</td><td><strong>https://www.isisel.com</strong></td></tr>
+    <tr><td>Vercel project</td><td><code>kemika02</code> (app root: <code>property_app/</code>)</td></tr>
+    <tr><td>Repository</td><td>github.com/jymax4rl/oreilly_nextjs_project_BradTraversy</td></tr>
+    <tr><td>Database</td><td>MongoDB Atlas — <code>KamaProperties</code></td></tr>
+    <tr><td>Auth</td><td>NextAuth — Google OAuth</td></tr>
+    <tr><td>Payments</td><td>Flutterwave (+ GeniusPay integration path)</td></tr>
+    <tr><td>Email</td><td>Resend — booking lifecycle templates</td></tr>
+    <tr><td>Media CDN</td><td><strong>Cloudinary</strong> — <code>res.cloudinary.com</code></td></tr>
+  </table>
+
+  <h2>2. Completed capabilities (current advancement)</h2>
+
+  <h3>2.1 Cloudinary media (major milestone)</h3>
+  <div class="success">
+    <strong>Status: operational in production.</strong> Cloudinary is configured and used for property
+    images and audio. Legacy local files under <code>public/properties/</code> were backfilled; MongoDB
+    stores <code>secure_url</code> and <code>publicId</code> per asset.
+  </div>
+  <ul>
+    <li><strong>Folder layout:</strong> <code>kama-properties/hosts/{hostId}/properties/{propertyId}/images</code> (and <code>/audio</code>)</li>
+    <li><strong>Backfill:</strong> <code>npm run db:backfill-cloudinary-folders</code> — 37/37 seed listings migrated</li>
+    <li><strong>Provision:</strong> <code>npm run db:provision-cloudinary-folders</code></li>
+    <li><strong>Audit:</strong> <code>npm run db:audit-property-images</code></li>
+    <li><strong>New listings:</strong> browser uploads <em>directly</em> to Cloudinary (signed upload); Vercel only saves JSON metadata — avoids 4.5MB body limits and supports multiple photos</li>
+    <li><strong>Display:</strong> galleries, cards, emails, and booking flows resolve URLs from MongoDB</li>
+  </ul>
+
+  <h3>2.2 Host listing creation</h3>
+  <ul>
+    <li>Multi-step add-property form with per-field validation and step blocking</li>
+    <li>Mobile-friendly photo picker (camera + gallery); optional client-side resize fallback</li>
+    <li>Guest contact: default from <strong>host profile</strong> (username, account email, onboarding phone); optional per-listing email/phone override</li>
+    <li>Carousel layout fix for last wizard step; media PATCH API fix for Next.js 16 async <code>params</code></li>
+  </ul>
+
+  <h3>2.3 Bookings, calendar &amp; payments</h3>
+  <ul>
+    <li>Property availability API and host calendar UI</li>
+    <li>Guest bookings with rates (nightly / weekly / monthly)</li>
+    <li>Guest <strong>modify / cancel</strong> bookings with versioned updates and lifecycle emails</li>
+    <li>Flutterwave payment initialize + webhook; transaction → booking flow</li>
+    <li>Admin: host approval, transactions, manual booking creation</li>
+  </ul>
+
+  <h3>2.4 Host &amp; guest experience</h3>
+  <ul>
+    <li>Host onboarding application and verified-host gate for listings</li>
+    <li>Messaging between guest and host on property threads</li>
+    <li>Saved properties, my bookings, host listings dashboard</li>
+    <li>Multi-currency display context; branded confirmation emails</li>
+  </ul>
+
+  <h2>3. Architecture: how new listing photos work</h2>
+  <table>
+    <tr><th>Step</th><th>What happens</th></tr>
+    <tr><td>1</td><td>Host submits listing JSON → <code>POST /api/properties</code> creates property + signed Cloudinary upload params</td></tr>
+    <tr><td>2</td><td>Browser uploads each file to <code>api.cloudinary.com</code> (not through Vercel)</td></tr>
+    <tr><td>3</td><td><code>PATCH /api/properties/{id}/media</code> saves image URLs and folder metadata in MongoDB</td></tr>
+    <tr><td>4</td><td>Redirect to live property page on www.isisel.com</td></tr>
+  </table>
+  <p><em>Why this matters:</em> the earlier “migration” moved <strong>storage</strong> to Cloudinary; this flow removes Vercel as a file proxy so multiple full-size phone photos work reliably.</p>
+
+  <h2>4. Development state (May 2026)</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Active branch</h4>
+      <p><code>feature/booking-modify-cancel</code> — deployed to production via Vercel CLI; includes Cloudinary, form fixes, and contact choice.</p>
+    </div>
+    <div class="card">
+      <h4>Integration branch</h4>
+      <p><code>master</code> — default on GitHub; feature branch ahead with recent commits. Recommend PR + merge when ready.</p>
+    </div>
+  </div>
+  <p>Recent production deployments (commits): Cloudinary media + form carousel (<code>6df734f</code>), direct uploads + validation (<code>0932426</code>), media API params fix (<code>b87b055</code>), optional host contact (<code>ab8ebd8</code>).</p>
+
+  <h2>5. Recommended next steps</h2>
+  <table>
+    <tr><th>Priority</th><th>Area</th><th>Action</th></tr>
+    <tr><td class="status-done">Done</td><td>Cloudinary</td><td>Env on Vercel (<code>CLOUDINARY_URL</code>); backfill; direct uploads — <strong>keep monitoring</strong> new host listings</td></tr>
+    <tr><td class="status-next">High</td><td>Git / release</td><td>Open PR from <code>feature/booking-modify-cancel</code> → <code>master</code>; merge after smoke test on isisel.com</td></tr>
+    <tr><td class="status-next">High</td><td>Security</td><td>Review draft PR #3 (Next.js RSC CVE patch); apply if still relevant</td></tr>
+    <tr><td class="status-next">Medium</td><td>SEO</td><td>Complete <code>seo/generate-metadata-jsonld</code> branch — sitemap, robots, JSON-LD for listings</td></tr>
+    <tr><td class="status-next">Medium</td><td>Payments</td><td>Production Flutterwave / GeniusPay keys; webhook URL verification on Vercel</td></tr>
+    <tr><td class="status-next">Medium</td><td>Admin</td><td>Host approval workflow QA; transaction reconciliation</td></tr>
+    <tr><td class="status-progress">Low</td><td>UX</td><td>Photo grid on add-listing for 10+ thumbnails (scroll / pagination) — cosmetic only</td></tr>
+    <tr><td class="status-progress">Low</td><td>Docs</td><td>Runbook: reprovision folders for new hosts; periodic <code>db:audit-property-images</code></td></tr>
+  </table>
+
+  <h2>6. Environment checklist (production)</h2>
+  <ul>
+    <li><code>NEXT_PUBLIC_SITE_URL</code>, <code>NEXT_PUBLIC_DOMAIN</code>, <code>NEXTAUTH_URL</code> → <code>https://www.isisel.com</code></li>
+    <li><code>MONGODB_URI</code>, <code>NEXTAUTH_SECRET</code>, Google OAuth (callback includes production domain)</li>
+    <li><code>CLOUDINARY_URL</code> (or <code>CLOUDINARY_CLOUD_NAME</code> + API key/secret)</li>
+    <li>Flutterwave / Resend keys as used in payment and email flows</li>
+  </ul>
+
+  <h2>7. Conclusion</h2>
+  <p>
+    Kama Properties has moved from a course-style property app to a <strong>production marketplace</strong>
+    with verified hosts, payments, messaging, and a solid <strong>Cloudinary-backed media layer</strong>.
+    The add-listing flow now matches how modern marketplaces handle photos (direct CDN upload, metadata in MongoDB).
+    The main forward path is <strong>consolidating branches on master</strong>, hardening payments and SEO, and
+    continuing operational monitoring of Cloudinary and booking emails on www.isisel.com.
+  </p>
+
+  <div class="footer">
+    Kama Properties · Project status document · Generated May 2026 ·
+    Source: oreilly_nextjs_project_BradTraversy / property_app
+  </div>
+
+</body>
+</html>

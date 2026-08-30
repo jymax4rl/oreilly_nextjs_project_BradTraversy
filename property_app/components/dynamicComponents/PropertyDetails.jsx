@@ -5,22 +5,23 @@ import { Bed, Bath, Maximize, Mail, Phone, X } from "lucide-react";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { formatCurrency } from "@/utils/currencyUtils";
 import { propertyAudioUrl } from "@/utils/propertyImageUrl";
+import AmenitiesAccordion from "@/components/AmenitiesAccordion";
 import MessageOwnerButton from "@/components/MessageOwnerButton";
 
 function RateRow({ label, amount, currencyCode, rates, available }) {
   const symbol = currencyCode === "USD" ? "$" : currencyCode;
 
   return (
-    <div className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3.5 sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
-      <span className="shrink-0 text-sm font-medium text-slate-600 sm:text-lg sm:font-light">
+    <div className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-4 py-3.5 sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
+      <span className="shrink-0 text-sm font-medium text-[var(--kama-ink-muted)] sm:text-lg sm:font-light">
         {label}
       </span>
       {available ? (
-        <span className="min-w-0 text-right text-sm font-bold tabular-nums text-slate-900 break-words sm:text-lg">
+        <span className="min-w-0 break-words text-right text-sm font-semibold tabular-nums text-[var(--kama-ink)] sm:text-lg">
           {formatCurrency(amount, rates[currencyCode], symbol)}
         </span>
       ) : (
-        <span className="flex shrink-0 items-center gap-1.5 text-sm text-red-500">
+        <span className="flex shrink-0 items-center gap-1.5 text-sm text-[var(--kama-danger,#b42318)]">
           Unavailable <X size={14} strokeWidth={3} aria-hidden />
         </span>
       )}
@@ -28,37 +29,60 @@ function RateRow({ label, amount, currencyCode, rates, available }) {
   );
 }
 
+function formatSqFt(value) {
+  if (value == null || value === "") return "—";
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 50 || n > 200_000) return "—";
+  return Math.round(n).toLocaleString();
+}
+
 function PropertyDetails({ data }) {
   const { currencyCode, rates } = useCurrency();
   const ownerName = data.seller_info?.name || "host";
   const propertyRates = data.rates || {};
+  const sqftLabel = formatSqFt(data.square_feet);
 
   return (
-    <div className="min-w-0 space-y-6 sm:space-y-10 lg:col-span-2">
-      <div className="grid grid-cols-3 gap-2 border-y border-slate-100 py-4 sm:flex sm:gap-8 sm:py-6">
-        <div className="flex min-w-0 flex-col items-center gap-1 text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
-          <Bed className="text-slate-900" size={22} strokeWidth={1.5} />
-          <span className="text-sm font-medium sm:text-lg">
-            {data.beds}
-            <span className="block text-xs font-normal text-slate-500 sm:ml-1 sm:inline sm:text-base">
+    <div className="min-w-0 space-y-8 sm:space-y-10 lg:col-span-2">
+      <div className="grid grid-cols-3 gap-3 border-y border-[var(--kama-border)] py-5 sm:flex sm:gap-10 sm:py-6">
+        <div className="flex min-w-0 flex-col items-center gap-1.5 text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
+          <Bed
+            className="text-[var(--kama-accent)]"
+            size={22}
+            strokeWidth={1.5}
+            aria-hidden
+          />
+          <span className="text-sm font-semibold text-[var(--kama-ink)] sm:text-lg">
+            {data.beds ?? "—"}
+            <span className="block text-xs font-normal text-[var(--kama-ink-muted)] sm:ml-1.5 sm:inline sm:text-base">
               Beds
             </span>
           </span>
         </div>
-        <div className="flex min-w-0 flex-col items-center gap-1 border-x border-slate-100 text-center sm:flex-row sm:items-center sm:gap-3 sm:border-0 sm:text-left">
-          <Bath className="text-slate-900" size={22} strokeWidth={1.5} />
-          <span className="text-sm font-medium sm:text-lg">
-            {data.baths}
-            <span className="block text-xs font-normal text-slate-500 sm:ml-1 sm:inline sm:text-base">
+        <div className="flex min-w-0 flex-col items-center gap-1.5 border-x border-[var(--kama-border)] text-center sm:flex-row sm:items-center sm:gap-3 sm:border-0 sm:text-left">
+          <Bath
+            className="text-[var(--kama-accent)]"
+            size={22}
+            strokeWidth={1.5}
+            aria-hidden
+          />
+          <span className="text-sm font-semibold text-[var(--kama-ink)] sm:text-lg">
+            {data.baths ?? "—"}
+            <span className="block text-xs font-normal text-[var(--kama-ink-muted)] sm:ml-1.5 sm:inline sm:text-base">
               Baths
             </span>
           </span>
         </div>
-        <div className="flex min-w-0 flex-col items-center gap-1 text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
-          <Maximize className="text-slate-900" size={22} strokeWidth={1.5} />
-          <span className="text-sm font-medium sm:text-lg">
-            {data.square_feet?.toLocaleString()}
-            <span className="block text-xs font-normal text-slate-500 sm:ml-1 sm:inline sm:text-base">
+        <div className="flex min-w-0 flex-col items-center gap-1.5 text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
+          <Maximize
+            className="text-[var(--kama-accent)]"
+            size={22}
+            strokeWidth={1.5}
+            aria-hidden
+          />
+          <span className="text-sm font-semibold text-[var(--kama-ink)] sm:text-lg">
+            {sqftLabel}
+            <span className="block text-xs font-normal text-[var(--kama-ink-muted)] sm:ml-1.5 sm:inline sm:text-base">
               sqft
             </span>
           </span>
@@ -66,7 +90,7 @@ function PropertyDetails({ data }) {
       </div>
 
       <section className="hidden min-w-0 lg:block">
-        <h2 className="mb-4 text-xl font-bold text-slate-900 sm:mb-6 sm:text-2xl">
+        <h2 className="mb-4 text-xl font-semibold tracking-tight text-[var(--kama-ink)] sm:mb-6 sm:text-2xl">
           Rates per period
         </h2>
         <div className="flex flex-col gap-3 sm:gap-4">
@@ -95,20 +119,20 @@ function PropertyDetails({ data }) {
       </section>
 
       <section className="min-w-0">
-        <h2 className="mb-3 text-xl font-bold text-slate-900 sm:mb-4 sm:text-2xl">
+        <h2 className="mb-3 text-xl font-semibold tracking-tight text-[var(--kama-ink)] sm:mb-4 sm:text-2xl">
           About this space
         </h2>
-        <p className="text-base leading-relaxed font-light whitespace-pre-line text-slate-600 sm:text-lg">
+        <p className="text-base leading-relaxed text-[var(--kama-ink-muted)] sm:text-lg">
           {data.description}
         </p>
       </section>
 
       {propertyAudioUrl(data.audio) && (
         <section className="min-w-0">
-          <h2 className="mb-3 text-xl font-bold text-slate-900 sm:mb-4 sm:text-2xl">
+          <h2 className="mb-3 text-xl font-semibold tracking-tight text-[var(--kama-ink)] sm:mb-4 sm:text-2xl">
             Listen to the host
           </h2>
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-6">
+          <div className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-field)] p-4 sm:p-6">
             <audio
               controls
               src={propertyAudioUrl(data.audio)}
@@ -120,24 +144,24 @@ function PropertyDetails({ data }) {
 
       <AmenitiesAccordion amenities={data.amenities} />
 
-      <section className="min-w-0 border-t border-slate-100 pt-6 sm:pt-8">
-        <h2 className="mb-4 text-xl font-bold sm:text-2xl">
+      <section className="min-w-0 border-t border-[var(--kama-border)] pt-6 sm:pt-8">
+        <h2 className="mb-4 text-xl font-semibold tracking-tight text-[var(--kama-ink)] sm:text-2xl">
           Hosted by {ownerName}
         </h2>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-xl font-bold text-slate-400 sm:h-16 sm:w-16 sm:text-2xl">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[var(--kama-border)] bg-[var(--kama-field)] text-xl font-semibold text-[var(--kama-accent)] sm:h-16 sm:w-16 sm:text-2xl">
             {ownerName?.charAt(0)}
           </div>
           <div className="min-w-0 flex-1 space-y-3">
-            <p className="font-medium text-slate-500">Property owner</p>
-            <div className="flex flex-col gap-2 font-medium text-slate-900 sm:flex-row sm:flex-wrap sm:gap-6">
+            <p className="font-medium text-[var(--kama-ink-muted)]">Property owner</p>
+            <div className="flex flex-col gap-2 font-medium text-[var(--kama-ink)] sm:flex-row sm:flex-wrap sm:gap-6">
               <span className="flex min-w-0 items-start gap-2 break-all">
-                <Mail size={16} className="mt-0.5 shrink-0" aria-hidden />
+                <Mail size={16} className="mt-0.5 shrink-0 text-[var(--kama-accent)]" aria-hidden />
                 {data.seller_info?.email}
               </span>
               {data.seller_info?.phone && (
                 <span className="flex min-w-0 items-center gap-2">
-                  <Phone size={16} className="shrink-0" aria-hidden />
+                  <Phone size={16} className="shrink-0 text-[var(--kama-accent)]" aria-hidden />
                   {data.seller_info.phone}
                 </span>
               )}

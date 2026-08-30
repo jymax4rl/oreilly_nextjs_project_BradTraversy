@@ -91,7 +91,7 @@ const PropertyCard = ({ property, isSaved = false }) => {
   };
 
   return (
-    <div className="group bg-white rounded-3xl overflow-hidden flex flex-col h-full border border-gray-100 hover:border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative">
+    <div className="group bg-[var(--kama-surface)] rounded-3xl overflow-hidden flex flex-col h-full border border-[var(--kama-border)] hover:border-[var(--kama-border-strong)] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative">
       <Link href={`/properties/${_id}`}>
         <div className="relative cursor-pointer h-72 overflow-hidden">
           <Image
@@ -153,7 +153,7 @@ const PropertyCard = ({ property, isSaved = false }) => {
         <div className="p-6 flex flex-col flex-grow">
           <div className="mb-4">
             <h3
-              className="text-xl font-bold text-gray-900 leading-tight mb-2 group-hover:text-indigo-600 transition-colors line-clamp-1"
+              className="text-xl font-bold text-[var(--kama-ink)] leading-tight mb-2 group-hover:text-[var(--kama-accent)] transition-colors line-clamp-1"
               title={name}
             >
               {name}
@@ -172,7 +172,7 @@ const PropertyCard = ({ property, isSaved = false }) => {
                 <span className="flex items-center text-gray-900 font-bold">
                   <Bed
                     size={18}
-                    className="mr-2 text-indigo-500"
+                    className="mr-2 text-[var(--kama-accent)]"
                     strokeWidth={2.5}
                   />
                   {beds}
@@ -188,7 +188,7 @@ const PropertyCard = ({ property, isSaved = false }) => {
                 <span className="flex items-center text-gray-900 font-bold">
                   <Bath
                     size={18}
-                    className="mr-2 text-indigo-500"
+                    className="mr-2 text-[var(--kama-accent)]"
                     strokeWidth={2.5}
                   />
                   {baths}
@@ -204,7 +204,7 @@ const PropertyCard = ({ property, isSaved = false }) => {
                 <span className="flex items-center text-gray-900 font-bold">
                   <Ruler
                     size={18}
-                    className="mr-2 text-indigo-500"
+                    className="mr-2 text-[var(--kama-accent)]"
                     strokeWidth={2.5}
                   />
                   {square_feet?.toLocaleString()}

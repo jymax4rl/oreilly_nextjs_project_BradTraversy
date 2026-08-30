@@ -5,16 +5,21 @@ import { usePathname } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import {
-  Compass,
   Building2,
   Heart,
   MessageCircle,
   CircleUserRound,
+  MapPin,
 } from "lucide-react";
 import { useScrollNav } from "@/contexts/ScrollNavContext";
 import { useMenuOverlay } from "@/contexts/MenuOverlayContext";
 import { getUnreadMessageCount } from "@/utils/actions/messageActions";
 
+/**
+ * Primary mobile tab bar.
+ * Explore uses outline MapPin (never a filled letter circle).
+ * Never mounts Currency here.
+ */
 export default function MobileBottomNav() {
   const pathname = usePathname() || "";
   const { navVisible } = useScrollNav();
@@ -27,79 +32,112 @@ export default function MobileBottomNav() {
     getUnreadMessageCount().then(setUnreadCount).catch(() => {});
   }, [session, pathname]);
 
-  const active = (check) => (check ? "text-[#00C8FF]" : "text-zinc-400");
+  const itemClass = (on) =>
+    `relative z-10 flex min-h-[44px] flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[11px] font-medium ${
+      on ? "text-[var(--kama-accent)]" : "text-[var(--kama-ink-muted)]"
+    }`;
 
   return (
     <nav
-      className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-zinc-200 bg-white transition-transform duration-300 ease-out will-change-transform ${
+      className={`lg:hidden fixed bottom-0 left-0 right-0 z-[70] isolate border-t border-[var(--kama-border)] bg-[var(--kama-surface)] transition-transform duration-300 ease-out will-change-transform ${
         navVisible ? "translate-y-0" : "translate-y-full"
       }`}
-      style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+      style={{ paddingBottom: "max(0.35rem, env(safe-area-inset-bottom))" }}
       aria-label="Primary mobile navigation"
+      data-mobile-bottom-nav
     >
-      <div className="mx-auto flex max-w-lg items-stretch justify-around px-1 pt-1">
+      <div className="relative z-10 mx-auto flex max-w-lg items-stretch justify-around px-1 pt-0.5">
         <Link
           href="/"
-          className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium ${active(pathname === "/")}`}
+          className={itemClass(pathname === "/")}
+          aria-label="Explore"
+          aria-current={pathname === "/" ? "page" : undefined}
         >
-          <Compass className="h-6 w-6" strokeWidth={pathname === "/" ? 2.25 : 1.75} />
-          Explore
+          <MapPin
+            className="h-6 w-6 shrink-0 fill-none stroke-current"
+            strokeWidth={pathname === "/" ? 2.25 : 1.75}
+            aria-hidden
+          />
+          <span className="leading-none">Explore</span>
         </Link>
 
         <Link
           href="/properties"
-          className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium ${active(
-            pathname.startsWith("/properties"),
-          )}`}
+          className={itemClass(pathname.startsWith("/properties"))}
+          aria-current={
+            pathname.startsWith("/properties") ? "page" : undefined
+          }
         >
-          <Building2 className="h-6 w-6" strokeWidth={pathname.startsWith("/properties") ? 2.25 : 1.75} />
-          Browse
+          <Building2
+            className="h-6 w-6 shrink-0 fill-none stroke-current"
+            strokeWidth={pathname.startsWith("/properties") ? 2.25 : 1.75}
+            aria-hidden
+          />
+          <span className="leading-none">Browse</span>
         </Link>
 
         <Link
           href="/saved-properties"
-          className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium ${active(
-            pathname.startsWith("/saved-properties"),
-          )}`}
+          className={itemClass(pathname.startsWith("/saved-properties"))}
+          aria-current={
+            pathname.startsWith("/saved-properties") ? "page" : undefined
+          }
         >
-          <Heart className="h-6 w-6" strokeWidth={pathname.startsWith("/saved-properties") ? 2.25 : 1.75} />
-          Saved
+          <Heart
+            className="h-6 w-6 shrink-0 fill-none stroke-current"
+            strokeWidth={
+              pathname.startsWith("/saved-properties") ? 2.25 : 1.75
+            }
+            aria-hidden
+          />
+          <span className="leading-none">Saved</span>
         </Link>
 
         <Link
           href="/messages"
-          className={`relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium ${active(
-            pathname.startsWith("/messages"),
-          )}`}
+          className={itemClass(pathname.startsWith("/messages"))}
+          aria-current={pathname.startsWith("/messages") ? "page" : undefined}
         >
-          <span className="relative">
-            <MessageCircle className="h-6 w-6" strokeWidth={pathname.startsWith("/messages") ? 2.25 : 1.75} />
+          <span className="relative inline-flex">
+            <MessageCircle
+              className="h-6 w-6 shrink-0 fill-none stroke-current"
+              strokeWidth={pathname.startsWith("/messages") ? 2.25 : 1.75}
+              aria-hidden
+            />
             {unreadCount > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-bold text-white">
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[var(--kama-danger)] px-0.5 text-[9px] font-bold text-white">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
           </span>
-          Messages
+          <span className="leading-none">Messages</span>
         </Link>
 
         {session ? (
           <button
             type="button"
             onClick={toggle}
-            className="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-zinc-500"
+            className={itemClass(false)}
+            aria-label="Open menu"
           >
-            <CircleUserRound className="h-6 w-6" />
-            Menu
+            <CircleUserRound
+              className="h-6 w-6 shrink-0 fill-none stroke-current"
+              aria-hidden
+            />
+            <span className="leading-none">Menu</span>
           </button>
         ) : (
           <button
             type="button"
             onClick={() => signIn("google")}
-            className="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-zinc-500"
+            className={itemClass(false)}
+            aria-label="Log in"
           >
-            <CircleUserRound className="h-6 w-6" />
-            Log in
+            <CircleUserRound
+              className="h-6 w-6 shrink-0 fill-none stroke-current"
+              aria-hidden
+            />
+            <span className="leading-none">Log in</span>
           </button>
         )}
       </div>
