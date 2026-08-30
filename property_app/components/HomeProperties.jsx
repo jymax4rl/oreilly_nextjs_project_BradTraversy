@@ -9,6 +9,7 @@ import { useCurrency } from "@/utils/CurrencyContext";
 import DateCurrencyUpdated from "./DateCurrencyUpdated";
 import PropertySearch from "./PropertySearch";
 import { Suspense } from "react";
+import HostListingCardActions from "./properties/HostListingCardActions";
 
 const HomeProperties = ({
   initialProperties = [],
@@ -182,16 +183,43 @@ const HomeProperties = ({
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-            {properties.map((property) => (
-              <div key={property._id} className="opacity-100">
-                <PropertyCard
-                  property={property}
-                  rate={rate}
-                  symbol={symbol}
-                  isSaved={isSavedView}
-                />
-              </div>
-            ))}
+            {properties.map((property) =>
+              hostListingsView ? (
+                <div
+                  key={property._id}
+                  className="overflow-hidden rounded-3xl border border-[var(--kama-border)] bg-[var(--kama-surface)] shadow-sm"
+                >
+                  <div className="[&>div]:rounded-none [&>div]:border-0 [&>div]:shadow-none [&>div]:hover:shadow-none [&>div]:hover:translate-y-0">
+                    <PropertyCard
+                      property={property}
+                      rate={rate}
+                      symbol={symbol}
+                      isSaved={isSavedView}
+                    />
+                  </div>
+                  <div className="px-4 pb-4">
+                    <HostListingCardActions
+                      propertyId={property._id}
+                      propertyName={property.name}
+                      onDeleted={(id) => {
+                        setProperties((prev) =>
+                          prev.filter((p) => String(p._id) !== String(id)),
+                        );
+                      }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div key={property._id} className="opacity-100">
+                  <PropertyCard
+                    property={property}
+                    rate={rate}
+                    symbol={symbol}
+                    isSaved={isSavedView}
+                  />
+                </div>
+              ),
+            )}
           </div>
         )}
       </div>
