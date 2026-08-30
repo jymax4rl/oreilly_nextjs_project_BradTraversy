@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Required for multi-stage Docker images (copy .next/standalone + static + public).
+  output: "standalone",
   // Vercel often stores the key as GOOGLE_MAPS_API_KEY (no NEXT_PUBLIC_).
   // Maps JS runs in the browser, so expose whichever name is set at build time.
   env: {

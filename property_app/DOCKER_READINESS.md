@@ -102,45 +102,6 @@ node scripts/docker-release.mjs --push ghcr.io/your-org
 
 See also `property_app/.env.example` (names only). Real `.env` / `.env.local` are gitignored.
 
-### Vercel env ≠ Docker Desktop (Resend)
-
-**Vercel Project → Environment Variables do not inject into Docker Desktop.**  
-Booking confirmation emails on **https://www.isisel.com** use Resend keys stored in Vercel. A local container only sees what you pass at **run time** (`--env-file`, `-e`, or Compose `env_file`).
-
-| Runtime | How Resend gets keys |
-|---------|----------------------|
-| Vercel (`www.isisel.com`) | Project env (`EMAIL_FROM`, `RESEND_*`) |
-| `npm run dev` | `.env.local` loaded by Next |
-| Docker (`kama-properties:*`) | Must pass `--env-file .env.local` (or Compose) — **never baked from Vercel** |
-
-Required for container email (copy values from Vercel; do not commit):
-
-- `EMAIL_FROM` (verified Resend sender)
-- `RESEND_API_KEY` **or** `RESEND_BOOKING_API_KEY`
-
-Optional: `EMAIL_REPLY_TO`, `RESEND_TEMPLATE_GUEST_ID`, `RESEND_TEMPLATE_HOST_ID`, `RESEND_TEMPLATES_READY`.
-
-**Local Docker run (stop anything on :3000 first):**
-
-```bash
-# from property_app/ — fill Resend vars in .env.local first
-docker stop kama-1-1 2>/dev/null
-docker rm kama-email-test 2>/dev/null
-
-docker run -d --name kama-email-test -p 3000:3000 \
-  --env-file .env.local \
-  -e NEXTAUTH_URL=http://localhost:3000 \
-  -e NEXT_PUBLIC_SITE_URL=http://localhost:3000 \
-  -e NEXT_PUBLIC_DOMAIN=http://localhost:3000 \
-  kama-properties:1.1
-```
-
-Verify (names only):  
-`docker exec kama-email-test printenv | findstr /R "EMAIL_ RESEND_"`  
-Expect `EMAIL_FROM` and at least one `RESEND_*` set. Then book with Flutterwave test and check Resend → Sending.
-
-If emails still skip after env is set, rebuild image from `feature/booking-emails-menu` (`npm run docker:release`) so the container includes the latest email path — then re-run with `--env-file`.
-
 ---
 
 ## External services (outside the app container)

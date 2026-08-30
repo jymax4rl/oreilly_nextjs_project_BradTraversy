@@ -5,6 +5,7 @@ import connectToDatabase from "@/config/database";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
 
+// Listings need a live DB - do not prerender at image-build time (no secrets in Docker build).
 export const dynamic = "force-dynamic";
 
 function parsePositiveInt(value) {
