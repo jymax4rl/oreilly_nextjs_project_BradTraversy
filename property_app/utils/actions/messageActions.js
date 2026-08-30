@@ -12,7 +12,7 @@ export async function getMessages() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    return { error: "You must be signed in to view messages." };
+    return [];
   }
 
   const userId = session.user.id;
@@ -81,6 +81,65 @@ export async function sendMessage(formData) {
   revalidatePath(`/properties/${propertyId}`);
 
   return { success: "Message sent successfully!" };
+}
+
+/**
+ * Reply in an existing property conversation (recipient → original sender).
+ */
+export async function replyToMessage(formData) {
+  await connectToDatabase();
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    return { error: "You must be signed in to reply." };
+  }
+
+  const parentId = formData.get("messageId");
+  const body = formData.get("body")?.trim();
+
+  if (!parentId || !body) {
+    return { error: "Please write a reply." };
+  }
+
+  const parent = await Message.findById(parentId);
+  if (!parent) {
+    return { error: "Original message not found." };
+  }
+
+  const userId = session.user.id;
+  const isRecipient = parent.recipient.toString() === userId;
+  const isSender = parent.sender.toString() === userId;
+  if (!isRecipient && !isSender) {
+    return { error: "You are not part of this conversation." };
+  }
+
+  const replyToUserId = isRecipient
+    ? parent.sender.toString()
+    : parent.recipient.toString();
+
+  if (replyToUserId === userId) {
+    return { error: "You cannot reply to yourself." };
+  }
+
+  await Message.create({
+    sender: userId,
+    recipient: replyToUserId,
+    property: parent.property,
+    name: session.user.name || session.user.email || "User",
+    email: session.user.email || "",
+    body,
+    read: false,
+  });
+
+  if (isRecipient && !parent.read) {
+    parent.read = true;
+    await parent.save();
+  }
+
+  revalidatePath("/messages");
+  revalidatePath(`/properties/${parent.property.toString()}`);
+
+  return { success: "Reply sent." };
 }
 
 export async function markMessageAsRead(messageId) {

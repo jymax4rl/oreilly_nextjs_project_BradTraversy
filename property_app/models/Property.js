@@ -60,6 +60,20 @@ const PropertySchema = new mongoose.Schema(
     },
     images: [{ type: Schema.Types.Mixed }],
     audio: { type: Schema.Types.Mixed, required: false },
+    /**
+     * Listing moderation. New submissions start as "pending".
+     * Legacy docs without status remain publicly visible (see listingApproval helpers).
+     */
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      required: false,
+    },
+    /** Set when a host submits a listing for review (distinguishes new pending from legacy). */
+    listingModerationRequestedAt: { type: Date, required: false },
+    rejectionReason: { type: String, required: false },
+    listingReviewedAt: { type: Date, required: false },
+    listingReviewedBy: { type: Schema.Types.ObjectId, ref: "User", required: false },
   },
   {
     timestamps: true,

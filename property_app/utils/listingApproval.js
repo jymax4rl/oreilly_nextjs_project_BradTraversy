@@ -1,0 +1,65 @@
+/**
+ * Listing moderation helpers.
+ *
+ * Field: Property.status = "pending" | "approved" | "rejected"
+ * New submissions also set listingModerationRequestedAt so legacy rows without
+ * that timestamp are not trapped in the admin pending queue (and stay public).
+ */
+
+/** True when this listing is in the admin moderation queue (new submission). */
+export function isAwaitingListingModeration(property) {
+  if (!property || property.status !== "pending") return false;
+  return Boolean(property.listingModerationRequestedAt);
+}
+
+/** Public browse / sitemap: approved, or legacy docs with no real moderation request. */
+export function approvedListingQuery() {
+  return {
+    $or: [
+      { status: "approved" },
+      { status: { $exists: false } },
+      { status: null },
+      {
+        status: "pending",
+        listingModerationRequestedAt: { $exists: false },
+      },
+      { status: "pending", listingModerationRequestedAt: null },
+    ],
+  };
+}
+
+/** Admin "Pending" tab: only new submissions that requested moderation. */
+export function pendingModerationQueueQuery() {
+  return {
+    status: "pending",
+    listingModerationRequestedAt: { $exists: true, $ne: null },
+  };
+}
+
+export function isPubliclyVisibleListing(property) {
+  if (!property) return false;
+  if (isAwaitingListingModeration(property)) return false;
+  if (property.status === "rejected") return false;
+  return true;
+}
+
+export function canUserViewListing(property, session) {
+  if (!property) return false;
+  if (isPubliclyVisibleListing(property)) return true;
+  if (!session?.user) return false;
+  if (session.user.role === "admin") return true;
+  const ownerId =
+    property.owner?.toString?.() ?? String(property.owner ?? "");
+  const userId =
+    session.user.id?.toString?.() ?? String(session.user.id ?? "");
+  return Boolean(ownerId && userId && ownerId === userId);
+}
+
+/** Merge public-visibility constraints into an existing Mongo query object. */
+export function withApprovedListingFilter(mongoQuery = {}) {
+  const approved = approvedListingQuery();
+  if (!mongoQuery || Object.keys(mongoQuery).length === 0) {
+    return approved;
+  }
+  return { $and: [mongoQuery, approved] };
+}

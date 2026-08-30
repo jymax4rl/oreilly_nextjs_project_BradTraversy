@@ -14,6 +14,7 @@ import { authOptions } from "@/utils/authOptions";
 import { computeListingPrice } from "@/utils/listingPricing";
 import { uploadPropertyImages } from "@/utils/uploadPropertyImages";
 import { softEstimateCoordinates, coerceCoordinate } from "@/utils/address";
+import { sendListingSubmittedAdminEmail } from "@/utils/email/sendListingModerationEmails";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 
@@ -198,6 +199,8 @@ export const POST = async (request) => {
         phone: str(formData.get("seller_info.phone")),
       },
       owner: hostId,
+      status: "pending",
+      listingModerationRequestedAt: new Date(),
     };
 
     const newProperty = new Property(propertyData);
@@ -292,10 +295,21 @@ export const POST = async (request) => {
       console.error("Availability init warning:", availabilityError);
     }
 
+    // Notify admins (never fail the create response)
+    sendListingSubmittedAdminEmail({
+      propertyId: newProperty._id.toString(),
+      propertyName: newProperty.name,
+      hostName: session.user.name || propertyData.seller_info?.name,
+      hostEmail: session.user.email || propertyData.seller_info?.email,
+    }).catch((err) =>
+      console.error("Listing admin notify warning:", err?.message || err),
+    );
+
     return Response.json({
       success: true,
       id: newProperty._id.toString(),
-      redirectUrl: `/properties/${newProperty._id}`,
+      status: "pending",
+      redirectUrl: `/host/listings`,
     });
   } catch (error) {
     console.error("Failed to add property", error);

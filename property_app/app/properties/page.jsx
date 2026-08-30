@@ -4,6 +4,7 @@ import Property from "@/models/Property";
 import connectToDatabase from "@/config/database";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
+import { withApprovedListingFilter } from "@/utils/listingApproval";
 
 // Listings need a live DB - do not prerender at image-build time (no secrets in Docker build).
 export const dynamic = "force-dynamic";
@@ -137,7 +138,9 @@ const PropertiesPage = async ({
 
   try {
     await connectToDatabase();
-    const properties = await Property.find(mongoQuery).lean();
+    const properties = await Property.find(
+      withApprovedListingFilter(mongoQuery),
+    ).lean();
     const serializedProperties = await attachOwnerProfiles(
       properties.map(serializePropertyForClient),
     );

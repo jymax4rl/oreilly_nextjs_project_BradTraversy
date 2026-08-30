@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { Building2, PlusCircle, MapPin, BedDouble, Bath, Eye, Clock, CheckCircle, XCircle } from "lucide-react";
 import DeletePropertyControl from "@/components/properties/DeletePropertyControl";
 import PropertyListingThumbnail from "@/components/properties/PropertyListingThumbnail";
+import { isAwaitingListingModeration } from "@/utils/listingApproval";
 
 export const metadata = {
   title: "My Listings | Kama Properties",
@@ -31,6 +32,12 @@ const statusConfig = {
     Icon: XCircle,
   },
 };
+
+function listingDisplayStatus(property) {
+  if (property.status === "rejected") return "rejected";
+  if (isAwaitingListingModeration(property)) return "pending";
+  return "approved";
+}
 
 export default async function HostListingsPage() {
   const session = await getServerSession(authOptions);
@@ -56,9 +63,11 @@ export default async function HostListingsPage() {
   }));
 
   const total = serialized.length;
-  const approved = serialized.filter((p) => p.status === "approved").length;
+  const approved = serialized.filter(
+    (p) => listingDisplayStatus(p) === "approved",
+  ).length;
   const pending = serialized.filter(
-    (p) => !p.status || p.status === "pending"
+    (p) => listingDisplayStatus(p) === "pending",
   ).length;
 
   return (
@@ -103,7 +112,7 @@ export default async function HostListingsPage() {
         ) : (
           <div className="space-y-4">
             {serialized.map((property) => {
-              const status = property.status || "pending";
+              const status = listingDisplayStatus(property);
               const cfg = statusConfig[status] || statusConfig.pending;
               const StatusIcon = cfg.Icon;
               const image = property.images?.[0];

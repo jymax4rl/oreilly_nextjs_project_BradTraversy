@@ -6,6 +6,9 @@ import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
 import ServerProperty from "@/components/dynamicComponents/ServerProperty";
 import DynamicProperty from "@/components/dynamicComponents/DynamicProperty";
 import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/utils/authOptions";
+import { canUserViewListing } from "@/utils/listingApproval";
 
 export async function generateMetadata({ params }) {
   await connectToDatabase();
@@ -13,6 +16,11 @@ export async function generateMetadata({ params }) {
   const property = await Property.findById(id).lean();
 
   if (!property) {
+    return { title: "Property Not Found | Kama Properties" };
+  }
+
+  const session = await getServerSession(authOptions);
+  if (!canUserViewListing(property, session)) {
     return { title: "Property Not Found | Kama Properties" };
   }
 
@@ -60,6 +68,11 @@ export default async function PropertyPage({ params }) {
   const property = await Property.findById(id, "-internalNotes").lean();
 
   if (!property) {
+    notFound();
+  }
+
+  const session = await getServerSession(authOptions);
+  if (!canUserViewListing(property, session)) {
     notFound();
   }
 

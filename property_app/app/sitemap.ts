@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
+import { approvedListingQuery } from "@/utils/listingApproval";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl =
@@ -34,7 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     try {
       await connectToDatabase();
       const properties = (await (Property as any)
-        .find({ status: "approved" })
+        .find(approvedListingQuery())
         .select("_id updatedAt")
         .lean()) as Array<{ _id: { toString(): string }; updatedAt?: Date }>;
 

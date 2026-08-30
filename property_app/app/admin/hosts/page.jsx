@@ -125,7 +125,13 @@ export default function AdminHostsPage() {
               Review and manage host onboarding applications
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
+            <Link 
+              href="/admin/listings" 
+              className="bg-white border text-gray-700 hover:bg-gray-100 px-4 py-2 rounded transition font-medium"
+            >
+              Property listings
+            </Link>
             <Link 
               href="/admin/transactions" 
               className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded transition font-medium"

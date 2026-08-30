@@ -182,9 +182,9 @@ const Navbar = () => {
 
           {session?.user?.role === "admin" && (
             <Link
-              href="/admin/hosts"
+              href="/admin/listings"
               className={
-                isHome || !isActive("/admin/hosts")
+                isHome || !isActive("/admin/listings")
                   ? "p-2 text-black"
                   : "p-2 text-white"
               }
@@ -352,7 +352,7 @@ const Navbar = () => {
 
                 {session?.user?.role === "admin" && (
                   <Link
-                    href="/admin/hosts"
+                    href="/admin/listings"
                     className={profileItemClass}
                     role="menuitem"
                     onClick={() => setIsProfileOpen(false)}

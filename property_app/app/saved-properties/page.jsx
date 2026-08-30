@@ -1,3 +1,4 @@
+import { isPubliclyVisibleListing } from "@/utils/listingApproval";
 import React from "react";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
@@ -46,7 +47,9 @@ const SavedPropertiesPage = async () => {
     .lean();
 
   const savedProperties = await attachOwnerProfiles(
-    (user?.bookmarks || []).map(serializePropertyForClient),
+    (user?.bookmarks || [])
+      .filter((p) => p && isPubliclyVisibleListing(p))
+      .map(serializePropertyForClient),
   );
 
   return (
