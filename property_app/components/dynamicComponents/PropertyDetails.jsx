@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import React from "react";
+import Image from "next/image";
 import { Bed, Bath, Maximize, Mail, Phone, X } from "lucide-react";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { formatCurrency } from "@/utils/currencyUtils";
@@ -38,7 +39,9 @@ function formatSqFt(value) {
 
 function PropertyDetails({ data }) {
   const { currencyCode, rates } = useCurrency();
-  const ownerName = data.seller_info?.name || "host";
+  const ownerName =
+    data.host?.name || data.seller_info?.name || "host";
+  const ownerImage = data.host?.image || null;
   const propertyRates = data.rates || {};
   const sqftLabel = formatSqFt(data.square_feet);
 
@@ -149,9 +152,19 @@ function PropertyDetails({ data }) {
           Hosted by {ownerName}
         </h2>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[var(--kama-border)] bg-[var(--kama-field)] text-xl font-semibold text-[var(--kama-accent)] sm:h-16 sm:w-16 sm:text-2xl">
-            {ownerName?.charAt(0)}
-          </div>
+          {ownerImage ? (
+            <Image
+              src={ownerImage}
+              alt=""
+              width={64}
+              height={64}
+              className="h-14 w-14 shrink-0 rounded-full object-cover ring-2 ring-[var(--kama-accent-soft)] sm:h-16 sm:w-16"
+            />
+          ) : (
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[var(--kama-border)] bg-[var(--kama-field)] text-xl font-semibold text-[var(--kama-accent)] sm:h-16 sm:w-16 sm:text-2xl">
+              {ownerName?.charAt(0)}
+            </div>
+          )}
           <div className="min-w-0 flex-1 space-y-3">
             <p className="font-medium text-[var(--kama-ink-muted)]">Property owner</p>
             <div className="flex flex-col gap-2 font-medium text-[var(--kama-ink)] sm:flex-row sm:flex-wrap sm:gap-6">

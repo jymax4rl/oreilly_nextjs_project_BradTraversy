@@ -3,6 +3,7 @@ import HomeProperties from "@/components/HomeProperties";
 import Property from "@/models/Property";
 import connectToDatabase from "@/config/database";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
+import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
 
 export const dynamic = "force-dynamic";
 
@@ -136,7 +137,9 @@ const PropertiesPage = async ({
   try {
     await connectToDatabase();
     const properties = await Property.find(mongoQuery).lean();
-    const serializedProperties = properties.map(serializePropertyForClient);
+    const serializedProperties = await attachOwnerProfiles(
+      properties.map(serializePropertyForClient),
+    );
 
     return renderPropertiesList({
       initialProperties: serializedProperties,

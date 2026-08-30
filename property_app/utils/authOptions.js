@@ -54,6 +54,14 @@ export const authOptions = {
           token.role = user.role;
           token.hostStatus = user.hostStatus;
           token.hasCompletedHostOnboarding = !!user.hasCompletedHostOnboarding;
+          // Prefer DB display name so Profile edits show in Navbar
+          if (user.username) {
+            token.name = user.username;
+          }
+          // Prefer DB image (Cloudinary upload or Google) over stale OAuth picture
+          if (user.image) {
+            token.picture = user.image;
+          }
         }
       }
 
@@ -66,6 +74,12 @@ export const authOptions = {
         session.user.hostStatus = token.hostStatus;
         session.user.hasCompletedHostOnboarding =
           token.hasCompletedHostOnboarding === true;
+        if (token.picture) {
+          session.user.image = token.picture;
+        }
+        if (token.name) {
+          session.user.name = token.name;
+        }
       }
       return session;
     },

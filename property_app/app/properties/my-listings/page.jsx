@@ -5,6 +5,7 @@ import { authOptions } from "@/utils/authOptions";
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
+import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
 import HomeProperties from "@/components/HomeProperties";
 import Link from "next/link";
 import { ArrowLeft, LayoutList } from "lucide-react";
@@ -31,7 +32,9 @@ const MyListingsPage = async () => {
     .sort({ updatedAt: -1 })
     .lean();
 
-  const myProperties = raw.map(serializePropertyForClient);
+  const myProperties = await attachOwnerProfiles(
+    raw.map(serializePropertyForClient),
+  );
 
   return (
     <div className="pt-[10vh] bg-gray-50 min-h-screen">
