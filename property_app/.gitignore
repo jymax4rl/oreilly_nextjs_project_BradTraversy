@@ -20,6 +20,10 @@
 # production
 /build
 
+# docker / local container leftovers (images are not committed)
+*.tar
+docker-compose.override.yml
+
 # misc
 .DS_Store
 *.pem
@@ -32,6 +36,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel

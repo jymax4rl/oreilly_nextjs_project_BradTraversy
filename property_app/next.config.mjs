@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Required for multi-stage Docker images (copy .next/standalone + static + public).
+  output: "standalone",
   compiler: {
     styledComponents: true,
   },

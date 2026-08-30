@@ -1,16 +1,18 @@
 import mongoose from "mongoose";
-const apiDomain = process.env.MONGODB_URI || null;
 
+/**
+ * @returns {Promise<boolean>} true when mongoose is ready for queries.
+ * Safe for Docker/CI builds with no MONGODB_URI (avoids find() buffer timeouts).
+ */
 const connectToDatabase = async () => {
-  // Set strict query to true to prevent unknown field queries
   mongoose.set("strictQuery", true);
 
-  //handle the case where the domain is not available yet
-  if (!apiDomain) {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
     console.log("No MongoDB URI provided");
-    return [];
+    return false;
   }
-  //if the connection is already open, do nothing
+
   if (mongoose.connection.readyState === 1) {
     if (
       mongoose.connection.db &&
@@ -20,24 +22,22 @@ const connectToDatabase = async () => {
         `Connected to wrong database (${mongoose.connection.db.databaseName}), reconnecting to KamaProperties...`
       );
       await mongoose.disconnect();
-      // Fall through to connect logic
     } else {
       console.log("Already connected to MongoDB");
-      return;
+      return true;
     }
   }
 
-  //connect to MongoDB
   try {
-    await mongoose.connect(apiDomain, {
-      //specify the database name
+    await mongoose.connect(uri, {
       dbName: "KamaProperties",
     });
     console.log("Connected to MongoDB");
+    return true;
   } catch (error) {
     console.error("Failed to connect to MongoDB:", error);
+    return false;
   }
 };
 
-//exporting connection logic
 export default connectToDatabase;

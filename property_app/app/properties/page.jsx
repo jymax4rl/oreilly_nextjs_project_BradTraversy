@@ -5,13 +5,16 @@ import connectToDatabase from "@/config/database";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import { filterDemoQualityListings } from "@/utils/listingPublicQuality";
 
+// Listings need a live DB — do not prerender at image-build time (no secrets in Docker build).
+export const dynamic = "force-dynamic";
+
 const PropertiesPage = async ({ searchParams }) => {
   // Next.js 15+: searchParams is a Promise
   const params = await searchParams;
   const locationQuery = params?.location?.trim();
   const typeQuery = params?.type;
 
-  await connectToDatabase();
+  const connected = await connectToDatabase();
 
   // Build MongoDB query dynamically
   const mongoQuery = {};
@@ -39,7 +42,9 @@ const PropertiesPage = async ({ searchParams }) => {
     mongoQuery.is_featured = false;
   }
 
-  const properties = await Property.find(mongoQuery).lean();
+  const properties = connected
+    ? await Property.find(mongoQuery).lean()
+    : [];
 
   // Public browse only: hide thin/junk imagery; hosts still see all in my-listings.
   const publicProperties = filterDemoQualityListings(properties);

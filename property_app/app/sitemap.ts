@@ -28,13 +28,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Dynamic property pages — only approved listings
-  await connectToDatabase();
+  // Dynamic property pages — only approved listings (skip when DB unavailable, e.g. Docker build)
+  const connected = await connectToDatabase();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const properties = await (Property as any)
-    .find({ status: "approved" })
-    .select("_id updatedAt")
-    .lean() as Array<{ _id: { toString(): string }; updatedAt?: Date }>;
+  const properties = connected
+    ? ((await (Property as any)
+        .find({ status: "approved" })
+        .select("_id updatedAt")
+        .lean()) as Array<{
+        _id: { toString(): string };
+        updatedAt?: Date;
+      }>)
+    : [];
 
   const propertyRoutes = properties.map((property) => ({
     url: `${baseUrl}/properties/${property._id.toString()}`,

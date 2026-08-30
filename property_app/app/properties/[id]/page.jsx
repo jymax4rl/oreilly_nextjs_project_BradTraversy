@@ -7,9 +7,9 @@ import { notFound } from "next/navigation";
 import { propertyPrimaryImageSrc } from "@/utils/cloudinary/propertyMediaUrls";
 
 export async function generateMetadata({ params }) {
-  await connectToDatabase();
+  const connected = await connectToDatabase();
   const { id } = await params;
-  const property = await Property.findById(id).lean();
+  const property = connected ? await Property.findById(id).lean() : null;
 
   if (!property) {
     return { title: "Property Not Found | Kama Properties" };
@@ -54,9 +54,11 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function PropertyPage({ params }) {
-  await connectToDatabase();
+  const connected = await connectToDatabase();
   const { id } = await params;
-  const property = await Property.findById(id, "-internalNotes").lean();
+  const property = connected
+    ? await Property.findById(id, "-internalNotes").lean()
+    : null;
 
   if (!property) {
     notFound();
@@ -64,7 +66,7 @@ export default async function PropertyPage({ params }) {
 
   const serialized = serializePropertyForClient(property);
 
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/properties/${id}`;
+  const canonicalUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.isisel.com"}/properties/${id}`;
 
   return (
     <div className="overflow-x-hidden">

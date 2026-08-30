@@ -1,5 +1,6 @@
 import Link from "next/link"; // Or 'react-router-dom'
 import { FaInstagram, FaTwitter, FaLinkedin, FaFacebook } from "react-icons/fa"; // Optional icons
+import DeployCheckBadge from "@/components/DeployCheckBadge";
 
 const Footer = ({ className = "" }) => {
   const currentYear = new Date().getFullYear();
@@ -80,9 +81,7 @@ const Footer = ({ className = "" }) => {
             </a>
           </div>
           <div className="flex flex-col items-end gap-2 md:flex-row md:items-center md:gap-3">
-            <span className="border border-zinc-300 rounded px-2 py-0.5 text-xs text-zinc-300">
-              Deploy check · Address fix
-            </span>
+            <DeployCheckBadge surface="dark" />
             <p className="text-sm hover:text-white transition-colors cursor-pointer ">
               © {currentYear} Kama Properties Inc.
             </p>

@@ -1,0 +1,51 @@
+# Build context = property_app/
+# Keep the image lean and never send secrets into the daemon.
+
+# Dependencies & build output
+node_modules
+npm-debug.log*
+.pnpm-debug.log*
+yarn-error.log*
+.next
+out
+build
+coverage
+*.tsbuildinfo
+
+# Secrets & local env (inject at runtime / CI secrets)
+.env
+.env.*
+!.env.example
+
+# Vercel / IDE / OS
+.vercel
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+*.pem
+
+# Docs, PDFs, design assets not needed at runtime
+docs
+*.md
+!DOCKER_READINESS.md
+assets/images/theme_files
+customer.json
+
+# Dev-only tooling & scripts (not required for `next build` of the app)
+scripts
+**/*.test.js
+**/*.test.ts
+**/*.spec.js
+**/*.spec.ts
+jest.config.*
+playwright.config.*
+
+# Compose / release tooling stays on the host (not needed inside the image)
+docker-compose*.yml
+VERSION
+*.tar
+
+# Git
+.git
+.gitignore
