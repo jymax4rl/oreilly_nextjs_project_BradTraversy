@@ -55,6 +55,7 @@ export const WIZARD_STEPS = [
   { id: "basics", label: "Basics" },
   { id: "amenities", label: "Amenities" },
   { id: "photos", label: "Photos" },
+  { id: "audio", label: "Audio" },
   { id: "title", label: "Title" },
   { id: "pricing", label: "Pricing" },
   { id: "publish", label: "Publish" },

@@ -9,7 +9,9 @@ const requiredMockEnv = [
 ];
 
 const optionalEnv = [
+  "GOOGLE_MAPS_API_KEY",
   "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY",
+  "NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID",
   "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME",
   "CLOUDINARY_CLOUD_NAME",
   "CLOUDINARY_API_KEY",
@@ -30,8 +32,31 @@ requiredMockEnv.forEach((key) => {
 optionalEnv.forEach((key) => {
   if (process.env[key]) {
     console.log(`${key}: Exists`);
+  } else if (key === "GOOGLE_MAPS_API_KEY") {
+    // Vercel name — OK if NEXT_PUBLIC_ variant is set instead
+    if (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
+      console.log(`${key}: not set (NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is set — OK)`);
+    } else {
+      console.log(
+        `${key}: not set (Vercel Maps key name; also accepts NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)`,
+      );
+    }
+  } else if (key === "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY") {
+    if (process.env.GOOGLE_MAPS_API_KEY) {
+      console.log(
+        `${key}: not set (GOOGLE_MAPS_API_KEY is set — next.config maps it at build)`,
+      );
+    } else {
+      console.log(
+        `${key}: not set (Maps/Places autocomplete disabled; manual address + soft pin still work — enable Maps JavaScript API + Places API (New) when ready)`,
+      );
+    }
+  } else if (key === "NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID") {
+    console.log(
+      `${key}: not set (classic Marker pin; set a Map ID for Advanced Markers)`,
+    );
   } else {
-    console.log(`${key}: not set (address autocomplete will use manual fields)`);
+    console.log(`${key}: not set`);
   }
 });
 console.log("----------------------------------");

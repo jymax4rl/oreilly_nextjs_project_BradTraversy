@@ -1,0 +1,128 @@
+/* List-property wizard — Kama motion + Places dropdown stacking */
+
+.listing-wizard {
+  --wizard-footer-h: 4.75rem;
+}
+
+.listing-wizard .pac-container {
+  z-index: 10000 !important;
+  border-radius: 12px;
+  border: 1px solid var(--kama-border);
+  box-shadow: 0 12px 32px rgba(12, 26, 26, 0.12);
+  font-family: inherit;
+  margin-top: 4px;
+}
+
+.listing-wizard .pac-item {
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.listing-wizard .pac-item:hover,
+.listing-wizard .pac-item-selected {
+  background: var(--kama-accent-soft);
+}
+
+.wizard-step-enter {
+  animation: wizardStepIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes wizardStepIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wizard-progress-fill {
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  background: linear-gradient(
+    90deg,
+    var(--kama-accent) 0%,
+    color-mix(in srgb, var(--kama-accent) 75%, #2a8f86) 100%
+  );
+}
+
+.wizard-float {
+  animation: wizardFloat 5.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.wizard-float-slow {
+  animation: wizardFloat 7.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes wizardFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.wizard-pulse {
+  animation: wizardPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes wizardPulse {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(1.08);
+  }
+}
+
+.wizard-select-card {
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.2s ease;
+}
+
+.wizard-select-card:hover {
+  transform: translateY(-1px);
+}
+
+.wizard-select-card[aria-pressed="true"],
+.wizard-select-card.is-selected {
+  border-color: var(--kama-ink);
+  background: var(--kama-field);
+  box-shadow: 0 0 0 1px var(--kama-ink);
+  transform: scale(1.02);
+}
+
+.wizard-select-card:focus-visible {
+  outline: none;
+  box-shadow: var(--kama-focus-ring);
+}
+
+/* Hide any leftover currency letter FAB over the wizard chrome */
+body:has([data-listing-wizard]) [data-currency-letter],
+body:has([data-listing-wizard]) [data-currency-control="letter"],
+[data-listing-wizard] [data-currency-letter] {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wizard-step-enter,
+  .wizard-float,
+  .wizard-float-slow,
+  .wizard-pulse,
+  .wizard-progress-fill,
+  .wizard-select-card {
+    animation: none !important;
+    transition: none !important;
+  }
+}

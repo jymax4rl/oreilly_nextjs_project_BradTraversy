@@ -8,11 +8,14 @@ import {
   propertyFolder,
   propertyImagesFolder,
 } from "@/utils/cloudinary/generateFolderPath";
-import { uploadPropertyImage } from "@/utils/cloudinary/uploadPropertyMedia";
+import { uploadPropertyImage, uploadPropertyAudio } from "@/utils/cloudinary/uploadPropertyMedia";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { computeListingPrice } from "@/utils/listingPricing";
 import { uploadPropertyImages } from "@/utils/uploadPropertyImages";
+import { softEstimateCoordinates, coerceCoordinate } from "@/utils/address";
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
 
 function num(value) {
   const n = Number(value);
@@ -92,9 +95,27 @@ export const POST = async (request) => {
       );
     }
 
-    const lat = num(formData.get("location.lat"));
-    const lng = num(formData.get("location.lng"));
+    let lat = coerceCoordinate(formData.get("location.lat"));
+    let lng = coerceCoordinate(formData.get("location.lng"));
+    if (lat == null || lng == null) {
+      const soft = softEstimateCoordinates({
+        street,
+        city,
+        state: str(formData.get("location.state")),
+        zipcode: str(formData.get("location.zipcode")),
+        country,
+      });
+      lat = soft.lat;
+      lng = soft.lng;
+    }
     const hostId = String(session.user.id);
+
+    const audioFile = formData.get("audio");
+    const hasAudio =
+      audioFile &&
+      typeof audioFile === "object" &&
+      "arrayBuffer" in audioFile &&
+      Number(audioFile.size) > 0;
 
     const propertyData = {
       type,
@@ -177,6 +198,39 @@ export const POST = async (request) => {
     }
 
     newProperty.images = images;
+
+    if (hasAudio) {
+      try {
+        const byteData = await audioFile.arrayBuffer();
+        const buffer = Buffer.from(byteData);
+        const audioName =
+          (audioFile.name && String(audioFile.name)) || "recording.webm";
+
+        if (isCloudinaryConfigured()) {
+          const audioEntry = await uploadPropertyAudio({
+            buffer,
+            filename: audioName,
+            hostId,
+            propertyId,
+          });
+          await Property.findByIdAndUpdate(propertyId, {
+            $set: { audio: audioEntry },
+          });
+          newProperty.audio = audioEntry;
+        } else {
+          const audioDir = path.join(process.cwd(), "public/audio/properties");
+          await mkdir(audioDir, { recursive: true });
+          const safeName = `${Date.now()}_${audioName.replace(/\s/g, "_")}`;
+          await writeFile(path.join(audioDir, safeName), buffer);
+          await Property.findByIdAndUpdate(propertyId, {
+            $set: { audio: safeName },
+          });
+          newProperty.audio = safeName;
+        }
+      } catch (audioError) {
+        console.error("Audio upload warning:", audioError?.message || audioError);
+      }
+    }
 
     try {
       await ensurePropertyAvailability(newProperty._id.toString());

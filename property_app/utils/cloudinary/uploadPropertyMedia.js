@@ -48,3 +48,24 @@ function toImageEntry(result) {
     uploadedAt: new Date(),
   };
 }
+
+/** Cloudinary stores audio under resource_type video (or auto). */
+export async function uploadPropertyAudio({
+  buffer,
+  filename,
+  hostId,
+  propertyId,
+}) {
+  const folder = propertyFolder(hostId, propertyId, "audio");
+  const result = await uploadBuffer(buffer, {
+    folder,
+    resource_type: "video",
+    filename_override: sanitizeUploadFilename(filename),
+  });
+  return {
+    url: result.secure_url,
+    publicId: result.public_id,
+    resourceType: result.resource_type || "video",
+    uploadedAt: new Date(),
+  };
+}

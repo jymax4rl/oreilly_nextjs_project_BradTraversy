@@ -3,9 +3,9 @@
 import GoogleAddressAutocomplete from "@/components/forms/GoogleAddressAutocomplete";
 
 const inputClass =
-  "h-12 w-full rounded-xl border border-zinc-200 bg-white px-4 text-[15px] text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100";
+  "h-12 w-full rounded-xl border border-[var(--kama-border)] bg-[var(--kama-surface)] px-4 text-[15px] text-[var(--kama-ink)] outline-none transition placeholder:text-[var(--kama-ink-muted)] focus:border-[var(--kama-accent)] focus:ring-2 focus:ring-[var(--kama-accent)]/15";
 
-const labelClass = "mb-1.5 block text-sm font-medium text-zinc-700";
+const labelClass = "mb-1.5 block text-sm font-medium text-[var(--kama-ink)]";
 
 export default function HostAddressFields({ address, onChange, disabled = false }) {
   const setField = (name, value) => {

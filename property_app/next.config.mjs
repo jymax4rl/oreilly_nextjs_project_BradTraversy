@@ -1,5 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Vercel often stores the key as GOOGLE_MAPS_API_KEY (no NEXT_PUBLIC_).
+  // Maps JS runs in the browser, so expose whichever name is set at build time.
+  env: {
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:
+      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
+      process.env.GOOGLE_MAPS_API_KEY ||
+      "",
+    NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID:
+      process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ||
+      process.env.GOOGLE_MAPS_MAP_ID ||
+      "",
+  },
   compiler: {
     styledComponents: true,
   },

@@ -3,37 +3,92 @@
 import { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { X } from "lucide-react";
 import GoogleIcon from "@/components/auth/GoogleIcon";
 import BrandLogo from "@/components/BrandLogo";
 import heroImage from "@/assets/images/modernMansion01.png";
 
+/** Never leave the full-page teal spinner up forever if session fetch stalls. */
+const SESSION_WAIT_MS = 2500;
+
+function LoginSpinner() {
+  return (
+    <div className="flex min-h-dvh items-center justify-center bg-[var(--kama-canvas)]">
+      <div
+        className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--kama-accent)] border-t-transparent"
+        aria-label="Loading"
+      />
+    </div>
+  );
+}
+
 function LoginContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const [loading, setLoading] = useState(false);
+  const [sessionWaitTimedOut, setSessionWaitTimedOut] = useState(false);
+  const [redirectStalled, setRedirectStalled] = useState(false);
 
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const error = searchParams.get("error");
 
   useEffect(() => {
-    if (status === "authenticated") {
-      router.replace(callbackUrl);
+    if (status !== "loading") {
+      setSessionWaitTimedOut(false);
+      return;
     }
-  }, [status, callbackUrl, router]);
+    const t = window.setTimeout(() => setSessionWaitTimedOut(true), SESSION_WAIT_MS);
+    return () => window.clearTimeout(t);
+  }, [status]);
 
-  const handleGoogleSignIn = () => {
-    setLoading(true);
-    signIn("google", { callbackUrl });
-  };
+  useEffect(() => {
+    if (status !== "authenticated") {
+      setRedirectStalled(false);
+      return;
+    }
+    // Prefer hard navigation so middleware/JWT and client session stay in sync.
+    const navTimer = window.setTimeout(() => {
+      window.location.assign(callbackUrl);
+    }, 50);
+    const stallTimer = window.setTimeout(
+      () => setRedirectStalled(true),
+      SESSION_WAIT_MS,
+    );
+    return () => {
+      window.clearTimeout(navTimer);
+      window.clearTimeout(stallTimer);
+    };
+  }, [status, callbackUrl]);
 
-  if (status === "loading" || status === "authenticated") {
+  // Full-page spinner ONLY while session is genuinely loading, and only briefly.
+  if (status === "loading" && !sessionWaitTimedOut) {
+    return <LoginSpinner />;
+  }
+
+  // Authenticated: brief spinner while we navigate to callback (e.g. /properties/add).
+  if (status === "authenticated" && !redirectStalled) {
+    return <LoginSpinner />;
+  }
+
+  // Timed out while "authenticated" but still here — offer escape hatch.
+  if (status === "authenticated" && redirectStalled) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-[var(--kama-canvas)]">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--kama-accent)] border-t-transparent" />
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-[var(--kama-canvas)] px-6 text-center">
+        <p className="text-sm text-[var(--kama-ink-muted)]">
+          Signed in as {session?.user?.email || "your account"}. Redirect is slow —
+          continue manually.
+        </p>
+        <a
+          href={callbackUrl}
+          className="kama-cta inline-flex min-h-[48px] items-center rounded-full px-8 text-sm font-bold"
+        >
+          Continue
+        </a>
+        <Link href="/" className="text-sm text-[var(--kama-ink-muted)] underline">
+          Go home
+        </Link>
       </div>
     );
   }
@@ -97,6 +152,16 @@ function LoginContent() {
             and listing your property.
           </p>
 
+          {sessionWaitTimedOut && status === "loading" ? (
+            <div
+              className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+              role="status"
+            >
+              Sign-in check is taking longer than usual. You can still continue
+              with Google below.
+            </div>
+          ) : null}
+
           {error ? (
             <div
               className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
@@ -109,7 +174,10 @@ function LoginContent() {
           <div className="mt-8 space-y-4">
             <button
               type="button"
-              onClick={handleGoogleSignIn}
+              onClick={() => {
+                setLoading(true);
+                signIn("google", { callbackUrl });
+              }}
               disabled={loading}
               className="flex h-[52px] w-full items-center justify-center gap-3 rounded-xl border border-zinc-300 bg-white text-[15px] font-semibold text-zinc-800 shadow-sm transition hover:border-zinc-400 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
@@ -166,13 +234,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-dvh items-center justify-center bg-zinc-50">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--kama-accent)] border-t-transparent" />
-        </div>
-      }
-    >
+    <Suspense fallback={<LoginSpinner />}>
       <LoginContent />
     </Suspense>
   );
