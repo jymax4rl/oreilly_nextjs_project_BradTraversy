@@ -1,4 +1,6 @@
 import { Resend } from "resend";
+import connectToDatabase from "@/config/database";
+import User from "@/models/User";
 import { getBookingResendApiKey } from "@/utils/email/resendKeys";
 import { getAbsoluteAppUrl } from "@/utils/email/propertyImageUrl";
 
@@ -19,8 +21,8 @@ function isConfigured() {
   return Boolean(getBookingResendApiKey() && process.env.EMAIL_FROM);
 }
 
-/** Comma-separated ADMIN_EMAIL / ADMIN_NOTIFICATION_EMAIL addresses. */
-export function getAdminNotificationEmails() {
+/** Soft fallback: comma-separated ADMIN_EMAIL / ADMIN_NOTIFICATION_EMAIL / EMAIL_REPLY_TO. */
+export function getAdminNotificationEmailsFromEnv() {
   const raw =
     process.env.ADMIN_EMAIL ||
     process.env.ADMIN_NOTIFICATION_EMAIL ||
@@ -30,6 +32,54 @@ export function getAdminNotificationEmails() {
     .split(",")
     .map((e) => e.trim())
     .filter(Boolean);
+}
+
+/** @deprecated Use getAdminNotificationEmailsFromEnv or resolveAdminRecipientEmails. */
+export function getAdminNotificationEmails() {
+  return getAdminNotificationEmailsFromEnv();
+}
+
+/**
+ * Primary: unique emails for users with role "admin" in MongoDB.
+ * Fallback: ADMIN_EMAIL / ADMIN_NOTIFICATION_EMAIL / EMAIL_REPLY_TO when none found.
+ */
+export async function resolveAdminRecipientEmails() {
+  const unique = new Map();
+
+  try {
+    const connected = await connectToDatabase();
+    if (connected) {
+      const admins = await User.find({
+        role: "admin",
+        email: { $exists: true, $ne: "" },
+      })
+        .select("email")
+        .lean();
+
+      for (const doc of admins) {
+        const email = String(doc?.email || "").trim();
+        if (!email) continue;
+        const key = email.toLowerCase();
+        if (!unique.has(key)) unique.set(key, email);
+      }
+    }
+  } catch (error) {
+    console.error(
+      "resolveAdminRecipientEmails: DB lookup failed:",
+      error?.message || error,
+    );
+  }
+
+  if (unique.size > 0) {
+    return Array.from(unique.values());
+  }
+
+  // Soft fallback when no admin users (or DB unavailable)
+  for (const email of getAdminNotificationEmailsFromEnv()) {
+    const key = email.toLowerCase();
+    if (!unique.has(key)) unique.set(key, email);
+  }
+  return Array.from(unique.values());
 }
 
 /**
@@ -49,10 +99,10 @@ export async function sendListingSubmittedAdminEmail({
     return { sent: false, reason: "not_configured" };
   }
 
-  const admins = getAdminNotificationEmails();
+  const admins = await resolveAdminRecipientEmails();
   if (admins.length === 0) {
     console.warn(
-      "Listing moderation email skipped: set ADMIN_EMAIL (or ADMIN_NOTIFICATION_EMAIL)",
+      "Listing moderation email skipped: no users with role admin and no ADMIN_EMAIL fallback",
     );
     return { sent: false, reason: "no_admin_email" };
   }
@@ -76,18 +126,43 @@ export async function sendListingSubmittedAdminEmail({
     </div>
   `;
 
-  try {
-    await resend.emails.send({
-      from: process.env.EMAIL_FROM,
-      to: admins,
-      subject,
-      html,
-    });
-    return { sent: true };
-  } catch (error) {
-    console.error("sendListingSubmittedAdminEmail:", error?.message || error);
-    return { sent: false, reason: "send_failed" };
+  const from = process.env.EMAIL_FROM;
+  const results = await Promise.allSettled(
+    admins.map(async (to) => {
+      const { error } = await resend.emails.send({
+        from,
+        to: [to],
+        subject,
+        html,
+      });
+      if (error) {
+        throw new Error(error.message || String(error));
+      }
+    }),
+  );
+
+  let sentCount = 0;
+  for (let i = 0; i < results.length; i++) {
+    const result = results[i];
+    if (result.status === "fulfilled") {
+      sentCount += 1;
+    } else {
+      console.error(
+        `sendListingSubmittedAdminEmail failed for ${admins[i]}:`,
+        result.reason?.message || result.reason,
+      );
+    }
   }
+
+  if (sentCount === 0) {
+    return { sent: false, reason: "send_failed", attempted: admins.length };
+  }
+
+  return {
+    sent: true,
+    sentCount,
+    attempted: admins.length,
+  };
 }
 
 /**
