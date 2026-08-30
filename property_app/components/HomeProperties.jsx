@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Search, MapPin, Home, SlidersHorizontal } from "lucide-react";
+import { Search, MapPin, Home, SlidersHorizontal, BedDouble, Bath } from "lucide-react";
 import PropertyCard from "./PropertyCard";
 import Link from "next/link";
 import Currency from "./Currency";
-import { formatCurrency, CURRENCIES } from "../utils/currencyUtils";
+import { CURRENCIES } from "../utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
 import DateCurrencyUpdated from "./DateCurrencyUpdated";
 import PropertySearch from "./PropertySearch";
@@ -14,19 +14,18 @@ const HomeProperties = ({
   initialProperties = [],
   searchQuery = "",
   typeFilter = "",
+  minPrice = null,
+  maxPrice = null,
+  minBeds = null,
+  minBaths = null,
   isSavedView = false,
   hideSearchToolbar = false,
   hostListingsView = false,
 }) => {
-  const { currencyCode, rates, loading } = useCurrency();
+  const { currencyCode, rates } = useCurrency();
   const [properties, setProperties] = useState(
     initialProperties.length > 0 ? initialProperties : [],
   );
-
-  // Add a useEffect that updates the properties state whenever initialProperties changes (backup defense):
-  useEffect(() => {
-    setProperties(initialProperties.length > 0 ? initialProperties : []);
-  }, [initialProperties]);
 
   useEffect(() => {
     setProperties(initialProperties.length > 0 ? initialProperties : []);
@@ -37,61 +36,26 @@ const HomeProperties = ({
   const { symbol } = currencyMeta;
   const rate = rates[currencyCode] || 1;
 
-  // SCROLL OBSERVER LOGIC (preserved exactly)
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        threshold: 0.1,
-        rootMargin: "0px 0px -50px 0px",
-      },
-    );
-
-    const cards = document.querySelectorAll(".animate-on-scroll");
-    cards.forEach((card) => observer.observe(card));
-
-    return () => observer.disconnect();
-  }, [properties]);
-
   const hasSearch =
-    searchQuery || (typeFilter && typeFilter !== "All Properties");
+    searchQuery ||
+    (typeFilter && typeFilter !== "All Properties") ||
+    minPrice != null ||
+    maxPrice != null ||
+    minBeds != null ||
+    minBaths != null;
 
   return (
-    <section className="pt-4 pb-16 md:py-16 bg-gray-50 min-h-screen">
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-        .animate-on-scroll {
-          opacity: 0;
-          transform: translateY(30px);
-          transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        .animate-on-scroll.is-visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      `,
-        }}
-      />
-
+    <section className="min-h-screen bg-[var(--kama-canvas-soft)] pb-16 pt-4 md:py-16 overflow-x-hidden">
       <div className="container mx-auto px-4">
-        {/* Toolbar: hidden on mobile (search is in MobileTopChrome, currency shown below) */}
         {!hideSearchToolbar && (
-          <div className="hidden md:block w-full text-center mb-12">
-            <div className="grid grid-cols-8 gap-4 items-center">
+          <div className="mb-12 hidden w-full text-center md:block">
+            <div className="grid grid-cols-8 items-center gap-4">
               <div className="col-span-7 text-left md:text-center">
                 <Suspense fallback={null}>
                   <PropertySearch />
                 </Suspense>
               </div>
-              <div className="flex justify-end items-center col-span-1">
+              <div className="col-span-1 flex items-center justify-end">
                 <div className="flex flex-col items-center gap-1">
                   <Currency />
                   <DateCurrencyUpdated />
@@ -100,40 +64,59 @@ const HomeProperties = ({
             </div>
           </div>
         )}
-        {/* Mobile-only: currency selector above cards */}
-        <div className="flex md:hidden justify-end items-center mb-3 pr-1">
-          <div className="flex flex-col items-end gap-0.5">
-            <Currency />
-            <DateCurrencyUpdated />
-          </div>
-        </div>
 
-        {/* Search Results Context Header */}
+        {/* Mobile currency only when this page owns search (not immersive home) */}
+        {!hideSearchToolbar && (
+          <div className="mb-3 flex items-center justify-end pr-1 md:hidden">
+            <div className="flex flex-col items-end gap-0.5">
+              <Currency />
+              <DateCurrencyUpdated />
+            </div>
+          </div>
+        )}
+
         {hasSearch && (
-          <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
                 {properties.length} result{properties.length !== 1 ? "s" : ""}{" "}
                 found
               </h2>
-              <p className="text-gray-500 mt-1 flex items-center gap-2 flex-wrap">
+              <p className="mt-1 flex flex-wrap items-center gap-2 text-gray-500">
                 {searchQuery && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--kama-accent-soft)] px-3 py-1 text-sm font-medium text-[var(--kama-accent)]">
                     <MapPin className="h-3.5 w-3.5" />
                     {searchQuery}
                   </span>
                 )}
                 {typeFilter && typeFilter !== "All Properties" && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--kama-accent-soft)] px-3 py-1 text-sm font-medium text-[var(--kama-accent)]">
                     <Home className="h-3.5 w-3.5" />
                     {typeFilter}
+                  </span>
+                )}
+                {minBeds != null && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--kama-accent-soft)] px-3 py-1 text-sm font-medium text-[var(--kama-accent)]">
+                    <BedDouble className="h-3.5 w-3.5" />
+                    {minBeds}+ beds
+                  </span>
+                )}
+                {minBaths != null && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--kama-accent-soft)] px-3 py-1 text-sm font-medium text-[var(--kama-accent)]">
+                    <Bath className="h-3.5 w-3.5" />
+                    {minBaths}+ baths
+                  </span>
+                )}
+                {(minPrice != null || maxPrice != null) && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--kama-accent-soft)] px-3 py-1 text-sm font-medium text-[var(--kama-accent)]">
+                    ${minPrice ?? "0"} – ${maxPrice ?? "∞"} / night
                   </span>
                 )}
               </p>
             </div>
             <Link
               href="/properties"
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-white border border-gray-200 rounded-xl hover:border-gray-300 transition-all shadow-sm"
+              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition-all hover:border-gray-300 hover:text-gray-900"
             >
               <SlidersHorizontal className="h-4 w-4" />
               Clear filters
@@ -141,48 +124,35 @@ const HomeProperties = ({
           </div>
         )}
 
-        {loading ? (
-          <div className="col-span-full flex flex-col items-center justify-center text-center py-24 px-4 bg-white rounded-3xl border border-gray-100 shadow-sm">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2 mt-6">
-              Loading Kama Properties
-            </h3>
-            <p className="text-gray-500 text-base max-w-md mx-auto">
-              Fetching the Kama Properties...
-            </p>
-          </div>
-        ) : properties.length === 0 ? (
-          <div className="col-span-full flex flex-col items-center justify-center text-center py-24 px-4 bg-white rounded-3xl border border-gray-100 shadow-sm">
+        {properties.length === 0 ? (
+          <div className="col-span-full flex flex-col items-center justify-center rounded-3xl border border-gray-100 bg-white px-4 py-24 text-center shadow-sm">
             {hostListingsView ? (
               <>
-                <div className="bg-indigo-50 p-8 rounded-full mb-6 inline-flex items-center justify-center animate-pulse-slow">
-                  <Home className="w-16 h-16 text-indigo-300" />
+                <div className="mb-6 inline-flex items-center justify-center rounded-full bg-[var(--kama-accent-soft)] p-8">
+                  <Home className="h-16 w-16 text-[var(--kama-accent)]" />
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                <h3 className="mb-4 text-3xl font-bold text-gray-900">
                   No listings yet
                 </h3>
-                <p className="text-gray-500 text-lg max-w-md mx-auto leading-relaxed">
-                  When you publish a property, it will show up here. Open the
-                  listing form to create your first one.
+                <p className="mx-auto max-w-md text-lg leading-relaxed text-gray-500">
+                  When you publish a property, it will show up here.
                 </p>
                 <Link
                   href="/properties/add"
-                  className="mt-8 px-8 py-3 cursor-pointer bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors duration-300 shadow-md"
+                  className="mt-8 cursor-pointer rounded-xl bg-gray-900 px-8 py-3 font-semibold text-white shadow-md transition-colors hover:bg-gray-800"
                 >
                   List a property
                 </Link>
               </>
             ) : (
               <>
-                <div className="bg-indigo-50 p-8 rounded-full mb-6 inline-flex items-center justify-center animate-pulse-slow">
-                  <Search className="w-16 h-16 text-indigo-300" />
+                <div className="mb-6 inline-flex items-center justify-center rounded-full bg-[var(--kama-accent-soft)] p-8">
+                  <Search className="h-16 w-16 text-[var(--kama-accent)]" />
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                <h3 className="mb-4 text-3xl font-bold text-gray-900">
                   No Properties Found
                 </h3>
-                <p className="text-gray-500 text-lg max-w-md mx-auto leading-relaxed">
+                <p className="mx-auto max-w-md text-lg leading-relaxed text-gray-500">
                   We couldn&apos;t find any listings that match your current
                   criteria.
                   {searchQuery && (
@@ -196,13 +166,13 @@ const HomeProperties = ({
                 <div className="flex gap-4">
                   <Link
                     href="/"
-                    className="mt-8 px-8 py-3 cursor-pointer bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors duration-300 shadow-md"
+                    className="mt-8 cursor-pointer rounded-xl bg-gray-900 px-8 py-3 font-semibold text-white shadow-md transition-colors hover:bg-gray-800"
                   >
                     Go Home
                   </Link>
                   <Link
                     href="/properties"
-                    className="mt-8 px-8 py-3 cursor-pointer bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors duration-300 shadow-md"
+                    className="mt-8 cursor-pointer rounded-xl bg-gray-900 px-8 py-3 font-semibold text-white shadow-md transition-colors hover:bg-gray-800"
                   >
                     View All Properties
                   </Link>
@@ -211,13 +181,9 @@ const HomeProperties = ({
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8">
-            {properties.map((property, index) => (
-              <div
-                key={property._id}
-                className="animate-on-scroll"
-                style={{ transitionDelay: `${(index % 3) * 100}ms` }}
-              >
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+            {properties.map((property) => (
+              <div key={property._id} className="opacity-100">
                 <PropertyCard
                   property={property}
                   rate={rate}

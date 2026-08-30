@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import heroImage from "@/assets/images/modernMansion01.png";
-import KamaLogo from "@/assets/images/Kama logo - blue.svg";
+import BrandLogo from "@/components/BrandLogo";
 
 function Hero() {
   return (
@@ -20,15 +20,12 @@ function Hero() {
 
       {/* Mobile: compact logo + tagline above the property grid */}
       <div className="md:hidden relative z-10 flex flex-col items-center justify-center px-6 py-8">
-        <Image
-          src={KamaLogo}
-          alt="Kama Properties"
-          width={160}
-          height={151}
-          className="w-28 h-auto mb-4 select-none"
+        <BrandLogo
+          href={null}
+          className="mb-4 h-auto w-28 select-none"
           priority
         />
-        <p className="text-center text-base leading-relaxed text-[#00C8FF]/85 max-w-md">
+        <p className="text-center text-base leading-relaxed text-[#1b5c57]/90 max-w-md">
           Find your perfect dream home.
         </p>
       </div>

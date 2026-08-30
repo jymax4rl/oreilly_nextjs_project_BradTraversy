@@ -1,21 +1,129 @@
 @import "tailwindcss";
+@import "./home-portal.css";
 
+/*
+  Kama Properties — global design tokens
+  Deep ocean teal system (not neon cyan / purple / terracotta-cream).
+*/
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
+  --kama-canvas: #fafcfb;
+  --kama-canvas-soft: #f2f6f5;
+  --kama-surface: #ffffff;
+  --kama-field: #f7f9f8;
+  --kama-ink: #0c1a1a;
+  --kama-ink-muted: #4a5c5b;
+  --kama-accent: #1b5c57;
+  --kama-accent-hover: #144844;
+  --kama-accent-soft: rgba(27, 92, 87, 0.1);
+  --kama-accent-glow: rgba(27, 92, 87, 0.14);
+  --kama-border: rgba(12, 26, 26, 0.08);
+  --kama-border-strong: rgba(27, 92, 87, 0.22);
+  --kama-glass: rgba(255, 255, 255, 0.82);
+  --kama-focus-ring: 0 0 0 3px rgba(27, 92, 87, 0.18);
+  --kama-danger: #b42318;
+  --kama-nav-height-mobile: 4.25rem;
+  --kama-chrome-clearance: calc(
+    var(--kama-nav-height-mobile) + env(safe-area-inset-bottom, 0px)
+  );
+
+  /* Aliases used by home portal + shared chrome */
+  --portal-canvas: var(--kama-canvas);
+  --portal-canvas-soft: var(--kama-canvas-soft);
+  --portal-ink: var(--kama-ink);
+  --portal-ink-muted: var(--kama-ink-muted);
+  --portal-accent: var(--kama-accent);
+  --portal-accent-hover: var(--kama-accent-hover);
+  --portal-accent-soft: var(--kama-accent-soft);
+  --portal-accent-glow: var(--kama-accent-glow);
+  --portal-glass: var(--kama-glass);
+  --portal-border: var(--kama-border);
+  --portal-border-strong: var(--kama-border-strong);
+  --portal-field: var(--kama-field);
+
+  --foreground-rgb: 12, 26, 26;
+  --background-start-rgb: 250, 252, 251;
   --background-end-rgb: 255, 255, 255;
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
+  margin: 0;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  background: var(--kama-canvas);
+  color: var(--kama-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
 h1 {
-  font-size: 3rem;
+  font-size: clamp(1.75rem, 5vw, 3rem);
+  line-height: 1.15;
+  color: var(--kama-ink);
+}
+
+/* Shared interactive chrome */
+.kama-focus-ring:focus-visible {
+  outline: none;
+  box-shadow: var(--kama-focus-ring);
+}
+
+.kama-cta {
+  background: var(--kama-accent);
+  color: #fff;
+  transition: background-color 0.18s ease;
+}
+
+.kama-cta:hover {
+  background: var(--kama-accent-hover);
+}
+
+/* Never allow currency controls / letter badges near bottom nav (NGN → “N” bug) */
+[data-mobile-bottom-nav] [data-currency-control],
+[data-mobile-bottom-nav] [data-currency-letter],
+[data-currency-letter] {
+  display: none !important;
+}
+
+/* Bottom nav icons: stroke only — no filled glyphs that read as letter badges */
+[data-mobile-bottom-nav] svg {
+  fill: none !important;
+  background: transparent !important;
+}
+
+@keyframes calendarFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes calendarSlideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes calendarSlideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }

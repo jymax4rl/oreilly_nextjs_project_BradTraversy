@@ -57,12 +57,20 @@ const MyListingsPage = async () => {
                 </p>
               </div>
             </div>
-            <Link
-              href="/properties/add"
-              className="inline-flex justify-center items-center rounded-xl bg-gray-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
-            >
-              List another property
-            </Link>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Link
+                href="/host/reservations"
+                className="inline-flex justify-center items-center rounded-xl border border-[#1b5c57] bg-white px-6 py-3 text-sm font-medium text-[#1b5c57] transition hover:bg-[#ecfdf5]"
+              >
+                Manage reservations
+              </Link>
+              <Link
+                href="/properties/add"
+                className="inline-flex justify-center items-center rounded-xl bg-gray-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
+              >
+                List another property
+              </Link>
+            </div>
           </div>
         </div>
 

@@ -1,5 +1,29 @@
 # Engineering docs
 
+## Project status (advancement & next steps)
+
+| File | Purpose |
+|------|---------|
+| `kama-properties-project-status.html` | Source report (edit this) |
+| `kama-properties-project-status.pdf` | Generated status PDF |
+
+Regenerate PDF:
+
+```bash
+npm run docs:project-status-pdf
+```
+
+## Platform track record
+
+| File | Purpose |
+|------|---------|
+| `kama-properties-track-record.html` | Platform overview source |
+| `kama-properties-track-record.pdf` | Generated track record PDF |
+
+```bash
+npm run docs:track-record-pdf
+```
+
 ## Availability calendar (Phase 1)
 
 | File | Purpose |

@@ -1,0 +1,127 @@
+import connectToDatabase from "@/config/database";
+import Booking from "@/models/Booking";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/utils/authOptions";
+import {
+  getPropertyForApi,
+  isPropertyOwner,
+  assertVerifiedHost,
+} from "@/utils/availability/propertyAccess";
+import {
+  bookingWithPolicyFlags,
+  cancelBookingRecord,
+  isValidObjectId,
+  modifyBookingDates,
+} from "@/utils/bookings/mutateBooking";
+
+async function assertHostOwnsBooking(params, session) {
+  const verified = assertVerifiedHost(session);
+  if (!verified.ok) {
+    return { error: verified.message, status: verified.status };
+  }
+
+  const { id: propertyId, bookingId } = await params;
+  if (!isValidObjectId(propertyId) || !isValidObjectId(bookingId)) {
+    return { error: "Invalid id", status: 400 };
+  }
+
+  const property = await getPropertyForApi(propertyId);
+  if (!property) {
+    return { error: "Property not found", status: 404 };
+  }
+  if (!isPropertyOwner(property, session.user.id)) {
+    return { error: "Only the property owner can manage this reservation", status: 403 };
+  }
+
+  const booking = await Booking.findById(bookingId);
+  if (!booking) {
+    return { error: "Booking not found", status: 404 };
+  }
+  if (String(booking.propertyId) !== String(propertyId)) {
+    return { error: "Booking does not belong to this property", status: 404 };
+  }
+
+  return { property, booking, bookingId, propertyId };
+}
+
+/**
+ * PATCH /api/properties/[id]/bookings/[bookingId]
+ * Host modify dates. Body: { checkIn, checkOut }
+ */
+export async function PATCH(request, { params }) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession(authOptions);
+    const loaded = await assertHostOwnsBooking(params, session);
+    if (loaded.error) {
+      return Response.json({ error: loaded.error }, { status: loaded.status });
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const result = await modifyBookingDates({
+      bookingId: loaded.bookingId,
+      actor: "host",
+      checkIn: body.checkIn,
+      checkOut: body.checkOut,
+      property: loaded.property,
+    });
+
+    if (!result.ok) {
+      return Response.json(
+        { error: result.error, code: result.code },
+        { status: result.status || 400 },
+      );
+    }
+
+    return Response.json({
+      success: true,
+      booking: bookingWithPolicyFlags(result.booking, loaded.property, "host"),
+      nights: result.nights,
+      emails: result.emails || null,
+    });
+  } catch (error) {
+    console.error("PATCH property booking:", error);
+    return Response.json({ error: "Failed to modify reservation" }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE /api/properties/[id]/bookings/[bookingId]
+ * Host cancel. Body optional: { reason }
+ */
+export async function DELETE(request, { params }) {
+  try {
+    await connectToDatabase();
+    const session = await getServerSession(authOptions);
+    const loaded = await assertHostOwnsBooking(params, session);
+    if (loaded.error) {
+      return Response.json({ error: loaded.error }, { status: loaded.status });
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const result = await cancelBookingRecord({
+      bookingId: loaded.bookingId,
+      actor: "host",
+      actorUserId: session.user.id,
+      reason: body.reason,
+      property: loaded.property,
+    });
+
+    if (!result.ok) {
+      return Response.json(
+        { error: result.error, code: result.code },
+        { status: result.status || 400 },
+      );
+    }
+
+    return Response.json({
+      success: true,
+      booking: bookingWithPolicyFlags(result.booking, loaded.property, "host"),
+      refundEligible: result.refundEligible,
+      emails: result.emails || null,
+    });
+  } catch (error) {
+    console.error("DELETE property booking:", error);
+    return Response.json({ error: "Failed to cancel reservation" }, { status: 500 });
+  }
+}

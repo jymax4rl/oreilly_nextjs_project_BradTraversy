@@ -1,5 +1,6 @@
 "use client";
-import React from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Star } from "lucide-react";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { formatCurrency } from "@/utils/currencyUtils";
@@ -12,21 +13,95 @@ import Currency from "@/components/Currency";
 import PaymentMethodBadge from "@/components/PaymentMethodBadge";
 import MobileMoneyReserveButton from "@/components/MobileMoneyReserveButton";
 import MessageOwnerButton from "@/components/MessageOwnerButton";
+import PropertyMobileStickyCta from "@/components/PropertyMobileStickyCta";
+import GuestDateRangePicker from "@/components/calendar/GuestDateRangePicker";
+import {
+  countNights,
+  validateStayDates,
+} from "@/utils/availability/validateStay";
+import {
+  calculateBookingFees,
+  calculateStayTotal,
+  getPrimaryDisplayRate,
+  hasAnyRate,
+  normalizeRates,
+} from "@/utils/propertyRates";
 import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 import { useSession, signIn } from "next-auth/react";
 
 function RightColumn({ data }) {
   const { currencyCode, rates } = useCurrency();
   const { data: session } = useSession();
-  const propertyRates = data.rates || {};
+  const cardRef = useRef(null);
+  const [cardInView, setCardInView] = useState(true);
 
-  const basePrice = propertyRates.weekly || propertyRates.monthly || propertyRates.nightly || 0;
-  const cleaningFee = 150;
+  const [checkIn, setCheckIn] = useState(null);
+  const [checkOut, setCheckOut] = useState(null);
+  const [dateError, setDateError] = useState("");
+  const [paymentNotice, setPaymentNotice] = useState(null);
+  const [unavailableRanges, setUnavailableRanges] = useState([]);
+  const [customDayRates, setCustomDayRates] = useState([]);
+
+  const listingRates = normalizeRates(data.rates);
   const paymentCurrency = normalizeCurrencyCode(currencyCode);
+  const isOwner = session?.user?.id === data.owner;
+
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setCardInView(entry.isIntersecting),
+      { root: null, threshold: 0.2, rootMargin: "0px 0px -12% 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/properties/${data._id}/availability`);
+        const payload = await res.json();
+        if (!cancelled && res.ok) {
+          setUnavailableRanges(payload.unavailableRanges || []);
+          setCustomDayRates(payload.customDayRates || []);
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [data._id]);
+
+  const nights = checkIn && checkOut ? countNights(checkIn, checkOut) : 0;
+  const stayPricing =
+    checkIn && checkOut
+      ? calculateStayTotal(listingRates, customDayRates, checkIn, checkOut)
+      : null;
+  const primaryRate = getPrimaryDisplayRate(listingRates);
+
+  const basePriceUsd = stayPricing?.base ?? primaryRate?.amount ?? 0;
+  const { cleaningFee, commission, total: totalUsd } =
+    calculateBookingFees(basePriceUsd);
 
   const numericalTotal = parseFloat(
-    ((basePrice + cleaningFee) * (rates[currencyCode] || 1)).toFixed(2),
+    (totalUsd * (rates[currencyCode] || 1)).toFixed(2),
   );
+
+  const symbol = currencyCode === "USD" ? "$" : currencyCode;
+
+  const priceDisplay = stayPricing
+    ? formatCurrency(stayPricing.base, rates[currencyCode], symbol)
+    : primaryRate
+      ? formatCurrency(primaryRate.amount, rates[currencyCode], symbol)
+      : "—";
+
+  const periodLabel = stayPricing
+    ? `for ${nights} night${nights !== 1 ? "s" : ""}`
+    : primaryRate?.suffix || "";
 
   const config = {
     public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY,
@@ -42,18 +117,91 @@ function RightColumn({ data }) {
     },
     customizations: {
       title: "Kama Properties",
-      description: `Reservation for ${data.name || "Property"}`,
+      description: `Reservation for ${data.name || "Property"}${
+        checkIn && checkOut ? ` (${checkIn} – ${checkOut})` : ""
+      }`,
       logo: "https://st2.depositphotos.com/4403291/7418/v/450/depositphotos_74189661-stock-illustration-online-shop-log.jpg",
     },
+    ...(checkIn && checkOut
+      ? {
+          meta: {
+            property_id: String(data._id),
+            property_name: data.name || "Property",
+            host_id: String(data.owner || ""),
+            host_name: data.seller_info?.name || "",
+            host_email: data.seller_info?.email || "",
+            check_in: checkIn,
+            check_out: checkOut,
+            nights: String(nights),
+          },
+        }
+      : {}),
   };
 
   const handleFlutterPayment = useFlutterwave(config);
 
-  const handleReserve = () => {
+  const refreshAvailability = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/properties/${data._id}/availability`);
+      const payload = await res.json();
+      if (res.ok) {
+        const ranges = payload.unavailableRanges || [];
+        setUnavailableRanges(ranges);
+        setCustomDayRates(payload.customDayRates || []);
+        return ranges;
+      }
+    } catch {
+      /* ignore */
+    }
+    return unavailableRanges;
+  }, [data._id, unavailableRanges]);
+
+  const handleDatesChange = ({ checkIn: inDate, checkOut: outDate }) => {
+    setCheckIn(inDate);
+    setCheckOut(outDate);
+    setDateError("");
+  };
+
+  const handleReserve = async () => {
     if (!session) {
       signIn("google");
       return;
     }
+
+    if (isOwner) return;
+
+    if (!hasAnyRate(listingRates)) {
+      setDateError("This listing has no rates configured yet.");
+      return;
+    }
+
+    if (!checkIn || !checkOut) {
+      setDateError("Select check-in and check-out dates.");
+      return;
+    }
+
+    const ranges = await refreshAvailability();
+    const validation = validateStayDates(checkIn, checkOut, ranges);
+    if (!validation.ok) {
+      setDateError(validation.error);
+      return;
+    }
+
+    const pricing = calculateStayTotal(
+      listingRates,
+      customDayRates,
+      validation.checkIn,
+      validation.checkOut,
+    );
+    if (!pricing) {
+      setDateError(
+        "No rate is set for this stay length. Try different dates or contact the host.",
+      );
+      return;
+    }
+
+    setDateError("");
+    setPaymentNotice(null);
 
     handleFlutterPayment({
       callback: async (response) => {
@@ -69,11 +217,40 @@ function RightColumn({ data }) {
                 host_id: data.owner,
                 host_name: data.seller_info?.name || "Unknown",
                 host_email: data.seller_info?.email || "",
+                check_in: validation.checkIn,
+                check_out: validation.checkOut,
+                nights: countNights(validation.checkIn, validation.checkOut),
+                amount: numericalTotal,
+                currency: paymentCurrency,
               }),
             });
-            if (!res.ok) console.error("Failed to save transaction to DB");
+            const payload = await res.json().catch(() => ({}));
+            if (!res.ok) {
+              setPaymentNotice({
+                type: "error",
+                title: "Could not confirm payment",
+                message:
+                  payload.message ||
+                  "Payment may have gone through, but we could not verify it. Save your receipt and contact support.",
+              });
+            } else if (payload.bookingId) {
+              window.location.href = "/my-bookings?confirmed=1";
+              return;
+            } else if (payload.bookingError) {
+              setPaymentNotice({
+                type: "warning",
+                title: "Payment received",
+                message: `Your payment was saved, but the booking could not be completed: ${payload.bookingError}`,
+              });
+            }
           } catch (err) {
             console.error("Error saving transaction:", err);
+            setPaymentNotice({
+              type: "error",
+              title: "Connection error",
+              message:
+                "Payment may have succeeded. Check My Bookings in a moment or contact support with your receipt.",
+            });
           }
         }
 
@@ -83,96 +260,174 @@ function RightColumn({ data }) {
     });
   };
 
-  const symbol = currencyCode === "USD" ? "$" : currencyCode;
-
   return (
-    <div className="relative min-w-0">
-      <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-lg shadow-slate-900/5 sm:p-5 lg:sticky lg:top-24 lg:space-y-5 lg:p-6">
-        <Currency align="start" />
-        <PaymentMethodBadge currencyCode={paymentCurrency} />
+    <div className="relative min-w-0 overflow-visible">
+      <div
+        ref={cardRef}
+        data-booking-card
+        className="space-y-5 overflow-visible rounded-[1.35rem] border border-[var(--kama-border)] bg-[var(--kama-surface)] p-5 shadow-[0_16px_40px_rgba(12,26,26,0.06)] sm:p-6 lg:sticky lg:top-24 lg:space-y-5"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Currency align="start" />
+          <PaymentMethodBadge currencyCode={paymentCurrency} compact />
+        </div>
 
-        <div className="flex min-w-0 items-baseline justify-between gap-3 border-t border-slate-100 pt-3">
+        <div className="flex min-w-0 items-end justify-between gap-3">
           <div className="min-w-0">
-            <span className="text-2xl font-extrabold tabular-nums text-slate-900 sm:text-3xl">
-              {propertyRates.monthly
-                ? formatCurrency(propertyRates.monthly, rates[currencyCode], symbol)
-                : propertyRates.weekly
-                  ? formatCurrency(propertyRates.weekly, rates[currencyCode], symbol)
-                  : formatCurrency(propertyRates.nightly || 0, rates[currencyCode], symbol)}
-            </span>
-            <span className="ml-1 text-sm font-medium text-slate-500">
-              {propertyRates.monthly ? "/ mo" : propertyRates.weekly ? "/ wk" : "/ night"}
-            </span>
+            <p className="text-[11px] font-medium tracking-wide text-[var(--kama-ink-muted)]">
+              {stayPricing ? "Stay total" : "From"}
+            </p>
+            <p className="mt-0.5 text-[1.65rem] font-semibold leading-none tabular-nums tracking-tight text-[var(--kama-ink)] sm:text-[1.85rem]">
+              {priceDisplay}
+              {periodLabel ? (
+                <span className="ml-1.5 text-sm font-medium text-[var(--kama-ink-muted)]">
+                  {periodLabel}
+                </span>
+              ) : null}
+            </p>
           </div>
-          <div className="flex shrink-0 items-center gap-1 rounded-md bg-slate-50 px-2 py-1 text-xs font-bold">
-            <Star size={12} className="fill-slate-900" aria-hidden /> 5.0
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div className="cursor-pointer rounded-xl border border-slate-200 bg-white p-3 transition-colors hover:border-slate-300">
-            <span className="mb-0.5 block text-[10px] font-bold uppercase text-slate-500">
-              Check-in
-            </span>
-            <span className="font-medium text-slate-900">Add date</span>
-          </div>
-          <div className="cursor-pointer rounded-xl border border-slate-200 bg-white p-3 transition-colors hover:border-slate-300">
-            <span className="mb-0.5 block text-[10px] font-bold uppercase text-slate-500">
-              Check-out
-            </span>
-            <span className="font-medium text-slate-900">Add date</span>
+          <div className="mb-0.5 flex shrink-0 items-center gap-1 rounded-full bg-[var(--kama-field)] px-2.5 py-1 text-xs font-semibold text-[var(--kama-ink)]">
+            <Star
+              size={12}
+              className="fill-[var(--kama-accent)] text-[var(--kama-accent)]"
+              aria-hidden
+            />
+            5.0
           </div>
         </div>
 
-        <MobileMoneyReserveButton
-          currencyCode={paymentCurrency}
-          onClick={handleReserve}
-        />
+        {!isOwner && (
+          <>
+            <GuestDateRangePicker
+              propertyId={data._id}
+              checkIn={checkIn}
+              checkOut={checkOut}
+              onChange={handleDatesChange}
+              onValidationError={setDateError}
+            />
 
-        <MessageOwnerButton
-          propertyId={data._id}
-          ownerId={data.owner}
-          ownerName={data.seller_info?.name || "host"}
-          variant="compact"
-          className="w-full justify-center"
-        />
+            {nights > 0 && (
+              <p className="text-center text-sm font-medium text-[var(--kama-ink-muted)] animate-[calendarFadeIn_0.25s_ease-out]">
+                {nights} night{nights !== 1 ? "s" : ""}
+              </p>
+            )}
 
-        <p className="text-center text-xs text-slate-400">
+            {dateError && (
+              <p className="rounded-xl bg-red-50 px-3 py-2 text-center text-sm text-red-700">
+                {dateError}
+              </p>
+            )}
+
+            {paymentNotice && (
+              <div
+                className={`rounded-xl border px-3 py-3 text-sm ${
+                  paymentNotice.type === "error"
+                    ? "border-red-200 bg-red-50 text-red-900"
+                    : "border-amber-200 bg-amber-50 text-amber-950"
+                }`}
+                role="alert"
+              >
+                <p className="font-semibold">{paymentNotice.title}</p>
+                <p className="mt-1 leading-snug">{paymentNotice.message}</p>
+                <Link
+                  href="/my-bookings"
+                  className="mt-2 inline-block font-semibold underline"
+                >
+                  View My Bookings
+                </Link>
+              </div>
+            )}
+
+            <MobileMoneyReserveButton
+              currencyCode={paymentCurrency}
+              onClick={handleReserve}
+            />
+
+            <MessageOwnerButton
+              propertyId={data._id}
+              ownerId={data.owner}
+              ownerName={data.seller_info?.name || "host"}
+              variant="compact"
+              className="w-full justify-center border-[var(--kama-border)] text-[var(--kama-ink)]"
+            />
+          </>
+        )}
+
+        {isOwner && (
+          <p className="text-center text-sm text-[var(--kama-ink-muted)]">
+            This is your listing — manage{" "}
+            <a
+              href={`/properties/${data._id}/reservations`}
+              className="font-semibold text-[var(--kama-accent)] hover:underline"
+            >
+              Reservations
+            </a>
+            ,{" "}
+            <a
+              href={`/properties/${data._id}/calendar`}
+              className="font-semibold text-[var(--kama-accent)] hover:underline"
+            >
+              Calendar
+            </a>{" "}
+            or{" "}
+            <a
+              href={`/properties/${data._id}/rates`}
+              className="font-semibold text-[var(--kama-accent)] hover:underline"
+            >
+              Rates
+            </a>
+            .
+          </p>
+        )}
+
+        <p className="text-center text-[11px] text-[var(--kama-ink-muted)]">
           You won&apos;t be charged until checkout
         </p>
 
-        <details className="group border-t border-slate-100 pt-3 text-sm text-slate-600">
-          <summary className="cursor-pointer list-none font-medium text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
-            <span className="underline decoration-slate-300 decoration-dotted underline-offset-4 group-open:mb-3 group-open:inline-block">
+        <details className="group border-t border-[var(--kama-border)] pt-4 text-sm text-[var(--kama-ink-muted)]">
+          <summary className="cursor-pointer list-none font-medium text-[var(--kama-ink)] marker:content-none [&::-webkit-details-marker]:hidden">
+            <span className="underline decoration-[var(--kama-border-strong)] decoration-dotted underline-offset-4 group-open:mb-3 group-open:inline-block">
               Price breakdown
             </span>
           </summary>
-          <div className="mt-3 space-y-2">
+          <div className="mt-3 space-y-2.5">
             <div className="flex justify-between gap-3">
-              <span>Base</span>
+              <span>{stayPricing ? stayPricing.label : "Base"}</span>
               <span className="tabular-nums">
-                {formatCurrency(
-                  propertyRates.weekly || propertyRates.monthly || propertyRates.nightly || 0,
-                  rates[currencyCode],
-                  symbol,
-                )}
+                {formatCurrency(basePriceUsd, rates[currencyCode], symbol)}
               </span>
             </div>
             <div className="flex justify-between gap-3">
-              <span>Cleaning</span>
+              <span>Cleaning (15%)</span>
               <span className="tabular-nums">
-                {formatCurrency(150, rates[currencyCode], symbol)}
+                {formatCurrency(cleaningFee, rates[currencyCode], symbol)}
               </span>
             </div>
-            <div className="flex justify-between gap-3 border-t border-slate-100 pt-2 font-bold text-slate-900">
+            <div className="flex justify-between gap-3">
+              <span>Service fee (7%)</span>
+              <span className="tabular-nums">
+                {formatCurrency(commission, rates[currencyCode], symbol)}
+              </span>
+            </div>
+            <div className="flex justify-between gap-3 border-t border-[var(--kama-border)] pt-2.5 font-semibold text-[var(--kama-ink)]">
               <span>Total</span>
               <span className="tabular-nums">
-                {formatCurrency(basePrice + cleaningFee, rates[currencyCode], symbol)}
+                {formatCurrency(totalUsd, rates[currencyCode], symbol)}
               </span>
             </div>
           </div>
         </details>
       </div>
+
+      {!isOwner && (
+        <PropertyMobileStickyCta
+          priceDisplay={priceDisplay}
+          periodLabel={periodLabel}
+          onReserve={handleReserve}
+          currencyCode={paymentCurrency}
+          visible={!cardInView}
+        />
+      )}
     </div>
   );
 }

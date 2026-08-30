@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { needsHostWelcome } from "@/utils/hostWelcomeOnboarding";
 import { addressFromLegacy } from "@/utils/address";
 import HostApplicationForm from "@/components/host/HostApplicationForm";
-import KamaLogo from "@/assets/images/Kama logo - blue.svg";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function HostOnboardingPage() {
   const { data: session, update } = useSession();
@@ -76,12 +75,10 @@ export default function HostOnboardingPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-6">
         <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-sm">
-          <Image
-            src={KamaLogo}
-            alt="Kama Properties"
-            width={120}
-            height={40}
+          <BrandLogo
+            href={null}
             className="mx-auto mb-6 h-10 w-auto"
+            linkClassName=""
           />
           <p className="mb-6 text-zinc-600">Sign in to apply to become a host.</p>
           <Link
@@ -119,12 +116,10 @@ export default function HostOnboardingPage() {
     <div className="min-h-screen bg-gradient-to-b from-violet-50/80 via-zinc-50 to-white">
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
         <div className="mb-8 text-center sm:text-left">
-          <Image
-            src={KamaLogo}
-            alt="Kama Properties"
-            width={130}
-            height={44}
+          <BrandLogo
+            href="/"
             className="mx-auto mb-6 h-11 w-auto sm:mx-0"
+            linkClassName="inline-flex"
           />
 
           {isResubmission ? (

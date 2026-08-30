@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { X } from "lucide-react";
 import GoogleIcon from "@/components/auth/GoogleIcon";
-import KamaLogo from "@/assets/images/Kama logo - blue.svg";
+import BrandLogo from "@/components/BrandLogo";
 import heroImage from "@/assets/images/modernMansion01.png";
 
 function LoginContent() {
@@ -32,14 +32,14 @@ function LoginContent() {
 
   if (status === "loading" || status === "authenticated") {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-zinc-50">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+      <div className="flex min-h-dvh items-center justify-center bg-[var(--kama-canvas)]">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--kama-accent)] border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-zinc-50 lg:flex-row">
+    <div className="flex min-h-dvh flex-col bg-[var(--kama-canvas)] lg:flex-row">
       {/* Hero — desktop */}
       <div className="relative hidden min-h-dvh flex-1 overflow-hidden lg:block">
         <Image
@@ -54,18 +54,18 @@ function LoginContent() {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(135deg, rgba(8,10,40,0.35) 0%, rgba(79,70,229,0.55) 50%, rgba(7,8,28,0.85) 100%)",
+              "linear-gradient(135deg, rgba(12,26,26,0.45) 0%, rgba(27,92,87,0.55) 48%, rgba(12,26,26,0.88) 100%)",
           }}
           aria-hidden
         />
         <div className="relative z-10 flex h-full flex-col justify-end p-12 text-white">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-violet-200">
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-white/70">
             Kama Properties
           </p>
           <h2 className="max-w-md text-4xl font-extrabold leading-tight">
             African stays.
             <br />
-            <span className="text-amber-300">Global guests.</span>
+            <span className="text-[#c8e6e0]">Global guests.</span>
           </h2>
           <p className="mt-4 max-w-sm text-base leading-relaxed text-white/80">
             Book unique homes across the continent — or open your doors to
@@ -86,14 +86,7 @@ function LoginContent() {
 
         <div className="mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center pt-10 lg:pt-0">
           <div className="mb-10 flex justify-center lg:justify-start">
-            <Image
-              src={KamaLogo}
-              alt="Kama Properties"
-              width={140}
-              height={48}
-              className="h-11 w-auto"
-              priority
-            />
+            <BrandLogo href={null} className="h-11 w-auto" priority />
           </div>
 
           <h1 className="text-center text-[1.65rem] font-semibold tracking-tight text-zinc-900 lg:text-left lg:text-3xl">
@@ -161,7 +154,7 @@ function LoginContent() {
             className="object-cover"
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-indigo-950/80 to-indigo-900/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(12,26,26,0.85)] to-[rgba(27,92,87,0.2)]" />
           <p className="absolute bottom-4 left-4 right-4 text-sm font-medium text-white/90">
             Made for Africans, by Africans.
           </p>
@@ -176,7 +169,7 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div className="flex min-h-dvh items-center justify-center bg-zinc-50">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--kama-accent)] border-t-transparent" />
         </div>
       }
     >

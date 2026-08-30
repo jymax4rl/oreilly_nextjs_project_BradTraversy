@@ -1,15 +1,13 @@
 import connectToDatabase from "@/config/database";
-import Transaction from "@/models/Transaction";
 import User from "@/models/User";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
+import { finalizePaidTransaction } from "@/utils/bookings/finalizePaidTransaction";
 
 export const POST = async (request) => {
   try {
     await connectToDatabase();
 
-    // We allow unauthenticated saves just in case they were logged out during checkout,
-    // but try to associate with user if logged in
     const session = await getServerSession(authOptions);
     let userId = null;
     let actualCustomerName = null;
@@ -26,7 +24,6 @@ export const POST = async (request) => {
 
     const body = await request.json();
 
-    // Verify with Flutterwave before trusting the data
     const verifyRes = await fetch(
       `https://api.flutterwave.com/v3/transactions/${body.transaction_id}/verify`,
       {
@@ -49,20 +46,7 @@ export const POST = async (request) => {
       );
     }
 
-    // THEN proceed with Transaction.findOne and newTransaction.save()
-    // Prevent duplicate saves from multiple callbacks
-    const existingTx = await Transaction.findOne({
-      transaction_id: body.transaction_id,
-    });
-    if (existingTx) {
-      return Response.json({
-        success: true,
-        message: "Transaction already saved",
-        transaction: existingTx,
-      });
-    }
-
-    const newTransaction = new Transaction({
+    const stayPayload = {
       transaction_id: body.transaction_id,
       tx_ref: body.tx_ref,
       flw_ref: body.flw_ref,
@@ -76,19 +60,54 @@ export const POST = async (request) => {
       flutterwave_created_at: body.created_at
         ? new Date(body.created_at)
         : new Date(),
-      user: userId,
       property_id: body.property_id,
       property_name: body.property_name,
       host_id: body.host_id,
       host_name: body.host_name,
       host_email: body.host_email,
-    });
+      check_in: body.check_in,
+      check_out: body.check_out,
+      nights: body.nights,
+    };
 
-    await newTransaction.save();
+    // Third arg: client fields win over sparse webhook-created transaction rows.
+    const result = await finalizePaidTransaction(
+      stayPayload,
+      {
+        userId: userId?.toString(),
+        customerName: actualCustomerName || body.customer?.name,
+        customerEmail: actualCustomerEmail || body.customer?.email,
+      },
+      stayPayload,
+    );
+
+    if (result.emails) {
+      console.info("[booking email] POST /api/transactions emails", {
+        bookingId: result.bookingId,
+        attempted: result.emails.attempted,
+        guestStatus: result.emails.guestStatus,
+        hostStatus: result.emails.hostStatus,
+        configError: result.emails.configError,
+      });
+    }
 
     return Response.json(
-      { success: true, transaction: newTransaction },
-      { status: 201 },
+      {
+        success: true,
+        transaction: result.transaction,
+        bookingId: result.bookingId,
+        bookingError: result.bookingError,
+        emails: result.emails
+          ? {
+              attempted: result.emails.attempted,
+              configError: result.emails.configError || null,
+              guestStatus: result.emails.guestStatus || null,
+              hostStatus: result.emails.hostStatus || null,
+            }
+          : null,
+        message: result.created ? undefined : "Transaction already saved",
+      },
+      { status: result.created ? 201 : 200 },
     );
   } catch (error) {
     console.error("Save transaction error:", error);

@@ -47,6 +47,17 @@ const PropertySchema = new mongoose.Schema(
       email: { type: String },
       phone: { type: String },
     },
+    /**
+     * Optional cancellation / modify windows. Missing fields fall back to
+     * DEFAULT_BOOKING_POLICY in utils/bookings/bookingPolicy.js.
+     */
+    bookingPolicy: {
+      freeCancelUntilHoursBeforeCheckIn: { type: Number },
+      modifyUntilHoursBeforeCheckIn: { type: Number },
+      allowGuestCancel: { type: Boolean },
+      allowGuestModify: { type: Boolean },
+      maxModifications: { type: Number },
+    },
     images: [{ type: Schema.Types.Mixed }],
     audio: { type: Schema.Types.Mixed, required: false },
   },

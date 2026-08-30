@@ -1,6 +1,7 @@
 import connectToDatabase from "@/config/database";
 import mongoose from "mongoose";
 import Booking from "@/models/Booking";
+import Transaction from "@/models/Transaction";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import {
@@ -8,9 +9,20 @@ import {
   isPropertyOwner,
   assertVerifiedHost,
 } from "@/utils/availability/propertyAccess";
+import { bookingWithPolicyFlags } from "@/utils/bookings/mutateBooking";
+import {
+  bookingIdsFromTransactionRef,
+  bookingSearchMongoOr,
+  normalizeBookingSearchQuery,
+} from "@/utils/bookings/bookingRefSearch";
 
 const ALLOWED_STATUS = new Set(["pending", "confirmed", "cancelled"]);
 
+/**
+ * GET /api/properties/[id]/bookings
+ * ?status=pending|confirmed|cancelled
+ * ?q= or ?ref= — Ref # / guest name / email
+ */
 export async function GET(request, { params }) {
   try {
     await connectToDatabase();
@@ -36,10 +48,12 @@ export async function GET(request, { params }) {
 
     const { searchParams } = new URL(request.url);
     const statusFilter = searchParams.get("status");
+    const searchNeedle = normalizeBookingSearchQuery(
+      searchParams.get("q") || searchParams.get("ref"),
+    );
 
-    const query = {
-      propertyId: new mongoose.Types.ObjectId(id),
-    };
+    const propertyOid = new mongoose.Types.ObjectId(id);
+    const query = { propertyId: propertyOid };
 
     if (statusFilter) {
       if (!ALLOWED_STATUS.has(statusFilter)) {
@@ -51,22 +65,27 @@ export async function GET(request, { params }) {
       query.status = statusFilter;
     }
 
+    if (searchNeedle) {
+      const txBookingIds = await bookingIdsFromTransactionRef(
+        Transaction,
+        searchNeedle,
+        [propertyOid],
+      );
+      query.$or = [
+        ...bookingSearchMongoOr(searchNeedle),
+        ...(txBookingIds.length ? [{ _id: { $in: txBookingIds } }] : []),
+      ];
+    }
+
     const bookings = await Booking.find(query).sort({ checkIn: 1 }).lean();
 
     return Response.json({
       propertyId: id,
-      bookings: bookings.map((b) => ({
-        _id: b._id.toString(),
-        checkIn: b.checkIn,
-        checkOut: b.checkOut,
-        status: b.status,
-        guestId: b.guestId,
-        guestName: b.guestName,
-        guestEmail: b.guestEmail,
-        transactionId: b.transactionId,
-        createdAt: b.createdAt,
-        updatedAt: b.updatedAt,
-      })),
+      q: searchNeedle,
+      ref: searchNeedle,
+      bookings: bookings.map((b) =>
+        bookingWithPolicyFlags(b, property, "host"),
+      ),
     });
   } catch (error) {
     console.error("GET bookings:", error);

@@ -14,7 +14,7 @@ const Footer = ({ className = "" }) => {
           <div className="space-y-6">
             <h3 className="text-3xl md:text-5xl font-semibold text-white tracking-tight">
               Ready to find your <br />
-              <span className="text-blue-500">dream property?</span>
+              <span className="text-[var(--kama-accent,#1b5c57)]">dream stay?</span>
             </h3>
             <p className="max-w-md text-lg text-zinc-500">
               Join thousands of satisfied clients who found their perfect home
