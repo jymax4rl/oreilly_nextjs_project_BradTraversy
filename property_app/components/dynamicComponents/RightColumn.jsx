@@ -28,6 +28,7 @@ import {
 } from "@/utils/propertyRates";
 import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 import { useSession, signIn } from "next-auth/react";
+import DeletePropertyControl from "@/components/properties/DeletePropertyControl";
 
 function RightColumn({ data }) {
   const { currencyCode, rates } = useCurrency();
@@ -354,30 +355,39 @@ function RightColumn({ data }) {
         )}
 
         {isOwner && (
-          <p className="text-center text-sm text-[var(--kama-ink-muted)]">
-            This is your listing — manage{" "}
-            <a
-              href={`/properties/${data._id}/reservations`}
-              className="font-semibold text-[var(--kama-accent)] hover:underline"
-            >
-              Reservations
-            </a>
-            ,{" "}
-            <a
-              href={`/properties/${data._id}/calendar`}
-              className="font-semibold text-[var(--kama-accent)] hover:underline"
-            >
-              Calendar
-            </a>{" "}
-            or{" "}
-            <a
-              href={`/properties/${data._id}/rates`}
-              className="font-semibold text-[var(--kama-accent)] hover:underline"
-            >
-              Rates
-            </a>
-            .
-          </p>
+          <div className="space-y-3">
+            <p className="text-center text-sm text-[var(--kama-ink-muted)]">
+              This is your listing — manage{" "}
+              <a
+                href={`/properties/${data._id}/reservations`}
+                className="font-semibold text-[var(--kama-accent)] hover:underline"
+              >
+                Reservations
+              </a>
+              ,{" "}
+              <a
+                href={`/properties/${data._id}/calendar`}
+                className="font-semibold text-[var(--kama-accent)] hover:underline"
+              >
+                Calendar
+              </a>{" "}
+              or{" "}
+              <a
+                href={`/properties/${data._id}/rates`}
+                className="font-semibold text-[var(--kama-accent)] hover:underline"
+              >
+                Rates
+              </a>
+              .
+            </p>
+            <div className="flex justify-center border-t border-[var(--kama-border)] pt-3">
+              <DeletePropertyControl
+                propertyId={data._id}
+                propertyName={data.name}
+                redirectTo="/properties/my-listings"
+              />
+            </div>
+          </div>
         )}
 
         <p className="text-center text-[11px] text-[var(--kama-ink-muted)]">

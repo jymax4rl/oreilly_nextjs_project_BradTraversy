@@ -6,6 +6,7 @@ import Link from "next/link";
 import { propertyImageUrl } from "@/utils/propertyImageUrl";
 import { redirect } from "next/navigation";
 import { Building2, PlusCircle, MapPin, BedDouble, Bath, Eye, Clock, CheckCircle, XCircle } from "lucide-react";
+import DeletePropertyControl from "@/components/properties/DeletePropertyControl";
 
 export const metadata = {
   title: "My Listings | Kama Properties",
@@ -180,6 +181,23 @@ export default async function HostListingsPage() {
                         <Eye className="h-3.5 w-3.5" />
                         View Listing
                       </Link>
+                      <Link
+                        href={`/properties/${property._id}/rates`}
+                        className="inline-flex items-center gap-1 rounded-lg border border-[#1b5c57]/30 px-3 py-1.5 text-xs font-medium text-[#1b5c57] hover:bg-[#ecfdf5] transition"
+                      >
+                        Rates
+                      </Link>
+                      <Link
+                        href={`/properties/${property._id}/calendar`}
+                        className="inline-flex items-center gap-1 rounded-lg border border-[#1b5c57]/30 px-3 py-1.5 text-xs font-medium text-[#1b5c57] hover:bg-[#ecfdf5] transition"
+                      >
+                        Calendar
+                      </Link>
+                      <DeletePropertyControl
+                        propertyId={property._id}
+                        propertyName={property.name}
+                        redirectTo="/host/listings"
+                      />
                     </div>
                   </div>
                 </div>
