@@ -15,6 +15,7 @@ import {
   propertyImageAbsoluteUrl,
 } from "@/utils/email/propertyImageUrl";
 import { formatPropertyMeta } from "@/utils/email/propertyMeta";
+import { applyNotificationPrefsToEmailPayload } from "@/utils/user/notificationPrefs";
 
 let resendClient = null;
 let resendClientKey = null;
@@ -504,8 +505,13 @@ async function sendViaResend({
 
 /**
  * Send guest + host booking emails via Resend (dashboard templates when published, else rendered HTML).
+ * Honors User.preferences.notifications unless payload.skipNotificationPrefs (force resend).
  */
 export async function sendBookingConfirmationEmails(payload) {
+  const gated = await applyNotificationPrefsToEmailPayload(
+    payload,
+    "confirmation",
+  );
   const {
     guestEmail,
     guestName,
@@ -524,9 +530,16 @@ export async function sendBookingConfirmationEmails(payload) {
     transactionId,
     /** Appended to Resend idempotency keys so force-resend is not cached. */
     idempotencySuffix,
-  } = payload;
+  } = gated;
 
   const results = { guest: null, host: null };
+  const prefsMeta = gated._notificationPrefs || {};
+  if (prefsMeta.guestOptedOut) {
+    results.guest = { sent: false, skipped: true, reason: "opted_out" };
+  }
+  if (prefsMeta.hostOptedOut) {
+    results.host = { sent: false, skipped: true, reason: "opted_out" };
+  }
   const configErr = bookingEmailConfigError();
 
   if (configErr) {
@@ -535,6 +548,10 @@ export async function sendBookingConfirmationEmails(payload) {
   }
 
   if (!guestEmail && !hostEmail) {
+    // Opt-outs or missing addresses — not a hard failure when prefs cleared both.
+    if (prefsMeta.guestOptedOut || prefsMeta.hostOptedOut) {
+      return { enabled: true, results, prefsSkipped: true };
+    }
     console.error(
       "[booking email] No guestEmail or hostEmail on booking payload — nothing to send",
     );
@@ -712,14 +729,25 @@ async function sendGuestHostLifecyclePair({
   idempotencySuffix,
   transactionId,
   categoryTag,
+  prefsMeta = {},
 }) {
   const results = { guest: null, host: null };
+  if (prefsMeta.guestOptedOut) {
+    results.guest = { sent: false, skipped: true, reason: "opted_out" };
+  }
+  if (prefsMeta.hostOptedOut) {
+    results.host = { sent: false, skipped: true, reason: "opted_out" };
+  }
+
   const configErr = bookingEmailConfigError();
   if (configErr) {
     console.error(`[booking email] ${configErr}`);
     return { enabled: false, error: configErr, results };
   }
   if (!guestEmail && !hostEmail) {
+    if (prefsMeta.guestOptedOut || prefsMeta.hostOptedOut) {
+      return { enabled: true, results, prefsSkipped: true };
+    }
     return { enabled: true, error: "No recipient emails", results };
   }
 
@@ -790,8 +818,10 @@ async function sendGuestHostLifecyclePair({
 
 /**
  * Dates changed — notify guest + host.
+ * Honors notification prefs unless payload.skipNotificationPrefs.
  */
 export async function sendBookingModifiedEmails(payload) {
+  const gated = await applyNotificationPrefsToEmailPayload(payload, "modified");
   const {
     guestEmail,
     guestName,
@@ -812,7 +842,7 @@ export async function sendBookingModifiedEmails(payload) {
     previousCheckOut,
     changedBy,
     idempotencySuffix,
-  } = payload;
+  } = gated;
 
   const propertyUrl = propertyId
     ? getAbsoluteAppUrl(`/properties/${propertyId}`)
@@ -900,13 +930,19 @@ export async function sendBookingModifiedEmails(payload) {
     idempotencySuffix,
     transactionId,
     categoryTag: "booking-modified",
+    prefsMeta: gated._notificationPrefs || {},
   });
 }
 
 /**
  * Cancellation — notify guest + host.
+ * Honors notification prefs unless payload.skipNotificationPrefs.
  */
 export async function sendBookingCancelledEmails(payload) {
+  const gated = await applyNotificationPrefsToEmailPayload(
+    payload,
+    "cancelled",
+  );
   const {
     guestEmail,
     guestName,
@@ -927,7 +963,7 @@ export async function sendBookingCancelledEmails(payload) {
     cancellationReason,
     refundEligible,
     idempotencySuffix,
-  } = payload;
+  } = gated;
 
   const propertyUrl = propertyId
     ? getAbsoluteAppUrl(`/properties/${propertyId}`)
@@ -1029,6 +1065,7 @@ export async function sendBookingCancelledEmails(payload) {
     idempotencySuffix,
     transactionId,
     categoryTag: "booking-cancelled",
+    prefsMeta: gated._notificationPrefs || {},
   });
 }
 

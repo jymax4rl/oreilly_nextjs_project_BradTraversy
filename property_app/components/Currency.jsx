@@ -159,7 +159,7 @@ const Currency = ({ align = "end", variant = "default", ...rest }) => {
       ? createPortal(
           isPortal && isMobile ? (
             <div
-              className="fixed inset-0 z-[200] flex flex-col justify-end"
+              className="fixed inset-0 z-[250] flex flex-col justify-end"
               role="presentation"
             >
               <button
@@ -199,7 +199,7 @@ const Currency = ({ align = "end", variant = "default", ...rest }) => {
               role="listbox"
               aria-label="Choose currency"
               data-lenis-prevent
-              className="fixed z-[200] overflow-hidden rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] shadow-xl"
+              className="fixed z-[250] overflow-hidden rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] shadow-xl"
               style={{
                 left: coords.left,
                 width: coords.width,

@@ -66,9 +66,12 @@ async function buildLifecyclePayload(booking, propertyHint) {
   };
 }
 
-function statusFromResult(sent, hasEmail, sameAsOther) {
+function statusFromResult(result, hasEmail, sameAsOther) {
   if (!hasEmail || sameAsOther) return "skipped";
-  return sent ? "sent" : "failed";
+  if (result?.reason === "opted_out" || result?.skipped) {
+    return result?.reason === "opted_out" ? "opted_out" : "skipped";
+  }
+  return result?.sent ? "sent" : "failed";
 }
 
 /**
@@ -90,12 +93,12 @@ export async function notifyBookingModified(booking, property, { actor } = {}) {
     }
 
     const guestStatus = statusFromResult(
-      outcome.results?.guest?.sent,
+      outcome.results?.guest,
       Boolean(payload.guestEmail),
       false,
     );
     const hostStatus = statusFromResult(
-      outcome.results?.host?.sent,
+      outcome.results?.host,
       Boolean(payload.hostEmail),
       payload.hostEmail === payload.guestEmail,
     );
@@ -148,12 +151,12 @@ export async function notifyBookingCancelled(
     }
 
     const guestStatus = statusFromResult(
-      outcome.results?.guest?.sent,
+      outcome.results?.guest,
       Boolean(payload.guestEmail),
       false,
     );
     const hostStatus = statusFromResult(
-      outcome.results?.host?.sent,
+      outcome.results?.host,
       Boolean(payload.hostEmail),
       payload.hostEmail === payload.guestEmail,
     );

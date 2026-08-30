@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import {
   Building2,
@@ -113,33 +113,18 @@ export default function MobileBottomNav() {
           <span className="leading-none">Messages</span>
         </Link>
 
-        {session ? (
-          <button
-            type="button"
-            onClick={toggle}
-            className={itemClass(false)}
-            aria-label="Open menu"
-          >
-            <CircleUserRound
-              className="h-6 w-6 shrink-0 fill-none stroke-current"
-              aria-hidden
-            />
-            <span className="leading-none">Menu</span>
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => signIn("google")}
-            className={itemClass(false)}
-            aria-label="Log in"
-          >
-            <CircleUserRound
-              className="h-6 w-6 shrink-0 fill-none stroke-current"
-              aria-hidden
-            />
-            <span className="leading-none">Log in</span>
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={toggle}
+          className={itemClass(false)}
+          aria-label="Open menu"
+        >
+          <CircleUserRound
+            className="h-6 w-6 shrink-0 fill-none stroke-current"
+            aria-hidden
+          />
+          <span className="leading-none">{session ? "Menu" : "More"}</span>
+        </button>
       </div>
     </nav>
   );

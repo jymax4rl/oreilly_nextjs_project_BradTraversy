@@ -39,6 +39,20 @@ const UserSchema = new Schema(
     },
     /** Verified host mailing address (synced from host application). */
     hostAddress: AddressSchema,
+    /**
+     * Account preferences (Settings). Missing keys mean “default on”.
+     * Booking email senders honor these unless a force-resend bypasses them.
+     */
+    preferences: {
+      notifications: {
+        /** Guest: confirmation / modify / cancel emails for your trips */
+        bookingUpdates: { type: Boolean, default: true },
+        /** Host: new booking confirmation emails */
+        hostNewBookings: { type: Boolean, default: true },
+        /** Host: guest date changes and cancellations */
+        hostBookingChanges: { type: Boolean, default: true },
+      },
+    },
   },
   {
     timestamps: true,

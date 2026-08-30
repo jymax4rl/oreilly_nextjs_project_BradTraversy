@@ -122,6 +122,13 @@ export default async function ProfilePage() {
                   Member since {memberSince}
                 </p>
               )}
+
+              <Link
+                href="/settings"
+                className="mt-4 inline-flex text-sm font-medium text-[var(--kama-accent)] hover:underline"
+              >
+                Account settings
+              </Link>
             </div>
           </div>
         </header>

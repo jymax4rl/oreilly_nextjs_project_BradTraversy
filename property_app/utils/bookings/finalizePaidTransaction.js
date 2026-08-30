@@ -155,14 +155,19 @@ async function patchTransactionMetaIfSparse(txDoc, body) {
   }
 }
 
+/** Terminal success for confirmation mail — includes Settings opt-outs. */
+function confirmationEmailTerminalOk(status) {
+  return status === "sent" || status === "skipped" || status === "opted_out";
+}
+
 function bothConfirmationEmailsSucceeded(emailStatus) {
   const guest = emailStatus?.confirmedGuest;
   const host = emailStatus?.confirmedHost;
-  // Treat as done only when guest was sent (or skipped for no address)
-  // and host was sent/skipped. Failed must allow retry.
-  const guestOk = guest === "sent" || guest === "skipped";
-  const hostOk = host === "sent" || host === "skipped";
-  return guestOk && hostOk;
+  // Failed must allow retry. opted_out is intentional (Settings) — do not retry.
+  // skipped means missing / same-as-guest address (host skipped may still enrich-retry).
+  return (
+    confirmationEmailTerminalOk(guest) && confirmationEmailTerminalOk(host)
+  );
 }
 
 async function clearEmailDispatchClaim(bookingId) {
@@ -214,6 +219,7 @@ export async function sendEmailsForBooking(
   if (!force && bothConfirmationEmailsSucceeded(booking.emailStatus)) {
     // Webhook may have marked host "skipped" when meta lacked host_email.
     // If we now have a distinct host address (client finalize), retry host mail.
+    // Do NOT retry when host Status is opted_out (user Settings preference).
     const hostWasSkipped = booking.emailStatus?.confirmedHost === "skipped";
     const canRetryHost =
       hostWasSkipped &&
@@ -343,6 +349,8 @@ export async function sendEmailsForBooking(
       transactionId: body.transaction_id,
       // Force resend must not collide with Resend's 24h idempotency cache.
       idempotencySuffix: force ? `force-${Date.now()}` : undefined,
+      // Manual resend from host/admin tools bypasses Settings opt-outs.
+      skipNotificationPrefs: force === true,
     });
   } catch (err) {
     console.error("Booking email error:", err);
@@ -366,17 +374,27 @@ export async function sendEmailsForBooking(
   }
 
   const results = outcome.results;
+  // Settings opt-out uses distinct status so enrich-retry does not re-send forever.
   const guestStatus = !resolvedGuest.guestEmail
     ? "skipped"
-    : results?.guest?.sent
-      ? "sent"
-      : "failed";
+    : results?.guest?.reason === "opted_out"
+      ? "opted_out"
+      : results?.guest?.skipped
+        ? "skipped"
+        : results?.guest?.sent
+          ? "sent"
+          : "failed";
   // Same address as guest → intentional skip. Missing host email → failed (retry after enrich).
+  // Host notification opt-out → opted_out (terminal; not a retryable failure).
   let hostStatus;
   if (body.host_email && body.host_email === resolvedGuest.guestEmail) {
     hostStatus = "skipped";
   } else if (!body.host_email) {
     hostStatus = "failed";
+  } else if (results?.host?.reason === "opted_out") {
+    hostStatus = "opted_out";
+  } else if (results?.host?.skipped) {
+    hostStatus = "skipped";
   } else {
     hostStatus = results?.host?.sent ? "sent" : "failed";
   }
