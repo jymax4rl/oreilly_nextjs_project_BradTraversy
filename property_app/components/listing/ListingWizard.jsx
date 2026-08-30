@@ -30,6 +30,11 @@ import {
 import { estimateCoordinates, softEstimateCoordinates, isAddressComplete } from "@/utils/address";
 import { GOOGLE_MAPS_LOAD_TIMEOUT_MS } from "@/utils/googleMaps";
 import {
+  compressListingImages,
+  totalBytes,
+  MAX_LISTING_UPLOAD_BYTES,
+} from "@/utils/compressListingImage";
+import {
   IntroIllustration,
   PropertyTypeArt,
   PrivacyArt,
@@ -361,6 +366,10 @@ export default function ListingWizard() {
     setError("");
 
     try {
+      if (!imageFiles.length) {
+        throw new Error("Add at least one photo before publishing.");
+      }
+
       const pin = await resolvePinWithBudget({
         street: data.location.street,
         city: data.location.city,
@@ -370,6 +379,24 @@ export default function ListingWizard() {
         lat: data.location.lat,
         lng: data.location.lng,
       });
+
+      // Compress photos so the request stays under Vercel’s ~4.5MB body limit.
+      const uploadImages = await compressListingImages(imageFiles);
+      let audioForUpload = null;
+      if (audioBlob && audioBlob.size > 0) {
+        const ext = audioBlob.type?.includes("wav") ? "wav" : "webm";
+        audioForUpload = new File([audioBlob], `tour.${ext}`, {
+          type: audioBlob.type || "audio/webm",
+        });
+      }
+
+      const mediaBytes =
+        totalBytes(uploadImages) + (audioForUpload?.size || 0);
+      if (mediaBytes > MAX_LISTING_UPLOAD_BYTES) {
+        throw new Error(
+          "Photos are still too large after compression. Use fewer or smaller images (under ~4MB total) and try again.",
+        );
+      }
 
       const formData = new FormData();
       formData.append("type", data.type);
@@ -429,10 +456,9 @@ export default function ListingWizard() {
       formData.append("seller_info.email", seller.email);
       formData.append("seller_info.phone", seller.phone);
 
-      imageFiles.forEach((file) => formData.append("images", file));
-      if (audioBlob) {
-        const ext = audioBlob.type?.includes("wav") ? "wav" : "webm";
-        formData.append("audio", audioBlob, `tour.${ext}`);
+      uploadImages.forEach((file) => formData.append("images", file));
+      if (audioForUpload) {
+        formData.append("audio", audioForUpload);
       }
 
       const res = await fetch("/api/properties", {
@@ -440,9 +466,27 @@ export default function ListingWizard() {
         body: formData,
       });
 
-      const payload = await res.json().catch(() => ({}));
+      const rawText = await res.text();
+      let payload = {};
+      try {
+        payload = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        payload = {};
+      }
+
       if (!res.ok) {
-        throw new Error(payload.error || "Failed to create listing");
+        const hint =
+          res.status === 413 || /Request Entity Too Large|payload/i.test(rawText)
+            ? "Upload is too large for the server. Use fewer or smaller photos."
+            : res.status === 401
+              ? "Your session expired. Sign in again and retry."
+              : res.status === 403
+                ? payload.error || "Only verified hosts can publish listings."
+                : payload.error ||
+                  (res.status >= 500
+                    ? "Server error while creating the listing. Try again with fewer photos."
+                    : `Failed to create listing (${res.status}).`);
+        throw new Error(hint);
       }
 
       if (payload.redirectUrl) {
