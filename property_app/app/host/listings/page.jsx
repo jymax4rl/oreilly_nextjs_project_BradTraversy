@@ -7,6 +7,7 @@ import { propertyImageUrl } from "@/utils/propertyImageUrl";
 import { redirect } from "next/navigation";
 import { Building2, PlusCircle, MapPin, BedDouble, Bath, Eye, Clock, CheckCircle, XCircle } from "lucide-react";
 import DeletePropertyControl from "@/components/properties/DeletePropertyControl";
+import PropertyListingThumbnail from "@/components/properties/PropertyListingThumbnail";
 
 export const metadata = {
   title: "My Listings | Kama Properties",
@@ -112,21 +113,12 @@ export default async function HostListingsPage() {
                   key={property._id}
                   className="flex flex-col sm:flex-row gap-4 rounded-2xl border border-gray-200 bg-white p-4 hover:shadow-md transition"
                 >
-                  {/* Thumbnail */}
+                  {/* Thumbnail — client component owns onError (Server Components cannot) */}
                   <div className="shrink-0 w-full sm:w-32 h-40 sm:h-28 rounded-xl overflow-hidden bg-gray-100">
-                    {image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={propertyImageUrl(image)}
-                        alt={property.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => { e.target.style.display = "none"; }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Building2 className="h-8 w-8 text-gray-300" />
-                      </div>
-                    )}
+                    <PropertyListingThumbnail
+                      src={image ? propertyImageUrl(image) : null}
+                      alt={property.name}
+                    />
                   </div>
 
                   {/* Info */}

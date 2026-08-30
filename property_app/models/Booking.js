@@ -13,15 +13,17 @@ const PricingSnapshotSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const EMAIL_DISPATCH_STATUS = ["sent", "failed", "skipped", "opted_out"];
+
 const EmailStatusSchema = new mongoose.Schema(
   {
     /** Guest/host confirmation after paid booking (idempotent across webhook retries). */
-    confirmedGuest: { type: String, enum: ["sent", "failed", "skipped"] },
-    confirmedHost: { type: String, enum: ["sent", "failed", "skipped"] },
-    modifiedGuest: { type: String, enum: ["sent", "failed", "skipped"] },
-    modifiedHost: { type: String, enum: ["sent", "failed", "skipped"] },
-    cancelledGuest: { type: String, enum: ["sent", "failed", "skipped"] },
-    cancelledHost: { type: String, enum: ["sent", "failed", "skipped"] },
+    confirmedGuest: { type: String, enum: EMAIL_DISPATCH_STATUS },
+    confirmedHost: { type: String, enum: EMAIL_DISPATCH_STATUS },
+    modifiedGuest: { type: String, enum: EMAIL_DISPATCH_STATUS },
+    modifiedHost: { type: String, enum: EMAIL_DISPATCH_STATUS },
+    cancelledGuest: { type: String, enum: EMAIL_DISPATCH_STATUS },
+    cancelledHost: { type: String, enum: EMAIL_DISPATCH_STATUS },
   },
   { _id: false },
 );
