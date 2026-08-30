@@ -2,6 +2,7 @@ import "@/assets/styles/globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FooterGate from "@/components/FooterGate";
+import DeployCheckBadge from "@/components/DeployCheckBadge";
 import MainShell from "@/components/MainShell";
 import MobileBottomNavGate from "@/components/MobileBottomNavGate";
 import MobileTopChromeGate from "@/components/MobileTopChromeGate";
@@ -70,6 +71,10 @@ function MainLayout({ children }) {
                   <MobileTopChromeGate />
                   <MainShell>{children}</MainShell>
                   <MobileBottomNavGate />
+                  {/* Footer is desktop-only; keep deploy marker visible on mobile too */}
+                  <span className="lg:hidden fixed bottom-20 right-3 z-50">
+                    <DeployCheckBadge surface="light" />
+                  </span>
                   <FooterGate>
                     <Footer className="hidden lg:block" />
                   </FooterGate>

@@ -1,0 +1,48 @@
+# Kama Properties — local / self-hosted run
+# Image tags follow VERSION (e.g. 1.1.0 → kama-properties:1.1.0 and :1.1).
+#
+#   npm run docker:release          # build + tag from VERSION
+#   docker compose up               # run tagged image with .env.local
+
+name: kama-properties
+
+services:
+  web:
+    image: kama-properties:${APP_VERSION:-1.1.0}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_VERSION: ${APP_VERSION:-1.1.0}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://www.isisel.com}
+        NEXT_PUBLIC_DOMAIN: ${NEXT_PUBLIC_DOMAIN:-https://www.isisel.com}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://www.isisel.com}
+        NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:-}
+        NEXT_PUBLIC_CURRENCY_EXCHANGE_RATE_API: ${NEXT_PUBLIC_CURRENCY_EXCHANGE_RATE_API:-}
+        NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY: ${NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY:-}
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file:
+      - path: .env.local
+        required: false
+      - path: .env
+        required: false
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      # Prefer production URLs inside the container unless overridden in env_file
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
+    restart: unless-stopped

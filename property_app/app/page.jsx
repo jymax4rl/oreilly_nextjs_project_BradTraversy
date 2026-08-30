@@ -2,6 +2,7 @@ import React from "react";
 import HomeImmersive from "@/components/home/HomeImmersive";
 import PropertiesPage from "./properties/page";
 
+// Home embeds live listings; keep dynamic so Docker builds need no MONGODB_URI.
 export const dynamic = "force-dynamic";
 
 const HomePage = () => {

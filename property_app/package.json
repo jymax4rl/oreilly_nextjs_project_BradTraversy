@@ -8,14 +8,23 @@
     ]
   },
   "name": "property_app",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "setup:email-templates": "node scripts/setup-resend-booking-templates.mjs"
+    "setup:email-templates": "node scripts/setup-resend-booking-templates.mjs",
+    "docker:release": "node scripts/docker-release.mjs",
+    "docker:bump": "node scripts/docker-release.mjs --bump",
+    "docker:plan": "node scripts/docker-release.mjs --no-build",
+    "docs:track-record-pdf": "node scripts/generate-track-record-pdf.mjs",
+    "docs:project-status-pdf": "node scripts/generate-project-status-pdf.mjs",
+    "db:backfill-availability-host": "node scripts/backfill-availability-host-id.mjs",
+    "db:backfill-cloudinary-folders": "node scripts/backfillCloudinaryFolders.mjs",
+    "db:provision-cloudinary-folders": "node scripts/provisionCloudinaryFolders.mjs",
+    "db:audit-property-images": "node scripts/audit-property-images.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
