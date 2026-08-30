@@ -1,3 +1,4 @@
+import DeployCheckBadge from "@/components/DeployCheckBadge";
 import Link from "next/link"; // Or 'react-router-dom'
 import { FaInstagram, FaTwitter, FaLinkedin, FaFacebook } from "react-icons/fa"; // Optional icons
 
