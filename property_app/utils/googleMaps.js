@@ -16,8 +16,9 @@ function getApiKey() {
 }
 
 /**
- * Cloud console Map ID (Map Management) required for Advanced Markers.
- * Leave empty to use classic `google.maps.Marker` (geographic pin, no Map ID).
+ * Cloud console Map ID (Map Management) — optional.
+ * GoogleMap uses OverlayView geographic pins (no Map ID required).
+ * Leave empty in Docker/MVP; set only if you intentionally use Advanced Markers elsewhere.
  * For local testing you may set `DEMO_MAP_ID` (Google docs sample id).
  */
 export function getGoogleMapsMapId() {

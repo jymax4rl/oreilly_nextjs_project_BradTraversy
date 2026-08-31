@@ -75,6 +75,7 @@ FROM node:20-bookworm-slim AS runner
 WORKDIR /app
 
 ARG APP_VERSION=0.0.0
+ARG APP_CHANNEL=
 
 LABEL org.opencontainers.image.title="Kama Properties" \
       org.opencontainers.image.description="African vacation rentals marketplace" \
@@ -85,7 +86,8 @@ ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
     HOSTNAME=0.0.0.0 \
-    APP_VERSION=$APP_VERSION
+    APP_VERSION=$APP_VERSION \
+    APP_CHANNEL=$APP_CHANNEL
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends ca-certificates \

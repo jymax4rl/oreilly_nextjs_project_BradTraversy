@@ -211,6 +211,9 @@ function main() {
     tags[0],
     "--build-arg",
     `APP_VERSION=${version}`,
+    ...(args.extraTags.includes("mvp")
+      ? ["--build-arg", "APP_CHANNEL=mvp"]
+      : []),
     ...envBuildArgs,
     ...args.dockerArgs,
     ".",

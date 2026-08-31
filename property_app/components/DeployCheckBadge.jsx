@@ -1,10 +1,13 @@
 /**
  * Runtime marker so Docker vs Vercel (vs plain local next) are visually distinct.
  * Vercel sets VERCEL=1; our Docker image sets APP_VERSION (e.g. 1.1.0).
+ * APP_CHANNEL (e.g. mvp) overrides the version fragment so operators can tell
+ * which image line is running when SemVer is unchanged.
  */
 export default function DeployCheckBadge({ surface = "dark" }) {
   const isVercel = process.env.VERCEL === "1";
   const appVersion = process.env.APP_VERSION || "";
+  const appChannel = (process.env.APP_CHANNEL || "").trim().toLowerCase();
   const isDocker = Boolean(appVersion) && !isVercel;
 
   const minor =
@@ -33,6 +36,9 @@ export default function DeployCheckBadge({ surface = "dark" }) {
       surface === "light"
         ? "border-2 border-emerald-600 bg-emerald-50 text-emerald-950 shadow-sm"
         : "border-2 border-emerald-400/90 bg-emerald-950 text-emerald-300";
+    const label = appChannel
+      ? `Docker · ${appChannel} · container`
+      : `Docker · v${minor} · container`;
     return (
       <span
         aria-hidden="true"
@@ -43,7 +49,7 @@ export default function DeployCheckBadge({ surface = "dark" }) {
             surface === "light" ? "bg-emerald-600" : "bg-emerald-400"
           }`}
         />
-        Docker · v{minor} · container
+        {label}
       </span>
     );
   }
