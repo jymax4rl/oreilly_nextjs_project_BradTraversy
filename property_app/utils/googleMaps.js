@@ -17,10 +17,13 @@ function getApiKey() {
 
 /**
  * Cloud console Map ID (Map Management) required for Advanced Markers.
- * Leave empty to use classic `google.maps.Marker` (pin still shows).
+ * Leave empty to use classic `google.maps.Marker` + CSS center-pin fallback
+ * (GoogleMap always shows a visible pin either way).
  * For local testing you may set `DEMO_MAP_ID` (Google docs sample id).
  */
 export function getGoogleMapsMapId() {
+  // Prefer NEXT_PUBLIC_ (inlined via next.config env). GOOGLE_MAPS_MAP_ID is
+  // a server/build alias — only available client-side if next.config maps it.
   return (
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ||
     process.env.GOOGLE_MAPS_MAP_ID ||

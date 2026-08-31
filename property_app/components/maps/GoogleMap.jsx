@@ -18,14 +18,18 @@ function createKamaPinElement() {
   wrap.setAttribute("aria-hidden", "true");
   wrap.style.cssText =
     "width:36px;height:44px;transform:translateY(-4px);cursor:grab;filter:drop-shadow(0 2px 4px rgba(12,26,26,0.28));";
-  wrap.innerHTML = `
+  wrap.innerHTML = kamaPinSvgMarkup();
+  return wrap;
+}
+
+function kamaPinSvgMarkup() {
+  return `
     <svg width="36" height="44" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M18 42s14-12.4 14-24a14 14 0 10-28 0c0 11.6 14 24 14 24z" fill="${KAMA_TEAL}"/>
       <circle cx="18" cy="16" r="5.5" fill="#fff"/>
       <circle cx="18" cy="16" r="2.4" fill="${KAMA_TEAL}"/>
     </svg>
   `;
-  return wrap;
 }
 
 function readLatLng(position) {
@@ -34,8 +38,18 @@ function readLatLng(position) {
     typeof position.lat === "function" ? position.lat() : Number(position.lat);
   const lng =
     typeof position.lng === "function" ? position.lng() : Number(position.lng);
-  if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
   return { lat, lng };
+}
+
+/** Coerce wizard / API coords to finite numbers; null if unusable. */
+function coerceFiniteCoord(value) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const n = Number(value);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
 }
 
 function classicTealIcon(google) {
@@ -66,6 +80,16 @@ function positionsNearlyEqual(a, b, epsilon = 1e-7) {
   return Math.abs(a.lat - b.lat) < epsilon && Math.abs(a.lng - b.lng) < epsilon;
 }
 
+/**
+ * Interactive / static property map.
+ *
+ * Pin visibility strategy (MVP):
+ * 1. Always render a CSS center pin once the map is ready — survives AdvancedMarker
+ *    Map ID failures and classic Marker quirks (map tiles without a pin).
+ * 2. Also place a Google marker when possible (Advanced + mapId, else classic).
+ *    If Advanced was attempted on a mapId map and fails, recreate without mapId
+ *    so classic Marker can paint (classic markers do not show on vector mapId maps).
+ */
 export default function GoogleMap({
   lat,
   lng,
@@ -84,9 +108,13 @@ export default function GoogleMap({
   const listenersRef = useRef([]);
   const googleRef = useRef(null);
   const draggingRef = useRef(false);
+  const mapUsesMapIdRef = useRef(false);
   const [errorInfo, setErrorInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mapReady, setMapReady] = useState(false);
+
+  const safeLat = coerceFiniteCoord(lat);
+  const safeLng = coerceFiniteCoord(lng);
 
   const stableOnPositionChange = useCallback(
     (pos) => {
@@ -128,7 +156,29 @@ export default function GoogleMap({
   const attachDragHandlers = useCallback(
     (google, map, mode) => {
       clearListeners();
-      if (!draggable || !markerRef.current || !map) return;
+      if (!draggable || !map) return;
+
+      // Map pan / click always updates coords (CSS pin stays centered).
+      const idleListener = map.addListener("dragend", () => {
+        if (draggingRef.current) return;
+        const center = readLatLng(map.getCenter());
+        if (center) stableOnPositionChange(center);
+      });
+      const clickListener = map.addListener("click", (e) => {
+        if (!e.latLng) return;
+        const next = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+        map.panTo(next);
+        if (markerRef.current) {
+          if (mode === "advanced") markerRef.current.position = next;
+          else if (typeof markerRef.current.setPosition === "function") {
+            markerRef.current.setPosition(next);
+          }
+        }
+        stableOnPositionChange(next);
+      });
+      listenersRef.current.push(idleListener, clickListener);
+
+      if (!markerRef.current) return;
 
       if (mode === "advanced") {
         const advanced = markerRef.current;
@@ -138,15 +188,12 @@ export default function GoogleMap({
         const dragListener = advanced.addListener("dragend", () => {
           draggingRef.current = false;
           const next = readLatLng(advanced.position);
-          if (next) stableOnPositionChange(next);
+          if (next) {
+            map.panTo(next);
+            stableOnPositionChange(next);
+          }
         });
-        const clickListener = map.addListener("click", (e) => {
-          if (!e.latLng) return;
-          const next = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-          advanced.position = next;
-          stableOnPositionChange(next);
-        });
-        listenersRef.current.push(dragStart, dragListener, clickListener);
+        listenersRef.current.push(dragStart, dragListener);
         return;
       }
 
@@ -157,26 +204,30 @@ export default function GoogleMap({
       const dragListener = classic.addListener("dragend", () => {
         draggingRef.current = false;
         const next = readLatLng(classic.getPosition());
-        if (next) stableOnPositionChange(next);
+        if (next) {
+          map.panTo(next);
+          stableOnPositionChange(next);
+        }
       });
-      const clickListener = map.addListener("click", (e) => {
-        const next = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-        classic.setPosition(next);
-        stableOnPositionChange(next);
-      });
-      listenersRef.current.push(dragStart, dragListener, clickListener);
+      listenersRef.current.push(dragStart, dragListener);
     },
     [clearListeners, draggable, stableOnPositionChange],
   );
 
+  /**
+   * Place AdvancedMarker when the map was created with a mapId; otherwise classic
+   * Marker. If Advanced fails on a mapId map, recreate without mapId and use classic
+   * (classic Markers are not rendered on vector maps that have a mapId).
+   */
   const placeMarker = useCallback(
-    async (google, map, center) => {
+    async (google, map, center, { allowRecreate = true } = {}) => {
       clearMarker();
 
-      const mapId = getGoogleMapsMapId();
+      const configuredMapId = getGoogleMapsMapId();
+      const useAdvanced = Boolean(configuredMapId) && mapUsesMapIdRef.current;
       let usedAdvanced = false;
 
-      if (mapId) {
+      if (useAdvanced) {
         try {
           const markerLib =
             google.maps.marker ||
@@ -201,37 +252,105 @@ export default function GoogleMap({
       }
 
       if (!usedAdvanced) {
-        const classic = new google.maps.Marker({
-          map,
-          position: center,
-          draggable,
-          animation: google.maps.Animation.DROP,
-          icon: classicTealIcon(google),
-          title: "Property location",
-        });
-        markerRef.current = classic;
-        markerModeRef.current = "classic";
-        attachDragHandlers(google, map, "classic");
+        // Classic Marker will not paint on a mapId (vector) map — recreate first.
+        if (mapUsesMapIdRef.current && allowRecreate && containerRef.current) {
+          clearListeners();
+          if (circleRef.current) {
+            try {
+              circleRef.current.setMap(null);
+            } catch {
+              /* ignore */
+            }
+            circleRef.current = null;
+          }
+          mapUsesMapIdRef.current = false;
+          const rasterOptions = {
+            center,
+            zoom: map.getZoom?.() ?? zoom,
+            disableDefaultUI: true,
+            zoomControl: true,
+            gestureHandling: "greedy",
+            clickableIcons: false,
+            styles: [
+              {
+                featureType: "water",
+                stylers: [{ color: KAMA_TEAL_SOFT }],
+              },
+              {
+                featureType: "poi",
+                elementType: "labels",
+                stylers: [{ visibility: "off" }],
+              },
+            ],
+          };
+          // Replace map instance in the same container (no mapId → classic Marker works).
+          mapRef.current = new google.maps.Map(containerRef.current, rasterOptions);
+          map = mapRef.current;
+          if (approximate) {
+            circleRef.current = new google.maps.Circle({
+              map,
+              center,
+              radius: 400,
+              fillColor: KAMA_TEAL,
+              fillOpacity: 0.12,
+              strokeColor: KAMA_TEAL,
+              strokeOpacity: 0.35,
+              strokeWeight: 1,
+            });
+          }
+          return placeMarker(google, map, center, { allowRecreate: false });
+        }
+
+        try {
+          const MarkerCtor = google.maps.Marker;
+          if (typeof MarkerCtor !== "function") {
+            attachDragHandlers(google, map, null);
+            return;
+          }
+          let classic;
+          try {
+            classic = new MarkerCtor({
+              map,
+              position: center,
+              draggable,
+              animation: google.maps.Animation?.DROP,
+              icon: classicTealIcon(google),
+              title: "Property location",
+              optimized: false,
+            });
+          } catch {
+            // Symbol icon rejected — default red pin still beats an empty map.
+            classic = new MarkerCtor({
+              map,
+              position: center,
+              draggable,
+              title: "Property location",
+            });
+          }
+          markerRef.current = classic;
+          markerModeRef.current = "classic";
+          attachDragHandlers(google, map, "classic");
+        } catch {
+          attachDragHandlers(google, map, null);
+        }
       }
     },
-    [attachDragHandlers, clearMarker, draggable],
+    [attachDragHandlers, approximate, clearListeners, clearMarker, draggable, zoom],
   );
 
-  // Boot map once when coords become available.
+  // Boot map once when finite coords become available.
   useEffect(() => {
-    if (lat == null || lng == null || !containerRef.current) return;
+    if (safeLat == null || safeLng == null || !containerRef.current) return;
     if (!hasGoogleMapsApiKey()) {
       setErrorInfo(describeGoogleMapsError("Google Maps API key is not configured"));
       setLoading(false);
       return;
     }
 
-    // Already initialized — position sync handled below.
     if (mapRef.current) return;
 
     let cancelled = false;
     let errorScanTimer = null;
-    // Belt-and-suspenders: dismiss overlay even if loader promise never settles.
     const safetyMs = GOOGLE_MAPS_LOAD_TIMEOUT_MS + 2_000;
     const safetyTimer = window.setTimeout(() => {
       if (cancelled || mapRef.current) return;
@@ -260,7 +379,11 @@ export default function GoogleMap({
       if (typeof prevAuthFailure === "function") prevAuthFailure();
     };
 
-    const mapId = getGoogleMapsMapId();
+    const configuredMapId = getGoogleMapsMapId();
+    // Prefer classic Marker path when no project Map ID (MVP reliability).
+    // Only attach mapId when explicitly configured — DEMO_MAP_ID is reserved for
+    // callers that opt into AdvancedMarker via a real / sample Map ID env value.
+    const mapId = configuredMapId || "";
     const libs = mapId ? ["maps", "marker"] : ["maps"];
 
     loadGoogleMapsApi(libs)
@@ -268,7 +391,7 @@ export default function GoogleMap({
         if (cancelled || !containerRef.current || mapRef.current) return;
 
         googleRef.current = google;
-        const center = { lat: Number(lat), lng: Number(lng) };
+        const center = { lat: safeLat, lng: safeLng };
 
         const mapOptions = {
           center,
@@ -281,7 +404,9 @@ export default function GoogleMap({
 
         if (mapId) {
           mapOptions.mapId = mapId;
+          mapUsesMapIdRef.current = true;
         } else {
+          mapUsesMapIdRef.current = false;
           mapOptions.styles = [
             {
               featureType: "water",
@@ -296,9 +421,15 @@ export default function GoogleMap({
         }
 
         mapRef.current = new google.maps.Map(containerRef.current, mapOptions);
+        // Prefer classic Marker when no Map ID; Advanced only when mapId is set.
+        // CSS center pin (below) is the always-visible fallback if Marker APIs fail.
         await placeMarker(google, mapRef.current, center);
+        // Ensure map-pan / click handlers exist even if Marker construction failed.
+        if (!markerRef.current) {
+          attachDragHandlers(google, mapRef.current, null);
+        }
 
-        if (approximate) {
+        if (approximate && !circleRef.current) {
           circleRef.current = new google.maps.Circle({
             map: mapRef.current,
             center,
@@ -341,16 +472,16 @@ export default function GoogleMap({
       if (errorScanTimer) window.clearTimeout(errorScanTimer);
       window.gm_authFailure = prevAuthFailure;
     };
-    // Intentionally boot when first coords arrive; updates sync in the next effect.
+    // Intentionally boot when first finite coords arrive; updates sync below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lat != null && lng != null]);
+  }, [safeLat != null && safeLng != null]);
 
   // Sync pin / center when address coords change (skip while user is dragging).
   useEffect(() => {
-    if (!mapReady || !mapRef.current || lat == null || lng == null) return;
+    if (!mapReady || !mapRef.current || safeLat == null || safeLng == null) return;
     if (draggingRef.current) return;
 
-    const center = { lat: Number(lat), lng: Number(lng) };
+    const center = { lat: safeLat, lng: safeLng };
     const marker = markerRef.current;
 
     if (markerModeRef.current === "advanced" && marker) {
@@ -365,27 +496,30 @@ export default function GoogleMap({
         marker.setPosition(center);
         mapRef.current.panTo(center);
       }
-    } else if (googleRef.current) {
-      placeMarker(googleRef.current, mapRef.current, center);
+    } else {
+      mapRef.current.panTo(center);
+      if (googleRef.current) {
+        placeMarker(googleRef.current, mapRef.current, center);
+      }
     }
 
     if (circleRef.current) {
       circleRef.current.setCenter(center);
     }
-    // placeMarker is stable enough via refs; omit from deps to avoid remount loops
-    // when parent passes a new onPositionChange each render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lat, lng, mapReady]);
+  }, [safeLat, safeLng, mapReady]);
 
   // Re-bind drag when the prop flips.
   useEffect(() => {
-    if (!mapReady || !mapRef.current || !markerRef.current || !googleRef.current) {
+    if (!mapReady || !mapRef.current || !googleRef.current) {
       return;
     }
-    if (markerModeRef.current === "advanced") {
-      markerRef.current.gmpDraggable = draggable;
-    } else if (typeof markerRef.current.setDraggable === "function") {
-      markerRef.current.setDraggable(draggable);
+    if (markerRef.current) {
+      if (markerModeRef.current === "advanced") {
+        markerRef.current.gmpDraggable = draggable;
+      } else if (typeof markerRef.current.setDraggable === "function") {
+        markerRef.current.setDraggable(draggable);
+      }
     }
     attachDragHandlers(
       googleRef.current,
@@ -396,7 +530,7 @@ export default function GoogleMap({
 
   // Drop map instance when coords disappear so the next address can boot cleanly.
   useEffect(() => {
-    if (lat != null && lng != null) return;
+    if (safeLat != null && safeLng != null) return;
     clearListeners();
     clearMarker();
     if (circleRef.current) {
@@ -409,10 +543,11 @@ export default function GoogleMap({
     }
     mapRef.current = null;
     googleRef.current = null;
+    mapUsesMapIdRef.current = false;
     setMapReady(false);
     setLoading(true);
     setErrorInfo(null);
-  }, [lat, lng, clearListeners, clearMarker]);
+  }, [safeLat, safeLng, clearListeners, clearMarker]);
 
   // Full teardown on unmount.
   useEffect(() => {
@@ -432,7 +567,7 @@ export default function GoogleMap({
     };
   }, [clearListeners, clearMarker]);
 
-  if (lat == null || lng == null) {
+  if (safeLat == null || safeLng == null) {
     return (
       <div
         className={`flex flex-col items-center justify-center gap-2 bg-[var(--kama-field)] text-sm text-[var(--kama-ink-muted)] ${className}`}
@@ -478,7 +613,7 @@ export default function GoogleMap({
             : errorInfo.detail}
         </p>
         <p className="relative z-[1] font-mono text-[11px] text-[var(--kama-accent)]">
-          {Number(lat).toFixed(4)}, {Number(lng).toFixed(4)}
+          {safeLat.toFixed(4)}, {safeLng.toFixed(4)}
         </p>
       </div>
     );
@@ -500,8 +635,21 @@ export default function GoogleMap({
         </div>
       ) : null}
       <div ref={containerRef} className="h-full w-full" />
+      {/*
+        Primary visible pin: CSS overlay at map center. Survives AdvancedMarker
+        Map ID failures and classic Marker no-ops. When a Google marker also
+        paints, both sit on the same center (acceptable). Drag the map (or the
+        Google pin when present) to adjust — center pin tracks via pan.
+      */}
+      {mapReady && !loading ? (
+        <div
+          className="pointer-events-none absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 -translate-y-[90%] drop-shadow-md"
+          aria-hidden
+          dangerouslySetInnerHTML={{ __html: kamaPinSvgMarkup() }}
+        />
+      ) : null}
       {estimated && !loading ? (
-        <p className="absolute bottom-2 left-2 right-2 rounded-lg bg-white/90 px-2 py-1 text-center text-[11px] text-[var(--kama-ink-muted)] shadow-sm backdrop-blur">
+        <p className="absolute bottom-2 left-2 right-2 z-[3] rounded-lg bg-white/90 px-2 py-1 text-center text-[11px] text-[var(--kama-ink-muted)] shadow-sm backdrop-blur">
           Approximate pin from your address — drag when map is available
         </p>
       ) : null}
@@ -532,4 +680,3 @@ function MapEmptyArt() {
     </svg>
   );
 }
-

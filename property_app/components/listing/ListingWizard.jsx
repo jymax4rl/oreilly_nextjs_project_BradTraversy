@@ -27,7 +27,12 @@ import {
   computeWeekendNightly,
   formatLocationLine,
 } from "@/utils/listingPricing";
-import { estimateCoordinates, softEstimateCoordinates, isAddressComplete } from "@/utils/address";
+import {
+  estimateCoordinates,
+  softEstimateCoordinates,
+  isAddressComplete,
+  coerceCoordinate,
+} from "@/utils/address";
 import { GOOGLE_MAPS_LOAD_TIMEOUT_MS } from "@/utils/googleMaps";
 import {
   compressListingImages,
@@ -214,12 +219,15 @@ export default function ListingWizard() {
         zipcode: data.location.zipcode,
         country: data.location.country,
       });
+      const lat = coerceCoordinate(result.lat);
+      const lng = coerceCoordinate(result.lng);
+      if (lat == null || lng == null) return false;
       setData((prev) => ({
         ...prev,
         location: {
           ...prev.location,
-          lat: result.lat,
-          lng: result.lng,
+          lat,
+          lng,
         },
       }));
       setPinEstimated(Boolean(result.estimated));
@@ -253,12 +261,15 @@ export default function ListingWizard() {
           country: data.location.country,
         });
         if (cancelled) return;
+        const lat = coerceCoordinate(result.lat);
+        const lng = coerceCoordinate(result.lng);
+        if (lat == null || lng == null) return;
         setData((prev) => ({
           ...prev,
           location: {
             ...prev.location,
-            lat: result.lat,
-            lng: result.lng,
+            lat,
+            lng,
           },
         }));
         setPinEstimated(Boolean(result.estimated));
@@ -346,18 +357,21 @@ export default function ListingWizard() {
         country: parsed.country,
         countryCode: parsed.countryCode,
         placeId: parsed.placeId,
-        lat: parsed.lat,
-        lng: parsed.lng,
+        lat: coerceCoordinate(parsed.lat),
+        lng: coerceCoordinate(parsed.lng),
       },
     }));
     setPinEstimated(false);
   }, []);
 
   const handleMapPositionChange = useCallback(({ lat, lng }) => {
+    const nextLat = coerceCoordinate(lat);
+    const nextLng = coerceCoordinate(lng);
+    if (nextLat == null || nextLng == null) return;
     setPinEstimated(false);
     setData((p) => ({
       ...p,
-      location: { ...p.location, lat, lng },
+      location: { ...p.location, lat: nextLat, lng: nextLng },
     }));
   }, []);
 
@@ -803,8 +817,8 @@ export default function ListingWizard() {
                   </div>
                 ) : (
                   <GoogleMap
-                    lat={data.location.lat}
-                    lng={data.location.lng}
+                    lat={coerceCoordinate(data.location.lat)}
+                    lng={coerceCoordinate(data.location.lng)}
                     draggable
                     estimated={pinEstimated}
                     onPositionChange={handleMapPositionChange}
