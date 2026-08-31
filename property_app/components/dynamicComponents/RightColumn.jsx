@@ -27,8 +27,9 @@ import {
   normalizeRates,
 } from "@/utils/propertyRates";
 import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import DeletePropertyControl from "@/components/properties/DeletePropertyControl";
+import { getLoginUrl } from "@/lib/legal/loginUrl";
 
 function RightColumn({ data }) {
   const { currencyCode, rates } = useCurrency();
@@ -165,7 +166,11 @@ function RightColumn({ data }) {
 
   const handleReserve = async () => {
     if (!session) {
-      signIn("google");
+      window.location.assign(
+        getLoginUrl(
+          typeof window !== "undefined" ? window.location.pathname : "/",
+        ),
+      );
       return;
     }
 

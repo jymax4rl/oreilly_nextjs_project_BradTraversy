@@ -23,11 +23,12 @@ import {
 } from "lucide-react";
 import LoginNavButton from "./LoginNavBtn";
 import { usePathname } from "next/navigation";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { getUnreadMessageCount } from "@/utils/actions/messageActions";
 import { useMenuOverlay } from "@/contexts/MenuOverlayContext";
 import { isExploreMobileLayout } from "@/utils/exploreLayout";
 import { isFullscreenRoute } from "@/utils/fullscreenRoutes";
+import { getLoginUrl } from "@/lib/legal/loginUrl";
 
 const navLinks = [
   { path: "/", label: "Home", Icon: Home },
@@ -198,7 +199,11 @@ const Navbar = () => {
         <div className="flex w-full gap-3 lg:gap-6 items-center justify-end pointer mr-4">
           {!session && (
             <div className="hidden lg:block">
-              <LoginNavButton onClick={() => signIn("google")} />
+              <LoginNavButton
+                onClick={() => {
+                  window.location.assign(getLoginUrl(pathname || "/"));
+                }}
+              />
             </div>
           )}
 
@@ -301,6 +306,16 @@ const Navbar = () => {
                   >
                     <Settings />
                     <span>Settings</span>
+                  </Link>
+
+                  <Link
+                    href="/policies"
+                    className={profileItemClass}
+                    role="menuitem"
+                    onClick={() => setIsProfileOpen(false)}
+                  >
+                    <Shield />
+                    <span>Policies & Terms</span>
                   </Link>
                 </div>
 

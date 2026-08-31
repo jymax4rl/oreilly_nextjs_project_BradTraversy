@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { getLoginUrl } from "@/lib/legal/loginUrl";
 
 export default function MessageOwnerButton({
   propertyId,
@@ -38,15 +39,9 @@ export default function MessageOwnerButton({
 
   if (!session) {
     return (
-      <button
-        type="button"
-        onClick={() =>
-          signIn("google", { callbackUrl: messageHref })
-        }
-        className={`${base} ${className}`}
-      >
+      <Link href={getLoginUrl(messageHref)} className={`${base} ${className}`}>
         {content}
-      </button>
+      </Link>
     );
   }
 

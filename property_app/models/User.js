@@ -53,6 +53,16 @@ const UserSchema = new Schema(
         hostBookingChanges: { type: Boolean, default: true },
       },
     },
+    /** Last accepted Terms & Conditions version string (e.g. kama-terms-v1.0-…). */
+    termsVersion: {
+      type: String,
+      default: null,
+    },
+    /** When the user accepted the current (or last recorded) terms version. */
+    termsAcceptedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

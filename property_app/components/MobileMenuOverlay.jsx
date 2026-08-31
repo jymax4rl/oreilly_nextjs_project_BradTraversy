@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signIn, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
+import { getLoginUrl } from "@/lib/legal/loginUrl";
 import {
   Home,
   Building2,
@@ -131,8 +132,8 @@ export default function MobileMenuOverlay({
                   <button
                     type="button"
                     onClick={() => {
-                      signIn("google");
                       close();
+                      window.location.assign(getLoginUrl(pathname || "/"));
                     }}
                     className="kama-menu-cta mt-4"
                   >
@@ -167,6 +168,14 @@ export default function MobileMenuOverlay({
                   >
                     <Heart className="kama-menu-row-icon" aria-hidden />
                     Saved
+                  </Link>
+                  <Link
+                    href="/policies"
+                    onClick={close}
+                    className={rowClass("/policies")}
+                  >
+                    <Shield className="kama-menu-row-icon" aria-hidden />
+                    Policies & Terms
                   </Link>
                 </nav>
               </section>
@@ -308,6 +317,14 @@ export default function MobileMenuOverlay({
                     >
                       <Settings className="kama-menu-row-icon" aria-hidden />
                       Settings
+                    </Link>
+                    <Link
+                      href="/policies"
+                      onClick={close}
+                      className={rowClass("/policies")}
+                    >
+                      <Shield className="kama-menu-row-icon" aria-hidden />
+                      Policies & Terms
                     </Link>
                     <button
                       type="button"

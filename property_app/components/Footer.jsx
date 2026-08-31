@@ -51,9 +51,10 @@ const Footer = ({ className = "" }) => {
             {/* Column 3 */}
             <div className="flex flex-col space-y-4">
               <h4 className="text-white font-medium mb-2">Legal</h4>
-              <FooterLink href="/terms">Terms</FooterLink>
-              <FooterLink href="/privacy">Privacy</FooterLink>
-              <FooterLink href="/cookies">Cookies</FooterLink>
+              <FooterLink href="/policies">Policies</FooterLink>
+              <FooterLink href="/policies/terms">Terms</FooterLink>
+              <FooterLink href="/policies/privacy">Privacy</FooterLink>
+              <FooterLink href="/policies/cookies">Cookies</FooterLink>
             </div>
           </div>
         </div>
