@@ -39,6 +39,7 @@ import {
   isValidGuestPhone,
   isPaymentGatewayCheckoutEnabled,
 } from "@/utils/bookings/paymentMode";
+import GuestPhoneModal from "@/components/bookings/GuestPhoneModal";
 
 function RightColumn({ data }) {
   const { currencyCode, rates } = useCurrency();
@@ -53,6 +54,9 @@ function RightColumn({ data }) {
   const [unavailableRanges, setUnavailableRanges] = useState([]);
   const [customDayRates, setCustomDayRates] = useState([]);
   const [guestPhone, setGuestPhone] = useState("");
+  const [phoneModalOpen, setPhoneModalOpen] = useState(false);
+  const [phoneModalError, setPhoneModalError] = useState(null);
+  const [pendingValidation, setPendingValidation] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   const listingRates = normalizeRates(data.rates);
@@ -207,13 +211,6 @@ function RightColumn({ data }) {
       return null;
     }
 
-    if (!isValidGuestPhone(guestPhone)) {
-      setDateError(
-        "Enter a phone number the host can use to arrange payment (call or WhatsApp).",
-      );
-      return null;
-    }
-
     const ranges = await refreshAvailability();
     const validation = validateStayDates(checkIn, checkOut, ranges);
     if (!validation.ok) {
@@ -239,8 +236,16 @@ function RightColumn({ data }) {
     return validation;
   };
 
-  const requestManualReservation = async (validation) => {
+  const closePhoneModal = useCallback(() => {
+    if (submitting) return;
+    setPhoneModalOpen(false);
+    setPhoneModalError(null);
+    setPendingValidation(null);
+  }, [submitting]);
+
+  const requestManualReservation = async (validation, phone) => {
     setSubmitting(true);
+    setPhoneModalError(null);
     try {
       const res = await fetch("/api/bookings/request", {
         method: "POST",
@@ -249,13 +254,16 @@ function RightColumn({ data }) {
           propertyId: data._id,
           checkIn: validation.checkIn,
           checkOut: validation.checkOut,
-          guestPhone,
+          guestPhone: phone,
           currency: paymentCurrency,
           amount: numericalTotal,
         }),
       });
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
+        setPhoneModalError(
+          payload.error || "Please try again or message the host.",
+        );
         setPaymentNotice({
           type: "error",
           title: "Could not request reservation",
@@ -263,9 +271,13 @@ function RightColumn({ data }) {
         });
         return;
       }
+      setPhoneModalOpen(false);
       window.location.href = "/my-bookings?reserved=1";
     } catch (err) {
       console.error("Manual booking request failed:", err);
+      setPhoneModalError(
+        "Could not reach the server. Check your connection and try again.",
+      );
       setPaymentNotice({
         type: "error",
         title: "Connection error",
@@ -276,15 +288,9 @@ function RightColumn({ data }) {
     }
   };
 
-  const handleReserve = async () => {
-    const validation = await validateReserveInputs();
-    if (!validation) return;
-
-    if (!gatewayCheckout) {
-      await requestManualReservation(validation);
-      return;
-    }
-
+  const startGatewayCheckout = (validation, phone) => {
+    setPhoneModalOpen(false);
+    setPendingValidation(null);
     handleFlutterPayment({
       callback: async (response) => {
         if (response.status === "successful") {
@@ -304,7 +310,7 @@ function RightColumn({ data }) {
                 nights: countNights(validation.checkIn, validation.checkOut),
                 amount: numericalTotal,
                 currency: paymentCurrency,
-                guest_phone: guestPhone,
+                guest_phone: phone,
               }),
             });
             const payload = await res.json().catch(() => ({}));
@@ -341,6 +347,30 @@ function RightColumn({ data }) {
       },
       onClose: () => {},
     });
+  };
+
+  /** Prechecks (auth, dates, availability) then open phone modal — phone is not on the sidebar. */
+  const handleReserve = async () => {
+    const validation = await validateReserveInputs();
+    if (!validation) return;
+    setPendingValidation(validation);
+    setPhoneModalError(null);
+    setPhoneModalOpen(true);
+  };
+
+  const handlePhoneConfirm = async () => {
+    if (!pendingValidation) return;
+    if (!isValidGuestPhone(guestPhone)) {
+      setPhoneModalError("Enter a valid WhatsApp number so the host can reach you.");
+      return;
+    }
+
+    if (!gatewayCheckout) {
+      await requestManualReservation(pendingValidation, guestPhone);
+      return;
+    }
+
+    startGatewayCheckout(pendingValidation, guestPhone);
   };
 
   return (
@@ -403,27 +433,6 @@ function RightColumn({ data }) {
                 {nights} night{nights !== 1 ? "s" : ""}
               </p>
             )}
-
-            <label className="block text-sm text-[var(--kama-ink)]">
-              <span className="mb-1.5 block text-xs font-medium text-[var(--kama-ink-muted)]">
-                Phone number <span className="text-red-600">*</span>
-              </span>
-              <input
-                type="tel"
-                name="guestPhone"
-                autoComplete="tel"
-                inputMode="tel"
-                placeholder="+237 6XX XXX XXX"
-                value={guestPhone}
-                onChange={(e) => setGuestPhone(e.target.value)}
-                className="w-full rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2.5 text-sm text-[var(--kama-ink)] outline-none ring-[var(--kama-accent)] placeholder:text-[var(--kama-ink-muted)] focus:ring-2"
-                aria-required="true"
-              />
-              <span className="mt-1.5 block text-[11px] leading-snug text-[var(--kama-ink-muted)]">
-                Shared with the host so they can arrange payment (call or
-                WhatsApp).
-              </span>
-            </label>
 
             {dateError && (
               <p className="rounded-xl bg-red-50 px-3 py-2 text-center text-sm text-red-700">
@@ -569,6 +578,19 @@ function RightColumn({ data }) {
           manual={!gatewayCheckout}
         />
       )}
+
+      <GuestPhoneModal
+        open={phoneModalOpen}
+        phone={guestPhone}
+        onPhoneChange={(value) => {
+          setGuestPhone(value);
+          if (phoneModalError) setPhoneModalError(null);
+        }}
+        onCancel={closePhoneModal}
+        onConfirm={handlePhoneConfirm}
+        submitting={submitting}
+        error={phoneModalError}
+      />
     </div>
   );
 }
