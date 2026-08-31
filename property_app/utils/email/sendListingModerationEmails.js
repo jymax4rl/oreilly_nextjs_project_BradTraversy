@@ -21,7 +21,7 @@ function isConfigured() {
   return Boolean(getBookingResendApiKey() && process.env.EMAIL_FROM);
 }
 
-/** Soft fallback: comma-separated ADMIN_EMAIL / ADMIN_NOTIFICATION_EMAIL / EMAIL_REPLY_TO. */
+/** Extra recipients (always unioned with DB admins): ADMIN_EMAIL / ADMIN_NOTIFICATION_EMAIL / EMAIL_REPLY_TO. */
 export function getAdminNotificationEmailsFromEnv() {
   const raw =
     process.env.ADMIN_EMAIL ||
@@ -40,14 +40,17 @@ export function getAdminNotificationEmails() {
 }
 
 /**
- * Primary: unique emails for users with role "admin" in MongoDB.
- * Fallback: ADMIN_EMAIL / ADMIN_NOTIFICATION_EMAIL / EMAIL_REPLY_TO when none found.
+ * Recipients = Mongo users with role "admin", unioned with
+ * ADMIN_EMAIL / ADMIN_NOTIFICATION_EMAIL / EMAIL_REPLY_TO (always, not only fallback).
  */
 export async function resolveAdminRecipientEmails() {
   const unique = new Map();
+  let dbAdminCount = 0;
+  let dbConnected = false;
 
   try {
     const connected = await connectToDatabase();
+    dbConnected = Boolean(connected);
     if (connected) {
       const admins = await User.find({
         role: "admin",
@@ -60,7 +63,10 @@ export async function resolveAdminRecipientEmails() {
         const email = String(doc?.email || "").trim();
         if (!email) continue;
         const key = email.toLowerCase();
-        if (!unique.has(key)) unique.set(key, email);
+        if (!unique.has(key)) {
+          unique.set(key, email);
+          dbAdminCount += 1;
+        }
       }
     }
   } catch (error) {
@@ -70,15 +76,27 @@ export async function resolveAdminRecipientEmails() {
     );
   }
 
-  if (unique.size > 0) {
-    return Array.from(unique.values());
-  }
-
-  // Soft fallback when no admin users (or DB unavailable)
-  for (const email of getAdminNotificationEmailsFromEnv()) {
+  const envEmails = getAdminNotificationEmailsFromEnv();
+  for (const email of envEmails) {
     const key = email.toLowerCase();
     if (!unique.has(key)) unique.set(key, email);
   }
+
+  if (unique.size === 0) {
+    console.warn("resolveAdminRecipientEmails: zero recipients", {
+      dbConnected,
+      dbAdminCount,
+      envFallbackCount: envEmails.length,
+    });
+  } else {
+    console.info("resolveAdminRecipientEmails:", {
+      dbConnected,
+      dbAdminCount,
+      envFallbackCount: envEmails.length,
+      recipientCount: unique.size,
+    });
+  }
+
   return Array.from(unique.values());
 }
 
@@ -95,6 +113,11 @@ export async function sendListingSubmittedAdminEmail({
   if (!isConfigured()) {
     console.warn(
       "Listing moderation email skipped: EMAIL_FROM / Resend key not configured",
+      {
+        hasEmailFrom: Boolean(process.env.EMAIL_FROM),
+        hasResendKey: Boolean(getBookingResendApiKey()),
+        propertyId: propertyId || null,
+      },
     );
     return { sent: false, reason: "not_configured" };
   }
@@ -103,12 +126,19 @@ export async function sendListingSubmittedAdminEmail({
   if (admins.length === 0) {
     console.warn(
       "Listing moderation email skipped: no users with role admin and no ADMIN_EMAIL fallback",
+      { propertyId: propertyId || null },
     );
     return { sent: false, reason: "no_admin_email" };
   }
 
   const resend = getResend();
-  if (!resend) return { sent: false, reason: "no_client" };
+  if (!resend) {
+    console.warn("Listing moderation email skipped: Resend client unavailable", {
+      propertyId: propertyId || null,
+      recipientCount: admins.length,
+    });
+    return { sent: false, reason: "no_client" };
+  }
 
   const reviewUrl = getAbsoluteAppUrl(`/admin/listings`);
   const listingUrl = getAbsoluteAppUrl(`/properties/${propertyId}`);
@@ -127,9 +157,17 @@ export async function sendListingSubmittedAdminEmail({
   `;
 
   const from = process.env.EMAIL_FROM;
+  console.info("sendListingSubmittedAdminEmail: sending", {
+    propertyId: propertyId || null,
+    recipientCount: admins.length,
+    fromDomain: String(from || "").includes("@")
+      ? String(from).split("@").pop()?.replace(/>.*/, "")
+      : "unknown",
+  });
+
   const results = await Promise.allSettled(
     admins.map(async (to) => {
-      const { error } = await resend.emails.send({
+      const { data, error } = await resend.emails.send({
         from,
         to: [to],
         subject,
@@ -138,6 +176,7 @@ export async function sendListingSubmittedAdminEmail({
       if (error) {
         throw new Error(error.message || String(error));
       }
+      return data?.id || null;
     }),
   );
 
@@ -148,15 +187,25 @@ export async function sendListingSubmittedAdminEmail({
       sentCount += 1;
     } else {
       console.error(
-        `sendListingSubmittedAdminEmail failed for ${admins[i]}:`,
+        `sendListingSubmittedAdminEmail failed for recipient ${i + 1}/${admins.length}:`,
         result.reason?.message || result.reason,
       );
     }
   }
 
   if (sentCount === 0) {
+    console.error("sendListingSubmittedAdminEmail: all sends failed", {
+      propertyId: propertyId || null,
+      attempted: admins.length,
+    });
     return { sent: false, reason: "send_failed", attempted: admins.length };
   }
+
+  console.info("sendListingSubmittedAdminEmail: done", {
+    propertyId: propertyId || null,
+    sentCount,
+    attempted: admins.length,
+  });
 
   return {
     sent: true,

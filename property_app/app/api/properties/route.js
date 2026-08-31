@@ -15,6 +15,7 @@ import { computeListingPrice } from "@/utils/listingPricing";
 import { uploadPropertyImages } from "@/utils/uploadPropertyImages";
 import { softEstimateCoordinates, coerceCoordinate } from "@/utils/address";
 import { sendListingSubmittedAdminEmail } from "@/utils/email/sendListingModerationEmails";
+import { after } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 
@@ -295,15 +296,28 @@ export const POST = async (request) => {
       console.error("Availability init warning:", availabilityError);
     }
 
-    // Notify admins (never fail the create response)
-    sendListingSubmittedAdminEmail({
+    // Notify admins after the response (Vercel/Next keep the isolate alive via after()).
+    // Plain fire-and-forget often never finishes once the handler returns.
+    const notifyPayload = {
       propertyId: newProperty._id.toString(),
       propertyName: newProperty.name,
       hostName: session.user.name || propertyData.seller_info?.name,
       hostEmail: session.user.email || propertyData.seller_info?.email,
-    }).catch((err) =>
-      console.error("Listing admin notify warning:", err?.message || err),
-    );
+    };
+    after(async () => {
+      try {
+        const outcome = await sendListingSubmittedAdminEmail(notifyPayload);
+        if (!outcome?.sent) {
+          console.warn("Listing admin notify incomplete:", {
+            propertyId: notifyPayload.propertyId,
+            reason: outcome?.reason || "unknown",
+            attempted: outcome?.attempted,
+          });
+        }
+      } catch (err) {
+        console.error("Listing admin notify warning:", err?.message || err);
+      }
+    });
 
     return Response.json({
       success: true,
