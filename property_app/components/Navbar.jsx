@@ -29,6 +29,7 @@ import { useMenuOverlay } from "@/contexts/MenuOverlayContext";
 import { isExploreMobileLayout } from "@/utils/exploreLayout";
 import { isFullscreenRoute } from "@/utils/fullscreenRoutes";
 import { getLoginUrl } from "@/lib/legal/loginUrl";
+import { isOpsStaff } from "@/utils/opsAuth";
 
 const navLinks = [
   { path: "/", label: "Home", Icon: Home },
@@ -181,16 +182,16 @@ const Navbar = () => {
             </Link>
           )}
 
-          {session?.user?.role === "admin" && (
+          {isOpsStaff(session?.user?.role) && (
             <Link
-              href="/admin/listings"
+              href="/ops"
               className={
-                isHome || !isActive("/admin/listings")
+                isHome || !isActive("/ops")
                   ? "p-2 text-black"
                   : "p-2 text-white"
               }
             >
-              <NavButton text="Admin" />
+              <NavButton text="Ops" />
             </Link>
           )}
         </div>
@@ -365,15 +366,15 @@ const Navbar = () => {
                   </Link>
                 )}
 
-                {session?.user?.role === "admin" && (
+                {isOpsStaff(session?.user?.role) && (
                   <Link
-                    href="/admin/listings"
+                    href="/ops"
                     className={profileItemClass}
                     role="menuitem"
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <Shield />
-                    <span>Admin Dashboard</span>
+                    <span>Operations</span>
                   </Link>
                 )}
 

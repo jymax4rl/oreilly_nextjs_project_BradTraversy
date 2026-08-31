@@ -2,6 +2,7 @@ import connectToDatabase from "@/config/database";
 import Transaction from "@/models/Transaction";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
+import { isOpsStaff } from "@/utils/opsAuth";
 
 export const GET = async (request) => {
   try {
@@ -9,8 +10,8 @@ export const GET = async (request) => {
     
     const session = await getServerSession(authOptions);
 
-    // Security Check: Only admins can access this route
-    if (!session || session.user.role !== "admin") {
+    // Security Check: Only ops staff can access this route
+    if (!session || !isOpsStaff(session.user.role)) {
       return new Response("Unauthorized", { status: 401 });
     }
 

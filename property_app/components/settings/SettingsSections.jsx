@@ -238,18 +238,24 @@ export default function SettingsSections({ settings }) {
 
       {isAdmin && (
         <Section
-          title="Admin"
-          description="Moderation tools live in the admin area — no extra alert prefs yet."
+          title="Operations"
+          description="Staff tools live in the ops console — no extra alert prefs yet."
         >
           <div className="space-y-0.5">
             <DeepLink
-              href="/admin/hosts"
+              href="/ops"
+              icon={Shield}
+              label="Ops console"
+              description="Hosts, listings, and transactions"
+            />
+            <DeepLink
+              href="/ops/hosts"
               icon={Shield}
               label="Host applications"
               description="Review and approve hosts"
             />
             <DeepLink
-              href="/admin/transactions"
+              href="/ops/transactions"
               icon={CalendarCheck}
               label="Transactions"
               description="Payment and booking activity"

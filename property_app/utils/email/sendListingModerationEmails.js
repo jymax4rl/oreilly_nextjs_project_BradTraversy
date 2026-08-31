@@ -53,7 +53,7 @@ export async function resolveAdminRecipientEmails() {
     dbConnected = Boolean(connected);
     if (connected) {
       const admins = await User.find({
-        role: "admin",
+        role: { $in: ["admin", "superadmin"] },
         email: { $exists: true, $ne: "" },
       })
         .select("email")
@@ -140,7 +140,7 @@ export async function sendListingSubmittedAdminEmail({
     return { sent: false, reason: "no_client" };
   }
 
-  const reviewUrl = getAbsoluteAppUrl(`/admin/listings`);
+  const reviewUrl = getAbsoluteAppUrl(`/ops/listings`);
   const listingUrl = getAbsoluteAppUrl(`/properties/${propertyId}`);
   const subject = `New listing pending review: ${propertyName || "Untitled"}`;
   const html = `

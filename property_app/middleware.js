@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { isOpsStaff } from "@/utils/opsAuth";
 
 const signInUrl = (req, callbackUrl) => {
   const u = new URL("/login", req.url);
@@ -22,10 +23,32 @@ export async function middleware(req) {
     secret: process.env.NEXTAUTH_SECRET,
   });
   const { pathname } = req.nextUrl;
+  const staff = isOpsStaff(token?.role);
+
+  if (pathname.startsWith("/ops")) {
+    if (pathname === "/ops/login" || pathname.startsWith("/ops/login/")) {
+      if (token && staff) {
+        return NextResponse.redirect(new URL("/ops", req.url));
+      }
+      return NextResponse.next();
+    }
+
+    if (!token || !staff) {
+      const login = new URL("/ops/login", req.url);
+      if (pathname !== "/ops") {
+        login.searchParams.set("callbackUrl", pathname);
+      }
+      return NextResponse.redirect(login);
+    }
+    return NextResponse.next();
+  }
 
   if (pathname.startsWith("/admin")) {
-    if (!token || token.role !== "admin") {
+    if (!token || !staff) {
       return NextResponse.redirect(new URL("/", req.url));
+    }
+    if (pathname === "/admin" || pathname === "/admin/") {
+      return NextResponse.redirect(new URL("/ops", req.url));
     }
     return NextResponse.next();
   }
@@ -86,5 +109,6 @@ export const config = {
     "/properties/add",
     "/host/:path*",
     "/admin/:path*",
+    "/ops/:path*",
   ],
 };

@@ -22,6 +22,7 @@ import {
 import { LuUserRound } from "react-icons/lu";
 import BrandLogo from "@/components/BrandLogo";
 import Currency from "@/components/Currency";
+import { isOpsStaff } from "@/utils/opsAuth";
 
 /**
  * Full-screen mobile navigation overlay.
@@ -36,7 +37,7 @@ export default function MobileMenuOverlay({
   const pathname = usePathname();
   const user = session?.user;
   const isHost = user?.hostStatus === "verified";
-  const isAdmin = user?.role === "admin";
+  const isAdmin = isOpsStaff(user?.role);
   const profileImage = user?.image;
 
   const isActive = (path) => {
@@ -281,20 +282,20 @@ export default function MobileMenuOverlay({
                 </section>
               )}
 
-              {/* Admin */}
+              {/* Ops */}
               {isAdmin && (
                 <section className="kama-menu-group" aria-labelledby="menu-admin">
                   <h2 id="menu-admin" className="kama-menu-section">
-                    Admin
+                    Operations
                   </h2>
-                  <nav className="flex flex-col gap-0.5" aria-label="Admin">
+                  <nav className="flex flex-col gap-0.5" aria-label="Operations">
                     <Link
-                      href="/admin/hosts"
+                      href="/ops"
                       onClick={close}
-                      className={rowClass("/admin/hosts")}
+                      className={rowClass("/ops")}
                     >
                       <Shield className="kama-menu-row-icon" aria-hidden />
-                      Admin dashboard
+                      Ops console
                     </Link>
                   </nav>
                 </section>

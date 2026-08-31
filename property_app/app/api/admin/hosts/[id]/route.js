@@ -3,6 +3,7 @@ import HostApplication from "@/models/HostApplication";
 import User from "@/models/User";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
+import { isOpsStaff } from "@/utils/opsAuth";
 import mongoose from "mongoose";
 
 export const PATCH = async (request, { params }) => {
@@ -13,7 +14,7 @@ export const PATCH = async (request, { params }) => {
     await connectToDatabase();
     const session = await getServerSession(authOptions);
 
-    if (!session?.user || session.user.role !== "admin") {
+    if (!session?.user || !isOpsStaff(session.user.role)) {
       return new Response("Unauthorized - Admin access required", {
         status: 403,
       });

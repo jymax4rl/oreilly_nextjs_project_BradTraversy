@@ -1,6 +1,9 @@
+import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import bcrypt from "bcryptjs";
 import connectToDatabase from "@/config/database";
 import User from "@/models/User";
+import { isOpsStaff } from "@/utils/opsAuth";
 
 /** @type {import('next-auth').AuthOptions} */
 export const authOptions = {
@@ -22,17 +25,58 @@ export const authOptions = {
         },
       },
     }),
+    CredentialsProvider({
+      id: "ops-credentials",
+      name: "Ops",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const email = String(credentials?.email || "")
+          .trim()
+          .toLowerCase();
+        const password = String(credentials?.password || "");
+        if (!email || !password) return null;
+
+        await connectToDatabase();
+        const escaped = email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const user = await User.findOne({
+          email: { $regex: new RegExp(`^${escaped}$`, "i") },
+        }).select("+passwordHash");
+        if (!user?.passwordHash || !isOpsStaff(user.role)) {
+          return null;
+        }
+
+        const match = await bcrypt.compare(password, user.passwordHash);
+        if (!match) return null;
+
+        return {
+          id: user._id.toString(),
+          email: user.email,
+          name: user.username,
+          image: user.image || undefined,
+        };
+      },
+    }),
   ],
   callbacks: {
-    async signIn({ profile }) {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "ops-credentials") {
+        return true;
+      }
+
       await connectToDatabase();
-      const userExists = await User.findOne({ email: profile.email });
+      const email = profile?.email || user?.email;
+      if (!email) return false;
+
+      const userExists = await User.findOne({ email });
       if (!userExists) {
-        const username = profile.name;
+        const username = profile?.name || user?.name || email.split("@")[0];
         await User.create({
-          email: profile.email,
+          email,
           username,
-          image: profile.image,
+          image: profile?.image || user?.image,
           role: "guest",
           hostStatus: "none",
         });

@@ -3,6 +3,7 @@ import Property from "@/models/Property";
 import User from "@/models/User";
 import { getSessionFromRequest } from "@/utils/authSessionRoute";
 import { sendListingDecisionHostEmail } from "@/utils/email/sendListingModerationEmails";
+import { isOpsStaff } from "@/utils/opsAuth";
 import mongoose from "mongoose";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ export const PATCH = async (request, { params }) => {
     await connectToDatabase();
     const session = await getSessionFromRequest(request);
 
-    if (!session?.user || session.user.role !== "admin") {
+    if (!session?.user || !isOpsStaff(session.user.role)) {
       return Response.json(
         { error: "Unauthorized - Admin access required" },
         { status: 403 },

@@ -6,6 +6,7 @@ import {
   approvedListingQuery,
   pendingModerationQueueQuery,
 } from "@/utils/listingApproval";
+import { isOpsStaff } from "@/utils/opsAuth";
 import mongoose from "mongoose";
 
 /** Do not cache: each ?status= must return a different list. */
@@ -16,7 +17,7 @@ export const GET = async (request) => {
     await connectToDatabase();
     const session = await getSessionFromRequest(request);
 
-    if (!session?.user || session.user.role !== "admin") {
+    if (!session?.user || !isOpsStaff(session.user.role)) {
       return Response.json(
         { error: "Unauthorized - Admin access required" },
         { status: 403 },

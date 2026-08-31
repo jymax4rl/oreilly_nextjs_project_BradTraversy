@@ -2,13 +2,14 @@ import connectToDatabase from "@/config/database";
 import HostApplication from "@/models/HostApplication";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
+import { isOpsStaff } from "@/utils/opsAuth";
 
 export const GET = async (request) => {
   try {
     await connectToDatabase();
     const session = await getServerSession(authOptions);
 
-    if (!session?.user || session.user.role !== "admin") {
+    if (!session?.user || !isOpsStaff(session.user.role)) {
       return new Response("Unauthorized", { status: 403 });
     }
 

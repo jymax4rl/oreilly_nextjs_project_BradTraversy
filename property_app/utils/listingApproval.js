@@ -1,3 +1,5 @@
+import { isOpsStaff } from "@/utils/opsAuth";
+
 /**
  * Listing moderation helpers.
  *
@@ -47,7 +49,7 @@ export function canUserViewListing(property, session) {
   if (!property) return false;
   if (isPubliclyVisibleListing(property)) return true;
   if (!session?.user) return false;
-  if (session.user.role === "admin") return true;
+  if (isOpsStaff(session.user.role)) return true;
   const ownerId =
     property.owner?.toString?.() ?? String(property.owner ?? "");
   const userId =

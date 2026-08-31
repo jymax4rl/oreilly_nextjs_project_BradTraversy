@@ -4,6 +4,7 @@ import Property from "@/models/Property";
 import Transaction from "@/models/Transaction";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
+import { isOpsStaff } from "@/utils/opsAuth";
 import {
   bookingEmailConfigError,
   sendEmailsForBooking,
@@ -42,7 +43,7 @@ export async function POST(_request, { params }) {
 
     const isGuest = String(booking.guestId) === String(session.user.id);
     const isHost = property && isPropertyOwner(property, session.user.id);
-    const isAdmin = session.user.role === "admin";
+    const isAdmin = isOpsStaff(session.user.role);
 
     // Guests should use My Bookings for trips only — resend is a host/admin tool.
     // Keep guest access for backwards compatibility of the API, but host manage UI

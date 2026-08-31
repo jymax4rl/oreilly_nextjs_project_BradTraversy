@@ -60,9 +60,13 @@ export async function getProfilePayload(sessionUser) {
     image: user.image || null,
     role,
     roles: {
-      guest: role === "guest" || role === "host" || role === "admin",
+      guest:
+        role === "guest" ||
+        role === "host" ||
+        role === "admin" ||
+        role === "superadmin",
       host: role === "host" || hostStatus === "verified",
-      admin: role === "admin",
+      admin: role === "admin" || role === "superadmin",
     },
     hostStatus,
     hasCompletedHostOnboarding: !!user.hasCompletedHostOnboarding,

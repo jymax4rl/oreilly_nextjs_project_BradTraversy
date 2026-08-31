@@ -238,17 +238,17 @@ export default function ProfileSections({ profile }) {
         )}
       </SectionCard>
 
-      {/* Admin — server-gated */}
+      {/* Ops — server-gated */}
       {roles.admin && (
-        <SectionCard title="Admin" className="lg:col-span-2">
+        <SectionCard title="Operations" className="lg:col-span-2">
           <QuickLink
-            href="/admin/hosts"
+            href="/ops"
             icon={Shield}
-            label="Admin dashboard"
-            description="Review host applications and platform activity"
+            label="Ops console"
+            description="Hosts, listings, and platform activity"
           />
           <QuickLink
-            href="/admin/transactions"
+            href="/ops/transactions"
             icon={CalendarCheck}
             label="Transactions"
             description="Payment and booking activity"

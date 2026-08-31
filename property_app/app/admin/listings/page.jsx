@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { isOpsStaff } from "@/utils/opsAuth";
 
 export default function AdminListingsPage() {
   const { data: session, status } = useSession();
@@ -19,13 +20,13 @@ export default function AdminListingsPage() {
   const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.role !== "admin") {
+    if (status === "authenticated" && !isOpsStaff(session?.user?.role)) {
       router.push("/");
     }
   }, [session, status, router]);
 
   useEffect(() => {
-    if (status !== "authenticated" || session?.user?.role !== "admin") return;
+    if (status !== "authenticated" || !isOpsStaff(session?.user?.role)) return;
 
     const fetchListings = async () => {
       setLoading(true);
@@ -142,7 +143,7 @@ export default function AdminListingsPage() {
     );
   }
 
-  if (session?.user?.role !== "admin") {
+  if (!isOpsStaff(session?.user?.role)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -175,6 +176,12 @@ export default function AdminListingsPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
+            <Link
+              href="/ops"
+              className="bg-white border text-[#1B5C57] hover:bg-gray-100 px-4 py-2 rounded transition font-medium"
+            >
+              Ops home
+            </Link>
             <Link
               href="/admin/hosts"
               className="bg-white border text-gray-700 hover:bg-gray-100 px-4 py-2 rounded transition font-medium"

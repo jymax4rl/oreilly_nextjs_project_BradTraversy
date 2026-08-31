@@ -24,8 +24,17 @@ const UserSchema = new Schema(
     //role and host status
     role: {
       type: String,
-      enum: ["guest", "host", "admin"],
+      enum: ["guest", "host", "admin", "superadmin"],
       default: "guest",
+    },
+    /**
+     * bcrypt hash for ops Credentials sign-in only.
+     * Guests/hosts keep Google OAuth; this field stays unset for them.
+     */
+    passwordHash: {
+      type: String,
+      select: false,
+      default: undefined,
     },
     hostStatus: {
       type: String,
