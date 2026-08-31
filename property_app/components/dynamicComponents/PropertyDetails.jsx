@@ -2,12 +2,17 @@
 
 import React from "react";
 import Image from "next/image";
-import { Bed, Bath, Maximize, Mail, Phone, X } from "lucide-react";
+import { Bed, Bath, Maximize, Mail, Phone, X, Clock } from "lucide-react";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { formatCurrency } from "@/utils/currencyUtils";
 import { propertyAudioUrl } from "@/utils/propertyImageUrl";
 import AmenitiesAccordion from "@/components/AmenitiesAccordion";
 import MessageOwnerButton from "@/components/MessageOwnerButton";
+import {
+  DEFAULT_CHECK_IN_TIME,
+  DEFAULT_CHECK_OUT_TIME,
+  formatClockTimeLabel,
+} from "@/utils/checkInOutTimes";
 
 function RateRow({ label, amount, currencyCode, rates, available }) {
   const symbol = currencyCode === "USD" ? "$" : currencyCode;
@@ -44,6 +49,14 @@ function PropertyDetails({ data }) {
   const ownerImage = data.host?.image || null;
   const propertyRates = data.rates || {};
   const sqftLabel = formatSqFt(data.square_feet);
+  const checkInLabel = formatClockTimeLabel(
+    data.checkInTime,
+    DEFAULT_CHECK_IN_TIME,
+  );
+  const checkOutLabel = formatClockTimeLabel(
+    data.checkOutTime,
+    DEFAULT_CHECK_OUT_TIME,
+  );
 
   return (
     <div className="min-w-0 space-y-8 sm:space-y-10 lg:col-span-2">
@@ -128,6 +141,46 @@ function PropertyDetails({ data }) {
         <p className="text-base leading-relaxed text-[var(--kama-ink-muted)] sm:text-lg">
           {data.description}
         </p>
+      </section>
+
+      <section className="min-w-0">
+        <h2 className="mb-3 text-xl font-semibold tracking-tight text-[var(--kama-ink)] sm:mb-4 sm:text-2xl">
+          Check-in &amp; check-out
+        </h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="flex items-start gap-3 rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-4 py-4">
+            <Clock
+              className="mt-0.5 shrink-0 text-[var(--kama-accent)]"
+              size={20}
+              strokeWidth={1.5}
+              aria-hidden
+            />
+            <div className="min-w-0">
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--kama-ink-muted)]">
+                Check-in
+              </p>
+              <p className="mt-0.5 text-lg font-semibold tabular-nums text-[var(--kama-ink)]">
+                {checkInLabel}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-4 py-4">
+            <Clock
+              className="mt-0.5 shrink-0 text-[var(--kama-accent)]"
+              size={20}
+              strokeWidth={1.5}
+              aria-hidden
+            />
+            <div className="min-w-0">
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--kama-ink-muted)]">
+                Check-out
+              </p>
+              <p className="mt-0.5 text-lg font-semibold tabular-nums text-[var(--kama-ink)]">
+                {checkOutLabel}
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {propertyAudioUrl(data.audio) && (

@@ -40,6 +40,12 @@ import {
   MAX_LISTING_UPLOAD_BYTES,
 } from "@/utils/compressListingImage";
 import {
+  DEFAULT_CHECK_IN_TIME,
+  DEFAULT_CHECK_OUT_TIME,
+  formatClockTimeLabel,
+  normalizeClockTime,
+} from "@/utils/checkInOutTimes";
+import {
   IntroIllustration,
   PropertyTypeArt,
   PrivacyArt,
@@ -419,6 +425,14 @@ export default function ListingWizard() {
       formData.append("beds", String(data.beds));
       formData.append("baths", String(data.baths));
       formData.append("square_feet", String(data.square_feet));
+      formData.append(
+        "checkInTime",
+        normalizeClockTime(data.checkInTime, DEFAULT_CHECK_IN_TIME),
+      );
+      formData.append(
+        "checkOutTime",
+        normalizeClockTime(data.checkOutTime, DEFAULT_CHECK_OUT_TIME),
+      );
 
       const loc = {
         ...data.location,
@@ -910,6 +924,57 @@ export default function ListingWizard() {
                     className="h-5 w-5 accent-[var(--kama-accent)]"
                   />
                 </label>
+                <div className="border-t border-[var(--kama-border)] pt-6">
+                  <p className="font-medium text-[var(--kama-ink)]">
+                    Check-in &amp; check-out times
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
+                    Clock times on arrival and departure day (not stay dates).
+                    Guests see these on your listing.
+                  </p>
+                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <label className="block" htmlFor="wiz-check-in-time">
+                      <span className="mb-1.5 block text-xs font-medium text-[var(--kama-ink-muted)]">
+                        Check-in
+                      </span>
+                      <input
+                        id="wiz-check-in-time"
+                        type="time"
+                        className={inputClass}
+                        value={data.checkInTime || DEFAULT_CHECK_IN_TIME}
+                        onChange={(e) =>
+                          setData((p) => ({
+                            ...p,
+                            checkInTime: normalizeClockTime(
+                              e.target.value,
+                              DEFAULT_CHECK_IN_TIME,
+                            ),
+                          }))
+                        }
+                      />
+                    </label>
+                    <label className="block" htmlFor="wiz-check-out-time">
+                      <span className="mb-1.5 block text-xs font-medium text-[var(--kama-ink-muted)]">
+                        Check-out
+                      </span>
+                      <input
+                        id="wiz-check-out-time"
+                        type="time"
+                        className={inputClass}
+                        value={data.checkOutTime || DEFAULT_CHECK_OUT_TIME}
+                        onChange={(e) =>
+                          setData((p) => ({
+                            ...p,
+                            checkOutTime: normalizeClockTime(
+                              e.target.value,
+                              DEFAULT_CHECK_OUT_TIME,
+                            ),
+                          }))
+                        }
+                      />
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -1220,6 +1285,18 @@ export default function ListingWizard() {
                   <strong>Guests:</strong> {data.listing.maxGuests} ·{" "}
                   <strong>Beds:</strong> {data.beds} · <strong>Baths:</strong>{" "}
                   {data.baths}
+                </p>
+                <p>
+                  <strong>Check-in:</strong>{" "}
+                  {formatClockTimeLabel(
+                    data.checkInTime,
+                    DEFAULT_CHECK_IN_TIME,
+                  )}{" "}
+                  · <strong>Check-out:</strong>{" "}
+                  {formatClockTimeLabel(
+                    data.checkOutTime,
+                    DEFAULT_CHECK_OUT_TIME,
+                  )}
                 </p>
                 <p>
                   <strong>Price:</strong> ${data.rates.nightly}/night

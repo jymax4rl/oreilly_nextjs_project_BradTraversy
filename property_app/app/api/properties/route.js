@@ -14,6 +14,11 @@ import { authOptions } from "@/utils/authOptions";
 import { computeListingPrice } from "@/utils/listingPricing";
 import { uploadPropertyImages } from "@/utils/uploadPropertyImages";
 import { softEstimateCoordinates, coerceCoordinate } from "@/utils/address";
+import {
+  DEFAULT_CHECK_IN_TIME,
+  DEFAULT_CHECK_OUT_TIME,
+  normalizeClockTime,
+} from "@/utils/checkInOutTimes";
 import { sendListingSubmittedAdminEmail } from "@/utils/email/sendListingModerationEmails";
 import { after } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
@@ -190,6 +195,14 @@ export const POST = async (request) => {
       beds,
       baths,
       square_feet: num(formData.get("square_feet")) || 500,
+      checkInTime: normalizeClockTime(
+        formData.get("checkInTime"),
+        DEFAULT_CHECK_IN_TIME,
+      ),
+      checkOutTime: normalizeClockTime(
+        formData.get("checkOutTime"),
+        DEFAULT_CHECK_OUT_TIME,
+      ),
       amenities,
       rates,
       listingPrice: computeListingPrice(rates),

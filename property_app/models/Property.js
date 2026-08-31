@@ -33,6 +33,12 @@ const PropertySchema = new mongoose.Schema(
     beds: { type: Number, required: true },
     baths: { type: Number, required: true },
     square_feet: { type: Number, required: true },
+    /**
+     * Guest arrival / departure clock times on the stay dates (not calendar dates).
+     * Stored as "HH:mm" 24h local property time. Defaults match common booking platforms.
+     */
+    checkInTime: { type: String, default: "15:00", match: /^([01]\d|2[0-3]):[0-5]\d$/ },
+    checkOutTime: { type: String, default: "11:00", match: /^([01]\d|2[0-3]):[0-5]\d$/ },
     amenities: [{ type: String }],
     rates: {
       nightly: { type: Number },

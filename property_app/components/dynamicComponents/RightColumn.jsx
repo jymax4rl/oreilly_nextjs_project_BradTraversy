@@ -30,6 +30,11 @@ import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 import { useSession } from "next-auth/react";
 import DeletePropertyControl from "@/components/properties/DeletePropertyControl";
 import { getLoginUrl } from "@/lib/legal/loginUrl";
+import {
+  DEFAULT_CHECK_IN_TIME,
+  DEFAULT_CHECK_OUT_TIME,
+  formatClockTimeLabel,
+} from "@/utils/checkInOutTimes";
 
 function RightColumn({ data }) {
   const { currencyCode, rates } = useCurrency();
@@ -47,6 +52,14 @@ function RightColumn({ data }) {
   const listingRates = normalizeRates(data.rates);
   const paymentCurrency = normalizeCurrencyCode(currencyCode);
   const isOwner = session?.user?.id === data.owner;
+  const checkInTimeLabel = formatClockTimeLabel(
+    data.checkInTime,
+    DEFAULT_CHECK_IN_TIME,
+  );
+  const checkOutTimeLabel = formatClockTimeLabel(
+    data.checkOutTime,
+    DEFAULT_CHECK_OUT_TIME,
+  );
 
   useEffect(() => {
     const el = cardRef.current;
@@ -311,6 +324,11 @@ function RightColumn({ data }) {
               onChange={handleDatesChange}
               onValidationError={setDateError}
             />
+
+            <p className="text-center text-xs text-[var(--kama-ink-muted)]">
+              Check-in from {checkInTimeLabel} · Check-out by{" "}
+              {checkOutTimeLabel}
+            </p>
 
             {nights > 0 && (
               <p className="text-center text-sm font-medium text-[var(--kama-ink-muted)] animate-[calendarFadeIn_0.25s_ease-out]">

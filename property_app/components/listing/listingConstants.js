@@ -88,6 +88,9 @@ export function emptyListingState() {
     beds: 1,
     baths: 1,
     square_feet: 500,
+    /** Clock times (HH:mm) on arrival/departure day — not booking dates. */
+    checkInTime: "15:00",
+    checkOutTime: "11:00",
     amenities: [],
     rates: {
       nightly: 50,
