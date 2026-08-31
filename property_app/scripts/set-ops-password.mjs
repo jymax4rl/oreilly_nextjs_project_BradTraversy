@@ -7,8 +7,9 @@
  *   OPS_PASSWORD="..." node scripts/set-ops-password.mjs camara23.pro@gmail.com
  *
  * Optional:
- *   OPS_PROMOTE=1  — if the user exists but is not admin/superadmin, set role to admin
- *   OPS_ROLE=superadmin — with OPS_PROMOTE, set that role instead
+ *   OPS_PROMOTE=1  — set role to OPS_ROLE (default admin) when missing or upgrading
+ *   OPS_ROLE=superadmin — with OPS_PROMOTE, set/upgrade role to superadmin
+ *     (also upgrades an existing admin → superadmin)
  *
  * Loads MONGODB_URI from property_app/.env or .env.local. Never commit passwords.
  */
@@ -101,6 +102,9 @@ async function main() {
       process.exit(1);
     }
     user.role = promoteRole;
+  } else if (promote && promoteRole === "superadmin" && user.role !== "superadmin") {
+    // OPS_PROMOTE=1 OPS_ROLE=superadmin upgrades admin → superadmin
+    user.role = "superadmin";
   }
 
   const passwordHash = await bcrypt.hash(password, 12);

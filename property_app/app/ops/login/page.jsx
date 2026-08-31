@@ -24,54 +24,169 @@ function OpsLoginForm() {
   const { data: session, status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [hostLabel, setHostLabel] = useState("www.isisel.com");
+  const [bootstrap, setBootstrap] = useState({
+    loading: true,
+    needsBootstrap: false,
+    emailLocked: false,
+  });
 
   const callbackUrl = searchParams.get("callbackUrl") || "/ops";
+  const opsDestination = callbackUrl.startsWith("/ops") ? callbackUrl : "/ops";
 
   useEffect(() => {
     setHostLabel(window.location.host);
   }, []);
 
   useEffect(() => {
-    if (status === "authenticated" && isOpsStaff(session?.user?.role)) {
-      router.replace(callbackUrl.startsWith("/ops") ? callbackUrl : "/ops");
-    }
-  }, [status, session, router, callbackUrl]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/ops/founder-status", {
+          cache: "no-store",
+        });
+        const data = await res.json().catch(() => ({}));
+        if (cancelled) return;
+        const needsBootstrap = !!data?.needsBootstrap;
+        setBootstrap({
+          loading: false,
+          needsBootstrap,
+          emailLocked: !!data?.emailLocked,
+        });
+        if (data?.founderEmail) {
+          setEmail(String(data.founderEmail));
+        }
+      } catch {
+        if (!cancelled) {
+          setBootstrap({
+            loading: false,
+            needsBootstrap: false,
+            emailLocked: false,
+          });
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  async function onSubmit(e) {
+  useEffect(() => {
+    if (status === "authenticated" && isOpsStaff(session?.user?.role)) {
+      router.replace(opsDestination);
+    }
+  }, [status, session, router, opsDestination]);
+
+  async function applyLoginHint(failedEmail) {
+    try {
+      const res = await fetch("/api/ops/login-hint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: failedEmail }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data?.hint) {
+        setError(data.hint);
+        return;
+      }
+    } catch {
+      /* fall through */
+    }
+    setError("Invalid credentials or this account is not ops staff.");
+  }
+
+  async function onSignIn(e) {
     e.preventDefault();
     setError("");
     setLoading(true);
+    const normalizedEmail = email.trim().toLowerCase();
     try {
       const result = await signIn("ops-credentials", {
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         password,
         redirect: false,
-        callbackUrl: callbackUrl.startsWith("/ops") ? callbackUrl : "/ops",
+        callbackUrl: opsDestination,
       });
       if (result?.error) {
-        setError("Invalid credentials or this account is not ops staff.");
+        await applyLoginHint(normalizedEmail);
         setLoading(false);
         return;
       }
-      window.location.assign(
-        callbackUrl.startsWith("/ops") ? callbackUrl : "/ops",
-      );
+      window.location.assign(opsDestination);
     } catch {
       setError("Sign-in failed. Please try again.");
       setLoading(false);
     }
   }
 
-  if (status === "loading") {
+  async function onFounderSubmit(e) {
+    e.preventDefault();
+    setError("");
+    if (password !== confirmPassword) {
+      setError("Password and confirmation do not match.");
+      return;
+    }
+    if (password.length < 10) {
+      setError("Password must be at least 10 characters.");
+      return;
+    }
+
+    setLoading(true);
+    const normalizedEmail = email.trim().toLowerCase();
+    try {
+      const res = await fetch("/api/ops/founder-bootstrap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: normalizedEmail,
+          password,
+          confirmPassword,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data?.error || "Founder setup failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      const result = await signIn("ops-credentials", {
+        email: normalizedEmail,
+        password,
+        redirect: false,
+        callbackUrl: opsDestination,
+      });
+      if (result?.error) {
+        setError(
+          "Founder access was created, but sign-in failed. Try signing in with your new password.",
+        );
+        setBootstrap({
+          loading: false,
+          needsBootstrap: false,
+          emailLocked: false,
+        });
+        setLoading(false);
+        return;
+      }
+      window.location.assign(opsDestination);
+    } catch {
+      setError("Founder setup failed. Please try again.");
+      setLoading(false);
+    }
+  }
+
+  if (status === "loading" || bootstrap.loading) {
     return <OpsLoginSpinner />;
   }
 
   if (status === "authenticated" && isOpsStaff(session?.user?.role)) {
     return <OpsLoginSpinner />;
   }
+
+  const isFounderMode = bootstrap.needsBootstrap;
 
   return (
     <div className="flex min-h-dvh flex-col bg-[var(--kama-canvas)] lg:flex-row">
@@ -83,11 +198,12 @@ function OpsLoginForm() {
             Staff console
           </p>
           <h1 className="mt-2 text-[1.75rem] font-semibold tracking-tight text-[var(--kama-ink)]">
-            Sign in to Operations
+            {isFounderMode ? "Create founder access" : "Sign in to Operations"}
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-[var(--kama-ink-muted)]">
-            For Kama Properties administrators. Guest and host accounts use the
-            main site login.
+            {isFounderMode
+              ? "No ops password exists yet. Set a strong password for the founding superadmin. This form disappears after the first successful setup."
+              : "For Kama Properties administrators. Guest and host accounts use the main site login."}
           </p>
 
           {error ? (
@@ -99,7 +215,10 @@ function OpsLoginForm() {
             </div>
           ) : null}
 
-          <form className="mt-8 space-y-5" onSubmit={onSubmit}>
+          <form
+            className="mt-8 space-y-5"
+            onSubmit={isFounderMode ? onFounderSubmit : onSignIn}
+          >
             <div>
               <label
                 htmlFor="ops-email"
@@ -115,7 +234,8 @@ function OpsLoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 w-full rounded-lg border border-[var(--kama-border-strong)] bg-white px-3.5 text-[15px] text-[var(--kama-ink)] outline-none transition focus:border-[var(--kama-accent)] focus:shadow-[var(--kama-focus-ring)]"
+                readOnly={isFounderMode && bootstrap.emailLocked}
+                className="h-12 w-full rounded-lg border border-[var(--kama-border-strong)] bg-white px-3.5 text-[15px] text-[var(--kama-ink)] outline-none transition focus:border-[var(--kama-accent)] focus:shadow-[var(--kama-focus-ring)] read-only:bg-[var(--kama-field)] read-only:text-[var(--kama-ink-muted)]"
                 placeholder="you@company.com"
               />
             </div>
@@ -124,26 +244,57 @@ function OpsLoginForm() {
                 htmlFor="ops-password"
                 className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[var(--kama-ink-muted)]"
               >
-                Password
+                {isFounderMode ? "Choose password" : "Password"}
               </label>
               <input
                 id="ops-password"
                 name="password"
                 type="password"
-                autoComplete="current-password"
+                autoComplete={
+                  isFounderMode ? "new-password" : "current-password"
+                }
                 required
+                minLength={isFounderMode ? 10 : undefined}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-12 w-full rounded-lg border border-[var(--kama-border-strong)] bg-white px-3.5 text-[15px] text-[var(--kama-ink)] outline-none transition focus:border-[var(--kama-accent)] focus:shadow-[var(--kama-focus-ring)]"
                 placeholder="••••••••"
               />
             </div>
+            {isFounderMode ? (
+              <div>
+                <label
+                  htmlFor="ops-confirm-password"
+                  className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[var(--kama-ink-muted)]"
+                >
+                  Confirm password
+                </label>
+                <input
+                  id="ops-confirm-password"
+                  name="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  minLength={10}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="h-12 w-full rounded-lg border border-[var(--kama-border-strong)] bg-white px-3.5 text-[15px] text-[var(--kama-ink)] outline-none transition focus:border-[var(--kama-accent)] focus:shadow-[var(--kama-focus-ring)]"
+                  placeholder="••••••••"
+                />
+              </div>
+            ) : null}
             <button
               type="submit"
               disabled={loading}
               className="flex h-12 w-full items-center justify-center rounded-lg bg-[#1B5C57] text-[15px] font-semibold text-white transition hover:bg-[var(--kama-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Signing in…" : "Continue"}
+              {loading
+                ? isFounderMode
+                  ? "Creating access…"
+                  : "Signing in…"
+                : isFounderMode
+                  ? "Create founder access"
+                  : "Continue"}
             </button>
           </form>
 
@@ -221,8 +372,7 @@ function OpsLoginForm() {
       <div
         className="px-6 py-8 text-white lg:hidden"
         style={{
-          background:
-            "linear-gradient(160deg, #1B5C57 0%, #0c1a1a 100%)",
+          background: "linear-gradient(160deg, #1B5C57 0%, #0c1a1a 100%)",
         }}
       >
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
