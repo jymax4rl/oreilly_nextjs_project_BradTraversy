@@ -48,6 +48,7 @@ export function bookingSearchMongoOr(needle) {
     },
     { guestName: { $regex: safe, $options: "i" } },
     { guestEmail: { $regex: safe, $options: "i" } },
+    { guestPhone: { $regex: safe, $options: "i" } },
   ];
 
   if (Number.isFinite(Number(needle)) && /^\d+$/.test(needle)) {
@@ -115,6 +116,7 @@ export function bookingMatchesSearch(booking, raw) {
     booking._id,
     booking.guestName,
     booking.guestEmail,
+    booking.guestPhone,
   ];
   return candidates.some((c) => {
     if (c == null || c === "") return false;

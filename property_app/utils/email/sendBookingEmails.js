@@ -61,10 +61,13 @@ function formatAmountLabel(amount, currency, { guest = false } = {}) {
   })}`;
 }
 
-function formatGuestLine(guestName, guestEmail) {
+function formatGuestLine(guestName, guestEmail, guestPhone) {
   const name = guestName || "Guest";
-  if (!guestEmail) return name;
-  return `${name} (${guestEmail})`;
+  const parts = [];
+  if (guestEmail) parts.push(guestEmail);
+  if (guestPhone) parts.push(guestPhone);
+  if (parts.length === 0) return name;
+  return `${name} (${parts.join(" · ")})`;
 }
 
 /** Display form used in My Bookings / emails: Ref #10461903 */
@@ -121,6 +124,7 @@ function buildGuestBookingDetailsHtml({
   referenceId,
   previousStayLabel,
   extraRows = [],
+  amountRowLabel = "Total paid",
 }) {
   const refDisplay =
     referenceId && referenceId !== "—"
@@ -156,7 +160,7 @@ function buildGuestBookingDetailsHtml({
   }
   rows.push(
     bookingDetailRowHtml({
-      label: "Total paid",
+      label: amountRowLabel,
       value: `<strong>${amountLabel}</strong>`,
     }),
   );
@@ -249,6 +253,8 @@ function buildGuestTemplateVariables(payload) {
     ctaLabel,
     secondaryNote,
     extraDetailRows,
+    amountRowLabel,
+    paymentMode,
   } = payload;
 
   const stayLabel = formatStayLabel(checkIn, checkOut, nights);
@@ -265,10 +271,13 @@ function buildGuestTemplateVariables(payload) {
   const reservationReference = formatReservationReference(transactionId);
   const referenceId = reservationReference || "—";
   const siteUrl = getAbsoluteAppUrl();
+  const isManual = paymentMode === "manual";
 
   const basePreview =
     previewText ||
-    `Your booking at ${propertyName || "your property"} is confirmed.`;
+    (isManual
+      ? `Your reservation request at ${propertyName || "your property"} was received. Arrange payment with the host.`
+      : `Your booking at ${propertyName || "your property"} is confirmed.`);
   const previewWithRef = reservationReference
     ? `${basePreview} ${reservationReference}.`
     : basePreview;
@@ -280,13 +289,15 @@ function buildGuestTemplateVariables(payload) {
       PREVIEW_TEXT: previewWithRef,
       HEADER_LINK_URL: getAbsoluteAppUrl("/properties"),
       HEADER_LINK_LABEL: "View listings",
-      HERO_TITLE: heroTitle || "You're all set for your stay",
+      HERO_TITLE: heroTitle || (isManual ? "Reservation requested" : "You're all set for your stay"),
       HERO_SUBTITLE:
         heroSubtitle ||
-        `Hi ${guestName || "there"}, your reservation at ${propertyName || "the property"} is confirmed. We look forward to hosting you.`,
-      STATUS_BADGE: statusBadge || "Confirmed",
-      STATUS_BADGE_BG: statusBadgeBg || "#ecfdf5",
-      STATUS_BADGE_COLOR: statusBadgeColor || "#059669",
+        (isManual
+          ? `Hi ${guestName || "there"}, your stay at ${propertyName || "the property"} is reserved pending payment. Message the host to arrange payment — no online checkout required.`
+          : `Hi ${guestName || "there"}, your reservation at ${propertyName || "the property"} is confirmed. We look forward to hosting you.`),
+      STATUS_BADGE: statusBadge || (isManual ? "Awaiting payment" : "Confirmed"),
+      STATUS_BADGE_BG: statusBadgeBg || (isManual ? "#fffbeb" : "#ecfdf5"),
+      STATUS_BADGE_COLOR: statusBadgeColor || (isManual ? "#b45309" : "#059669"),
       RECIPIENT_NAME: guestName || "there",
       PROPERTY_NAME: propertyName || "Property",
       PROPERTY_IMAGE_URL:
@@ -302,6 +313,8 @@ function buildGuestTemplateVariables(payload) {
         referenceId,
         previousStayLabel,
         extraRows: extraDetailRows,
+        amountRowLabel:
+          amountRowLabel || (isManual ? "Stay total (pay host)" : "Total paid"),
       }),
       CTA_URL: ctaUrl || getAbsoluteAppUrl("/my-bookings"),
       CTA_LABEL: ctaLabel || "View my bookings",
@@ -309,7 +322,9 @@ function buildGuestTemplateVariables(payload) {
       SECONDARY_CTA_LABEL: "Browse all listings",
       SECONDARY_NOTE:
         secondaryNote ||
-        "Questions about your stay? Reply to this email or visit your dashboard.",
+        (isManual
+          ? "Payment is arranged directly with your host via messages, call, or WhatsApp."
+          : "Questions about your stay? Reply to this email or visit your dashboard."),
     },
     reservationReference,
   );
@@ -336,6 +351,7 @@ function buildHostTemplateVariables(payload) {
     locationLabel,
     guestName,
     guestEmail,
+    guestPhone,
     checkIn,
     checkOut,
     nights,
@@ -355,6 +371,7 @@ function buildHostTemplateVariables(payload) {
     ctaLabel,
     secondaryNote,
     extraDetailRows,
+    paymentMode,
   } = payload;
 
   const stayLabel = formatStayLabel(checkIn, checkOut, nights);
@@ -368,13 +385,31 @@ function buildHostTemplateVariables(payload) {
         )
       : null;
   const amountLabel = formatAmountLabel(amount, currency);
-  const guestLine = formatGuestLine(guestName, guestEmail);
+  const guestLine = formatGuestLine(guestName, guestEmail, guestPhone);
   const reservationReference = formatReservationReference(transactionId);
   const referenceId = reservationReference || "—";
   const siteUrl = getAbsoluteAppUrl();
+  const isManual = paymentMode === "manual";
+
+  const hostExtraRows = [...(extraDetailRows || [])];
+  if (guestPhone) {
+    hostExtraRows.unshift({
+      label: "Guest phone",
+      value: `<strong>${guestPhone}</strong>`,
+    });
+  }
+  if (isManual) {
+    hostExtraRows.push({
+      label: "Payment",
+      value: "Arrange with guest (offline / messaging)",
+    });
+  }
 
   const basePreview =
-    previewText || `New booking for ${propertyName || "your listing"}.`;
+    previewText ||
+    (isManual
+      ? `New reservation request for ${propertyName || "your listing"} — arrange payment with the guest.`
+      : `New booking for ${propertyName || "your listing"}.`);
   const previewWithRef = reservationReference
     ? `${basePreview} ${reservationReference}.`
     : basePreview;
@@ -386,13 +421,18 @@ function buildHostTemplateVariables(payload) {
       PREVIEW_TEXT: previewWithRef,
       HEADER_LINK_URL: getAbsoluteAppUrl("/host/reservations"),
       HEADER_LINK_LABEL: "Reservations",
-      HERO_TITLE: heroTitle || "You have a new reservation",
+      HERO_TITLE:
+        heroTitle ||
+        (isManual ? "New reservation request" : "You have a new reservation"),
       HERO_SUBTITLE:
         heroSubtitle ||
-        `Hi ${hostName || "Host"}, a guest just booked ${propertyName || "your property"}. Here are the details.`,
-      STATUS_BADGE: statusBadge || "New booking",
-      STATUS_BADGE_BG: statusBadgeBg || "#eef2ff",
-      STATUS_BADGE_COLOR: statusBadgeColor || "#4f46e5",
+        (isManual
+          ? `Hi ${hostName || "Host"}, a guest requested ${propertyName || "your property"}. Contact them to arrange payment — their phone is included below.`
+          : `Hi ${hostName || "Host"}, a guest just booked ${propertyName || "your property"}. Here are the details.`),
+      STATUS_BADGE:
+        statusBadge || (isManual ? "Awaiting payment" : "New booking"),
+      STATUS_BADGE_BG: statusBadgeBg || (isManual ? "#fffbeb" : "#eef2ff"),
+      STATUS_BADGE_COLOR: statusBadgeColor || (isManual ? "#b45309" : "#4f46e5"),
       RECIPIENT_NAME: hostName || "Host",
       PROPERTY_NAME: propertyName || "Property",
       PROPERTY_IMAGE_URL:
@@ -401,6 +441,7 @@ function buildHostTemplateVariables(payload) {
       PROPERTY_META: propertyMeta || locationLabel || "",
       STAY_LABEL: stayLabel,
       AMOUNT_LABEL: amountLabel,
+      GUEST_LINE: guestLine,
       BOOKING_DETAILS_HTML: buildHostBookingDetailsHtml({
         guestLine,
         locationLabel,
@@ -408,15 +449,17 @@ function buildHostTemplateVariables(payload) {
         amountLabel,
         referenceId,
         previousStayLabel,
-        extraRows: extraDetailRows,
+        extraRows: hostExtraRows,
       }),
       CTA_URL: ctaUrl || getAbsoluteAppUrl("/host/reservations"),
-      CTA_LABEL: ctaLabel || "Manage reservations",
+      CTA_LABEL: ctaLabel || "View reservations",
       SECONDARY_CTA_URL: getAbsoluteAppUrl("/properties/my-listings"),
       SECONDARY_CTA_LABEL: "My listings",
       SECONDARY_NOTE:
         secondaryNote ||
-        "Manage reservations and availability from your host dashboard.",
+        (isManual
+          ? "Message or call the guest to confirm payment details for this stay."
+          : "Manage this stay from your host reservations dashboard."),
     },
     reservationReference,
   );
@@ -515,6 +558,7 @@ export async function sendBookingConfirmationEmails(payload) {
   const {
     guestEmail,
     guestName,
+    guestPhone,
     hostEmail,
     hostName,
     propertyName,
@@ -528,6 +572,7 @@ export async function sendBookingConfirmationEmails(payload) {
     amount,
     currency,
     transactionId,
+    paymentMode,
     /** Appended to Resend idempotency keys so force-resend is not cached. */
     idempotencySuffix,
   } = gated;
@@ -590,14 +635,21 @@ export async function sendBookingConfirmationEmails(payload) {
     amount,
     currency,
     transactionId,
+    paymentMode,
+    guestPhone,
   };
 
   const reservationReference = formatReservationReference(transactionId);
   const refSubjectSuffix = reservationReference
     ? ` (${reservationReference})`
     : "";
-  const subjectGuest = `Booking confirmed — ${propertyName || "Property"}${refSubjectSuffix}`;
-  const subjectHost = `New booking — ${propertyName || "Property"}${refSubjectSuffix}`;
+  const isManual = paymentMode === "manual";
+  const subjectGuest = isManual
+    ? `Reservation requested — ${propertyName || "Property"}${refSubjectSuffix}`
+    : `Booking confirmed — ${propertyName || "Property"}${refSubjectSuffix}`;
+  const subjectHost = isManual
+    ? `Reservation request — ${propertyName || "Property"}${refSubjectSuffix}`
+    : `New booking — ${propertyName || "Property"}${refSubjectSuffix}`;
 
   const guestVars = buildGuestTemplateVariables({
     guestName,
@@ -607,6 +659,7 @@ export async function sendBookingConfirmationEmails(payload) {
     hostName,
     guestName,
     guestEmail,
+    guestPhone,
     ...shared,
   });
 
@@ -629,7 +682,7 @@ export async function sendBookingConfirmationEmails(payload) {
     amountLabel: hostVars.AMOUNT_LABEL,
     reservationReference: hostVars.RESERVATION_REFERENCE,
     locationLabel,
-    guestLine: formatGuestLine(guestName, guestEmail),
+    guestLine: formatGuestLine(guestName, guestEmail, guestPhone),
   });
 
   const guestTemplateId = resolveTemplateId("guest");

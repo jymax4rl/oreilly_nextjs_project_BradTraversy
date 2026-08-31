@@ -5,6 +5,7 @@ import {
   countNights,
   validateStayDates,
 } from "@/utils/availability/validateStay";
+import { PAYMENT_MODE_GATEWAY } from "@/utils/bookings/paymentMode";
 
 /**
  * Create or return a confirmed booking after verified payment.
@@ -15,6 +16,7 @@ export async function confirmBookingFromPayment({
   guestId,
   guestName,
   guestEmail,
+  guestPhone,
   checkIn,
   checkOut,
   transactionId,
@@ -53,9 +55,11 @@ export async function confirmBookingFromPayment({
     guestId: String(guestId),
     guestName: guestName || undefined,
     guestEmail: guestEmail || undefined,
+    guestPhone: guestPhone || undefined,
     checkIn: validation.checkIn,
     checkOut: validation.checkOut,
     status: "confirmed",
+    paymentMode: PAYMENT_MODE_GATEWAY,
     transactionId: transactionId ?? undefined,
     amount: amount != null ? Number(amount) : undefined,
     currency: currency || undefined,

@@ -74,6 +74,7 @@ export async function POST(_request, { params }) {
       guestId: booking.guestId,
       guestName: booking.guestName,
       guestEmail: booking.guestEmail,
+      guestPhone: booking.guestPhone,
     };
 
     const body = {
@@ -86,6 +87,8 @@ export async function POST(_request, { params }) {
       check_out: booking.checkOut,
       amount: booking.amount ?? tx?.amount,
       currency: booking.currency ?? tx?.currency,
+      payment_mode: booking.paymentMode,
+      guest_phone: booking.guestPhone,
     };
 
     const nights =

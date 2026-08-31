@@ -35,6 +35,10 @@ import {
   DEFAULT_CHECK_OUT_TIME,
   formatClockTimeLabel,
 } from "@/utils/checkInOutTimes";
+import {
+  isValidGuestPhone,
+  isPaymentGatewayCheckoutEnabled,
+} from "@/utils/bookings/paymentMode";
 
 function RightColumn({ data }) {
   const { currencyCode, rates } = useCurrency();
@@ -48,10 +52,13 @@ function RightColumn({ data }) {
   const [paymentNotice, setPaymentNotice] = useState(null);
   const [unavailableRanges, setUnavailableRanges] = useState([]);
   const [customDayRates, setCustomDayRates] = useState([]);
+  const [guestPhone, setGuestPhone] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const listingRates = normalizeRates(data.rates);
   const paymentCurrency = normalizeCurrencyCode(currencyCode);
   const isOwner = session?.user?.id === data.owner;
+  const gatewayCheckout = isPaymentGatewayCheckoutEnabled();
   const checkInTimeLabel = formatClockTimeLabel(
     data.checkInTime,
     DEFAULT_CHECK_IN_TIME,
@@ -127,7 +134,7 @@ function RightColumn({ data }) {
     payment_options: getFlutterwavePaymentOption(paymentCurrency),
     customer: {
       email: session?.user?.email || "",
-      phone_number: "",
+      phone_number: guestPhone || "",
       name: session?.user?.name || "",
     },
     customizations: {
@@ -153,6 +160,7 @@ function RightColumn({ data }) {
       : {}),
   };
 
+  // Hook must stay unconditional; gateway path is feature-flagged at click time.
   const handleFlutterPayment = useFlutterwave(config);
 
   const refreshAvailability = useCallback(async () => {
@@ -177,33 +185,40 @@ function RightColumn({ data }) {
     setDateError("");
   };
 
-  const handleReserve = async () => {
+  const validateReserveInputs = async () => {
     if (!session) {
       window.location.assign(
         getLoginUrl(
           typeof window !== "undefined" ? window.location.pathname : "/",
         ),
       );
-      return;
+      return null;
     }
 
-    if (isOwner) return;
+    if (isOwner) return null;
 
     if (!hasAnyRate(listingRates)) {
       setDateError("This listing has no rates configured yet.");
-      return;
+      return null;
     }
 
     if (!checkIn || !checkOut) {
       setDateError("Select check-in and check-out dates.");
-      return;
+      return null;
+    }
+
+    if (!isValidGuestPhone(guestPhone)) {
+      setDateError(
+        "Enter a phone number the host can use to arrange payment (call or WhatsApp).",
+      );
+      return null;
     }
 
     const ranges = await refreshAvailability();
     const validation = validateStayDates(checkIn, checkOut, ranges);
     if (!validation.ok) {
       setDateError(validation.error);
-      return;
+      return null;
     }
 
     const pricing = calculateStayTotal(
@@ -216,11 +231,59 @@ function RightColumn({ data }) {
       setDateError(
         "No rate is set for this stay length. Try different dates or contact the host.",
       );
-      return;
+      return null;
     }
 
     setDateError("");
     setPaymentNotice(null);
+    return validation;
+  };
+
+  const requestManualReservation = async (validation) => {
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/bookings/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          propertyId: data._id,
+          checkIn: validation.checkIn,
+          checkOut: validation.checkOut,
+          guestPhone,
+          currency: paymentCurrency,
+          amount: numericalTotal,
+        }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setPaymentNotice({
+          type: "error",
+          title: "Could not request reservation",
+          message: payload.error || "Please try again or message the host.",
+        });
+        return;
+      }
+      window.location.href = "/my-bookings?reserved=1";
+    } catch (err) {
+      console.error("Manual booking request failed:", err);
+      setPaymentNotice({
+        type: "error",
+        title: "Connection error",
+        message: "Could not reach the server. Check your connection and try again.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleReserve = async () => {
+    const validation = await validateReserveInputs();
+    if (!validation) return;
+
+    if (!gatewayCheckout) {
+      await requestManualReservation(validation);
+      return;
+    }
 
     handleFlutterPayment({
       callback: async (response) => {
@@ -241,6 +304,7 @@ function RightColumn({ data }) {
                 nights: countNights(validation.checkIn, validation.checkOut),
                 amount: numericalTotal,
                 currency: paymentCurrency,
+                guest_phone: guestPhone,
               }),
             });
             const payload = await res.json().catch(() => ({}));
@@ -288,7 +352,11 @@ function RightColumn({ data }) {
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Currency align="start" />
-          <PaymentMethodBadge currencyCode={paymentCurrency} compact />
+          <PaymentMethodBadge
+            currencyCode={paymentCurrency}
+            compact
+            manual={!gatewayCheckout}
+          />
         </div>
 
         <div className="flex min-w-0 items-end justify-between gap-3">
@@ -336,6 +404,27 @@ function RightColumn({ data }) {
               </p>
             )}
 
+            <label className="block text-sm text-[var(--kama-ink)]">
+              <span className="mb-1.5 block text-xs font-medium text-[var(--kama-ink-muted)]">
+                Phone number <span className="text-red-600">*</span>
+              </span>
+              <input
+                type="tel"
+                name="guestPhone"
+                autoComplete="tel"
+                inputMode="tel"
+                placeholder="+237 6XX XXX XXX"
+                value={guestPhone}
+                onChange={(e) => setGuestPhone(e.target.value)}
+                className="w-full rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2.5 text-sm text-[var(--kama-ink)] outline-none ring-[var(--kama-accent)] placeholder:text-[var(--kama-ink-muted)] focus:ring-2"
+                aria-required="true"
+              />
+              <span className="mt-1.5 block text-[11px] leading-snug text-[var(--kama-ink-muted)]">
+                Shared with the host so they can arrange payment (call or
+                WhatsApp).
+              </span>
+            </label>
+
             {dateError && (
               <p className="rounded-xl bg-red-50 px-3 py-2 text-center text-sm text-red-700">
                 {dateError}
@@ -365,6 +454,20 @@ function RightColumn({ data }) {
             <MobileMoneyReserveButton
               currencyCode={paymentCurrency}
               onClick={handleReserve}
+              disabled={submitting}
+              label={
+                gatewayCheckout
+                  ? "Reserve"
+                  : submitting
+                    ? "Requesting…"
+                    : "Request reservation"
+              }
+              hint={
+                gatewayCheckout
+                  ? undefined
+                  : "No online payment — arrange with the host after you reserve."
+              }
+              manual={!gatewayCheckout}
             />
 
             <MessageOwnerButton
@@ -414,7 +517,9 @@ function RightColumn({ data }) {
         )}
 
         <p className="text-center text-[11px] text-[var(--kama-ink-muted)]">
-          You won&apos;t be charged until checkout
+          {gatewayCheckout
+            ? "You won't be charged until checkout"
+            : "Dates are held while you arrange payment with the host"}
         </p>
 
         <details className="group border-t border-[var(--kama-border)] pt-4 text-sm text-[var(--kama-ink-muted)]">
@@ -459,6 +564,9 @@ function RightColumn({ data }) {
           onReserve={handleReserve}
           currencyCode={paymentCurrency}
           visible={!cardInView}
+          disabled={submitting}
+          label={gatewayCheckout ? "Reserve" : "Request"}
+          manual={!gatewayCheckout}
         />
       )}
     </div>

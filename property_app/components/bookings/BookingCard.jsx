@@ -109,7 +109,9 @@ export default function BookingCard({ booking, onChanged }) {
             <span
               className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${statusClass}`}
             >
-              {booking.status}
+              {booking.status === "pending" && booking.paymentMode === "manual"
+                ? "Awaiting payment"
+                : booking.status}
             </span>
             {booking.transactionId && (
               <span className="text-[10px] text-slate-400">
@@ -139,6 +141,14 @@ export default function BookingCard({ booking, onChanged }) {
           {booking.amount != null && booking.currency && (
             <p className="mt-2 text-sm font-semibold tabular-nums text-slate-900">
               {booking.currency} {Number(booking.amount).toLocaleString()}
+              {booking.paymentMode === "manual" && booking.status === "pending"
+                ? " · pay host"
+                : ""}
+            </p>
+          )}
+          {booking.paymentMode === "manual" && booking.status === "pending" && (
+            <p className="mt-2 text-[11px] leading-snug text-amber-800">
+              Payment is arranged with the host via messages, call, or WhatsApp.
             </p>
           )}
           {booking.policySummary && (

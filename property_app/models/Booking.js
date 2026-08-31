@@ -43,6 +43,8 @@ const BookingSchema = new mongoose.Schema(
     },
     guestName: { type: String },
     guestEmail: { type: String },
+    /** Collected at booking time so hosts can call / WhatsApp for payment. */
+    guestPhone: { type: String },
     checkIn: {
       type: String,
       required: true,
@@ -58,6 +60,16 @@ const BookingSchema = new mongoose.Schema(
       enum: ["pending", "confirmed", "cancelled"],
       default: "pending",
       index: true,
+    },
+    /**
+     * How payment is collected.
+     * - manual: guest reserved without gateway; host arranges payment (status usually pending)
+     * - gateway: paid via Flutterwave (or similar); status usually confirmed
+     */
+    paymentMode: {
+      type: String,
+      enum: ["manual", "gateway"],
+      default: undefined,
     },
     transactionId: {
       type: Number,

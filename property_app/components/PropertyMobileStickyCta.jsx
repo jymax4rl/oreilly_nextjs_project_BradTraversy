@@ -19,17 +19,21 @@ export default function PropertyMobileStickyCta({
   currencyCode,
   disabled = false,
   visible = false,
+  label = "Reserve",
+  manual = false,
 }) {
   const [entered, setEntered] = useState(false);
   const code = normalizeCurrencyCode(currencyCode);
   const support = getMobileMoneySupport(code);
   const isMobileMoney = isMobileMoneyCurrency(code);
   const orange = support?.useOrangeBranding;
-  const payHint = isMobileMoney
-    ? support?.useOrangeBranding
-      ? "Orange Money"
-      : getShortPayHint(code, support)
-    : null;
+  const payHint = manual
+    ? "Pay host directly"
+    : isMobileMoney
+      ? support?.useOrangeBranding
+        ? "Orange Money"
+        : getShortPayHint(code, support)
+      : null;
 
   useEffect(() => {
     if (visible) {
@@ -74,7 +78,7 @@ export default function PropertyMobileStickyCta({
               </p>
             ) : (
               <p className="mt-0.5 text-[11px] text-[var(--kama-ink-muted)]">
-                No charge until checkout
+                {manual ? "Arrange payment with host" : "No charge until checkout"}
               </p>
             )}
           </div>
@@ -86,7 +90,7 @@ export default function PropertyMobileStickyCta({
             tabIndex={visible ? 0 : -1}
             className="kama-cta inline-flex h-12 shrink-0 items-center justify-center rounded-2xl px-6 text-[15px] font-semibold text-white shadow-[0_8px_20px_rgba(27,92,87,0.2)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Reserve
+            {label}
           </button>
         </div>
       </div>

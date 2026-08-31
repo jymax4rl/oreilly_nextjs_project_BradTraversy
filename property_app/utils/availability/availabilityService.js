@@ -48,10 +48,14 @@ export async function ensurePropertyAvailability(propertyId, hostIdHint) {
 
 export { validateCustomDayRates };
 
+/**
+ * Active stay holds that block the calendar: confirmed (paid) + pending
+ * (manual / awaiting host payment). Cancelled stays do not block.
+ */
 export async function getConfirmedBookings(propertyId) {
   return Booking.find({
     propertyId: new mongoose.Types.ObjectId(propertyId),
-    status: "confirmed",
+    status: { $in: ["confirmed", "pending"] },
   })
     .sort({ checkIn: 1 })
     .lean();

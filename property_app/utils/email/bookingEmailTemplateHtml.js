@@ -245,7 +245,7 @@ function bookingEmailLayout() {
                               <td align="center" style="width:40px;height:40px;background-color:#fef3c7;border-radius:10px;font-size:18px;line-height:40px;font-family:Arial,Helvetica,sans-serif;">&#128737;</td>
                             </tr>
                           </table>
-                          <p style="margin:10px 0 0;font-size:13px;font-weight:600;color:#374151;font-family:Arial,Helvetica,sans-serif;">Secure payments</p>
+                          <p style="margin:10px 0 0;font-size:13px;font-weight:600;color:#374151;font-family:Arial,Helvetica,sans-serif;">Trusted stays</p>
                         </td>
                       </tr>
                     </table>
