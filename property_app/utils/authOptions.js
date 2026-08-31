@@ -47,6 +47,10 @@ export const authOptions = {
         if (!user?.passwordHash || !isOpsStaff(user.role)) {
           return null;
         }
+        // Ops Credentials: banned staff cannot sign in either.
+        if (user.banned) {
+          return null;
+        }
 
         const match = await bcrypt.compare(password, user.passwordHash);
         if (!match) return null;
@@ -63,6 +67,7 @@ export const authOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       if (account?.provider === "ops-credentials") {
+        // authorize() already rejected banned ops accounts
         return true;
       }
 
@@ -80,6 +85,12 @@ export const authOptions = {
           role: "guest",
           hostStatus: "none",
         });
+        return true;
+      }
+
+      // Block Google sign-in for banned marketplace accounts
+      if (userExists.banned) {
+        return false;
       }
       return true;
     },
@@ -88,7 +99,8 @@ export const authOptions = {
         typeof token.id !== "string" ||
         typeof token.role !== "string" ||
         typeof token.hostStatus !== "string" ||
-        typeof token.hasCompletedHostOnboarding !== "boolean";
+        typeof token.hasCompletedHostOnboarding !== "boolean" ||
+        typeof token.banned !== "boolean";
 
       if (needsHydrate || trigger === "update") {
         await connectToDatabase();
@@ -98,6 +110,7 @@ export const authOptions = {
           token.role = user.role;
           token.hostStatus = user.hostStatus;
           token.hasCompletedHostOnboarding = !!user.hasCompletedHostOnboarding;
+          token.banned = !!user.banned;
           // Prefer DB display name so Profile edits show in Navbar
           if (user.username) {
             token.name = user.username;
@@ -118,6 +131,7 @@ export const authOptions = {
         session.user.hostStatus = token.hostStatus;
         session.user.hasCompletedHostOnboarding =
           token.hasCompletedHostOnboarding === true;
+        session.user.banned = token.banned === true;
         if (token.picture) {
           session.user.image = token.picture;
         }

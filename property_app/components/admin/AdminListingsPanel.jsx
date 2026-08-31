@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { isOpsStaff } from "@/utils/opsAuth";
 import AdminListingCardActions from "@/components/admin/AdminListingCardActions";
+import OpsUserProfileModal from "@/components/admin/OpsUserProfileModal";
 import OpsListingsMap, {
   pinsFromProperties,
 } from "@/components/maps/OpsListingsMap";
@@ -66,6 +67,7 @@ export default function AdminListingsPanel() {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [mapOpenMobile, setMapOpenMobile] = useState(true);
+  const [profileUserId, setProfileUserId] = useState(null);
 
   useEffect(() => {
     if (status === "authenticated" && !isOpsStaff(session?.user?.role)) {
@@ -422,7 +424,23 @@ export default function AdminListingsPanel() {
                           <span className="capitalize">{property.type}</span>
                         </p>
                         <p className="mt-1 text-xs text-gray-400">
-                          Host: {ownerLabel}
+                          Host:{" "}
+                          {ownerId ? (
+                            <button
+                              type="button"
+                              onClick={() => setProfileUserId(ownerId)}
+                              className="font-medium text-[#1B5C57] underline-offset-2 hover:underline"
+                            >
+                              {ownerLabel}
+                            </button>
+                          ) : (
+                            ownerLabel
+                          )}
+                          {property.ownerUser?.banned ? (
+                            <span className="ml-1.5 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-800">
+                              Banned
+                            </span>
+                          ) : null}
                           {property.listingModerationRequestedAt
                             ? ` · Submitted ${new Date(
                                 property.listingModerationRequestedAt,
@@ -496,6 +514,26 @@ export default function AdminListingsPanel() {
           </div>
         </aside>
       </div>
+
+      <OpsUserProfileModal
+        open={Boolean(profileUserId)}
+        userId={profileUserId}
+        onClose={() => setProfileUserId(null)}
+        onUserUpdated={({ userId, banned }) => {
+          setProperties((prev) =>
+            prev.map((p) => {
+              const oid = p.owner ? String(p.owner._id || p.owner) : "";
+              if (oid !== String(userId)) return p;
+              return {
+                ...p,
+                ownerUser: p.ownerUser
+                  ? { ...p.ownerUser, banned }
+                  : { banned },
+              };
+            }),
+          );
+        }}
+      />
     </div>
   );
 }

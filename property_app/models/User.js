@@ -41,6 +41,27 @@ const UserSchema = new Schema(
       enum: ["none", "onboarding", "verified", "rejected"],
       default: "none",
     },
+    /**
+     * Ops-only account block. Banned users fail sign-in (Google + ops Credentials).
+     * Existing JWTs still expire naturally; ban is re-checked on token hydrate.
+     */
+    banned: {
+      type: Boolean,
+      default: false,
+    },
+    bannedAt: {
+      type: Date,
+      default: null,
+    },
+    bannedReason: {
+      type: String,
+      default: null,
+    },
+    bannedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     /** Cinematic pre-listing welcome flow at /onboarding (hosts only). */
     hasCompletedHostOnboarding: {
       type: Boolean,

@@ -59,7 +59,7 @@ export const GET = async (request) => {
     const owners =
       ownerIds.length > 0
         ? await User.find({ _id: { $in: ownerIds } })
-            .select("email username image")
+            .select("email username image banned")
             .lean()
         : [];
 

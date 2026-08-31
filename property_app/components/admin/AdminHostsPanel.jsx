@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { formatAddress } from "@/utils/address";
 import { isOpsStaff } from "@/utils/opsAuth";
+import OpsUserProfileModal from "@/components/admin/OpsUserProfileModal";
 
 const SEARCH_DEBOUNCE_MS = 280;
 
@@ -50,6 +51,7 @@ export default function AdminHostsPanel() {
   const [actionLoading, setActionLoading] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [profileUserId, setProfileUserId] = useState(null);
 
   useEffect(() => {
     if (status === "authenticated" && !isOpsStaff(session?.user?.role)) {
@@ -156,6 +158,29 @@ export default function AdminHostsPanel() {
     );
   }
 
+  const openProfile = (userId) => {
+    if (!userId) return;
+    setProfileUserId(String(userId));
+  };
+
+  const handleProfileUpdated = ({ userId, banned, bannedAt, bannedReason }) => {
+    setApplications((prev) =>
+      prev.map((app) => {
+        const uid = app.user?._id ? String(app.user._id) : "";
+        if (uid !== String(userId)) return app;
+        return {
+          ...app,
+          user: {
+            ...app.user,
+            banned,
+            bannedAt,
+            bannedReason,
+          },
+        };
+      }),
+    );
+  };
+
   return (
     <div>
       <header className="mb-8 max-w-2xl">
@@ -164,7 +189,8 @@ export default function AdminHostsPanel() {
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-[var(--kama-ink-muted)]">
           Review and manage host onboarding applications. Search by name, email,
-          phone, or address within the active tab.
+          phone, or address within the active tab. Open a profile for IDs and
+          ban controls.
         </p>
       </header>
 
@@ -255,11 +281,21 @@ export default function AdminHostsPanel() {
                         {app.user?.username?.charAt(0)?.toUpperCase() || "?"}
                       </div>
                     )}
-                    <div>
-                      <h3 className="font-bold text-gray-800">
+                    <div className="min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => openProfile(app.user?._id)}
+                        disabled={!app.user?._id}
+                        className="text-left font-bold text-gray-800 underline-offset-2 transition hover:text-[#1B5C57] hover:underline disabled:no-underline disabled:opacity-60"
+                      >
                         {app.user?.username || "Unknown User"}
-                      </h3>
+                      </button>
                       <p className="text-sm text-gray-500">{app.user?.email}</p>
+                      {app.user?.banned ? (
+                        <span className="mt-1 inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-800">
+                          Banned
+                        </span>
+                      ) : null}
                     </div>
                   </div>
 
@@ -328,6 +364,15 @@ export default function AdminHostsPanel() {
                     </div>
                   )}
 
+                  <button
+                    type="button"
+                    onClick={() => openProfile(app.user?._id)}
+                    disabled={!app.user?._id}
+                    className="w-full rounded border border-[#1B5C57]/30 bg-[#1B5C57]/5 px-4 py-2 font-medium text-[#1B5C57] transition hover:bg-[#1B5C57]/10 disabled:opacity-50 lg:w-auto"
+                  >
+                    View profile
+                  </button>
+
                   {filter !== "approved" && (
                     <button
                       type="button"
@@ -355,6 +400,13 @@ export default function AdminHostsPanel() {
           ))}
         </div>
       )}
+
+      <OpsUserProfileModal
+        open={Boolean(profileUserId)}
+        userId={profileUserId}
+        onClose={() => setProfileUserId(null)}
+        onUserUpdated={handleProfileUpdated}
+      />
     </div>
   );
 }

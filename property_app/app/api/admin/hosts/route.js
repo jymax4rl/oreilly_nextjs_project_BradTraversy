@@ -21,7 +21,10 @@ export const GET = async (request) => {
     const filter = validStatuses.includes(statusFilter) ? statusFilter : "pending";
 
     const applications = await HostApplication.find({ status: filter })
-      .populate("user", "email username image")
+      .populate(
+        "user",
+        "email username image role hostStatus banned bannedAt createdAt",
+      )
       .sort({ createdAt: -1 })
       .lean();
 

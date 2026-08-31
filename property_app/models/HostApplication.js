@@ -12,6 +12,14 @@ const HostApplicationSchema = new Schema(
     phone: { type: String, required: true },
     idType: { type: String, required: true },
     idNumber: { type: String, required: true },
+    /**
+     * Optional Cloudinary (or CDN) URLs for government ID scans.
+     * Ops profile modal shows these when present; upload may be added later.
+     */
+    idDocumentUrls: {
+      type: [String],
+      default: undefined,
+    },
     address: { type: AddressSchema, required: true },
     bio: { type: String },
     status: {
