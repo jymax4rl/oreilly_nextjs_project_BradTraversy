@@ -85,7 +85,12 @@ node scripts/docker-release.mjs --push ghcr.io/your-org
 
 **Docker note:** rebuild the image when public env values change.
 
-**Google Maps / Places (Docker MVP):** `NEXT_PUBLIC_*` and `next.config` `env` mapping are inlined at **`next build`**. Passing the key only via `docker run --env-file .env.local` does **not** put it in the browser bundle. Dockerfile + `docker-compose` accept `GOOGLE_MAPS_API_KEY` / `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` as **build-args**. `npm run docker:release` (and `--tag mvp`) loads them from `.env.local` without printing values. If the key is missing at build, the wizard shows “Address search unavailable” and manual street/city/country still works. If the key is present but Places API (New) / Maps JavaScript API are disabled, that same soft-fail message is correct — enable those APIs and allow HTTP referrer `http://localhost:3000/*`.
+**Google Maps / Places (Docker MVP):** `NEXT_PUBLIC_*` and `next.config` `env` mapping are inlined at **`next build`**. Passing the key only via `docker run --env-file .env.local` does **not** put it in the browser bundle. Dockerfile + `docker-compose` accept `GOOGLE_MAPS_API_KEY` / `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` as **build-args**. `npm run docker:release` (and `--tag mvp`) loads them from `.env.local` without printing values.
+
+- **Missing key at build:** wizard shows a soft-fail that names the build-arg requirement; manual street/city/country still works.
+- **Key present:** address search uses **Places API (New)** via `google.maps.importLibrary("places")` (AutocompleteSuggestion). Do not enable/rely on legacy Places Autocomplete. Also enable **Maps JavaScript API**, and allow HTTP referrer `http://localhost:3000/*` (plus production domains).
+
+Rebuild command (from `property_app/`): `npm run docker:release -- --tag mvp` then recreate the `kama-localhost-3000` container from `kama-properties:mvp`.
 
 ### Server-only (never use `NEXT_PUBLIC_`)
 

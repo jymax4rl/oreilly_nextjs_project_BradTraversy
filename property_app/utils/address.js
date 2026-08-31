@@ -1,4 +1,4 @@
-import { loadGoogleMapsApi } from "@/utils/googleMaps";
+import { loadGoogleMapsApi, importPlacesLibrary } from "@/utils/googleMaps";
 
 /** Fallback centers when Maps/Geocoding is unavailable (manual address path). */
 export const DEFAULT_MAP_CENTER = { lat: 6.5244, lng: 3.3792 }; // Lagos
@@ -269,9 +269,7 @@ async function geocodeWithPlacesNew(query) {
 
   try {
     const google = await loadGoogleMapsApi(["places"]);
-    const placesLib =
-      google.maps.places ||
-      (await google.maps.importLibrary("places").catch(() => null));
+    const placesLib = await importPlacesLibrary(google);
     const AutocompleteSuggestion = placesLib?.AutocompleteSuggestion;
     if (!AutocompleteSuggestion?.fetchAutocompleteSuggestions) return null;
 

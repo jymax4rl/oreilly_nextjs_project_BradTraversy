@@ -37,6 +37,47 @@ export function hasGoogleMapsApiKey() {
 }
 
 /**
+ * Places API (New) readiness — AutocompleteSuggestion must exist.
+ * `google.maps.places` alone is not enough: a legacy `libraries=places`
+ * bootstrap can attach that namespace without New classes.
+ */
+export function hasPlacesApiNew(google = typeof window !== "undefined" ? window.google : null) {
+  const places = google?.maps?.places;
+  return Boolean(
+    places?.AutocompleteSuggestion?.fetchAutocompleteSuggestions &&
+      places?.AutocompleteSessionToken,
+  );
+}
+
+/**
+ * Load Places API (New) via importLibrary. Never rely on legacy
+ * google.maps.places.Autocomplete / AutocompleteService.
+ * @returns {Promise<object>} places library module (AutocompleteSuggestion, …)
+ */
+export async function importPlacesLibrary(google) {
+  const g = google || (typeof window !== "undefined" ? window.google : null);
+  if (!g?.maps) {
+    throw new Error("Google Maps is not loaded");
+  }
+  if (hasPlacesApiNew(g)) {
+    return g.maps.places;
+  }
+  if (typeof g.maps.importLibrary !== "function") {
+    throw new Error("Google Maps importLibrary is unavailable");
+  }
+  const lib = await g.maps.importLibrary("places");
+  if (lib?.AutocompleteSuggestion?.fetchAutocompleteSuggestions) {
+    return lib;
+  }
+  if (hasPlacesApiNew(g)) {
+    return g.maps.places;
+  }
+  throw new Error(
+    "Places API (New) is unavailable — enable Places API (New) in Google Cloud",
+  );
+}
+
+/**
  * Map user-facing error copy from Google Maps auth / load failures.
  * Do not include the raw API key in any message.
  */
@@ -156,7 +197,8 @@ export function loadGoogleMapsApi(libraries = ["maps"]) {
     const importTimeoutMs = 8_000;
     for (const lib of libs) {
       if (loadedLibraries.has(lib)) continue;
-      if (lib === "places" && google.maps?.places) {
+      // Places API (New): require AutocompleteSuggestion, not mere places namespace.
+      if (lib === "places" && hasPlacesApiNew(google)) {
         loadedLibraries.add(lib);
         continue;
       }
@@ -168,29 +210,35 @@ export function loadGoogleMapsApi(libraries = ["maps"]) {
         loadedLibraries.add(lib);
         continue;
       }
-      if (typeof google.maps.importLibrary === "function") {
-        await Promise.race([
-          google.maps.importLibrary(lib),
-          new Promise((_, reject) => {
-            setTimeout(
-              () =>
-                reject(
-                  new Error(
-                    `Google Maps library "${lib}" import timed out`,
-                  ),
-                ),
-              importTimeoutMs,
-            );
-          }),
-        ]);
-        loadedLibraries.add(lib);
+      if (typeof google.maps.importLibrary !== "function") {
+        if (lib === "places") {
+          throw new Error(
+            "Places API (New) requires google.maps.importLibrary",
+          );
+        }
+        continue;
       }
+      await Promise.race([
+        lib === "places"
+          ? importPlacesLibrary(google)
+          : google.maps.importLibrary(lib),
+        new Promise((_, reject) => {
+          setTimeout(
+            () =>
+              reject(
+                new Error(`Google Maps library "${lib}" import timed out`),
+              ),
+            importTimeoutMs,
+          );
+        }),
+      ]);
+      loadedLibraries.add(lib);
     }
     return google;
   };
 
   if (window.google?.maps) {
-    const needsPlaces = libs.includes("places") && !window.google.maps.places;
+    const needsPlaces = libs.includes("places") && !hasPlacesApiNew(window.google);
     const needsMarker = libs.includes("marker") && !window.google.maps.marker;
     const needsMaps =
       libs.includes("maps") && typeof window.google.maps.Map !== "function";
@@ -277,9 +325,10 @@ export function loadGoogleMapsApi(libraries = ["maps"]) {
         loading: "async",
         callback: callbackName,
       });
-      // Only request libraries the caller needs. Map pin display uses maps/marker;
-      // address search requests places separately (Places API New).
-      const bootLibs = libs.length > 0 ? libs : ["maps"];
+      // Never put `places` in the script URL — that attaches the legacy Places
+      // namespace without AutocompleteSuggestion (Places API New). Load places
+      // only via importLibrary after bootstrap. Map pin uses maps/marker.
+      const bootLibs = libs.filter((l) => l !== "places");
       if (bootLibs.length) {
         params.set("libraries", bootLibs.join(","));
       }
@@ -295,7 +344,12 @@ export function loadGoogleMapsApi(libraries = ["maps"]) {
       };
       document.head.appendChild(script);
     }).then((google) => {
-      libs.forEach((l) => loadedLibraries.add(l));
+      // Only mark libraries that the script URL actually boots. `places` is
+      // never in the URL (Places API New via importLibrary) — ensureLibraries
+      // must still run for it.
+      libs
+        .filter((l) => l !== "places")
+        .forEach((l) => loadedLibraries.add(l));
       return google;
     });
   }

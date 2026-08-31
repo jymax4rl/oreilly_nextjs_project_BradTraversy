@@ -6,6 +6,7 @@ import { parseGooglePlace } from "@/utils/address";
 import {
   hasGoogleMapsApiKey,
   loadGoogleMapsApi,
+  importPlacesLibrary,
   GOOGLE_MAPS_LOAD_TIMEOUT_MS,
 } from "@/utils/googleMaps";
 
@@ -25,10 +26,14 @@ export default function GoogleAddressAutocomplete({
 }) {
   const onPlaceSelectRef = useRef(onPlaceSelect);
   const sessionTokenRef = useRef(null);
+  const placesLibRef = useRef(null);
   const debounceRef = useRef(null);
   const requestIdRef = useRef(0);
   const [ready, setReady] = useState(false);
-  const [loadError, setLoadError] = useState(false);
+  /** @type {[null | "missing_key" | "load_error", Function]} */
+  const [failReason, setFailReason] = useState(
+    hasGoogleMapsApiKey() ? null : "missing_key",
+  );
   const [suggestions, setSuggestions] = useState([]);
   const [open, setOpen] = useState(false);
   const [fetching, setFetching] = useState(false);
@@ -39,35 +44,38 @@ export default function GoogleAddressAutocomplete({
   }, [onPlaceSelect]);
 
   useEffect(() => {
-    if (!hasMapsKey || disabled) return;
+    if (!hasMapsKey) {
+      setFailReason("missing_key");
+      return;
+    }
+    if (disabled) return;
 
     let cancelled = false;
     const safetyTimer = window.setTimeout(() => {
-      if (!cancelled) setLoadError(true);
+      if (!cancelled) setFailReason("load_error");
     }, GOOGLE_MAPS_LOAD_TIMEOUT_MS + 1_500);
 
     loadGoogleMapsApi(["places"])
       .then(async (google) => {
         if (cancelled) return;
-        const placesLib =
-          google.maps.places ||
-          (await google.maps.importLibrary("places").catch(() => null));
+        // Always importLibrary — never short-circuit on legacy google.maps.places.
+        const placesLib = await importPlacesLibrary(google);
         const AutocompleteSuggestion = placesLib?.AutocompleteSuggestion;
         const AutocompleteSessionToken = placesLib?.AutocompleteSessionToken;
-        // Guard: never fall back to legacy Autocomplete — that throws LegacyApiNotActivatedMapError.
         if (!AutocompleteSuggestion || !AutocompleteSessionToken) {
-          setLoadError(true);
+          setFailReason("load_error");
           return;
         }
+        placesLibRef.current = placesLib;
         sessionTokenRef.current = new AutocompleteSessionToken();
         window.clearTimeout(safetyTimer);
         setReady(true);
-        setLoadError(false);
+        setFailReason(null);
       })
       .catch(() => {
         if (!cancelled) {
           window.clearTimeout(safetyTimer);
-          setLoadError(true);
+          setFailReason("load_error");
         }
       });
 
@@ -90,12 +98,12 @@ export default function GoogleAddressAutocomplete({
     setFetching(true);
     try {
       const placesLib =
-        window.google.maps.places ||
-        (await window.google.maps.importLibrary("places"));
+        placesLibRef.current || (await importPlacesLibrary(window.google));
+      placesLibRef.current = placesLib;
       const AutocompleteSuggestion = placesLib?.AutocompleteSuggestion;
       const AutocompleteSessionToken = placesLib?.AutocompleteSessionToken;
       if (!AutocompleteSuggestion) {
-        setLoadError(true);
+        setFailReason("load_error");
         setSuggestions([]);
         return;
       }
@@ -107,12 +115,6 @@ export default function GoogleAddressAutocomplete({
         await AutocompleteSuggestion.fetchAutocompleteSuggestions({
           input: query,
           sessionToken: sessionTokenRef.current || undefined,
-          includedPrimaryTypes: [
-            "street_address",
-            "premise",
-            "subpremise",
-            "route",
-          ],
         });
 
       if (reqId !== requestIdRef.current) return;
@@ -124,7 +126,7 @@ export default function GoogleAddressAutocomplete({
       if (reqId === requestIdRef.current) {
         setSuggestions([]);
         setOpen(false);
-        setLoadError(true);
+        setFailReason("load_error");
       }
     } finally {
       if (reqId === requestIdRef.current) setFetching(false);
@@ -135,7 +137,7 @@ export default function GoogleAddressAutocomplete({
     const next = e.target.value;
     onChange(next);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!ready || loadError) return;
+    if (!ready || failReason) return;
     debounceRef.current = setTimeout(() => {
       fetchSuggestions(next);
     }, 280);
@@ -162,12 +164,13 @@ export default function GoogleAddressAutocomplete({
       const parsed = parseGooglePlace(place);
       if (parsed) {
         onPlaceSelectRef.current?.(parsed);
-        // Refresh session token after a completed Place Details fetch.
-        const Token = window.google?.maps?.places?.AutocompleteSessionToken;
+        const Token =
+          placesLibRef.current?.AutocompleteSessionToken ||
+          window.google?.maps?.places?.AutocompleteSessionToken;
         if (Token) sessionTokenRef.current = new Token();
       }
     } catch {
-      setLoadError(true);
+      setFailReason("load_error");
     } finally {
       setFetching(false);
     }
@@ -179,6 +182,29 @@ export default function GoogleAddressAutocomplete({
     if (typeof text.toString === "function") return text.toString();
     return text.text || String(text);
   };
+
+  const statusMessage =
+    failReason === "missing_key" ? (
+      <p className="mt-1.5 text-xs text-amber-800/90" role="status">
+        Address search unavailable — this build has no Google Maps API key.
+        Enter street, city, and country manually below. For Docker, rebuild with{" "}
+        <strong>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</strong> (or{" "}
+        <strong>GOOGLE_MAPS_API_KEY</strong>) as a <strong>build-arg</strong> from
+        .env.local — runtime env alone is not enough.
+      </p>
+    ) : failReason === "load_error" ? (
+      <p className="mt-1.5 text-xs text-amber-800/90" role="status">
+        Address search unavailable — enter your address manually below. You can
+        still continue once street, city, and country are filled. Enable{" "}
+        <strong>Places API (New)</strong> and{" "}
+        <strong>Maps JavaScript API</strong> in Google Cloud, and allow
+        http://localhost:3000/* under HTTP referrers if you want suggestions.
+      </p>
+    ) : (
+      <p className="mt-1.5 text-xs text-[var(--kama-ink-muted)]">
+        Select a suggestion to fill street, city, country, and map pin.
+      </p>
+    );
 
   return (
     <div className="relative">
@@ -206,7 +232,7 @@ export default function GoogleAddressAutocomplete({
         aria-label="Search address"
         className={`${inputClass} pl-10 pr-10`}
       />
-      {(hasMapsKey && !ready && !loadError) || fetching ? (
+      {(hasMapsKey && !ready && !failReason) || fetching ? (
         <Loader2
           className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-[var(--kama-ink-muted)]"
           aria-hidden
@@ -244,19 +270,7 @@ export default function GoogleAddressAutocomplete({
         </ul>
       ) : null}
 
-      {!hasMapsKey || loadError ? (
-        <p className="mt-1.5 text-xs text-amber-800/90" role="status">
-          Address search unavailable — enter your address manually below. You
-          can still continue once street, city, and country are filled. Enable{" "}
-          <strong>Places API (New)</strong> and{" "}
-          <strong>Maps JavaScript API</strong> in Google Cloud if you want
-          suggestions.
-        </p>
-      ) : (
-        <p className="mt-1.5 text-xs text-[var(--kama-ink-muted)]">
-          Select a suggestion to fill street, city, country, and map pin.
-        </p>
-      )}
+      {statusMessage}
     </div>
   );
 }
