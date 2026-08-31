@@ -1,15 +1,54 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { isOpsStaff } from "@/utils/opsAuth";
 import AdminListingCardActions from "@/components/admin/AdminListingCardActions";
+import OpsListingsMap, {
+  pinsFromProperties,
+} from "@/components/maps/OpsListingsMap";
+
+const SEARCH_DEBOUNCE_MS = 280;
+const UNKNOWN_COUNTRY = "Unknown";
+
+function countryLabel(property) {
+  const raw = property?.location?.country;
+  if (typeof raw === "string" && raw.trim()) return raw.trim();
+  return UNKNOWN_COUNTRY;
+}
+
+function matchesSearch(property, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+
+  const owner = property.ownerUser;
+  const loc = property.location || {};
+  const haystack = [
+    property.name,
+    owner?.username,
+    owner?.email,
+    property.seller_info?.name,
+    property.seller_info?.email,
+    loc.street,
+    loc.streetLine2,
+    loc.city,
+    loc.state,
+    loc.country,
+    loc.zipcode,
+    loc.formatted,
+  ]
+    .filter(Boolean)
+    .map((v) => String(v).toLowerCase());
+
+  return haystack.some((text) => text.includes(q));
+}
 
 /**
  * Property listings moderation UI (shared by /ops/listings).
  * Includes View, Message host, and Delete (type-confirm) actions.
+ * Country chips, host/location search, and a side map of filtered pins.
  */
 export default function AdminListingsPanel() {
   const { data: session, status } = useSession();
@@ -23,6 +62,10 @@ export default function AdminListingsPanel() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("pending");
   const [actionLoading, setActionLoading] = useState(null);
+  const [countryFilter, setCountryFilter] = useState(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [mapOpenMobile, setMapOpenMobile] = useState(true);
 
   useEffect(() => {
     if (status === "authenticated" && !isOpsStaff(session?.user?.role)) {
@@ -31,10 +74,18 @@ export default function AdminListingsPanel() {
   }, [session, status, router]);
 
   useEffect(() => {
+    const t = window.setTimeout(() => {
+      setSearchQuery(searchInput);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(t);
+  }, [searchInput]);
+
+  useEffect(() => {
     if (status !== "authenticated" || !isOpsStaff(session?.user?.role)) return;
 
     const fetchListings = async () => {
       setLoading(true);
+      setCountryFilter(null);
       try {
         const res = await fetch(
           `/api/admin/listings?status=${encodeURIComponent(filter)}&nc=${Date.now()}`,
@@ -65,6 +116,35 @@ export default function AdminListingsPanel() {
 
     fetchListings();
   }, [filter, session, status]);
+
+  const searchMatched = useMemo(
+    () => properties.filter((p) => matchesSearch(p, searchQuery)),
+    [properties, searchQuery],
+  );
+
+  const countryCounts = useMemo(() => {
+    const map = new Map();
+    for (const p of searchMatched) {
+      const key = countryLabel(p);
+      map.set(key, (map.get(key) || 0) + 1);
+    }
+    return [...map.entries()]
+      .map(([country, count]) => ({ country, count }))
+      .sort((a, b) => {
+        if (b.count !== a.count) return b.count - a.count;
+        return a.country.localeCompare(b.country);
+      });
+  }, [searchMatched]);
+
+  const filteredProperties = useMemo(() => {
+    if (!countryFilter) return searchMatched;
+    return searchMatched.filter((p) => countryLabel(p) === countryFilter);
+  }, [searchMatched, countryFilter]);
+
+  const mapPins = useMemo(
+    () => pinsFromProperties(filteredProperties),
+    [filteredProperties],
+  );
 
   const handleAction = async (id, action) => {
     setActionLoading(String(id));
@@ -172,10 +252,11 @@ export default function AdminListingsPanel() {
         <p className="mt-2 text-sm leading-relaxed text-[var(--kama-ink-muted)]">
           Approve to publish publicly, or reject with a reason for the host.
           Pending shows new submissions only; older listings stay under Approved.
+          Filter by country or search host and location within the active tab.
         </p>
       </header>
 
-      <div className="mb-6 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         {["pending", "approved", "rejected"].map((statusFilter) => (
           <button
             key={statusFilter}
@@ -192,120 +273,229 @@ export default function AdminListingsPanel() {
         ))}
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-16">
-          <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-gray-900" />
+      <div className="mb-4">
+        <label htmlFor="ops-listings-search" className="sr-only">
+          Search by host or location
+        </label>
+        <div className="relative max-w-xl">
+          <span
+            className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[var(--kama-ink-muted)]"
+            aria-hidden
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8" />
+              <path
+                d="M20 20l-3.5-3.5"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>
+          <input
+            id="ops-listings-search"
+            type="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search host name, email, city, country…"
+            className="h-11 w-full rounded-lg border border-[var(--kama-border-strong)] bg-white pl-10 pr-3 text-sm text-[var(--kama-ink)] outline-none transition placeholder:text-gray-400 focus:border-[#1B5C57] focus:ring-2 focus:ring-[#1B5C57]/20"
+          />
         </div>
-      ) : properties.length === 0 ? (
-        <div className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] px-6 py-14 text-center text-gray-500">
-          No {filter} listings.
-        </div>
-      ) : (
-        <ul className="space-y-4">
-          {properties.map((property) => {
-            const id = String(property._id);
-            const busy = actionLoading === id;
-            const ownerId = property.owner
-              ? String(property.owner._id || property.owner)
-              : "";
-            const ownerLabel =
-              property.ownerUser?.username ||
-              property.ownerUser?.email ||
-              property.seller_info?.email ||
-              property.owner ||
-              "—";
+      </div>
 
-            let moderationButtons = null;
-            if (filter === "pending") {
-              moderationButtons = (
-                <>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => handleAction(id, "approved")}
-                    className="rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
-                  >
-                    {busy ? "…" : "Approve"}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => handleAction(id, "rejected")}
-                    className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
-                  >
-                    Reject
-                  </button>
-                </>
-              );
-            } else if (filter === "rejected") {
-              moderationButtons = (
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => handleAction(id, "approved")}
-                  className="rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
-                >
-                  Approve
-                </button>
-              );
-            }
-
+      {!loading && properties.length > 0 ? (
+        <div
+          className="mb-6 flex gap-2 overflow-x-auto pb-1"
+          role="toolbar"
+          aria-label="Filter by country"
+        >
+          <button
+            type="button"
+            onClick={() => setCountryFilter(null)}
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+              countryFilter == null
+                ? "bg-[#1B5C57] text-white"
+                : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            All ({searchMatched.length})
+          </button>
+          {countryCounts.map(({ country, count }) => {
+            const active = countryFilter === country;
             return (
-              <li
-                key={id}
-                className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5"
+              <button
+                key={country}
+                type="button"
+                onClick={() =>
+                  setCountryFilter((prev) => (prev === country ? null : country))
+                }
+                className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+                  active
+                    ? "bg-[#1B5C57] text-white"
+                    : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
               >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0">
-                    <h2 className="truncate text-lg font-bold text-gray-900">
-                      {property.name || "Untitled"}
-                    </h2>
-                    <p className="mt-0.5 text-sm text-gray-500">
-                      {[property.location?.city, property.location?.country]
-                        .filter(Boolean)
-                        .join(", ") || "No location"}
-                      {" · "}
-                      <span className="capitalize">{property.type}</span>
-                    </p>
-                    <p className="mt-1 text-xs text-gray-400">
-                      Host: {ownerLabel}
-                      {property.listingModerationRequestedAt
-                        ? ` · Submitted ${new Date(
-                            property.listingModerationRequestedAt,
-                          ).toLocaleDateString()}`
-                        : null}
-                    </p>
-                    {property.status === "rejected" &&
-                      property.rejectionReason && (
-                        <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
-                          {property.rejectionReason}
-                        </p>
-                      )}
-                  </div>
-                  <AdminListingCardActions
-                    propertyId={id}
-                    propertyName={property.name || "Untitled"}
-                    ownerId={ownerId}
-                    hostLabel={
-                      typeof ownerLabel === "string" ? ownerLabel : "host"
-                    }
-                    moderationButtons={moderationButtons}
-                    onDeleted={() => {
-                      setProperties((prev) =>
-                        prev.filter((p) => String(p._id) !== id),
-                      );
-                      setCounts((prev) => ({
-                        ...prev,
-                        [filter]: Math.max(0, (prev[filter] ?? 1) - 1),
-                      }));
-                    }}
-                  />
-                </div>
-              </li>
+                {country} ({count})
+              </button>
             );
           })}
-        </ul>
-      )}
+        </div>
+      ) : null}
+
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)] lg:items-start">
+        <div className="min-w-0 order-1">
+          {loading ? (
+            <div className="flex justify-center py-16">
+              <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-gray-900" />
+            </div>
+          ) : filteredProperties.length === 0 ? (
+            <div className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] px-6 py-14 text-center text-gray-500">
+              {properties.length === 0
+                ? `No ${filter} listings.`
+                : "No listings match your search or country filter."}
+            </div>
+          ) : (
+            <ul className="space-y-4">
+              {filteredProperties.map((property) => {
+                const id = String(property._id);
+                const busy = actionLoading === id;
+                const ownerId = property.owner
+                  ? String(property.owner._id || property.owner)
+                  : "";
+                const ownerLabel =
+                  property.ownerUser?.username ||
+                  property.ownerUser?.email ||
+                  property.seller_info?.email ||
+                  property.owner ||
+                  "—";
+
+                let moderationButtons = null;
+                if (filter === "pending") {
+                  moderationButtons = (
+                    <>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => handleAction(id, "approved")}
+                        className="rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+                      >
+                        {busy ? "…" : "Approve"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => handleAction(id, "rejected")}
+                        className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                      >
+                        Reject
+                      </button>
+                    </>
+                  );
+                } else if (filter === "rejected") {
+                  moderationButtons = (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => handleAction(id, "approved")}
+                      className="rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+                    >
+                      Approve
+                    </button>
+                  );
+                }
+
+                return (
+                  <li
+                    key={id}
+                    className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <h2 className="truncate text-lg font-bold text-gray-900">
+                          {property.name || "Untitled"}
+                        </h2>
+                        <p className="mt-0.5 text-sm text-gray-500">
+                          {[property.location?.city, property.location?.country]
+                            .filter(Boolean)
+                            .join(", ") || "No location"}
+                          {" · "}
+                          <span className="capitalize">{property.type}</span>
+                        </p>
+                        <p className="mt-1 text-xs text-gray-400">
+                          Host: {ownerLabel}
+                          {property.listingModerationRequestedAt
+                            ? ` · Submitted ${new Date(
+                                property.listingModerationRequestedAt,
+                              ).toLocaleDateString()}`
+                            : null}
+                        </p>
+                        {property.status === "rejected" &&
+                          property.rejectionReason && (
+                            <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+                              {property.rejectionReason}
+                            </p>
+                          )}
+                      </div>
+                      <AdminListingCardActions
+                        propertyId={id}
+                        propertyName={property.name || "Untitled"}
+                        ownerId={ownerId}
+                        hostLabel={
+                          typeof ownerLabel === "string" ? ownerLabel : "host"
+                        }
+                        moderationButtons={moderationButtons}
+                        onDeleted={() => {
+                          setProperties((prev) =>
+                            prev.filter((p) => String(p._id) !== id),
+                          );
+                          setCounts((prev) => ({
+                            ...prev,
+                            [filter]: Math.max(0, (prev[filter] ?? 1) - 1),
+                          }));
+                        }}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        <aside className="order-2 lg:sticky lg:top-4">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3">
+              <div>
+                <h2 className="text-sm font-semibold text-gray-900">
+                  Map overview
+                </h2>
+                <p className="text-xs text-gray-500">
+                  Pins for filtered listings with coordinates
+                </p>
+              </div>
+              <button
+                type="button"
+                className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-700 lg:hidden"
+                onClick={() => setMapOpenMobile((v) => !v)}
+                aria-expanded={mapOpenMobile}
+              >
+                {mapOpenMobile ? "Hide" : "Show"}
+              </button>
+            </div>
+            <div className={mapOpenMobile ? "block" : "hidden lg:block"}>
+              <OpsListingsMap
+                pins={mapPins}
+                className="h-56 w-full lg:h-[28rem]"
+                emptyLabel={
+                  loading
+                    ? "Loading…"
+                    : "No mapped locations in this result set"
+                }
+              />
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }
