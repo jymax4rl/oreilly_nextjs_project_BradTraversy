@@ -1,5 +1,6 @@
 import Link from "next/link";
 import OpsShell from "@/components/ops/OpsShell";
+import OpsOverviewPanel from "@/components/ops/OpsOverviewPanel";
 
 export const metadata = {
   title: "Home",
@@ -27,7 +28,7 @@ export default function OpsHomePage() {
   return (
     <OpsShell
       title="Operations"
-      subtitle="Staff tools for marketplace moderation. Metrics and visitor analytics are coming soon."
+      subtitle="Staff tools for marketplace moderation. Overview metrics and a recent-listings queue help triage new submissions."
     >
       <section aria-labelledby="ops-tools-heading">
         <h2
@@ -55,34 +56,7 @@ export default function OpsHomePage() {
         </ul>
       </section>
 
-      <section className="mt-10" aria-labelledby="ops-metrics-heading">
-        <h2
-          id="ops-metrics-heading"
-          className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--kama-ink-muted)]"
-        >
-          Overview
-        </h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          {["Active listings", "Pending reviews", "Transactions (30d)"].map(
-            (label) => (
-              <div
-                key={label}
-                className="rounded-xl border border-dashed border-[var(--kama-border-strong)] bg-[var(--kama-surface)]/60 px-5 py-6"
-              >
-                <p className="text-xs font-medium text-[var(--kama-ink-muted)]">
-                  {label}
-                </p>
-                <p className="mt-2 text-2xl font-semibold tabular-nums text-[var(--kama-ink)]">
-                  —
-                </p>
-                <p className="mt-1 text-xs text-[var(--kama-ink-muted)]">
-                  Coming soon
-                </p>
-              </div>
-            ),
-          )}
-        </div>
-      </section>
+      <OpsOverviewPanel />
     </OpsShell>
   );
 }
