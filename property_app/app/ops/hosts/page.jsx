@@ -1,10 +1,14 @@
-import { redirect } from "next/navigation";
+import OpsShell from "@/components/ops/OpsShell";
+import AdminHostsPanel from "@/components/admin/AdminHostsPanel";
 
 export const metadata = {
   title: "Hosts",
 };
 
-/** Phase 1: reuse legacy admin hosts tool until ops-native UI lands. */
 export default function OpsHostsPage() {
-  redirect("/admin/hosts");
+  return (
+    <OpsShell>
+      <AdminHostsPanel />
+    </OpsShell>
+  );
 }

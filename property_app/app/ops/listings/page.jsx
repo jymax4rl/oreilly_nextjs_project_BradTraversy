@@ -1,10 +1,14 @@
-import { redirect } from "next/navigation";
+import OpsShell from "@/components/ops/OpsShell";
+import AdminListingsPanel from "@/components/admin/AdminListingsPanel";
 
 export const metadata = {
   title: "Listings",
 };
 
-/** Phase 1: reuse legacy admin listings tool until ops-native UI lands. */
 export default function OpsListingsPage() {
-  redirect("/admin/listings");
+  return (
+    <OpsShell>
+      <AdminListingsPanel />
+    </OpsShell>
+  );
 }

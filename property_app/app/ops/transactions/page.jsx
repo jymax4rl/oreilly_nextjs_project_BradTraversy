@@ -1,10 +1,14 @@
-import { redirect } from "next/navigation";
+import OpsShell from "@/components/ops/OpsShell";
+import AdminTransactionsPanel from "@/components/admin/AdminTransactionsPanel";
 
 export const metadata = {
   title: "Transactions",
 };
 
-/** Phase 1: reuse legacy admin transactions tool until ops-native UI lands. */
 export default function OpsTransactionsPage() {
-  redirect("/admin/transactions");
+  return (
+    <OpsShell>
+      <AdminTransactionsPanel />
+    </OpsShell>
+  );
 }

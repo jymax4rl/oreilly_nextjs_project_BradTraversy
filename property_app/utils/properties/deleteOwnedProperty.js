@@ -5,17 +5,29 @@ import User from "@/models/User";
 import { deletePropertyCloudinaryMedia } from "@/utils/cloudinary/deletePropertyMedia";
 
 /**
- * Permanently removes a property owned by `ownerId`.
+ * Permanently removes a property.
+ *
+ * By default requires `actorId` to match `property.owner`. Pass `{ asOps: true }`
+ * for admin/superadmin deletes of any listing (ownership check skipped).
  *
  * Cleans listing-coupled data (availability, messages, bookmarks, Cloudinary media).
  * Leaves Booking / Transaction rows intact for payment/history audit trails —
  * there is no existing cascade for those in the codebase.
  *
+ * @param {string} propertyId
+ * @param {string} actorId — host owner id, or ops user id when `asOps`
+ * @param {{ asOps?: boolean }} [options]
  * @returns {{ ok: true, propertyId: string } | { ok: false, status: number, error: string }}
  */
-export async function deleteOwnedProperty(propertyId, ownerId) {
-  if (!propertyId || !ownerId) {
-    return { ok: false, status: 400, error: "Property id and owner are required." };
+export async function deleteOwnedProperty(propertyId, actorId, options = {}) {
+  const { asOps = false } = options;
+
+  if (!propertyId || !actorId) {
+    return {
+      ok: false,
+      status: 400,
+      error: "Property id and actor are required.",
+    };
   }
 
   const property = await Property.findById(propertyId);
@@ -23,7 +35,7 @@ export async function deleteOwnedProperty(propertyId, ownerId) {
     return { ok: false, status: 404, error: "Property not found." };
   }
 
-  if (String(property.owner) !== String(ownerId)) {
+  if (!asOps && String(property.owner) !== String(actorId)) {
     return {
       ok: false,
       status: 403,
