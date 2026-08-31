@@ -17,8 +17,7 @@ function getApiKey() {
 
 /**
  * Cloud console Map ID (Map Management) required for Advanced Markers.
- * Leave empty to use classic `google.maps.Marker` + CSS center-pin fallback
- * (GoogleMap always shows a visible pin either way).
+ * Leave empty to use classic `google.maps.Marker` (geographic pin, no Map ID).
  * For local testing you may set `DEMO_MAP_ID` (Google docs sample id).
  */
 export function getGoogleMapsMapId() {

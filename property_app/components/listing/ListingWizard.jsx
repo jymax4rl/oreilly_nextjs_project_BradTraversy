@@ -819,6 +819,7 @@ export default function ListingWizard() {
                   <GoogleMap
                     lat={coerceCoordinate(data.location.lat)}
                     lng={coerceCoordinate(data.location.lng)}
+                    zoom={15}
                     draggable
                     estimated={pinEstimated}
                     onPositionChange={handleMapPositionChange}
