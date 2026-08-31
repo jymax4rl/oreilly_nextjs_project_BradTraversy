@@ -96,7 +96,7 @@ export default function PoliciesShell({ initialSection = null }) {
   }, [ready, focusId, lang]);
 
   return (
-    <div className="min-h-dvh bg-[var(--kama-canvas,#fafcfb)] text-[var(--kama-ink,#0c1a1a)]">
+    <div className="min-h-dvh max-w-full overflow-x-hidden bg-[var(--kama-canvas,#fafcfb)] text-[var(--kama-ink,#0c1a1a)]">
       <div
         className="border-b border-[var(--kama-line,#d8e3e1)]"
         style={{
@@ -104,18 +104,18 @@ export default function PoliciesShell({ initialSection = null }) {
             "linear-gradient(180deg, rgba(27,92,87,0.08) 0%, rgba(250,252,251,0) 100%)",
         }}
       >
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:px-8 lg:py-14">
-          <div className="max-w-2xl">
+        <div className="mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-6 px-4 py-10 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:px-8 lg:py-14">
+          <div className="min-w-0 max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--kama-accent)]">
               Kama Properties
             </p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight break-words sm:text-4xl">
               {meta.title}
             </h1>
-            <p className="mt-3 text-base leading-relaxed text-[var(--kama-ink-muted,#4a5c5b)]">
+            <p className="mt-3 text-base leading-relaxed break-words text-[var(--kama-ink-muted,#4a5c5b)]">
               {meta.subtitle}
             </p>
-            <p className="mt-4 text-xs text-[var(--kama-ink-muted,#4a5c5b)]">
+            <p className="mt-4 text-xs break-words text-[var(--kama-ink-muted,#4a5c5b)]">
               {meta.lastUpdated}
               <span className="mx-2 text-[var(--kama-line,#d8e3e1)]">·</span>
               {meta.versionLabel}:{" "}
@@ -128,17 +128,22 @@ export default function PoliciesShell({ initialSection = null }) {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:px-8 lg:py-12">
-        <aside className="lg:sticky lg:top-24 lg:self-start">
+      {/*
+        Mobile: single column — TOC stacks above body.
+        min-w-0 on tracks stops the horizontal TOC (whitespace-nowrap chips)
+        from inflating the grid past the viewport; body then wraps normally.
+      */}
+      <div className="mx-auto grid w-full min-w-0 max-w-6xl gap-8 px-4 py-10 sm:gap-10 sm:px-6 lg:grid-cols-[minmax(0,240px)_minmax(0,1fr)] lg:px-8 lg:py-12">
+        <aside className="min-w-0 max-w-full lg:sticky lg:top-24 lg:self-start">
           <p className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--kama-ink-muted,#4a5c5b)]">
             {meta.toc}
           </p>
-          <nav className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:gap-1 lg:overflow-visible lg:pb-0">
+          <nav className="-mx-1 flex max-w-full gap-2 overflow-x-auto overscroll-x-contain px-1 pb-2 [scrollbar-width:thin] lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0 lg:pb-0">
             {POLICY_SECTIONS.map((section) => (
               <Link
                 key={section.id}
                 href={`/policies/${section.id}?lang=${lang}`}
-                className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm transition lg:whitespace-normal ${
+                className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-2 text-sm transition lg:shrink lg:whitespace-normal ${
                   focusId === section.id
                     ? "bg-[var(--kama-accent-soft,rgba(27,92,87,0.1))] font-semibold text-[var(--kama-accent)]"
                     : "text-[var(--kama-ink-muted,#4a5c5b)] hover:bg-white hover:text-[var(--kama-ink,#0c1a1a)]"
@@ -149,16 +154,16 @@ export default function PoliciesShell({ initialSection = null }) {
             ))}
             <Link
               href={`/policies?lang=${lang}`}
-              className="whitespace-nowrap rounded-lg px-3 py-2 text-sm text-[var(--kama-accent)] hover:bg-white lg:whitespace-normal"
+              className="shrink-0 whitespace-nowrap rounded-lg px-3 py-2 text-sm text-[var(--kama-accent)] hover:bg-white lg:shrink lg:whitespace-normal"
             >
               {lang === "fr" ? "Voir tout" : "View all"}
             </Link>
           </nav>
         </aside>
 
-        <main className="space-y-12">
+        <main className="min-w-0 max-w-full space-y-12">
           <div
-            className="rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm leading-relaxed text-amber-950"
+            className="rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm leading-relaxed break-words text-amber-950"
             role="note"
           >
             {LEGAL_DISCLAIMER[lang]}
@@ -168,14 +173,16 @@ export default function PoliciesShell({ initialSection = null }) {
             <section
               key={section.id}
               id={section.id}
-              className="scroll-mt-28 border-b border-[var(--kama-line,#d8e3e1)] pb-10 last:border-b-0"
+              className="min-w-0 scroll-mt-28 border-b border-[var(--kama-line,#d8e3e1)] pb-10 last:border-b-0"
             >
-              <h2 className="text-2xl font-semibold tracking-tight text-[var(--kama-ink,#0c1a1a)]">
+              <h2 className="text-2xl font-semibold tracking-tight break-words text-[var(--kama-ink,#0c1a1a)]">
                 {section.title[lang]}
               </h2>
-              <div className="mt-4 space-y-3 text-[15px] leading-relaxed text-[var(--kama-ink-muted,#3d4f4e)]">
+              <div className="mt-4 space-y-3 text-[15px] leading-relaxed break-words [overflow-wrap:anywhere] text-[var(--kama-ink-muted,#3d4f4e)]">
                 {section.paragraphs[lang].map((p, i) => (
-                  <p key={`${section.id}-${i}`}>{p}</p>
+                  <p key={`${section.id}-${i}`} className="max-w-full">
+                    {p}
+                  </p>
                 ))}
               </div>
             </section>
