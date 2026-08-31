@@ -1,14 +1,45 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { formatAddress } from "@/utils/address";
 import { isOpsStaff } from "@/utils/opsAuth";
 
+const SEARCH_DEBOUNCE_MS = 280;
+
+function matchesSearch(app, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+
+  const addr = app.address || app.user?.hostAddress || {};
+  const haystack = [
+    app.user?.username,
+    app.user?.email,
+    app.phone,
+    app.idType,
+    app.idNumber,
+    app.bio,
+    app.rejectionReason,
+    formatAddress(addr),
+    addr.formatted,
+    addr.streetLine1,
+    addr.streetLine2,
+    addr.city,
+    addr.state,
+    addr.postalCode,
+    addr.country,
+  ]
+    .filter(Boolean)
+    .map((v) => String(v).toLowerCase());
+
+  return haystack.some((text) => text.includes(q));
+}
+
 /**
  * Host applications moderation UI (shared by /ops/hosts).
+ * Debounced search by name, email, phone, ID, bio, and address within the active tab.
  */
 export default function AdminHostsPanel() {
   const { data: session, status } = useSession();
@@ -17,12 +48,21 @@ export default function AdminHostsPanel() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("pending");
   const [actionLoading, setActionLoading] = useState(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (status === "authenticated" && !isOpsStaff(session?.user?.role)) {
       router.push("/");
     }
   }, [session, status, router]);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      setSearchQuery(searchInput);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(t);
+  }, [searchInput]);
 
   useEffect(() => {
     if (status !== "authenticated" || !isOpsStaff(session?.user?.role)) return;
@@ -42,6 +82,11 @@ export default function AdminHostsPanel() {
 
     fetchApplications();
   }, [filter, session, status]);
+
+  const filteredApplications = useMemo(
+    () => applications.filter((app) => matchesSearch(app, searchQuery)),
+    [applications, searchQuery],
+  );
 
   const handleAction = async (id, action) => {
     setActionLoading(id);
@@ -118,11 +163,12 @@ export default function AdminHostsPanel() {
           Host Applications
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-[var(--kama-ink-muted)]">
-          Review and manage host onboarding applications.
+          Review and manage host onboarding applications. Search by name, email,
+          phone, or address within the active tab.
         </p>
       </header>
 
-      <div className="mb-6 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         {["pending", "approved", "rejected"].map((statusFilter) => (
           <button
             key={statusFilter}
@@ -137,26 +183,60 @@ export default function AdminHostsPanel() {
             {statusFilter}
             {filter === statusFilter && applications.length > 0 && (
               <span className="ml-2 rounded-full bg-white px-2 py-0.5 text-xs text-gray-900">
-                {applications.length}
+                {searchQuery.trim()
+                  ? `${filteredApplications.length}/${applications.length}`
+                  : applications.length}
               </span>
             )}
           </button>
         ))}
       </div>
 
+      <div className="mb-6">
+        <label htmlFor="ops-hosts-search" className="sr-only">
+          Search hosts by name, email, phone, or address
+        </label>
+        <div className="relative max-w-xl">
+          <span
+            className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[var(--kama-ink-muted)]"
+            aria-hidden
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8" />
+              <path
+                d="M20 20l-3.5-3.5"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>
+          <input
+            id="ops-hosts-search"
+            type="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search name, email, phone, ID, city…"
+            className="h-11 w-full rounded-lg border border-[var(--kama-border-strong)] bg-white pl-10 pr-3 text-sm text-[var(--kama-ink)] outline-none transition placeholder:text-gray-400 focus:border-[#1B5C57] focus:ring-2 focus:ring-[#1B5C57]/20"
+          />
+        </div>
+      </div>
+
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-gray-900" />
         </div>
-      ) : applications.length === 0 ? (
+      ) : filteredApplications.length === 0 ? (
         <div className="rounded-xl border border-[var(--kama-border)] bg-[var(--kama-surface)] px-6 py-14 text-center">
           <p className="text-lg text-gray-500">
-            No {filter} applications found.
+            {applications.length === 0
+              ? `No ${filter} applications found.`
+              : "No hosts match your search."}
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {applications.map((app) => (
+          {filteredApplications.map((app) => (
             <div
               key={app._id}
               className="rounded-xl border border-[var(--kama-border)] bg-[var(--kama-surface)] p-6 transition hover:shadow-sm"
