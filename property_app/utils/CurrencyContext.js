@@ -3,12 +3,13 @@ import React, { createContext, useState, useEffect, useContext } from "react";
 import { fetchExchangeRates } from "./currencyUtils";
 
 const STORAGE_KEY = "kama_currency_code";
+const USD_RATES = { USD: 1 };
 
 const CurrencyContext = createContext();
 
 export const CurrencyProvider = ({ children }) => {
   const [currencyCode, setCurrencyCodeState] = useState("USD");
-  const [rates, setRates] = useState({});
+  const [rates, setRates] = useState(USD_RATES);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,9 +36,10 @@ export const CurrencyProvider = ({ children }) => {
       setLoading(true);
       try {
         const fetchedRates = await fetchExchangeRates();
-        setRates(fetchedRates || {});
+        setRates({ ...USD_RATES, ...(fetchedRates || {}) });
       } catch (error) {
         console.error("Failed to load rates", error);
+        setRates(USD_RATES);
       } finally {
         setLoading(false);
       }

@@ -1,6 +1,6 @@
 import { isOpsStaff } from "@/utils/opsAuth";
 
-/** Public catalog listings for these hosts stay visible but are not bookable. */
+/** Preview-lock hosts stay in the catalog, but listing pages and sitemaps stay private. */
 export const PREVIEW_LOCKED_HOST_EMAILS = ["camara23.pro@gmail.com"];
 
 export const PREVIEW_LOCKED_HOST_NAMES = ["jimmeh camara", "jimmeh gakou"];
@@ -34,6 +34,23 @@ export function isPreviewLockedHost(person = {}) {
 
 export function canUnlockPreviewListing(session) {
   return isOpsStaff(session?.user?.role);
+}
+
+/** Strip repeated preview-host names/emails from catalog HTML (RSC payload). */
+export function redactPreviewLockedCatalogFields(properties) {
+  const list = Array.isArray(properties) ? properties : [];
+  return list.map((property) => {
+    if (!property?.previewLocked) return property;
+    return {
+      ...property,
+      host: property.host
+        ? { ...property.host, name: null, image: property.host.image || null }
+        : null,
+      seller_info: property.seller_info
+        ? { name: "", email: "", phone: "" }
+        : property.seller_info,
+    };
+  });
 }
 
 export function isListingOwner(session, property) {

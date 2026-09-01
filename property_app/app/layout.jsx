@@ -16,6 +16,7 @@ import ChunkErrorRecovery from "@/components/ChunkErrorRecovery";
 import TrafficProbe from "@/components/metrics/TrafficProbe";
 import { LanguageProvider } from "@/components/i18n/LanguageProvider";
 import { getRequestLang } from "@/lib/i18n/server";
+import SiteJsonLd from "@/components/seo/SiteJsonLd";
 
 export const metadata = {
   metadataBase: new URL(
@@ -64,6 +65,7 @@ async function MainLayout({ children }) {
               <StyledComponentsRegistry>
                 <html lang={lang}>
                   <body className="flex flex-col min-h-screen">
+                    <SiteJsonLd />
                     <ChunkErrorRecovery />
                     <TrafficProbe />
                     <Navbar />

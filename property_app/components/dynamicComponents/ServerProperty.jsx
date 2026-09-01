@@ -1,6 +1,7 @@
 import React from "react";
 import { propertyImageUrl } from "@/utils/propertyImageUrl";
 import { isPubliclyVisibleListing } from "@/utils/listingApproval";
+import { getPrimaryDisplayRate } from "@/utils/propertyRates";
 
 function stripHtml(html = "") {
   return String(html).replace(/<\/?[^>]+(>|$)/g, "");
@@ -8,22 +9,6 @@ function stripHtml(html = "") {
 function truncate(str = "", max = 160) {
   if (!str) return "";
   return str.length <= max ? str : str.slice(0, max - 3).trim() + "...";
-}
-
-function getCurrencyForCountry(country = "") {
-  if (!country) return "USD";
-  const c = country.toLowerCase();
-  if (c.includes("united states") || c === "us" || c === "usa") return "USD";
-  if (c.includes("united kingdom") || c === "uk" || c === "gb") return "GBP";
-  if (c.includes("canada") || c === "ca") return "CAD";
-  if (c.includes("south africa") || c === "za") return "ZAR";
-  if (c.includes("nigeria") || c === "ng") return "NGN";
-  if (c.includes("kenya") || c === "ke") return "KES";
-  if (c.includes("morocco") || c === "ma") return "MAD";
-  if (c.includes("ghana") || c === "gh") return "GHS";
-  if (c.includes("france") || c === "fr") return "EUR";
-  if (c.includes("europe") || c.includes("eur")) return "EUR";
-  return "USD";
 }
 
 export default function ServerProperty({ property, canonicalUrl }) {
@@ -39,13 +24,9 @@ export default function ServerProperty({ property, canonicalUrl }) {
 
   const raw = stripHtml(property.description || "");
   const shortDescription = truncate(raw, 150);
-  const price =
-    (property.rates &&
-      (property.rates.monthly ||
-        property.rates.weekly ||
-        property.rates.nightly)) ||
-    0;
-  const priceCurrency = getCurrencyForCountry(property.location?.country);
+  const primaryRate = getPrimaryDisplayRate(property.rates);
+  const offerPrice = Number(primaryRate?.amount);
+  const hasOffer = Number.isFinite(offerPrice) && offerPrice > 0;
 
   const publicStay = isPubliclyVisibleListing(property);
   const showStreet = Boolean(property.location?.showExactLocation);
@@ -99,15 +80,23 @@ export default function ServerProperty({ property, canonicalUrl }) {
       additionalType: placeType,
       name: property.name,
     },
-    offers: {
-      "@type": "Offer",
-      price: price,
-      priceCurrency: priceCurrency,
-      url: canonicalUrl,
-      availability: publicStay
-        ? "https://schema.org/InStock"
-        : "https://schema.org/SoldOut",
+    brand: {
+      "@type": "Brand",
+      name: "Kama Properties",
     },
+    ...(hasOffer
+      ? {
+          offers: {
+            "@type": "Offer",
+            price: offerPrice,
+            priceCurrency: "USD",
+            url: canonicalUrl,
+            availability: publicStay
+              ? "https://schema.org/InStock"
+              : "https://schema.org/SoldOut",
+          },
+        }
+      : {}),
   };
 
   const breadcrumb = {

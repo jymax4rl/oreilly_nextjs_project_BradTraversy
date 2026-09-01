@@ -6,11 +6,12 @@ import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
 import { withApprovedListingFilter } from "@/utils/listingApproval";
 import { ensurePropertySlugs } from "@/utils/listings/propertySlug";
+import { redactPreviewLockedCatalogFields } from "@/utils/listings/previewLockedHost";
 
 export const metadata = {
-  title: "Vacation rentals in Africa",
+  title: "Vacation rentals in Africa | Kama Properties",
   description:
-    "Browse approved stays across Senegal, Ghana, Egypt, Morocco, South Africa, and Tanzania.",
+    "Browse Kama Properties stays across Senegal, Ghana, Egypt, Morocco, South Africa, and Tanzania.",
   alternates: { canonical: "/properties" },
 };
 
@@ -149,8 +150,10 @@ const PropertiesPage = async ({
     const properties = await Property.find(
       withApprovedListingFilter(mongoQuery),
     ).lean();
-    const serializedProperties = await attachOwnerProfiles(
-      (await ensurePropertySlugs(properties)).map(serializePropertyForClient),
+    const serializedProperties = redactPreviewLockedCatalogFields(
+      await attachOwnerProfiles(
+        (await ensurePropertySlugs(properties)).map(serializePropertyForClient),
+      ),
     );
 
     return renderPropertiesList({

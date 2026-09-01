@@ -31,19 +31,28 @@ export async function generateMetadata({ params }) {
   const property = await loadPublicListing(id);
 
   if (!property) {
-    return { title: "Property Not Found | Kama Properties" };
+    return {
+      title: "Property Not Found | Kama Properties",
+      robots: { index: false, follow: false },
+    };
   }
 
   const session = await getServerSession(authOptions);
   if (!canUserViewListing(property, session)) {
-    return { title: "Property Not Found | Kama Properties" };
+    return {
+      title: "Property Not Found | Kama Properties",
+      robots: { index: false, follow: false },
+    };
   }
   if (
     (await isListingPreviewLocked(property)) &&
     !canUnlockPreviewListing(session) &&
     !isListingOwner(session, property)
   ) {
-    return { title: "Property Not Found | Kama Properties" };
+    return {
+      title: "Property Not Found | Kama Properties",
+      robots: { index: false, follow: false },
+    };
   }
 
   const canonicalUrl = propertyPublicUrl(property);

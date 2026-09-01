@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { useCurrency } from "@/utils/CurrencyContext";
-import { formatCurrency } from "@/utils/currencyUtils";
+import { formatListingPrice, resolveFxRate } from "@/utils/currencyUtils";
 import {
   getFlutterwaveCountry,
   getFlutterwavePaymentOption,
@@ -60,7 +60,8 @@ function RightColumn({ data }) {
   const [submitting, setSubmitting] = useState(false);
 
   const listingRates = normalizeRates(data.rates);
-  const paymentCurrency = normalizeCurrencyCode(currencyCode);
+  const fx = resolveFxRate(rates, currencyCode);
+  const paymentCurrency = normalizeCurrencyCode(fx.currencyCode);
   const isOwner = session?.user?.id === data.owner;
   const gatewayCheckout = isPaymentGatewayCheckoutEnabled();
   const checkInTimeLabel = formatClockTimeLabel(
@@ -113,16 +114,12 @@ function RightColumn({ data }) {
   const { cleaningFee, commission, total: totalUsd } =
     calculateBookingFees(basePriceUsd);
 
-  const numericalTotal = parseFloat(
-    (totalUsd * (rates[currencyCode] || 1)).toFixed(2),
-  );
-
-  const symbol = currencyCode === "USD" ? "$" : currencyCode;
+  const numericalTotal = parseFloat((totalUsd * fx.rate).toFixed(2));
 
   const priceDisplay = stayPricing
-    ? formatCurrency(stayPricing.base, rates[currencyCode], symbol)
+    ? formatListingPrice(stayPricing.base, rates, currencyCode)
     : primaryRate
-      ? formatCurrency(primaryRate.amount, rates[currencyCode], symbol)
+      ? formatListingPrice(primaryRate.amount, rates, currencyCode)
       : "—";
 
   const periodLabel = stayPricing
@@ -542,25 +539,25 @@ function RightColumn({ data }) {
             <div className="flex justify-between gap-3">
               <span>{stayPricing ? stayPricing.label : "Base"}</span>
               <span className="tabular-nums">
-                {formatCurrency(basePriceUsd, rates[currencyCode], symbol)}
+                {formatListingPrice(basePriceUsd, rates, currencyCode)}
               </span>
             </div>
             <div className="flex justify-between gap-3">
               <span>Cleaning (15%)</span>
               <span className="tabular-nums">
-                {formatCurrency(cleaningFee, rates[currencyCode], symbol)}
+                {formatListingPrice(cleaningFee, rates, currencyCode)}
               </span>
             </div>
             <div className="flex justify-between gap-3">
               <span>Service fee (7%)</span>
               <span className="tabular-nums">
-                {formatCurrency(commission, rates[currencyCode], symbol)}
+                {formatListingPrice(commission, rates, currencyCode)}
               </span>
             </div>
             <div className="flex justify-between gap-3 border-t border-[var(--kama-border)] pt-2.5 font-semibold text-[var(--kama-ink)]">
               <span>Total</span>
               <span className="tabular-nums">
-                {formatCurrency(totalUsd, rates[currencyCode], symbol)}
+                {formatListingPrice(totalUsd, rates, currencyCode)}
               </span>
             </div>
           </div>

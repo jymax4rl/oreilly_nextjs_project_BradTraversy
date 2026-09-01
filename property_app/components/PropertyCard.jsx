@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { Bed, Bath, Ruler, MapPin, Heart } from "lucide-react";
-import { formatCurrency } from "../utils/currencyUtils";
+import { formatListingPrice } from "../utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { propertyCardImageUrl } from "@/utils/propertyImageUrl";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
@@ -29,6 +29,7 @@ const PropertyCard = ({
     baths,
     square_feet,
     rates: propertyRates,
+    listingPrice,
     images,
     is_featured,
     _id,
@@ -50,25 +51,22 @@ const PropertyCard = ({
   const mainImage = propertyCardImageUrl(images);
 
   const getDisplayPrice = (ratesObj) => {
-    if (!ratesObj) return { price: "N/A", label: "" };
-    const currentRate = rates[currencyCode];
-    const currentSymbol = currencyCode === "USD" ? "$" : currencyCode;
-
-    if (ratesObj.nightly) {
+    const nightly = ratesObj?.nightly || listingPrice;
+    if (nightly) {
       return {
-        price: formatCurrency(ratesObj.nightly, currentRate, currentSymbol),
+        price: formatListingPrice(nightly, rates, currencyCode),
         label: t("listing.perNight"),
       };
     }
-    if (ratesObj.weekly) {
+    if (ratesObj?.weekly) {
       return {
-        price: formatCurrency(ratesObj.weekly, currentRate, currentSymbol),
+        price: formatListingPrice(ratesObj.weekly, rates, currencyCode),
         label: t("listing.perWeek"),
       };
     }
-    if (ratesObj.monthly) {
+    if (ratesObj?.monthly) {
       return {
-        price: formatCurrency(ratesObj.monthly, currentRate, currentSymbol),
+        price: formatListingPrice(ratesObj.monthly, rates, currencyCode),
         label: t("listing.perMonth"),
       };
     }
@@ -172,7 +170,7 @@ const PropertyCard = ({
             {location?.city}, {location?.country}
           </p>
         </div>
-        {hostName && (
+        {hostName && !locked && (
           <div className="mt-3 flex items-center gap-2">
             {hostImage ? (
               <Image

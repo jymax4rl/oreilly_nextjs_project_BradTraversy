@@ -4,7 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { Bed, Bath, Maximize, Mail, Phone, X, Clock } from "lucide-react";
 import { useCurrency } from "@/utils/CurrencyContext";
-import { formatCurrency } from "@/utils/currencyUtils";
+import { formatListingPrice } from "@/utils/currencyUtils";
 import { propertyAudioUrl } from "@/utils/propertyImageUrl";
 import AmenitiesAccordion from "@/components/AmenitiesAccordion";
 import MessageOwnerButton from "@/components/MessageOwnerButton";
@@ -15,8 +15,6 @@ import {
 } from "@/utils/checkInOutTimes";
 
 function RateRow({ label, amount, currencyCode, rates, available }) {
-  const symbol = currencyCode === "USD" ? "$" : currencyCode;
-
   return (
     <div className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-4 py-3.5 sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
       <span className="shrink-0 text-sm font-medium text-[var(--kama-ink-muted)] sm:text-lg sm:font-light">
@@ -24,7 +22,7 @@ function RateRow({ label, amount, currencyCode, rates, available }) {
       </span>
       {available ? (
         <span className="min-w-0 break-words text-right text-sm font-semibold tabular-nums text-[var(--kama-ink)] sm:text-lg">
-          {formatCurrency(amount, rates[currencyCode], symbol)}
+          {formatListingPrice(amount, rates, currencyCode)}
         </span>
       ) : (
         <span className="flex shrink-0 items-center gap-1.5 text-sm text-[var(--kama-danger,#b42318)]">
