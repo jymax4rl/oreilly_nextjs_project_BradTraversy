@@ -4,6 +4,10 @@ import bcrypt from "bcryptjs";
 import connectToDatabase from "@/config/database";
 import User from "@/models/User";
 import { isOpsStaff } from "@/utils/opsAuth";
+import {
+  ensureMarketplaceUser,
+  normalizeEmail,
+} from "@/utils/user/ensureMarketplaceUser";
 
 /** @type {import('next-auth').AuthOptions} */
 export const authOptions = {
@@ -72,26 +76,18 @@ export const authOptions = {
       }
 
       await connectToDatabase();
-      const email = profile?.email || user?.email;
+      const email = normalizeEmail(profile?.email || user?.email);
       if (!email) return false;
 
-      const userExists = await User.findOne({ email });
-      if (!userExists) {
-        const fromGoogle = String(profile?.name || user?.name || "").trim();
-        const fromEmail = String(email.split("@")[0] || "").trim();
-        const username = fromGoogle || fromEmail || "Guest";
-        await User.create({
-          email,
-          username,
-          image: profile?.image || user?.image,
-          role: "guest",
-          hostStatus: "none",
-        });
-        return true;
-      }
+      const marketplaceUser = await ensureMarketplaceUser({
+        email,
+        name: profile?.name || user?.name,
+        image: profile?.image || user?.image,
+      });
+      if (!marketplaceUser) return false;
 
       // Block Google sign-in for banned marketplace accounts
-      if (userExists.banned) {
+      if (marketplaceUser.banned) {
         return false;
       }
       return true;
@@ -106,9 +102,18 @@ export const authOptions = {
 
       if (needsHydrate || trigger === "update") {
         await connectToDatabase();
-        const user = await User.findOne({ email: token.email });
+        if (token.email) {
+          token.email = normalizeEmail(token.email);
+        }
+        const user = await ensureMarketplaceUser({
+          id: typeof token.id === "string" ? token.id : undefined,
+          email: token.email,
+          name: token.name,
+          image: token.picture,
+        });
         if (user) {
           token.id = user._id.toString();
+          token.email = user.email;
           token.role = user.role;
           token.hostStatus = user.hostStatus;
           token.hasCompletedHostOnboarding = !!user.hasCompletedHostOnboarding;
@@ -139,6 +144,9 @@ export const authOptions = {
         }
         if (token.name) {
           session.user.name = token.name;
+        }
+        if (token.email) {
+          session.user.email = token.email;
         }
       }
       return session;

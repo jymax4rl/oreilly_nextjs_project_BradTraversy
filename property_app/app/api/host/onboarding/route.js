@@ -1,9 +1,21 @@
 import connectToDatabase from "@/config/database";
-import User from "@/models/User";
 import HostApplication from "@/models/HostApplication";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { normalizeAddressInput } from "@/utils/address";
+import { ensureMarketplaceUser } from "@/utils/user/ensureMarketplaceUser";
+
+const USER_MISSING =
+  "We couldn't find your account. Sign out, sign in with Google again, then retry.";
+
+async function userFromSession(session) {
+  return ensureMarketplaceUser({
+    id: session.user.id,
+    email: session.user.email,
+    name: session.user.name,
+    image: session.user.image,
+  });
+}
 
 function parseApplicationBody(body) {
   const { phone, idType, idNumber, address, bio } = body;
@@ -43,8 +55,8 @@ export const GET = async () => {
     const session = await getServerSession(authOptions);
     if (!session?.user) return new Response("Unauthorized", { status: 401 });
 
-    const user = await User.findOne({ email: session.user.email });
-    if (!user) return new Response("User not found", { status: 404 });
+    const user = await userFromSession(session);
+    if (!user) return new Response(USER_MISSING, { status: 404 });
 
     const application = await HostApplication.findOne({ user: user._id }).lean();
     if (!application) return new Response("No application found", { status: 404 });
@@ -71,8 +83,8 @@ export const POST = async (request) => {
 
     const { phone, idType, idNumber, address, bio } = parsed.data;
 
-    const user = await User.findOne({ email: session.user.email });
-    if (!user) return new Response("User not found", { status: 404 });
+    const user = await userFromSession(session);
+    if (!user) return new Response(USER_MISSING, { status: 404 });
 
     if (user.hostStatus === "verified") {
       return new Response("Already a verified host", { status: 400 });
@@ -120,8 +132,8 @@ export const PUT = async (request) => {
 
     const { phone, idType, idNumber, address, bio } = parsed.data;
 
-    const user = await User.findOne({ email: session.user.email });
-    if (!user) return new Response("User not found", { status: 404 });
+    const user = await userFromSession(session);
+    if (!user) return new Response(USER_MISSING, { status: 404 });
 
     if (user.hostStatus !== "rejected") {
       return new Response("Only rejected applicants can resubmit", { status: 400 });
