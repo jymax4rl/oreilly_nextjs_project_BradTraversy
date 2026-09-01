@@ -2,6 +2,7 @@ import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import HostPropertyBookings from "@/components/bookings/HostPropertyBookings";
+import HostShell from "@/components/host/HostShell";
 import {
   describeBookingPolicy,
   resolveBookingPolicy,
@@ -63,11 +64,11 @@ export default async function PropertyReservationsPage({ params }) {
   const policySummary = describeBookingPolicy(policy);
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 pt-14 font-sans text-slate-900 md:pt-20">
-      <div className="mx-auto max-w-2xl px-4 py-6 sm:py-8">
+    <HostShell>
+    <div className="mx-auto max-w-2xl">
         <Link
           href="/host/reservations"
-          className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-slate-900"
+          className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-[var(--kama-ink-muted)] transition hover:text-[var(--kama-ink)]"
         >
           <ArrowLeft size={18} aria-hidden />
           All reservations
@@ -121,7 +122,7 @@ export default async function PropertyReservationsPage({ params }) {
           mode="property"
           title="Reservations"
         />
-      </div>
     </div>
+    </HostShell>
   );
 }

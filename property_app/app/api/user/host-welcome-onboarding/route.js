@@ -3,7 +3,7 @@ import User from "@/models/User";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 
-/** Mark the cinematic host welcome flow at /onboarding as completed (idempotent). */
+/** Mark the host-application pitch as seen (any signed-in user). */
 export const POST = async () => {
   try {
     await connectToDatabase();
@@ -11,10 +11,6 @@ export const POST = async () => {
 
     if (!session?.user?.email) {
       return new Response("Unauthorized", { status: 401 });
-    }
-
-    if (session.user.hostStatus !== "verified") {
-      return new Response("Forbidden", { status: 403 });
     }
 
     await User.updateOne(

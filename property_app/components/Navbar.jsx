@@ -108,9 +108,8 @@ const Navbar = () => {
   const isActive = (path) => pathname === path;
 
   const getHostNavItem = () => {
-    if (!session?.user) return null;
-    if (session.user.hostStatus === "verified") {
-      return { path: "/properties/add", label: "List Property" };
+    if (session?.user?.hostStatus === "verified") {
+      return { path: "/host", label: "Host console" };
     }
     return { path: "/host/onboarding", label: "Become a Host" };
   };
@@ -323,35 +322,15 @@ const Navbar = () => {
                 <div className="my-2 h-px bg-[rgba(12,26,26,0.08)]" />
 
                 {session?.user?.hostStatus === "verified" && (
-                  <>
-                    <Link
-                      href="/properties/my-listings"
-                      className={profileItemClass}
-                      role="menuitem"
-                      onClick={() => setIsProfileOpen(false)}
-                    >
-                      <LayoutList />
-                      <span>My listings</span>
-                    </Link>
-                    <Link
-                      href="/host/reservations"
-                      className={profileItemClass}
-                      role="menuitem"
-                      onClick={() => setIsProfileOpen(false)}
-                    >
-                      <CalendarCheck />
-                      <span>Manage reservations</span>
-                    </Link>
-                    <Link
-                      href="/properties/add"
-                      className={profileItemClass}
-                      role="menuitem"
-                      onClick={() => setIsProfileOpen(false)}
-                    >
-                      <PlusCircle />
-                      <span>List Property</span>
-                    </Link>
-                  </>
+                  <Link
+                    href="/host"
+                    className={`${profileItemClass} !text-[#1b5c57]`}
+                    role="menuitem"
+                    onClick={() => setIsProfileOpen(false)}
+                  >
+                    <LayoutList />
+                    <span>Host console</span>
+                  </Link>
                 )}
 
                 {session?.user && session.user.hostStatus !== "verified" && (

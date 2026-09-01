@@ -103,6 +103,25 @@ body:has(main#main-content) button[aria-label^="Currency"].fixed {
   background: transparent !important;
 }
 
+@keyframes kama-soft-zoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.05);
+  }
+}
+
+.kama-soft-zoom {
+  animation: kama-soft-zoom 14s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kama-soft-zoom {
+    animation: none;
+  }
+}
+
 @keyframes calendarFadeIn {
   from {
     opacity: 0;

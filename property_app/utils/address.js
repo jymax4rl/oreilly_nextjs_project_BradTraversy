@@ -204,6 +204,27 @@ export function normalizeAddressInput(input) {
   return normalized;
 }
 
+/**
+ * Coerce a Mongo-stored address (legacy string or partial object) into
+ * AddressSchema shape so Mongoose can save nested `address` / `hostAddress`.
+ */
+export function coerceStoredAddress(value) {
+  const normalized = normalizeAddressInput(value);
+  if (normalized) return normalized;
+
+  const fromLegacy = addressFromLegacy(value);
+  if (!fromLegacy.streetLine1?.trim() && !fromLegacy.formatted?.trim()) {
+    return null;
+  }
+
+  return {
+    ...fromLegacy,
+    streetLine1: fromLegacy.streetLine1 || fromLegacy.formatted,
+    city: fromLegacy.city || "—",
+    country: fromLegacy.country || "—",
+  };
+}
+
 export function addressFromLegacy(value) {
   if (!value) return emptyAddress();
   if (typeof value === "object" && value.streetLine1) {

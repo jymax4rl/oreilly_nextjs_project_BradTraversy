@@ -10,13 +10,6 @@ const signInUrl = (req, callbackUrl) => {
   return u;
 };
 
-function needsWelcome(token) {
-  return (
-    token?.hostStatus === "verified" &&
-    token.hasCompletedHostOnboarding !== true
-  );
-}
-
 export async function middleware(req) {
   const token = await getToken({
     req,
@@ -60,43 +53,32 @@ export async function middleware(req) {
     if (token.hostStatus !== "verified") {
       return NextResponse.redirect(new URL("/host/onboarding", req.url));
     }
-    if (needsWelcome(token)) {
-      return NextResponse.redirect(new URL("/onboarding", req.url));
-    }
     return NextResponse.next();
   }
 
   if (pathname.startsWith("/host")) {
     if (!token) {
+      if (pathname === "/host/onboarding") {
+        return NextResponse.next();
+      }
       return NextResponse.redirect(signInUrl(req, pathname));
     }
-    if (pathname === "/host/onboarding" && token.hostStatus === "verified") {
-      if (needsWelcome(token)) {
-        return NextResponse.redirect(new URL("/onboarding", req.url));
+    const applicant =
+      pathname === "/host/onboarding" ||
+      pathname.startsWith("/host/onboarding/") ||
+      pathname === "/host/pending" ||
+      pathname.startsWith("/host/pending/");
+    if (!applicant && token.hostStatus !== "verified") {
+      if (token.hostStatus === "onboarding") {
+        return NextResponse.redirect(new URL("/host/pending", req.url));
       }
-      return NextResponse.redirect(new URL("/properties/add", req.url));
-    }
-    return NextResponse.next();
-  }
-
-  if (pathname === "/") {
-    if (needsWelcome(token)) {
-      return NextResponse.redirect(new URL("/onboarding", req.url));
+      return NextResponse.redirect(new URL("/host/onboarding", req.url));
     }
     return NextResponse.next();
   }
 
   if (pathname === "/onboarding") {
-    if (!token) {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-    if (token.hostStatus !== "verified") {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-    if (token.hasCompletedHostOnboarding === true) {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-    return NextResponse.next();
+    return NextResponse.redirect(new URL("/host/onboarding", req.url));
   }
 
   return NextResponse.next();
@@ -104,7 +86,6 @@ export async function middleware(req) {
 
 export const config = {
   matcher: [
-    "/",
     "/onboarding",
     "/properties/add",
     "/host/:path*",

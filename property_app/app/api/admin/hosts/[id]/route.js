@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { isOpsStaff } from "@/utils/opsAuth";
 import mongoose from "mongoose";
+import { coerceStoredAddress } from "@/utils/address";
 
 export const PATCH = async (request, { params }) => {
   // Next.js 15/16: params is a Promise and must be awaited
@@ -42,6 +43,11 @@ export const PATCH = async (request, { params }) => {
       return new Response("Application not found", { status: 404 });
     }
 
+    const address = coerceStoredAddress(application.address);
+    if (address) {
+      application.set("address", address);
+    }
+
     // Update application
     application.status = status;
     application.reviewedAt = new Date();
@@ -62,8 +68,8 @@ export const PATCH = async (request, { params }) => {
     if (user) {
       user.hostStatus = status === "approved" ? "verified" : "rejected";
       user.role = status === "approved" ? "host" : "guest";
-      if (status === "approved" && application.address) {
-        user.hostAddress = application.address;
+      if (status === "approved" && address) {
+        user.set("hostAddress", address);
       }
       await user.save();
     } else {

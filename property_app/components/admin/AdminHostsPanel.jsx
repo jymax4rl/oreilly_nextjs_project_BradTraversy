@@ -307,7 +307,7 @@ export default function AdminHostsPanel() {
                     <div>
                       <span className="text-gray-500">ID Type:</span>{" "}
                       <span className="font-medium capitalize">
-                        {app.idType.replace("_", " ")}
+                        {app.idType?.replace("_", " ") || "—"}
                       </span>
                     </div>
                     <div>

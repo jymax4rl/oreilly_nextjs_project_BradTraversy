@@ -1,5 +1,6 @@
 import { Schema, models, model } from "mongoose";
 import { AddressSchema } from "./AddressSchema";
+import { coerceStoredAddress } from "@/utils/address";
 
 const HostApplicationSchema = new Schema(
   {
@@ -33,6 +34,15 @@ const HostApplicationSchema = new Schema(
   },
   { timestamps: true },
 );
+
+/** Older applications stored address as a single street string. */
+HostApplicationSchema.pre("validate", function (next) {
+  const coerced = coerceStoredAddress(this.address);
+  if (coerced) {
+    this.set("address", coerced);
+  }
+  next();
+});
 
 const HostApplication =
   models.HostApplication || model("HostApplication", HostApplicationSchema);

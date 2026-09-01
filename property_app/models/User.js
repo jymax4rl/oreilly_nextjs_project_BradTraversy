@@ -62,7 +62,7 @@ const UserSchema = new Schema(
       ref: "User",
       default: null,
     },
-    /** Cinematic pre-listing welcome flow at /onboarding (hosts only). */
+    /** Host-application pitch seen (modal on /host/onboarding). */
     hasCompletedHostOnboarding: {
       type: Boolean,
       default: false,

@@ -186,22 +186,10 @@ export default function SettingsSections({ settings }) {
               </div>
               <div className="space-y-0.5">
                 <DeepLink
-                  href="/host/listings"
+                  href="/host"
                   icon={Building2}
-                  label="Listing dashboard"
-                  description="Status and approval overview"
-                />
-                <DeepLink
-                  href="/properties/my-listings"
-                  icon={LayoutList}
-                  label="My listings"
-                  description="Rates, calendar, and availability"
-                />
-                <DeepLink
-                  href="/host/reservations"
-                  icon={CalendarCheck}
-                  label="Manage reservations"
-                  description="Guest stays across your properties"
+                  label="Host console"
+                  description="Reservations, calendar, listings, inbox"
                 />
               </div>
             </>

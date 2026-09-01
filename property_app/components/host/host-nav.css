@@ -1,0 +1,84 @@
+/* Host console menu slider — hide OS scrollbars; fade hints overflow. */
+
+.host-nav-rail {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+}
+
+.host-nav-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.host-nav-fade {
+  position: relative;
+}
+
+.host-nav-fade::before,
+.host-nav-fade::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 1.75rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.host-nav-fade::before {
+  left: 0;
+  background: linear-gradient(to right, var(--kama-field), transparent);
+}
+
+.host-nav-fade::after {
+  right: 0;
+  background: linear-gradient(to left, var(--kama-field), transparent);
+}
+
+.host-nav-fade[data-overflow="start"]::before,
+.host-nav-fade[data-overflow="both"]::before,
+.host-nav-fade[data-overflow="end"]::after,
+.host-nav-fade[data-overflow="both"]::after {
+  opacity: 1;
+}
+
+.host-nav-pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  height: 100%;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--kama-accent) 88%, white) 0%,
+    var(--kama-accent) 100%
+  );
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--kama-accent) 35%, transparent),
+    0 6px 18px -6px rgba(27, 92, 87, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transform: translateX(0);
+  width: 0;
+  opacity: 0;
+  will-change: transform, width;
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s ease;
+}
+
+.host-nav-pill[data-ready="true"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .host-nav-pill {
+    transition: none;
+  }
+}

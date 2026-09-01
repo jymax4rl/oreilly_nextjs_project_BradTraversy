@@ -71,25 +71,25 @@ export default async function HostListingsPage() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-[7.75rem] pb-24 lg:pt-[10vh] lg:pb-12">
-      <div className="container mx-auto max-w-5xl px-4">
-
-        {/* Header */}
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Listings</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              {total} listing{total !== 1 ? "s" : ""} · {approved} approved · {pending} pending review
-            </p>
-          </div>
-          <Link
-            href="/properties/add"
-            className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 transition"
-          >
-            <PlusCircle className="h-4 w-4" />
-            Add New Listing
-          </Link>
+    <div>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-[var(--kama-ink)]">
+            Listings
+          </h1>
+          <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
+            {total} listing{total !== 1 ? "s" : ""} · {approved} live · {pending}{" "}
+            in review
+          </p>
         </div>
+        <Link
+          href="/properties/add"
+          className="inline-flex items-center gap-2 rounded-xl bg-[var(--kama-accent)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--kama-accent-hover)]"
+        >
+          <PlusCircle className="h-4 w-4" />
+          List a stay
+        </Link>
+      </div>
 
         {/* Empty state */}
         {serialized.length === 0 ? (
@@ -206,7 +206,6 @@ export default async function HostListingsPage() {
             })}
           </div>
         )}
-      </div>
     </div>
   );
 }

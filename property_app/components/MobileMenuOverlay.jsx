@@ -219,68 +219,42 @@ export default function MobileMenuOverlay({
                 </section>
               )}
 
-              {/* Hosting — hosts only; become-a-host for others signed in */}
-              {user && (
-                <section
-                  className="kama-menu-group"
-                  aria-labelledby="menu-hosting"
-                >
-                  <h2 id="menu-hosting" className="kama-menu-section">
-                    Hosting
-                  </h2>
-                  <nav className="flex flex-col gap-0.5" aria-label="Hosting">
+              {/* Hosting — visitors and guests apply; verified hosts get tools */}
+              <section
+                className="kama-menu-group"
+                aria-labelledby="menu-hosting"
+              >
+                <h2 id="menu-hosting" className="kama-menu-section">
+                  Hosting
+                </h2>
+                <nav className="flex flex-col gap-0.5" aria-label="Hosting">
                     {isHost ? (
-                      <>
-                        <Link
-                          href="/properties/my-listings"
-                          onClick={close}
-                          className={rowClass("/properties/my-listings")}
-                        >
-                          <LayoutList
-                            className="kama-menu-row-icon"
-                            aria-hidden
-                          />
-                          My listings
-                        </Link>
-                        <Link
-                          href="/host/reservations"
-                          onClick={close}
-                          className={rowClass("/host/reservations")}
-                        >
-                          <CalendarCheck
-                            className="kama-menu-row-icon"
-                            aria-hidden
-                          />
-                          Manage reservations
-                        </Link>
-                        <Link
-                          href="/properties/add"
-                          onClick={close}
-                          className={rowClass("/properties/add")}
-                        >
-                          <PlusCircle
-                            className="kama-menu-row-icon"
-                            aria-hidden
-                          />
-                          List property
-                        </Link>
-                      </>
-                    ) : (
                       <Link
-                        href="/host/onboarding"
+                        href="/host"
                         onClick={close}
-                        className={`${rowClass("/host/onboarding")} kama-menu-row--accent`}
+                        className={`${rowClass("/host")} kama-menu-row--accent`}
                       >
-                        <PlusCircle
+                        <LayoutList
                           className="kama-menu-row-icon"
                           aria-hidden
                         />
-                        Become a host
+                        Host console
                       </Link>
-                    )}
-                  </nav>
-                </section>
-              )}
+                    ) : (
+                    <Link
+                      href="/host/onboarding"
+                      onClick={close}
+                      className={`${rowClass("/host/onboarding")} kama-menu-row--accent`}
+                    >
+                      <PlusCircle
+                        className="kama-menu-row-icon"
+                        aria-hidden
+                      />
+                      Become a host
+                    </Link>
+                  )}
+                </nav>
+              </section>
 
               {/* Ops */}
               {isAdmin && (

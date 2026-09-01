@@ -163,37 +163,17 @@ export default function ProfileSections({ profile }) {
             </div>
             <div className="space-y-0.5">
               <QuickLink
-                href="/properties/my-listings"
+                href="/host"
                 icon={LayoutList}
-                label="My listings"
-                description="Edit rates, photos, and availability"
-              />
-              <QuickLink
-                href="/host/reservations"
-                icon={CalendarCheck}
-                label="Manage reservations"
-                description="Guest stays across your properties"
-              />
-              <QuickLink
-                href="/host/listings"
-                icon={Building2}
-                label="Listing dashboard"
-                description="Status and approval overview"
+                label="Host console"
+                description="Reservations, calendar, listings, inbox"
               />
               <QuickLink
                 href="/properties/add"
                 icon={PlusCircle}
-                label="List a property"
-                description="Add another stay"
+                label="List a stay"
+                description="Add another listing"
               />
-              {!profile.hasCompletedHostOnboarding && (
-                <QuickLink
-                  href="/onboarding"
-                  icon={CheckCircle2}
-                  label="Finish host welcome"
-                  description="Short intro before listing tools"
-                />
-              )}
             </div>
           </>
         )}

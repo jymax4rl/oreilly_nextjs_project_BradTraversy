@@ -9,6 +9,7 @@ import {
   MessageCircle,
   Pencil,
   Phone,
+  RefreshCw,
   Search,
   Trash2,
   User,
@@ -320,10 +321,12 @@ export default function HostPropertyBookings({
 }) {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("active");
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [updatedAt, setUpdatedAt] = useState(null);
 
   // Debounce search before hitting the API.
   useEffect(() => {
@@ -331,8 +334,10 @@ export default function HostPropertyBookings({
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (opts = {}) => {
+    const silent = opts.silent === true;
+    if (silent) setRefreshing(true);
+    else setLoading(true);
     setError("");
     try {
       const params = new URLSearchParams();
@@ -349,7 +354,7 @@ export default function HostPropertyBookings({
           ? `/api/host/reservations${qs ? `?${qs}` : ""}`
           : `/api/properties/${propertyId}/bookings${qs ? `?${qs}` : ""}`;
 
-      const res = await fetch(fetchUrl);
+      const res = await fetch(fetchUrl, { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load reservations");
       let list = data.bookings || [];
@@ -362,10 +367,12 @@ export default function HostPropertyBookings({
         list = list.filter((b) => bookingMatchesSearch(b, searchQuery));
       }
       setBookings(list);
+      setUpdatedAt(new Date());
     } catch (e) {
       setError(e.message || "Could not load reservations");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [propertyId, mode, statusFilter, searchQuery]);
 
@@ -393,6 +400,25 @@ export default function HostPropertyBookings({
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => load({ silent: true })}
+            disabled={loading || refreshing}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--kama-border-strong)] bg-white px-2.5 py-1.5 text-xs font-semibold text-[var(--kama-accent)] transition hover:bg-[var(--kama-accent-soft)] disabled:opacity-60"
+            aria-label="Refresh reservations"
+          >
+            <RefreshCw
+              size={14}
+              className={refreshing ? "animate-spin" : undefined}
+              aria-hidden
+            />
+            {refreshing ? "Refreshing…" : "Refresh"}
+          </button>
+          {updatedAt && !loading && (
+            <span className="hidden text-[11px] text-slate-400 sm:inline">
+              Updated {updatedAt.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
+            </span>
+          )}
           <label className="relative block min-w-[11rem] flex-1 sm:min-w-[16rem]">
             <span className="sr-only">Search by Ref # or guest name</span>
             <Search
@@ -452,7 +478,7 @@ export default function HostPropertyBookings({
                 key={b._id}
                 booking={b}
                 propertyId={propertyId || b.propertyId}
-                onChanged={load}
+                onChanged={() => load({ silent: true })}
               />
             ))}
           </ul>
@@ -470,7 +496,7 @@ export default function HostPropertyBookings({
                 key={b._id}
                 booking={b}
                 propertyId={propertyId || b.propertyId}
-                onChanged={load}
+                onChanged={() => load({ silent: true })}
               />
             ))}
           </ul>
@@ -488,7 +514,7 @@ export default function HostPropertyBookings({
                 key={b._id}
                 booking={b}
                 propertyId={propertyId || b.propertyId}
-                onChanged={load}
+                onChanged={() => load({ silent: true })}
               />
             ))}
           </ul>
