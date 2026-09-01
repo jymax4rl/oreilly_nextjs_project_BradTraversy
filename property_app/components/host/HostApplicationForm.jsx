@@ -41,6 +41,8 @@ export default function HostApplicationForm({
     bio: initialData?.bio || "",
   });
 
+  const [formError, setFormError] = useState("");
+
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -48,8 +50,12 @@ export default function HostApplicationForm({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!isAddressComplete(formData.address)) {
+      setFormError(
+        "Please complete street, city, and country — they are saved on your host profile.",
+      );
       return;
     }
+    setFormError("");
     onSubmit(formData);
   };
 
@@ -77,12 +83,12 @@ export default function HostApplicationForm({
         })}
       </div>
 
-      {error ? (
+      {(error || formError) ? (
         <div
           className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
           role="alert"
         >
-          {error}
+          {error || formError}
         </div>
       ) : null}
 

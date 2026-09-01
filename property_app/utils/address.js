@@ -71,6 +71,28 @@ function readLatLng(location) {
   };
 }
 
+function partsFromFormatted(formatted) {
+  return String(formatted || "")
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+/** When Places omits locality/country, infer from a typical "street, city, country" line. */
+function guessCityCountry(formatted) {
+  const parts = partsFromFormatted(formatted);
+  if (parts.length >= 3) {
+    return {
+      city: parts[parts.length - 2],
+      country: parts[parts.length - 1],
+    };
+  }
+  if (parts.length === 2) {
+    return { city: parts[0], country: parts[1] };
+  }
+  return { city: "", country: "" };
+}
+
 /**
  * Parse a Google Place into our address shape.
  * Supports Places API (New) Place after fetchFields, and legacy PlaceResult.
@@ -89,6 +111,7 @@ export function parseGooglePlace(place) {
       : place.displayName?.text) ||
     "";
   const placeId = place.id || place.place_id || "";
+  const guessed = guessCityCountry(formatted);
 
   if (!components.length) {
     if (!formatted && lat == null) return null;
@@ -96,10 +119,10 @@ export function parseGooglePlace(place) {
       formatted,
       streetLine1: formatted.split(",")[0]?.trim() || "",
       streetLine2: "",
-      city: "",
+      city: guessed.city,
       state: "",
       postalCode: "",
-      country: "",
+      country: guessed.country,
       countryCode: "",
       placeId,
       lat,
@@ -126,10 +149,10 @@ export function parseGooglePlace(place) {
     formatted: formatted || "",
     streetLine1: streetLine1 || formatted.split(",")[0]?.trim() || "",
     streetLine2: "",
-    city: componentLong(locality) || "",
+    city: componentLong(locality) || guessed.city,
     state: componentShort(state) || componentLong(state) || "",
     postalCode: componentLong(postalCode) || "",
-    country: componentLong(country) || "",
+    country: componentLong(country) || guessed.country,
     countryCode: componentShort(country) || "",
     placeId,
     lat,

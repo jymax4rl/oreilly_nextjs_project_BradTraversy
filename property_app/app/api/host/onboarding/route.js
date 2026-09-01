@@ -16,7 +16,7 @@ function parseApplicationBody(body) {
   if (!normalizedAddress) {
     return {
       error:
-        "A complete address is required (street, city, and country).",
+        "Please complete street, city, and country — they are saved on your host profile.",
     };
   }
 

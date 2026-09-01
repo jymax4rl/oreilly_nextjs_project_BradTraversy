@@ -77,7 +77,9 @@ export const authOptions = {
 
       const userExists = await User.findOne({ email });
       if (!userExists) {
-        const username = profile?.name || user?.name || email.split("@")[0];
+        const fromGoogle = String(profile?.name || user?.name || "").trim();
+        const fromEmail = String(email.split("@")[0] || "").trim();
+        const username = fromGoogle || fromEmail || "Guest";
         await User.create({
           email,
           username,
