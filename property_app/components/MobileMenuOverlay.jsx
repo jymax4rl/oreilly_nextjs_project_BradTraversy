@@ -150,9 +150,9 @@ export default function MobileMenuOverlay({
 
               {/* Discover */}
               <section className="kama-menu-group" aria-labelledby="menu-discover">
-                <h2 id="menu-discover" className="kama-menu-section">
+                <p id="menu-discover" className="kama-menu-section">
                   {t("menu.discover")}
-                </h2>
+                </p>
                 <nav className="flex flex-col gap-0.5" aria-label={t("menu.discover")}>
                   <Link href="/" onClick={close} className={rowClass("/")}>
                     <Home className="kama-menu-row-icon" aria-hidden />
@@ -188,9 +188,9 @@ export default function MobileMenuOverlay({
               {/* Travel — signed-in guests */}
               {user && (
                 <section className="kama-menu-group" aria-labelledby="menu-travel">
-                  <h2 id="menu-travel" className="kama-menu-section">
+                  <p id="menu-travel" className="kama-menu-section">
                     {t("menu.travel")}
-                  </h2>
+                  </p>
                   <nav className="flex flex-col gap-0.5" aria-label={t("menu.travel")}>
                     <Link
                       href="/my-bookings"
@@ -228,9 +228,9 @@ export default function MobileMenuOverlay({
                 className="kama-menu-group"
                 aria-labelledby="menu-hosting"
               >
-                <h2 id="menu-hosting" className="kama-menu-section">
+                <p id="menu-hosting" className="kama-menu-section">
                   {t("menu.hosting")}
-                </h2>
+                </p>
                 <nav className="flex flex-col gap-0.5" aria-label={t("menu.hosting")}>
                     {isHost ? (
                       <Link
@@ -263,9 +263,9 @@ export default function MobileMenuOverlay({
               {/* Ops */}
               {isAdmin && (
                 <section className="kama-menu-group" aria-labelledby="menu-admin">
-                  <h2 id="menu-admin" className="kama-menu-section">
+                  <p id="menu-admin" className="kama-menu-section">
                     {t("nav.operations")}
-                  </h2>
+                  </p>
                   <nav className="flex flex-col gap-0.5" aria-label={t("nav.operations")}>
                     <Link
                       href="/ops"
@@ -285,9 +285,9 @@ export default function MobileMenuOverlay({
                   className="kama-menu-group"
                   aria-labelledby="menu-account"
                 >
-                  <h2 id="menu-account" className="kama-menu-section">
+                  <p id="menu-account" className="kama-menu-section">
                     {t("menu.account")}
-                  </h2>
+                  </p>
                   <nav className="flex flex-col gap-0.5" aria-label={t("menu.account")}>
                     <Link
                       href="/settings"

@@ -45,7 +45,7 @@ export const messages = {
       tagline: "African vacation rentals",
       browseStays: "Browse stays",
       staysEyebrow: "Stays",
-      staysTitle: "Places you can book tonight",
+      staysTitle: "Available vacation rentals in Africa",
     },
     search: {
       findStay: "Find a stay",
@@ -76,6 +76,8 @@ export const messages = {
       resultsOne: "{count} result found",
       resultsOther: "{count} results found",
       perNight: "/ night",
+      catalogTitle: "Vacation rentals in Africa",
+      availableIn: "Available stays in {place}",
     },
     propertyTypes: {
       all: "All Properties",
@@ -305,7 +307,7 @@ export const messages = {
       tagline: "Locations de vacances en Afrique",
       browseStays: "Voir les séjours",
       staysEyebrow: "Séjours",
-      staysTitle: "Des lieux à réserver dès ce soir",
+      staysTitle: "Locations de vacances disponibles en Afrique",
     },
     search: {
       findStay: "Trouver un séjour",
@@ -336,6 +338,8 @@ export const messages = {
       resultsOne: "{count} résultat",
       resultsOther: "{count} résultats",
       perNight: "/ nuit",
+      catalogTitle: "Locations de vacances en Afrique",
+      availableIn: "Séjours disponibles à {place}",
     },
     propertyTypes: {
       all: "Tous les logements",

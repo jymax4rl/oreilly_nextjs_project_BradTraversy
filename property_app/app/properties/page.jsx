@@ -8,12 +8,25 @@ import { withApprovedListingFilter } from "@/utils/listingApproval";
 import { ensurePropertySlugs } from "@/utils/listings/propertySlug";
 import { redactPreviewLockedCatalogFields } from "@/utils/listings/previewLockedHost";
 
-export const metadata = {
-  title: "Vacation rentals in Africa | Kama Properties",
-  description:
-    "Browse Kama Properties stays across Senegal, Ghana, Egypt, Morocco, South Africa, and Tanzania.",
-  alternates: { canonical: "/properties" },
-};
+export async function generateMetadata({ searchParams }) {
+  const params = (await searchParams) || {};
+  const location = String(params.location || "").trim();
+  if (location) {
+    return {
+      title: `Vacation rentals in ${location}`,
+      description: `Browse Kama Properties vacation rentals in ${location} — African stays with beds, baths, and nightly rates.`,
+      alternates: {
+        canonical: `/properties?location=${encodeURIComponent(location)}`,
+      },
+    };
+  }
+  return {
+    title: "Vacation rentals in Africa",
+    description:
+      "Browse Kama Properties stays across Senegal, Ghana, Egypt, Morocco, South Africa, and Tanzania.",
+    alternates: { canonical: "/properties" },
+  };
+}
 
 // Listings need a live DB - do not prerender at image-build time (no secrets in Docker build).
 export const dynamic = "force-dynamic";

@@ -154,7 +154,7 @@ const PropertyCard = ({
   const body = (
     <div className="flex flex-grow flex-col p-6">
       <div className="mb-4">
-        <h3
+        <p
           className={`mb-2 line-clamp-1 text-xl font-bold leading-tight transition-colors ${
             locked
               ? "text-gray-500"
@@ -163,7 +163,7 @@ const PropertyCard = ({
           title={name}
         >
           {name}
-        </h3>
+        </p>
         <div className="flex items-center text-sm font-medium text-gray-500">
           <MapPin size={16} className="mr-1.5 text-gray-400" />
           <p>

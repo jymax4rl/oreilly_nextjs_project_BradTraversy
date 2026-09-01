@@ -17,12 +17,12 @@ const Footer = ({ className = "" }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-24">
           {/* Left: Call to Action */}
           <div className="space-y-6">
-            <h3 className="text-3xl md:text-5xl font-semibold text-white tracking-tight">
+            <p className="text-3xl md:text-5xl font-semibold text-white tracking-tight">
               {t("footer.ready")} <br />
               <span className="text-[var(--kama-accent,#1b5c57)]">
                 {t("footer.dreamStay")}
               </span>
-            </h3>
+            </p>
             <p className="max-w-md text-lg text-zinc-500">
               {t("footer.blurb")}
             </p>
@@ -99,9 +99,9 @@ const Footer = ({ className = "" }) => {
 
         {/* Giant Footer Title (Modern Trend) */}
         <div className="mt-20 border-t border-zinc-900 pt-8 text-center">
-          <h1 className="text-[12vw] cursor-pointer leading-none font-bold text-zinc-900 select-none tracking-tighter hover:text-zinc-800 transition-colors duration-500">
+          <p className="text-[12vw] cursor-pointer leading-none font-bold text-zinc-900 select-none tracking-tighter hover:text-zinc-800 transition-colors duration-500">
             KAMA PROPERTIES
-          </h1>
+          </p>
         </div>
       </div>
     </footer>

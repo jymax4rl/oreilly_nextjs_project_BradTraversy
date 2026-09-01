@@ -80,14 +80,25 @@ const HomeProperties = ({
           </div>
         )}
 
-        {hasSearch && (
+        {!hideSearchToolbar && !hasSearch && !isSavedView && !hostListingsView ? (
+          <h1 className="mb-8 text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
+            {t("search.catalogTitle")}
+          </h1>
+        ) : null}
+
+        {hasSearch ? (
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
+                {searchQuery
+                  ? t("search.availableIn", { place: searchQuery })
+                  : t("search.catalogTitle")}
+              </h2>
+              <p className="mt-1 text-sm font-medium text-gray-500">
                 {properties.length === 1
                   ? t("search.resultsOne", { count: properties.length })
                   : t("search.resultsOther", { count: properties.length })}
-              </h2>
+              </p>
               <p className="mt-1 flex flex-wrap items-center gap-2 text-gray-500">
                 {searchQuery && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--kama-accent-soft)] px-3 py-1 text-sm font-medium text-[var(--kama-accent)]">
@@ -137,9 +148,9 @@ const HomeProperties = ({
                 <div className="mb-6 inline-flex items-center justify-center rounded-full bg-[var(--kama-accent-soft)] p-8">
                   <Home className="h-16 w-16 text-[var(--kama-accent)]" />
                 </div>
-                <h3 className="mb-4 text-3xl font-bold text-gray-900">
+                <p className="mb-4 text-3xl font-bold text-gray-900">
                   {t("empty.noListings")}
-                </h3>
+                </p>
                 <p className="mx-auto max-w-md text-lg leading-relaxed text-gray-500">
                   {t("empty.noListingsHint")}
                 </p>
@@ -155,9 +166,9 @@ const HomeProperties = ({
                 <div className="mb-6 inline-flex items-center justify-center rounded-full bg-[var(--kama-accent-soft)] p-8">
                   <Search className="h-16 w-16 text-[var(--kama-accent)]" />
                 </div>
-                <h3 className="mb-4 text-3xl font-bold text-gray-900">
+                <p className="mb-4 text-3xl font-bold text-gray-900">
                   {t("empty.noneFound")}
-                </h3>
+                </p>
                 <p className="mx-auto max-w-md text-lg leading-relaxed text-gray-500">
                   {t("empty.noneFoundHint")}
                   {searchQuery && (

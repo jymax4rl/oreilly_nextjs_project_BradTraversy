@@ -14,6 +14,11 @@ import {
 } from "@/utils/listings/propertySlug";
 import { propertyPublicPath, propertyPublicUrl } from "@/utils/listings/propertyPath";
 import {
+  listingTitleSegment,
+  listingMetaDescription,
+  listingKeywords,
+} from "@/utils/seo/listingMetadata";
+import {
   canUnlockPreviewListing,
   isListingOwner,
 } from "@/utils/listings/previewLockedHost";
@@ -32,7 +37,7 @@ export async function generateMetadata({ params }) {
 
   if (!property) {
     return {
-      title: "Property Not Found | Kama Properties",
+      title: { absolute: "Property Not Found | Kama Properties" },
       robots: { index: false, follow: false },
     };
   }
@@ -40,7 +45,7 @@ export async function generateMetadata({ params }) {
   const session = await getServerSession(authOptions);
   if (!canUserViewListing(property, session)) {
     return {
-      title: "Property Not Found | Kama Properties",
+      title: { absolute: "Property Not Found | Kama Properties" },
       robots: { index: false, follow: false },
     };
   }
@@ -50,7 +55,7 @@ export async function generateMetadata({ params }) {
     !isListingOwner(session, property)
   ) {
     return {
-      title: "Property Not Found | Kama Properties",
+      title: { absolute: "Property Not Found | Kama Properties" },
       robots: { index: false, follow: false },
     };
   }
@@ -60,32 +65,39 @@ export async function generateMetadata({ params }) {
     property.images?.[0],
     process.env.NEXT_PUBLIC_SITE_URL || "https://www.isisel.com",
   );
+  const title = listingTitleSegment(property);
+  const description = listingMetaDescription(property);
+  const place = [
+    property.location?.city,
+    property.location?.country,
+  ]
+    .filter(Boolean)
+    .join(", ");
 
   return {
-    title: `${property.name} | ${property.location?.city || "Africa"}`,
-    description:
-      property.description?.slice(0, 160) ||
-      `Stay at ${property.name} in ${property.location?.city}`,
-    keywords: `${property.type}, ${property.location?.city}, ${property.location?.country}, vacation rental, Africa`,
+    title,
+    description,
+    keywords: listingKeywords(property),
     alternates: { canonical: canonicalUrl },
     openGraph: {
-      title: property.name,
-      description: property.description?.slice(0, 160),
+      title: `${title} | Kama Properties`,
+      description,
       url: canonicalUrl,
       type: "website",
+      siteName: "Kama Properties",
       images: [
         {
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: `${property.name} in ${property.location?.city}`,
+          alt: `${property.name} vacation rental in ${place || "Africa"}`,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: property.name,
-      description: property.description?.slice(0, 160),
+      title: `${title} | Kama Properties`,
+      description,
       images: [ogImage],
     },
   };
