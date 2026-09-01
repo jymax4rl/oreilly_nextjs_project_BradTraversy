@@ -234,6 +234,7 @@ function PropertyDetails({ data }) {
             </div>
             <MessageOwnerButton
               propertyId={data._id}
+              listingKey={data.slug || data._id}
               ownerId={data.owner}
               ownerName={ownerName}
             />

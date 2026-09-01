@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { sendMessage } from "@/utils/actions/messageActions";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 
 export default function PropertyContactForm({
   propertyId,
+  listingHref,
   recipientId,
   propertyName,
   ownerName,
@@ -53,7 +55,7 @@ export default function PropertyContactForm({
             View your messages
           </Link>
           <Link
-            href={`/properties/${propertyId}`}
+            href={listingHref || propertyPublicPath({ _id: propertyId })}
             className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
           >
             Back to listing

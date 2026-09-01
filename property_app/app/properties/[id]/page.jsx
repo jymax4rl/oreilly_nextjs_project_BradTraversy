@@ -1,19 +1,29 @@
 import connectToDatabase from "@/config/database";
 import { propertyImageAbsoluteUrl } from "@/utils/propertyImageUrl";
-import Property from "@/models/Property";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
 import ServerProperty from "@/components/dynamicComponents/ServerProperty";
 import DynamicProperty from "@/components/dynamicComponents/DynamicProperty";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { canUserViewListing } from "@/utils/listingApproval";
+import {
+  ensurePropertySlug,
+  findPropertyByParam,
+} from "@/utils/listings/propertySlug";
+import { propertyPublicPath, propertyPublicUrl } from "@/utils/listings/propertyPath";
+
+async function loadPublicListing(param) {
+  await connectToDatabase();
+  const found = await findPropertyByParam(param, "-internalNotes");
+  if (!found) return null;
+  return ensurePropertySlug(found);
+}
 
 export async function generateMetadata({ params }) {
-  await connectToDatabase();
   const { id } = await params;
-  const property = await Property.findById(id).lean();
+  const property = await loadPublicListing(id);
 
   if (!property) {
     return { title: "Property Not Found | Kama Properties" };
@@ -24,12 +34,10 @@ export async function generateMetadata({ params }) {
     return { title: "Property Not Found | Kama Properties" };
   }
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://www.isisel.com";
-  const canonicalUrl = `${siteUrl}/properties/${id}`;
+  const canonicalUrl = propertyPublicUrl(property);
   const ogImage = propertyImageAbsoluteUrl(
     property.images?.[0],
-    siteUrl,
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.isisel.com",
   );
 
   return {
@@ -63,9 +71,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function PropertyPage({ params }) {
-  await connectToDatabase();
   const { id } = await params;
-  const property = await Property.findById(id, "-internalNotes").lean();
+  const property = await loadPublicListing(id);
 
   if (!property) {
     notFound();
@@ -76,15 +83,21 @@ export default async function PropertyPage({ params }) {
     notFound();
   }
 
+  const publicPath = propertyPublicPath(property);
+  if (property.slug && id !== property.slug) {
+    permanentRedirect(publicPath);
+  }
+
   const serialized = await attachOwnerProfiles(
     serializePropertyForClient(property),
   );
 
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/properties/${id}`;
-
   return (
     <div className="overflow-x-hidden">
-      <ServerProperty property={serialized} canonicalUrl={canonicalUrl} />
+      <ServerProperty
+        property={serialized}
+        canonicalUrl={propertyPublicUrl(property)}
+      />
       <DynamicProperty property={serialized} />
     </div>
   );

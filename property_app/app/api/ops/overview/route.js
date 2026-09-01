@@ -68,7 +68,7 @@ export const GET = async (request) => {
         ],
       })
         .select(
-          "name type status location owner seller_info listingModerationRequestedAt createdAt",
+          "name type status location owner seller_info listingModerationRequestedAt createdAt slug",
         )
         .lean(),
       Property.countDocuments(approvedListingQuery()),
@@ -107,6 +107,7 @@ export const GET = async (request) => {
 
     const listings = withSubmit.map(({ property: p, submittedAt }) => ({
       _id: p._id.toString(),
+      slug: p.slug || null,
       name: p.name || "Untitled",
       type: p.type || null,
       status: p.status || null,

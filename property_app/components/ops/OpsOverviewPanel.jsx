@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import GlowBarChart from "@/components/ops/charts/GlowBarChart";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 import "@/components/ops/charts/ops-charts.css";
 
 const MAX_LOOKBACK_MINUTES = 60;
@@ -337,7 +338,7 @@ export default function OpsOverviewPanel() {
                     </div>
                     <div className="flex shrink-0 flex-wrap gap-2">
                       <Link
-                        href={`/properties/${id}`}
+                        href={propertyPublicPath(listing)}
                         className="rounded-full border border-[var(--kama-border)] px-3 py-1.5 text-xs font-semibold text-[var(--kama-ink)] transition hover:bg-[var(--kama-field)]"
                       >
                         View

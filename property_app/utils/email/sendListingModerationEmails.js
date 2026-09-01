@@ -3,6 +3,7 @@ import connectToDatabase from "@/config/database";
 import User from "@/models/User";
 import { getBookingResendApiKey } from "@/utils/email/resendKeys";
 import { getAbsoluteAppUrl } from "@/utils/email/propertyImageUrl";
+import { listingPublicUrlFor } from "@/utils/listings/propertySlug";
 
 let resendClient = null;
 let resendClientKey = null;
@@ -141,7 +142,9 @@ export async function sendListingSubmittedAdminEmail({
   }
 
   const reviewUrl = getAbsoluteAppUrl(`/ops/listings`);
-  const listingUrl = getAbsoluteAppUrl(`/properties/${propertyId}`);
+  const listingUrl = propertyId
+    ? await listingPublicUrlFor(propertyId)
+    : getAbsoluteAppUrl("/ops/listings");
   const subject = `New listing pending review: ${propertyName || "Untitled"}`;
   const html = `
     <div style="font-family: system-ui, sans-serif; line-height: 1.5; color: #111;">
@@ -233,9 +236,9 @@ export async function sendListingDecisionHostEmail({
   if (!resend) return { sent: false, reason: "no_client" };
 
   const approved = decision === "approved";
-  const listingUrl = getAbsoluteAppUrl(
-    propertyId ? `/properties/${propertyId}` : "/host/listings",
-  );
+  const listingUrl = propertyId
+    ? await listingPublicUrlFor(propertyId)
+    : getAbsoluteAppUrl("/host/listings");
   const myListingsUrl = getAbsoluteAppUrl("/host/listings");
   const subject = approved
     ? `Your listing was approved: ${propertyName || "Kama Properties"}`

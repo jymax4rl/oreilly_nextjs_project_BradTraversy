@@ -22,7 +22,7 @@ export async function getMessages() {
   })
     .populate("sender", "username email image")
     .populate("recipient", "username email image")
-    .populate("property", "name location images")
+    .populate("property", "name location images slug")
     .sort({ createdAt: -1 })
     .lean();
 
@@ -79,6 +79,10 @@ export async function sendMessage(formData) {
 
   revalidatePath("/messages");
   revalidatePath(`/properties/${propertyId}`);
+  const listed = await Property.findById(propertyId).select("slug").lean();
+  if (listed?.slug) {
+    revalidatePath(`/properties/${listed.slug}`);
+  }
 
   return { success: "Message sent successfully!" };
 }
@@ -138,6 +142,10 @@ export async function replyToMessage(formData) {
 
   revalidatePath("/messages");
   revalidatePath(`/properties/${parent.property.toString()}`);
+  const listed = await Property.findById(parent.property).select("slug").lean();
+  if (listed?.slug) {
+    revalidatePath(`/properties/${listed.slug}`);
+  }
 
   return { success: "Reply sent." };
 }

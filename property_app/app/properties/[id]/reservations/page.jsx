@@ -1,5 +1,4 @@
 import connectToDatabase from "@/config/database";
-import Property from "@/models/Property";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import HostPropertyBookings from "@/components/bookings/HostPropertyBookings";
 import HostShell from "@/components/host/HostShell";
@@ -14,11 +13,13 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { propertyCardImageSrc } from "@/utils/cloudinary/propertyMediaUrls";
+import { findPropertyByParam } from "@/utils/listings/propertySlug";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 
 export async function generateMetadata({ params }) {
   await connectToDatabase();
   const { id } = await params;
-  const property = await Property.findById(id).select("name").lean();
+  const property = await findPropertyByParam(id, "name");
   return {
     title: property
       ? `Reservations — ${property.name} | Kama Properties`
@@ -30,7 +31,7 @@ export async function generateMetadata({ params }) {
 export default async function PropertyReservationsPage({ params }) {
   await connectToDatabase();
   const { id } = await params;
-  const property = await Property.findById(id, "-internalNotes").lean();
+  const property = await findPropertyByParam(id, "-internalNotes");
 
   if (!property) {
     notFound();
@@ -50,7 +51,7 @@ export default async function PropertyReservationsPage({ params }) {
   const serialized = serializePropertyForClient(property);
 
   if (session.user.id !== serialized.owner) {
-    redirect(`/properties/${id}`);
+    redirect(propertyPublicPath(serialized));
   }
 
   const locationLabel = [

@@ -10,6 +10,7 @@ import DateCurrencyUpdated from "./DateCurrencyUpdated";
 import PropertySearch from "./PropertySearch";
 import { Suspense } from "react";
 import HostListingCardActions from "./properties/HostListingCardActions";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 
 const HomeProperties = ({
   initialProperties = [],
@@ -201,6 +202,7 @@ const HomeProperties = ({
                     <HostListingCardActions
                       propertyId={property._id}
                       propertyName={property.name}
+                      listingHref={propertyPublicPath(property)}
                       onDeleted={(id) => {
                         setProperties((prev) =>
                           prev.filter((p) => String(p._id) !== String(id)),

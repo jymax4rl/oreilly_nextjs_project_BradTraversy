@@ -9,6 +9,7 @@ import { Building2, PlusCircle, MapPin, BedDouble, Bath, Eye, Clock, CheckCircle
 import DeletePropertyControl from "@/components/properties/DeletePropertyControl";
 import PropertyListingThumbnail from "@/components/properties/PropertyListingThumbnail";
 import { isAwaitingListingModeration } from "@/utils/listingApproval";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 
 export const metadata = {
   title: "My Listings | Kama Properties",
@@ -176,7 +177,7 @@ export default async function HostListingsPage() {
 
                     <div className="mt-3 flex gap-2 flex-wrap">
                       <Link
-                        href={`/properties/${property._id}`}
+                        href={propertyPublicPath(property)}
                         className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
                       >
                         <Eye className="h-3.5 w-3.5" />

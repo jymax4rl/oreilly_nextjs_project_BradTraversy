@@ -6,6 +6,7 @@ import { Bed, Bath, Ruler, MapPin, Heart } from "lucide-react";
 import { formatCurrency } from "../utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { propertyCardImageUrl } from "@/utils/propertyImageUrl";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 import MobileMoneyBadge from "@/components/MobileMoneyBadge";
 import { useSession } from "next-auth/react";
 
@@ -95,9 +96,11 @@ const PropertyCard = ({ property, isSaved = false }) => {
     }
   };
 
+  const listingHref = propertyPublicPath(property);
+
   return (
     <div className="group bg-[var(--kama-surface)] rounded-3xl overflow-hidden flex flex-col h-full border border-[var(--kama-border)] hover:border-[var(--kama-border-strong)] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative">
-      <Link href={`/properties/${_id}`}>
+      <Link href={listingHref}>
         <div className="relative cursor-pointer h-72 overflow-hidden">
           <Image
             loading="eager"
@@ -154,7 +157,7 @@ const PropertyCard = ({ property, isSaved = false }) => {
         />
       </button>
 
-      <Link href={`/properties/${_id}`}>
+      <Link href={listingHref}>
         <div className="p-6 flex flex-col flex-grow">
           <div className="mb-4">
             <h3

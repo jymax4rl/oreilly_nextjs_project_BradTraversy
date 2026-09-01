@@ -7,6 +7,7 @@ import {
   deleteMessage,
   replyToMessage,
 } from "@/utils/actions/messageActions";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 
 export default function MessageCard({ message, currentUserId }) {
   const [isRead, setIsRead] = useState(message.read);
@@ -107,7 +108,7 @@ export default function MessageCard({ message, currentUserId }) {
 
           {message.property && (
             <Link
-              href={`/properties/${message.property._id}`}
+              href={propertyPublicPath(message.property)}
               className="mt-1 inline-block text-xs text-blue-600 hover:underline"
             >
               Re: {message.property.name}

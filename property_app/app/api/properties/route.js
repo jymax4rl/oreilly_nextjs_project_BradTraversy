@@ -23,6 +23,7 @@ import { sendListingSubmittedAdminEmail } from "@/utils/email/sendListingModerat
 import { after } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { allocateUniqueSlug, listingSlugBase } from "@/utils/listings/propertySlug";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -215,6 +216,9 @@ export const POST = async (request) => {
       owner: hostId,
       status: "pending",
       listingModerationRequestedAt: new Date(),
+      slug: await allocateUniqueSlug(
+        listingSlugBase({ name, location: { city, country } }),
+      ),
     };
 
     const newProperty = new Property(propertyData);

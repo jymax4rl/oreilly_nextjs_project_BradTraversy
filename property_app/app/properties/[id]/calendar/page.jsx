@@ -1,5 +1,4 @@
 import connectToDatabase from "@/config/database";
-import Property from "@/models/Property";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import HostAvailabilityCalendar from "@/components/calendar/HostAvailabilityCalendar";
 import HostPropertyBookings from "@/components/bookings/HostPropertyBookings";
@@ -10,11 +9,13 @@ import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { ArrowLeft, MapPin } from "lucide-react";
+import { findPropertyByParam } from "@/utils/listings/propertySlug";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 
 export async function generateMetadata({ params }) {
   await connectToDatabase();
   const { id } = await params;
-  const property = await Property.findById(id).select("name").lean();
+  const property = await findPropertyByParam(id, "name");
   return {
     title: property
       ? `Calendar — ${property.name} | Kama Properties`
@@ -30,7 +31,7 @@ function propertyImageSrc(filename) {
 export default async function PropertyCalendarPage({ params }) {
   await connectToDatabase();
   const { id } = await params;
-  const property = await Property.findById(id, "-internalNotes").lean();
+  const property = await findPropertyByParam(id, "-internalNotes");
 
   if (!property) {
     notFound();
@@ -52,7 +53,7 @@ export default async function PropertyCalendarPage({ params }) {
   const serialized = serializePropertyForClient(property);
 
   if (session.user.id !== serialized.owner) {
-    redirect(`/properties/${id}`);
+    redirect(propertyPublicPath(serialized));
   }
 
   const locationLabel = [

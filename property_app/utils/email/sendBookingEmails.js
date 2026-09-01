@@ -16,6 +16,7 @@ import {
 } from "@/utils/email/propertyImageUrl";
 import { formatPropertyMeta } from "@/utils/email/propertyMeta";
 import { applyNotificationPrefsToEmailPayload } from "@/utils/user/notificationPrefs";
+import { listingPublicUrlFor } from "@/utils/listings/propertySlug";
 
 let resendClient = null;
 let resendClientKey = null;
@@ -619,7 +620,7 @@ export async function sendBookingConfirmationEmails(payload) {
   ];
 
   const propertyUrl = propertyId
-    ? getAbsoluteAppUrl(`/properties/${propertyId}`)
+    ? await listingPublicUrlFor(propertyId)
     : getAbsoluteAppUrl("/properties");
 
   const shared = {
@@ -898,7 +899,7 @@ export async function sendBookingModifiedEmails(payload) {
   } = gated;
 
   const propertyUrl = propertyId
-    ? getAbsoluteAppUrl(`/properties/${propertyId}`)
+    ? await listingPublicUrlFor(propertyId)
     : getAbsoluteAppUrl("/properties");
 
   const shared = {
@@ -1019,7 +1020,7 @@ export async function sendBookingCancelledEmails(payload) {
   } = gated;
 
   const propertyUrl = propertyId
-    ? getAbsoluteAppUrl(`/properties/${propertyId}`)
+    ? await listingPublicUrlFor(propertyId)
     : getAbsoluteAppUrl("/properties");
 
   const extraDetailRows = [];

@@ -481,6 +481,7 @@ function RightColumn({ data }) {
 
             <MessageOwnerButton
               propertyId={data._id}
+              listingKey={data.slug || data._id}
               ownerId={data.owner}
               ownerName={data.seller_info?.name || "host"}
               variant="compact"

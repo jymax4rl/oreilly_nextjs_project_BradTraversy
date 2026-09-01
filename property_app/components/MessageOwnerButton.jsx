@@ -7,6 +7,7 @@ import { getLoginUrl } from "@/lib/legal/loginUrl";
 
 export default function MessageOwnerButton({
   propertyId,
+  listingKey,
   ownerId,
   ownerName = "host",
   className = "",
@@ -14,7 +15,7 @@ export default function MessageOwnerButton({
 }) {
   const { data: session, status } = useSession();
   const label = `Message ${ownerName}`;
-  const messageHref = `/properties/${propertyId}/message`;
+  const messageHref = `/properties/${listingKey || propertyId}/message`;
 
   if (status === "loading") return null;
   if (session?.user?.id === ownerId) return null;

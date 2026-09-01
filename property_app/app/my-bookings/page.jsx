@@ -65,7 +65,7 @@ export default async function MyBookingsPage({ searchParams }) {
 
   const properties = propertyIds.length
     ? await Property.find({ _id: { $in: propertyIds } })
-        .select("name images location type bookingPolicy")
+        .select("name images location type bookingPolicy slug")
         .lean()
     : [];
 
@@ -110,6 +110,7 @@ export default async function MyBookingsPage({ searchParams }) {
       property: property
         ? {
             _id: String(property._id),
+            slug: property.slug || null,
             name: property.name,
             images: property.images,
             location: property.location,

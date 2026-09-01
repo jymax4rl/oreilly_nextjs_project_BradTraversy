@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { isOpsStaff } from "@/utils/opsAuth";
 import AdminListingCardActions from "@/components/admin/AdminListingCardActions";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 import OpsUserProfileModal from "@/components/admin/OpsUserProfileModal";
 import OpsListingsMap, {
   pinsFromProperties,
@@ -457,6 +458,7 @@ export default function AdminListingsPanel() {
                       <AdminListingCardActions
                         propertyId={id}
                         propertyName={property.name || "Untitled"}
+                        listingHref={propertyPublicPath(property)}
                         ownerId={ownerId}
                         hostLabel={
                           typeof ownerLabel === "string" ? ownerLabel : "host"

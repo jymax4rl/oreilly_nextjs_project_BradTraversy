@@ -3,6 +3,19 @@ const { Schema, model, models } = mongoose;
 
 const PropertySchema = new mongoose.Schema(
   {
+    /**
+     * Public URL key under /properties/[slug]. Set once; not renamed with the
+     * title so indexed links stay stable. Sparse unique so legacy rows can
+     * exist until the first public read backfills them.
+     */
+    slug: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      maxlength: 96,
+      unique: true,
+      sparse: true,
+    },
     name: { type: String, required: false },
     owner: { type: String, required: false },
     is_featured: { type: Boolean, required: true, default: false },

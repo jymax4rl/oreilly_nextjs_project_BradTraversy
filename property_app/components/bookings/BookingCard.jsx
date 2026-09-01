@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Calendar, MapPin, Pencil, Trash2 } from "lucide-react";
 import { formatGuestDate, countNights } from "@/utils/availability/validateStay";
 import { propertyCardImageSrc } from "@/utils/cloudinary/propertyMediaUrls";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 
 /**
  * Guest My Bookings card — modify/cancel when policy allows.
@@ -92,7 +93,7 @@ export default function BookingCard({ booking, onChanged }) {
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
       <Link
-        href={`/properties/${booking.propertyId}`}
+        href={propertyPublicPath(property || { _id: booking.propertyId })}
         className="flex gap-4 p-4 sm:p-5"
       >
         <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100 sm:h-28 sm:w-32">

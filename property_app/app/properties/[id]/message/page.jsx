@@ -1,6 +1,5 @@
 import connectToDatabase from "@/config/database";
 import { propertyImageUrl } from "@/utils/propertyImageUrl";
-import Property from "@/models/Property";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import PropertyContactForm from "@/components/PropertyContactForm";
 import Image from "next/image";
@@ -9,11 +8,13 @@ import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { ArrowLeft, MapPin } from "lucide-react";
+import { findPropertyByParam } from "@/utils/listings/propertySlug";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 
 export async function generateMetadata({ params }) {
   await connectToDatabase();
   const { id } = await params;
-  const property = await Property.findById(id).select("name seller_info").lean();
+  const property = await findPropertyByParam(id, "name seller_info");
 
   if (!property) {
     return { title: "Message | Kama Properties" };
@@ -33,7 +34,7 @@ function propertyImageSrc(entry) {
 export default async function PropertyMessagePage({ params }) {
   await connectToDatabase();
   const { id } = await params;
-  const property = await Property.findById(id, "-internalNotes").lean();
+  const property = await findPropertyByParam(id, "-internalNotes");
 
   if (!property) {
     notFound();
@@ -52,7 +53,7 @@ export default async function PropertyMessagePage({ params }) {
   const ownerName = serialized.seller_info?.name || "the host";
 
   if (session.user.id === serialized.owner) {
-    redirect(`/properties/${id}`);
+    redirect(propertyPublicPath(serialized));
   }
 
   if (!serialized.owner) {
@@ -70,7 +71,7 @@ export default async function PropertyMessagePage({ params }) {
     <div className="min-h-screen bg-slate-50 pb-24 pt-14 font-sans text-slate-900 md:pt-20">
       <div className="mx-auto max-w-lg px-4 py-6 sm:py-8">
         <Link
-          href={`/properties/${id}`}
+          href={propertyPublicPath(serialized)}
           className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-slate-900"
         >
           <ArrowLeft size={18} aria-hidden />
@@ -108,6 +109,7 @@ export default async function PropertyMessagePage({ params }) {
 
         <PropertyContactForm
           propertyId={serialized._id}
+          listingHref={propertyPublicPath(serialized)}
           recipientId={serialized.owner}
           propertyName={serialized.name}
           ownerName={ownerName}

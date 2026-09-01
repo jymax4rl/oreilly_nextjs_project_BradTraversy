@@ -86,7 +86,7 @@ export default function ServerProperty({ property, canonicalUrl }) {
         "@type": "ListItem",
         position: 3,
         name: property.location?.city || "City",
-        item: `${siteUrl}/properties?city=${encodeURIComponent(property.location?.city || "")}`,
+        item: `${siteUrl}/properties?location=${encodeURIComponent(property.location?.city || "")}`,
       },
       {
         "@type": "ListItem",

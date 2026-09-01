@@ -12,6 +12,7 @@ import AdminMessageHostModal from "./AdminMessageHostModal";
 export default function AdminListingCardActions({
   propertyId,
   propertyName,
+  listingHref,
   ownerId,
   hostLabel,
   moderationButtons = null,
@@ -34,7 +35,7 @@ export default function AdminListingCardActions({
     <>
       <div className="flex flex-wrap gap-2 shrink-0">
         <Link
-          href={`/properties/${propertyId}`}
+          href={listingHref || `/properties/${propertyId}`}
           className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
         >
           View
