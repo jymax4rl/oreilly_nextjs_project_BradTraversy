@@ -4,7 +4,7 @@ import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
 import ServerProperty from "@/components/dynamicComponents/ServerProperty";
 import DynamicProperty from "@/components/dynamicComponents/DynamicProperty";
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { canUserViewListing } from "@/utils/listingApproval";
@@ -13,6 +13,11 @@ import {
   findPropertyByParam,
 } from "@/utils/listings/propertySlug";
 import { propertyPublicPath, propertyPublicUrl } from "@/utils/listings/propertyPath";
+import {
+  canUnlockPreviewListing,
+  isListingOwner,
+} from "@/utils/listings/previewLockedHost";
+import { isListingPreviewLocked } from "@/utils/listings/previewLockedHost.server";
 
 async function loadPublicListing(param) {
   await connectToDatabase();
@@ -31,6 +36,13 @@ export async function generateMetadata({ params }) {
 
   const session = await getServerSession(authOptions);
   if (!canUserViewListing(property, session)) {
+    return { title: "Property Not Found | Kama Properties" };
+  }
+  if (
+    (await isListingPreviewLocked(property)) &&
+    !canUnlockPreviewListing(session) &&
+    !isListingOwner(session, property)
+  ) {
     return { title: "Property Not Found | Kama Properties" };
   }
 
@@ -82,15 +94,21 @@ export default async function PropertyPage({ params }) {
   if (!canUserViewListing(property, session)) {
     notFound();
   }
+  const serialized = await attachOwnerProfiles(
+    serializePropertyForClient(property),
+  );
+  if (
+    serialized.previewLocked &&
+    !canUnlockPreviewListing(session) &&
+    !isListingOwner(session, serialized)
+  ) {
+    redirect("/properties");
+  }
 
   const publicPath = propertyPublicPath(property);
   if (property.slug && id !== property.slug) {
     permanentRedirect(publicPath);
   }
-
-  const serialized = await attachOwnerProfiles(
-    serializePropertyForClient(property),
-  );
 
   return (
     <div className="overflow-x-hidden">
@@ -102,4 +120,4 @@ export default async function PropertyPage({ params }) {
     </div>
   );
 }
-export const revalidate = 3600; // Regenerate every 1 hour
+export const dynamic = "force-dynamic";

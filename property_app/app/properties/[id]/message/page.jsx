@@ -10,6 +10,10 @@ import { authOptions } from "@/utils/authOptions";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { findPropertyByParam } from "@/utils/listings/propertySlug";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
+import {
+  canUnlockPreviewListing,
+} from "@/utils/listings/previewLockedHost";
+import { isListingPreviewLocked } from "@/utils/listings/previewLockedHost.server";
 
 export async function generateMetadata({ params }) {
   await connectToDatabase();
@@ -54,6 +58,13 @@ export default async function PropertyMessagePage({ params }) {
 
   if (session.user.id === serialized.owner) {
     redirect(propertyPublicPath(serialized));
+  }
+
+  if (
+    (await isListingPreviewLocked(property)) &&
+    !canUnlockPreviewListing(session)
+  ) {
+    notFound();
   }
 
   if (!serialized.owner) {

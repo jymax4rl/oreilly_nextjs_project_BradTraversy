@@ -196,6 +196,7 @@ const HomeProperties = ({
                       rate={rate}
                       symbol={symbol}
                       isSaved={isSavedView}
+                      allowOpen
                     />
                   </div>
                   <div className="px-4 pb-4">

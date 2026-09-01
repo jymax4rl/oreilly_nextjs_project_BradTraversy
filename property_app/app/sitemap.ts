@@ -5,6 +5,7 @@ import { approvedListingQuery } from "@/utils/listingApproval";
 import { ensurePropertySlug } from "@/utils/listings/propertySlug";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
 import { SECTION_IDS } from "@/lib/legal/content";
+import { findPreviewLockedOwnerIds } from "@/utils/listings/previewLockedHost.server";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl =
@@ -51,17 +52,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       await connectToDatabase();
       const properties = (await (Property as any)
         .find(approvedListingQuery())
-        .select("_id updatedAt slug name location")
+        .select("_id updatedAt slug name location owner")
         .lean()) as Array<{
         _id: { toString(): string };
         updatedAt?: Date;
         slug?: string;
         name?: string;
         location?: { city?: string; country?: string };
+        owner?: { toString(): string } | string;
       }>;
+
+      const lockedOwners = new Set(await findPreviewLockedOwnerIds());
 
       propertyRoutes = [];
       for (const property of properties) {
+        const ownerId =
+          property.owner != null ? String(property.owner) : "";
+        if (ownerId && lockedOwners.has(ownerId)) continue;
         const withSlug = await ensurePropertySlug(property);
         propertyRoutes.push({
           url: `${baseUrl}${propertyPublicPath(withSlug)}`,
