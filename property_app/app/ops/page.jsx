@@ -9,6 +9,11 @@ export const metadata = {
 
 const TOOLS = [
   {
+    href: "/ops/users",
+    title: "Users",
+    description: "See every account created on the platform.",
+  },
+  {
     href: "/ops/hosts",
     title: "Hosts",
     description: "Review host applications and verification status.",

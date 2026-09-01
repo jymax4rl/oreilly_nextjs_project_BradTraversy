@@ -7,6 +7,7 @@ import BrandLogo from "@/components/BrandLogo";
 
 const NAV = [
   { href: "/ops", label: "Home", exact: true },
+  { href: "/ops/users", label: "Users" },
   { href: "/ops/hosts", label: "Hosts" },
   { href: "/ops/listings", label: "Listings" },
   { href: "/ops/transactions", label: "Transactions" },
