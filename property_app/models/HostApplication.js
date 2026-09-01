@@ -35,13 +35,16 @@ const HostApplicationSchema = new Schema(
   { timestamps: true },
 );
 
-/** Older applications stored address as a single street string. */
-HostApplicationSchema.pre("validate", function (next) {
+/**
+ * Older applications stored address as a single street string.
+ * Mongoose 9 no longer passes `next` into pre-hooks — calling it throws
+ * `TypeError: next is not a function` (minified to "e is not a function").
+ */
+HostApplicationSchema.pre("validate", function () {
   const coerced = coerceStoredAddress(this.address);
   if (coerced) {
     this.set("address", coerced);
   }
-  next();
 });
 
 const HostApplication =

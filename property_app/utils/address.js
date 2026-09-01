@@ -204,15 +204,25 @@ export function normalizeAddressInput(input) {
   return normalized;
 }
 
+/** Plain object / string from a Mongo subdocument, legacy string, or POJO. */
+function toPlainAddressValue(value) {
+  if (value == null || typeof value === "string") return value;
+  if (typeof value.toObject === "function") {
+    return value.toObject({ getters: true, depopulate: true });
+  }
+  return value;
+}
+
 /**
  * Coerce a Mongo-stored address (legacy string or partial object) into
  * AddressSchema shape so Mongoose can save nested `address` / `hostAddress`.
  */
 export function coerceStoredAddress(value) {
-  const normalized = normalizeAddressInput(value);
+  const plain = toPlainAddressValue(value);
+  const normalized = normalizeAddressInput(plain);
   if (normalized) return normalized;
 
-  const fromLegacy = addressFromLegacy(value);
+  const fromLegacy = addressFromLegacy(plain);
   if (!fromLegacy.streetLine1?.trim() && !fromLegacy.formatted?.trim()) {
     return null;
   }

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { formatAddress } from "@/utils/address";
 import { isOpsStaff } from "@/utils/opsAuth";
 import OpsUserProfileModal from "@/components/admin/OpsUserProfileModal";
+import OpsRejectHostModal from "@/components/admin/OpsRejectHostModal";
 
 const SEARCH_DEBOUNCE_MS = 280;
 
@@ -52,6 +53,8 @@ export default function AdminHostsPanel() {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [profileUserId, setProfileUserId] = useState(null);
+  const [rejectTarget, setRejectTarget] = useState(null);
+  const [actionError, setActionError] = useState(null);
 
   useEffect(() => {
     if (status === "authenticated" && !isOpsStaff(session?.user?.role)) {
@@ -90,13 +93,14 @@ export default function AdminHostsPanel() {
     [applications, searchQuery],
   );
 
-  const handleAction = async (id, action) => {
+  const handleAction = async (id, action, rejectionReason) => {
     setActionLoading(id);
+    setActionError(null);
     try {
       const body = { status: action };
-      if (action === "rejected") {
-        const reason = window.prompt("Enter rejection reason (optional):");
-        if (reason) body.rejectionReason = reason;
+      if (action === "rejected" && typeof rejectionReason === "string") {
+        const trimmed = rejectionReason.trim();
+        if (trimmed) body.rejectionReason = trimmed;
       }
 
       const res = await fetch(`/api/admin/hosts/${id}`, {
@@ -111,9 +115,10 @@ export default function AdminHostsPanel() {
       }
 
       setApplications((prev) => prev.filter((app) => app._id !== id));
+      setRejectTarget(null);
     } catch (error) {
       console.error("handleAction error:", error);
-      alert("Failed: " + error.message);
+      setActionError(error.message || "Failed to update application");
     } finally {
       setActionLoading(null);
     }
@@ -248,6 +253,15 @@ export default function AdminHostsPanel() {
         </div>
       </div>
 
+      {actionError && !rejectTarget ? (
+        <div
+          className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+          role="alert"
+        >
+          {actionError}
+        </div>
+      ) : null}
+
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-gray-900" />
@@ -261,7 +275,7 @@ export default function AdminHostsPanel() {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 pb-28">
           {filteredApplications.map((app) => (
             <div
               key={app._id}
@@ -344,7 +358,7 @@ export default function AdminHostsPanel() {
                   )}
                 </div>
 
-                <div className="flex items-start gap-2 lg:flex-col">
+                <div className="relative z-20 flex w-full min-w-0 shrink-0 flex-col gap-2 sm:w-56">
                   {filter !== "pending" && (
                     <div className="mb-1 flex items-center gap-2">
                       <span
@@ -368,7 +382,7 @@ export default function AdminHostsPanel() {
                     type="button"
                     onClick={() => openProfile(app.user?._id)}
                     disabled={!app.user?._id}
-                    className="w-full rounded border border-[#1B5C57]/30 bg-[#1B5C57]/5 px-4 py-2 font-medium text-[#1B5C57] transition hover:bg-[#1B5C57]/10 disabled:opacity-50 lg:w-auto"
+                    className="min-h-11 w-full touch-manipulation rounded border border-[#1B5C57]/30 bg-[#1B5C57]/5 px-4 py-2 font-medium text-[#1B5C57] transition hover:bg-[#1B5C57]/10 disabled:opacity-50"
                   >
                     View profile
                   </button>
@@ -378,7 +392,7 @@ export default function AdminHostsPanel() {
                       type="button"
                       onClick={() => handleAction(app._id, "approved")}
                       disabled={actionLoading === app._id}
-                      className="w-full rounded bg-green-600 px-4 py-2 font-medium text-white transition hover:bg-green-700 disabled:opacity-50 lg:w-auto"
+                      className="min-h-11 w-full touch-manipulation rounded bg-green-600 px-4 py-2 font-medium text-white transition hover:bg-green-700 disabled:opacity-50"
                     >
                       {actionLoading === app._id ? "Processing..." : "Approve"}
                     </button>
@@ -387,9 +401,15 @@ export default function AdminHostsPanel() {
                   {filter !== "rejected" && (
                     <button
                       type="button"
-                      onClick={() => handleAction(app._id, "rejected")}
+                      onClick={() => {
+                        setActionError(null);
+                        setRejectTarget({
+                          id: app._id,
+                          name: app.user?.username || app.user?.email || "this host",
+                        });
+                      }}
                       disabled={actionLoading === app._id}
-                      className="w-full rounded bg-red-600 px-4 py-2 font-medium text-white transition hover:bg-red-700 disabled:opacity-50 lg:w-auto"
+                      className="min-h-11 w-full touch-manipulation rounded bg-red-600 px-4 py-2 font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
                     >
                       {actionLoading === app._id ? "Processing..." : "Reject"}
                     </button>
@@ -406,6 +426,22 @@ export default function AdminHostsPanel() {
         userId={profileUserId}
         onClose={() => setProfileUserId(null)}
         onUserUpdated={handleProfileUpdated}
+      />
+
+      <OpsRejectHostModal
+        open={Boolean(rejectTarget)}
+        hostName={rejectTarget?.name}
+        isSubmitting={actionLoading === rejectTarget?.id}
+        error={rejectTarget ? actionError : null}
+        onCancel={() => {
+          if (actionLoading) return;
+          setRejectTarget(null);
+          setActionError(null);
+        }}
+        onConfirm={(reason) => {
+          if (!rejectTarget?.id) return;
+          handleAction(rejectTarget.id, "rejected", reason);
+        }}
       />
     </div>
   );
