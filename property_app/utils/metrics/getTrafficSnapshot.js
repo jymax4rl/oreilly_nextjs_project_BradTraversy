@@ -14,6 +14,7 @@ import {
 } from "@/utils/metrics/trafficBuckets";
 
 const ACTIVE_WINDOW_MS = 5 * 60 * 1000;
+const LIVE_DOT_LIMIT = 200;
 
 async function mongoPingMs() {
   const db = mongoose.connection?.db;
@@ -29,7 +30,7 @@ async function mongoPingMs() {
 
 /**
  * Snapshot for the ops console: unique visitors today, open tabs (5 min),
- * page views, a 24h 15-min series, last-7-day totals, and a Mongo ping.
+ * page views, a 24h 15-min series, last-7-day totals, live map dots, and a Mongo ping.
  *
  * Missing 15-min buckets are filled with 0 so the curve never has gaps.
  * Bucket `_id` is an ISO timestamp, so `$gte` string compare matches time order.
@@ -47,7 +48,7 @@ export async function getTrafficSnapshot() {
     dayKeys7.push(utcDayKey(d));
   }
 
-  const [activeNow, visitorsToday, dayDoc, mongoPing, buckets, weekDocs] =
+  const [activeNow, visitorsToday, dayDoc, mongoPing, buckets, weekDocs, liveDocs] =
     await Promise.all([
       TrafficSession.countDocuments({ lastSeen: { $gte: activeSince } }),
       TrafficSession.countDocuments({ dayKey }),
@@ -62,6 +63,14 @@ export async function getTrafficSnapshot() {
         .lean(),
       TrafficDay.find({ _id: { $in: dayKeys7 } })
         .select("views")
+        .lean(),
+      TrafficSession.find({
+        lastSeen: { $gte: activeSince },
+        lat: { $type: "number" },
+        lng: { $type: "number" },
+      })
+        .select("lat lng country city geoSource")
+        .limit(LIVE_DOT_LIMIT)
         .lean(),
     ]);
 
@@ -102,5 +111,12 @@ export async function getTrafficSnapshot() {
     dayKey,
     series,
     days7,
+    live: (liveDocs || []).map((row) => ({
+      lat: row.lat,
+      lng: row.lng,
+      country: row.country || "",
+      city: row.city || "",
+      source: row.geoSource || "",
+    })),
   };
 }

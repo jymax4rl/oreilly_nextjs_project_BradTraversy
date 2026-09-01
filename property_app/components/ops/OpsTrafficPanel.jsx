@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import GlowBarChart from "@/components/ops/charts/GlowBarChart";
 import SmoothAreaChart from "@/components/ops/charts/SmoothAreaChart";
+import OpsLiveMap from "@/components/ops/OpsLiveMap";
 import "@/components/ops/charts/ops-charts.css";
 
 const POLL_MS = 20_000;
@@ -177,6 +178,13 @@ export default function OpsTrafficPanel() {
               : "Not connected"}
           </p>
         </article>
+      </div>
+
+      <div className="mt-4">
+        <OpsLiveMap
+          dots={traffic?.live || []}
+          activeCount={traffic?.activeNow}
+        />
       </div>
 
       <div className="ops-card mt-4">

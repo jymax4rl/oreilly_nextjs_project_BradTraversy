@@ -187,3 +187,61 @@
 .ops-status-dot--idle {
   background: #94a3b8;
 }
+
+.ops-live-now {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: #16a34a;
+  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.18);
+}
+
+.ops-live-dot-legend {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: #2c6ecb;
+}
+
+.ops-live-dot {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+}
+
+.ops-live-dot__core,
+.ops-live-dot__pulse {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 999px;
+  background: #2c6ecb;
+}
+
+.ops-live-dot__core {
+  box-shadow: 0 0 0 2px #fff;
+  z-index: 1;
+}
+
+.ops-live-dot__pulse {
+  animation: ops-live-ping 2.1s ease-out infinite;
+  animation-delay: var(--ops-live-delay, 0s);
+}
+
+@keyframes ops-live-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(3.8);
+    opacity: 0;
+  }
+}

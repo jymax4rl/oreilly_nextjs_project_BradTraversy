@@ -10,11 +10,19 @@ const TrafficSessionSchema = new Schema(
     dayKey: { type: String, required: true, index: true },
     lastSeen: { type: Date, required: true, index: true },
     expireAt: { type: Date, required: true },
+    lat: { type: Number },
+    lng: { type: Number },
+    country: { type: String, maxlength: 2 },
+    city: { type: String, maxlength: 80 },
+    geoSource: { type: String, enum: ["vercel", "tz"] },
   },
   { versionKey: false },
 );
 
 TrafficSessionSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
 
-export default models.TrafficSession ||
-  model("TrafficSession", TrafficSessionSchema);
+if (models.TrafficSession) {
+  delete models.TrafficSession;
+}
+
+export default model("TrafficSession", TrafficSessionSchema);

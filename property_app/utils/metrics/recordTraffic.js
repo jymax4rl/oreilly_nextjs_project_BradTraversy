@@ -1,6 +1,7 @@
 import TrafficBucket from "@/models/TrafficBucket";
 import TrafficDay from "@/models/TrafficDay";
 import TrafficSession from "@/models/TrafficSession";
+import { jitterFromSid } from "@/utils/metrics/trafficGeo";
 import {
   BUCKET_TTL_MS,
   trafficBucketId,
@@ -28,9 +29,9 @@ export function isLikelyBot(userAgent) {
 /**
  * Record one anonymous probe. Heartbeats only refresh presence; views
  * increment on kind=view so a tab left open does not inflate page views.
- * Does not store IP or account ids.
+ * Does not store IP or account ids. Optional geo is city-level only.
  */
-export async function recordTrafficHit({ sid, kind }) {
+export async function recordTrafficHit({ sid, kind, geo }) {
   if (!isValidTrafficSid(sid)) return { ok: false, error: "invalid_sid" };
 
   const now = new Date();
@@ -38,7 +39,9 @@ export async function recordTrafficHit({ sid, kind }) {
   const expireAt = new Date(now.getTime() + SESSION_TTL_MS);
   let isView = kind === "view";
 
-  const existing = await TrafficSession.findById(sid).select("lastSeen").lean();
+  const existing = await TrafficSession.findById(sid)
+    .select("lastSeen lat geoSource")
+    .lean();
   // Ignore duplicate mounts (React Strict Mode) so one open does not count twice.
   if (
     isView &&
@@ -48,11 +51,24 @@ export async function recordTrafficHit({ sid, kind }) {
     isView = false;
   }
 
-  await TrafficSession.findByIdAndUpdate(
-    sid,
-    { $set: { lastSeen: now, dayKey, expireAt } },
-    { upsert: true },
-  );
+  const set = { lastSeen: now, dayKey, expireAt };
+  const hasGeo =
+    geo && Number.isFinite(geo.lat) && Number.isFinite(geo.lng);
+  // Pin once from timezone; upgrade to Vercel coords when those headers exist.
+  const shouldSetGeo =
+    hasGeo &&
+    (existing?.lat == null ||
+      (geo.source === "vercel" && existing?.geoSource !== "vercel"));
+  if (shouldSetGeo) {
+    const jittered = jitterFromSid(sid, geo.lat, geo.lng);
+    set.lat = jittered.lat;
+    set.lng = jittered.lng;
+    if (geo.country) set.country = String(geo.country).slice(0, 2);
+    if (geo.city) set.city = String(geo.city).slice(0, 80);
+    if (geo.source) set.geoSource = geo.source;
+  }
+
+  await TrafficSession.findByIdAndUpdate(sid, { $set: set }, { upsert: true });
 
   /**
    * Page views increment two counters: the UTC calendar-day total and the
