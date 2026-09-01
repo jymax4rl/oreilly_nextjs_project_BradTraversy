@@ -15,6 +15,8 @@ const TrafficSessionSchema = new Schema(
     country: { type: String, maxlength: 2 },
     city: { type: String, maxlength: 80 },
     geoSource: { type: String, enum: ["vercel", "tz"] },
+    /** UTC day this sid was last counted toward TrafficPlaceDay visitors. */
+    geoDayKey: { type: String },
   },
   { versionKey: false },
 );

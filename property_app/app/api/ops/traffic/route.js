@@ -5,7 +5,7 @@ import { isOpsStaff } from "@/utils/opsAuth";
 
 export const dynamic = "force-dynamic";
 
-/** Live visitor + Mongo ping snapshot for the ops home. */
+/** Live visitor snapshot plus durable 7/30-day place history for the ops home. */
 export async function GET(request) {
   try {
     await connectToDatabase();

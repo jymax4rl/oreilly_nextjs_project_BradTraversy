@@ -48,6 +48,15 @@ function weekdayLabel(isoDay) {
   return d.toLocaleDateString(undefined, { weekday: "short", timeZone: "UTC" });
 }
 
+function countryLabel(code) {
+  if (!code || code === "ZZ") return "Unknown";
+  try {
+    return new Intl.DisplayNames(["en"], { type: "region" }).of(code) || code;
+  } catch {
+    return code;
+  }
+}
+
 export default function OpsTrafficPanel() {
   const [traffic, setTraffic] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -90,6 +99,8 @@ export default function OpsTrafficPanel() {
   const pct = Math.min(100, Number(traffic?.ofTargetPct) || 0);
   const loadMeta = traffic?.load;
   const days7 = traffic?.days7 || [];
+  const history = traffic?.history;
+  const places = history?.places || [];
 
   return (
     <section className="mt-10" aria-labelledby="ops-traffic-heading">
@@ -102,8 +113,9 @@ export default function OpsTrafficPanel() {
             Live traffic
           </h2>
           <p className="mt-1.5 max-w-xl text-sm text-[var(--kama-ink-muted)]">
-            Anonymous browser probes (no IPs). Use this to see whether the
-            marketplace is still well under the 3,000-visitor planning target.
+            Anonymous browser probes (no IPs). Live view is the last 5 minutes;
+            visitor and city totals below persist so you can see how many
+            people have come and from where.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -183,6 +195,7 @@ export default function OpsTrafficPanel() {
       <div className="mt-4">
         <OpsLiveMap
           dots={traffic?.live || []}
+          historyDots={traffic?.historyDots || []}
           activeCount={traffic?.activeNow}
         />
       </div>
@@ -233,7 +246,17 @@ export default function OpsTrafficPanel() {
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <GlowBarChart
+          label="Unique browsers this week"
+          subtitle="Once per UTC day"
+          emptyHint="Unique counts start as guests browse after this update."
+          bars={days7.map((d, i) => ({
+            label: weekdayLabel(d.t),
+            value: d.visitors,
+            tone: i === days7.length - 1 ? "stripe" : "teal",
+          }))}
+        />
         <GlowBarChart
           label="Views this week"
           subtitle="UTC days"
@@ -241,9 +264,81 @@ export default function OpsTrafficPanel() {
           bars={days7.map((d, i) => ({
             label: weekdayLabel(d.t),
             value: d.views,
-            tone: i === days7.length - 1 ? "stripe" : "teal",
+            tone: i === days7.length - 1 ? "stripe" : "ink",
           }))}
         />
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--kama-ink-muted)]">
+          Visitor history
+        </h3>
+        <p className="mt-1.5 max-w-2xl text-sm text-[var(--kama-ink-muted)]">
+          City-level only, no IPs. Returning guests count once per UTC day, so
+          a 7-day total can be higher than distinct people. Unique history
+          starts from this update; page views already go back further.
+        </p>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <article className="ops-card ops-card--accent">
+          <p className="ops-card-label">Unique browsers · 7 days</p>
+          <p className="ops-card-value">{display(history?.visitors7)}</p>
+          <p className="ops-card-note">Sum of daily uniques (UTC)</p>
+        </article>
+        <article className="ops-card">
+          <p className="ops-card-label">Unique browsers · 30 days</p>
+          <p className="ops-card-value">{display(history?.visitors30)}</p>
+          <p className="ops-card-note">Same sid on two days counts twice</p>
+        </article>
+        <article className="ops-card">
+          <p className="ops-card-label">Page views · 30 days</p>
+          <p className="ops-card-value">{display(history?.views30)}</p>
+          <p className="ops-card-note">Navigations, not open tabs</p>
+        </article>
+        <article className="ops-card">
+          <p className="ops-card-label">Places</p>
+          <p className="ops-card-value">{display(history?.placeCount)}</p>
+          <p className="ops-card-note">Cities with at least one visitor</p>
+        </article>
+      </div>
+
+      <div className="ops-card mt-4 overflow-x-auto">
+        <p className="ops-chart-title">Where visitors came from</p>
+        <p className="ops-chart-sub mt-1">
+          Last 30 days · top cities by unique browsers
+        </p>
+        {places.length === 0 ? (
+          <p className="mt-3 text-sm text-[var(--kama-ink-muted)]">
+            Locations appear after guests browse with city-level geo (production
+            edge headers, or timezone on localhost).
+          </p>
+        ) : (
+          <table className="ops-places-table mt-3">
+            <thead>
+              <tr>
+                <th className="text-left">Country</th>
+                <th className="text-left">City</th>
+                <th className="text-right">Visitors</th>
+                <th className="text-right">Views</th>
+              </tr>
+            </thead>
+            <tbody>
+              {places.map((row) => (
+                <tr key={`${row.country}|${row.city}`}>
+                  <td>{countryLabel(row.country)}</td>
+                  <td>{row.city || "—"}</td>
+                  <td className="text-right tabular-nums font-semibold">
+                    {(Number(row.visitors) || 0).toLocaleString()}
+                  </td>
+                  <td className="text-right tabular-nums text-[var(--kama-ink-muted)]">
+                    {(Number(row.views) || 0).toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </section>
   );

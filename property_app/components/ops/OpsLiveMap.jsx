@@ -12,29 +12,38 @@ import { coerceCoordinate } from "@/utils/address";
 const DEFAULT_CENTER = { lat: 7.2, lng: 21.5 };
 const DEFAULT_ZOOM = 3;
 
-function createDotDom(title) {
+function createDotDom(title, kind = "live", scale = 1) {
   const el = document.createElement("div");
-  el.className = "ops-live-dot";
+  const isHistory = kind === "history";
+  el.className = isHistory ? "ops-history-dot" : "ops-live-dot";
   el.setAttribute("role", "img");
-  el.setAttribute("aria-label", title || "Visitor");
+  el.setAttribute("aria-label", title || (isHistory ? "Past visitors" : "Visitor"));
   if (title) el.title = title;
-  el.innerHTML =
-    '<span class="ops-live-dot__pulse" aria-hidden="true"></span><span class="ops-live-dot__core" aria-hidden="true"></span>';
-  el.style.setProperty("--ops-live-delay", `${Math.random() * 1.6}s`);
+  if (isHistory) {
+    el.innerHTML =
+      '<span class="ops-history-dot__core" aria-hidden="true"></span>';
+    el.style.setProperty("--ops-history-scale", String(scale));
+  } else {
+    el.innerHTML =
+      '<span class="ops-live-dot__pulse" aria-hidden="true"></span><span class="ops-live-dot__core" aria-hidden="true"></span>';
+    el.style.setProperty("--ops-live-delay", `${Math.random() * 1.6}s`);
+  }
   return el;
 }
 
-function createDotOverlay(google, { position, title }) {
+function createDotOverlay(google, { position, title, kind, scale }) {
   class LiveDotOverlay extends google.maps.OverlayView {
     constructor(opts) {
       super();
       this.position_ = opts.position;
       this.title_ = opts.title;
+      this.kind_ = opts.kind || "live";
+      this.scale_ = opts.scale || 1;
       this.div_ = null;
     }
 
     onAdd() {
-      this.div_ = createDotDom(this.title_);
+      this.div_ = createDotDom(this.title_, this.kind_, this.scale_);
       google.maps.OverlayView.preventMapHitsAndGesturesFrom(this.div_);
       this.getPanes()?.overlayMouseTarget.appendChild(this.div_);
     }
@@ -57,16 +66,41 @@ function createDotOverlay(google, { position, title }) {
     }
   }
 
-  return new LiveDotOverlay({ position, title });
+  return new LiveDotOverlay({ position, title, kind, scale });
+}
+
+function mapDots(dots, titleSuffix = "") {
+  const out = [];
+  for (const dot of dots) {
+    const lat = coerceCoordinate(dot.lat);
+    const lng = coerceCoordinate(dot.lng);
+    if (lat == null || lng == null) continue;
+    const place = [dot.city, dot.country].filter(Boolean).join(", ");
+    const approx = dot.source === "tz" ? "approx. from timezone" : "";
+    const visitors =
+      Number(dot.visitors) > 0
+        ? `${Number(dot.visitors).toLocaleString()} visitors`
+        : "";
+    out.push({
+      lat,
+      lng,
+      visitors: Number(dot.visitors) || 0,
+      title: [place || "Guest browsing", visitors, approx, titleSuffix]
+        .filter(Boolean)
+        .join(" · "),
+    });
+  }
+  return out;
 }
 
 /**
- * Shopify Live View-style 2D map: small pulsing dots for guests browsing
- * the public site in the last 5 minutes. Stays at world zoom; staff can
+ * Shopify Live View-style 2D map: pulsing dots for guests browsing now,
+ * muted city dots for the last 30 days. Stays at world zoom; staff can
  * drag and zoom. Does not identify a person — country/city only.
  */
 export default function OpsLiveMap({
   dots = [],
+  historyDots = [],
   activeCount = 0,
   className = "h-[320px] w-full sm:h-[380px]",
 }) {
@@ -78,30 +112,21 @@ export default function OpsLiveMap({
   const [loading, setLoading] = useState(true);
   const [mapReady, setMapReady] = useState(false);
 
-  const validDots = useMemo(() => {
-    const out = [];
-    for (const dot of dots) {
-      const lat = coerceCoordinate(dot.lat);
-      const lng = coerceCoordinate(dot.lng);
-      if (lat == null || lng == null) continue;
-      const place = [dot.city, dot.country].filter(Boolean).join(", ");
-      const approx = dot.source === "tz" ? "approx. from timezone" : "";
-      out.push({
-        lat,
-        lng,
-        title: [place || "Guest browsing", approx].filter(Boolean).join(" · "),
-      });
-    }
-    return out;
-  }, [dots]);
-
-  const signature = useMemo(
-    () =>
-      validDots
-        .map((d) => `${d.lat.toFixed(2)},${d.lng.toFixed(2)}`)
-        .join("|"),
-    [validDots],
+  const validDots = useMemo(() => mapDots(dots), [dots]);
+  const validHistory = useMemo(
+    () => mapDots(historyDots, "past 30 days"),
+    [historyDots],
   );
+
+  const signature = useMemo(() => {
+    const live = validDots
+      .map((d) => `${d.lat.toFixed(2)},${d.lng.toFixed(2)}`)
+      .join("|");
+    const hist = validHistory
+      .map((d) => `h${d.lat.toFixed(2)},${d.lng.toFixed(2)},${d.visitors}`)
+      .join("|");
+    return `${live}::${hist}`;
+  }, [validDots, validHistory]);
 
   const clearOverlays = () => {
     overlaysRef.current.forEach((overlay) => {
@@ -233,15 +258,31 @@ export default function OpsLiveMap({
     const map = mapRef.current;
     clearOverlays();
 
-    validDots.forEach((dot) => {
+    const maxHistory = Math.max(
+      1,
+      ...validHistory.map((d) => Number(d.visitors) || 0),
+    );
+    validHistory.forEach((dot) => {
+      const scale = 0.7 + Math.min(1.3, (Number(dot.visitors) || 0) / maxHistory);
       const overlay = createDotOverlay(google, {
         position: new google.maps.LatLng(dot.lat, dot.lng),
         title: dot.title,
+        kind: "history",
+        scale,
       });
       overlay.setMap(map);
       overlaysRef.current.push(overlay);
     });
-    // signature is the coordinate identity of the current live set
+    validDots.forEach((dot) => {
+      const overlay = createDotOverlay(google, {
+        position: new google.maps.LatLng(dot.lat, dot.lng),
+        title: dot.title,
+        kind: "live",
+      });
+      overlay.setMap(map);
+      overlaysRef.current.push(overlay);
+    });
+    // signature is the coordinate identity of live + history sets
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapReady, signature]);
 
@@ -259,8 +300,9 @@ export default function OpsLiveMap({
           </p>
           <p className="ops-chart-sub mt-1">
             Open tabs in the last 5 minutes
-            {browsing > located
-              ? ` · ${located} located`
+            {browsing > located ? ` · ${located} located` : ""}
+            {validHistory.length
+              ? ` · muted dots are cities from the last 30 days`
               : ""}
           </p>
         </div>
@@ -295,14 +337,22 @@ export default function OpsLiveMap({
             </div>
           ) : null}
           <div ref={containerRef} className="h-full w-full" />
-          {!loading && validDots.length === 0 ? (
+          {!loading && validDots.length === 0 && validHistory.length === 0 ? (
             <p className="pointer-events-none absolute bottom-3 left-3 z-[3] max-w-[16rem] rounded-full bg-white/90 px-3 py-1.5 text-[11px] text-[var(--kama-ink-muted)] shadow-sm backdrop-blur">
               Dots appear as guests browse listings and the home page.
             </p>
           ) : (
-            <p className="pointer-events-none absolute bottom-3 left-3 z-[3] inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-[11px] font-medium text-[var(--kama-ink)] shadow-sm backdrop-blur">
-              <span className="ops-live-dot-legend" aria-hidden />
-              Browsing now
+            <p className="pointer-events-none absolute bottom-3 left-3 z-[3] inline-flex items-center gap-3 rounded-full bg-white/90 px-3 py-1.5 text-[11px] font-medium text-[var(--kama-ink)] shadow-sm backdrop-blur">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="ops-live-dot-legend" aria-hidden />
+                Browsing now
+              </span>
+              {validHistory.length ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="ops-history-dot-legend" aria-hidden />
+                  Past 30 days
+                </span>
+              ) : null}
             </p>
           )}
         </div>

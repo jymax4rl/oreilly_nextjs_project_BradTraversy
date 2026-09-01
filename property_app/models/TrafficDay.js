@@ -1,12 +1,21 @@
 import { Schema, models, model } from "mongoose";
 
-/** UTC calendar-day page-view counter (incremented on navigation, not heartbeats). */
+/**
+ * UTC calendar-day counters. `views` increment on navigation (not heartbeats).
+ * `visitors` increment once per anonymous sid per UTC day and outlive the
+ * 48h TrafficSession TTL used by the live map.
+ */
 const TrafficDaySchema = new Schema(
   {
     _id: { type: String },
     views: { type: Number, default: 0 },
+    visitors: { type: Number, default: 0 },
   },
   { versionKey: false },
 );
 
-export default models.TrafficDay || model("TrafficDay", TrafficDaySchema);
+if (models.TrafficDay) {
+  delete models.TrafficDay;
+}
+
+export default model("TrafficDay", TrafficDaySchema);
