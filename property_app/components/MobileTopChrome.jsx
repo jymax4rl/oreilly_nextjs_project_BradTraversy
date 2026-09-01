@@ -7,6 +7,7 @@ import BrandLogo from "@/components/BrandLogo";
 import Hamburger from "@/components/hamburger";
 import { useScrollNav } from "@/contexts/ScrollNavContext";
 import { useMenuOverlay } from "@/contexts/MenuOverlayContext";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 /** Listing detail or host tools: /properties/[id](/calendar|/rates|/message|/reservations). */
 function isPropertyScopedPath(pathname) {
@@ -27,6 +28,7 @@ export default function MobileTopChrome() {
   const searchParams = useSearchParams();
   const { navVisible } = useScrollNav();
   const { toggle, isOpen } = useMenuOverlay();
+  const { t } = useLanguage();
   const isHome = pathname === "/";
   const hideSearch = isHome || isPropertyScopedPath(pathname);
 
@@ -79,11 +81,11 @@ export default function MobileTopChrome() {
                 name="location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="City, country, area…"
+                placeholder={t("search.locationShort")}
                 enterKeyHint="search"
                 autoComplete="street-address"
                 className="min-w-0 flex-1 bg-transparent text-sm font-medium text-[var(--kama-ink)] placeholder:text-[var(--kama-ink-muted)] focus:outline-none"
-                aria-label="Search by location"
+                aria-label={t("search.searchLocation")}
               />
             </form>
           )}

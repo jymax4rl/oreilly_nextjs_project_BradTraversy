@@ -12,12 +12,10 @@ import TermsAcceptanceGate from "@/components/legal/TermsAcceptanceGate";
 import heroImage from "@/assets/images/modernMansion01.png";
 import {
   hasAcceptedCurrentTerms,
-  normalizeLang,
-  persistLang,
   readTermsAcceptance,
-  resolveLang,
 } from "@/lib/legal/acceptance";
 import { TERMS_VERSION } from "@/lib/legal/constants";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 /** Never leave the full-page teal spinner up forever if session fetch stalls. */
 const SESSION_WAIT_MS = 2500;
@@ -50,23 +48,24 @@ async function syncTermsToServer() {
 function LoginContent() {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
+  const { lang, setLang, t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [sessionWaitTimedOut, setSessionWaitTimedOut] = useState(false);
   const [redirectStalled, setRedirectStalled] = useState(false);
   const [termsReady, setTermsReady] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [lang, setLang] = useState("en");
 
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const error = searchParams.get("error");
 
   useEffect(() => {
-    const nextLang = resolveLang(searchParams.get("lang"));
-    setLang(nextLang);
-    persistLang(nextLang);
+    const queryLang = searchParams.get("lang");
+    if (queryLang === "en" || queryLang === "fr") {
+      setLang(queryLang);
+    }
     setTermsAccepted(hasAcceptedCurrentTerms());
     setTermsReady(true);
-  }, [searchParams]);
+  }, [searchParams, setLang]);
 
   useEffect(() => {
     if (status !== "loading") {
@@ -161,13 +160,12 @@ function LoginContent() {
             Kama Properties
           </p>
           <h2 className="max-w-md text-4xl font-extrabold leading-tight">
-            African stays.
+            {t("login.heroTitle")}
             <br />
-            <span className="text-[#c8e6e0]">Global guests.</span>
+            <span className="text-[#c8e6e0]">{t("login.heroAccent")}</span>
           </h2>
           <p className="mt-4 max-w-sm text-base leading-relaxed text-white/80">
-            Book unique homes across the continent — or open your doors to
-            travelers with Mobile Money–friendly payments.
+            {t("login.heroBody")}
           </p>
         </div>
       </div>
@@ -187,11 +185,7 @@ function LoginContent() {
             <button
               key={code}
               type="button"
-              onClick={() => {
-                const next = normalizeLang(code);
-                persistLang(next);
-                setLang(next);
-              }}
+              onClick={() => setLang(code)}
               className={`rounded-full px-2.5 py-1 ${
                 lang === code
                   ? "bg-[var(--kama-accent)] text-white"
@@ -218,12 +212,10 @@ function LoginContent() {
             </div>
 
             <h1 className="text-center text-[1.65rem] font-semibold tracking-tight text-zinc-900 lg:text-left lg:text-3xl">
-              {lang === "fr" ? "Connexion ou inscription" : "Log in or sign up"}
+              {t("login.title")}
             </h1>
             <p className="mt-2 text-center text-sm leading-relaxed text-zinc-500 lg:text-left">
-              {lang === "fr"
-                ? "Un compte pour réserver, sauvegarder, messager les hôtes et publier votre bien."
-                : "One account for booking stays, saving favorites, messaging hosts, and listing your property."}
+              {t("login.blurb")}
             </p>
 
             {sessionWaitTimedOut && status === "loading" ? (
@@ -231,8 +223,7 @@ function LoginContent() {
                 className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
                 role="status"
               >
-                Sign-in check is taking longer than usual. You can still continue
-                with Google below.
+                {t("login.slow")}
               </div>
             ) : null}
 
@@ -241,7 +232,7 @@ function LoginContent() {
                 className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
                 role="alert"
               >
-                Sign-in failed. Please try again.
+                {t("login.failed")}
               </div>
             ) : null}
 
@@ -260,13 +251,7 @@ function LoginContent() {
                 ) : (
                   <GoogleIcon />
                 )}
-                {loading
-                  ? lang === "fr"
-                    ? "Connexion…"
-                    : "Connecting…"
-                  : lang === "fr"
-                    ? "Continuer avec Google"
-                    : "Continue with Google"}
+                {loading ? t("login.connecting") : t("login.google")}
               </button>
             </div>
 
@@ -276,7 +261,7 @@ function LoginContent() {
               </div>
               <div className="relative flex justify-center text-xs uppercase tracking-wider">
                 <span className="bg-zinc-50 px-3 text-zinc-400">
-                  {lang === "fr" ? "ou" : "or"}
+                  {t("login.or")}
                 </span>
               </div>
             </div>
@@ -285,9 +270,7 @@ function LoginContent() {
               href="/"
               className="flex h-[52px] w-full items-center justify-center rounded-xl border border-zinc-200 bg-zinc-100 text-[15px] font-medium text-zinc-700 transition hover:bg-zinc-200/80"
             >
-              {lang === "fr"
-                ? "Parcourir sans se connecter"
-                : "Browse without signing in"}
+              {t("login.browse")}
             </Link>
 
             <p className="mt-8 text-center text-xs leading-relaxed text-zinc-400 lg:text-left">
@@ -344,7 +327,7 @@ function LoginContent() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[rgba(12,26,26,0.85)] to-[rgba(27,92,87,0.2)]" />
           <p className="absolute bottom-4 left-4 right-4 text-sm font-medium text-white/90">
-            Made for Africans, by Africans.
+            {t("login.madeFor")}
           </p>
         </div>
       </div>

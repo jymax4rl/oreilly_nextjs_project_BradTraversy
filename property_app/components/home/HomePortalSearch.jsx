@@ -12,18 +12,13 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import Currency from "@/components/Currency";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import {
+  PROPERTY_TYPE_VALUES,
+  propertyTypeMessageKey,
+} from "@/lib/i18n/messages";
 
-const PROPERTY_TYPES = [
-  "All Properties",
-  "Apartment",
-  "Studio",
-  "Condo",
-  "House",
-  "Cabin or Cottage",
-  "Loft",
-  "Room",
-  "Other",
-];
+const PROPERTY_TYPES = PROPERTY_TYPE_VALUES;
 
 const MIN_COUNT_OPTIONS = [
   { value: "", label: "Any" },
@@ -33,11 +28,11 @@ const MIN_COUNT_OPTIONS = [
   { value: "4", label: "4+" },
 ];
 
-function PriceFields({ minPrice, maxPrice, setMinPrice, setMaxPrice }) {
+function PriceFields({ minPrice, maxPrice, setMinPrice, setMaxPrice, t }) {
   return (
     <div className="grid grid-cols-2 gap-3">
       <label className="min-w-0">
-        <span className="sr-only">Minimum price per night</span>
+        <span className="sr-only">{t("search.minNight")}</span>
         <input
           type="number"
           name="minPrice"
@@ -45,12 +40,12 @@ function PriceFields({ minPrice, maxPrice, setMinPrice, setMaxPrice }) {
           inputMode="numeric"
           value={minPrice}
           onChange={(e) => setMinPrice(e.target.value)}
-          placeholder="Min $/night"
+          placeholder={t("search.minNightPh")}
           className="home-search-field w-full rounded-2xl px-3 py-2.5 text-[14px] outline-none transition sm:py-3 sm:text-[15px]"
         />
       </label>
       <label className="min-w-0">
-        <span className="sr-only">Maximum price per night</span>
+        <span className="sr-only">{t("search.maxNight")}</span>
         <input
           type="number"
           name="maxPrice"
@@ -58,7 +53,7 @@ function PriceFields({ minPrice, maxPrice, setMinPrice, setMaxPrice }) {
           inputMode="numeric"
           value={maxPrice}
           onChange={(e) => setMaxPrice(e.target.value)}
-          placeholder="Max $/night"
+          placeholder={t("search.maxNightPh")}
           className="home-search-field w-full rounded-2xl px-3 py-2.5 text-[14px] outline-none transition sm:py-3 sm:text-[15px]"
         />
       </label>
@@ -66,11 +61,11 @@ function PriceFields({ minPrice, maxPrice, setMinPrice, setMaxPrice }) {
   );
 }
 
-function RoomFields({ minBeds, minBaths, setMinBeds, setMinBaths }) {
+function RoomFields({ minBeds, minBaths, setMinBeds, setMinBaths, t }) {
   return (
     <div className="grid grid-cols-2 gap-3">
       <label className="relative min-w-0">
-        <span className="sr-only">Minimum bedrooms</span>
+        <span className="sr-only">{t("search.minBeds")}</span>
         <BedDouble
           className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--portal-ink-muted)]"
           aria-hidden
@@ -80,17 +75,17 @@ function RoomFields({ minBeds, minBaths, setMinBeds, setMinBaths }) {
           value={minBeds}
           onChange={(e) => setMinBeds(e.target.value)}
           className="home-search-field w-full rounded-2xl py-2.5 pl-9 text-[14px] outline-none transition sm:py-3 sm:pl-10 sm:text-[15px]"
-          aria-label="Minimum bedrooms"
+          aria-label={t("search.minBeds")}
         >
           {MIN_COUNT_OPTIONS.map((opt) => (
             <option key={`beds-${opt.value || "any"}`} value={opt.value}>
-              {opt.value ? `${opt.label} beds` : "Beds"}
+              {opt.value ? t("search.bedsN", { n: opt.label.replace("+", "") }) : t("search.beds")}
             </option>
           ))}
         </select>
       </label>
       <label className="relative min-w-0">
-        <span className="sr-only">Minimum bathrooms</span>
+        <span className="sr-only">{t("search.minBaths")}</span>
         <Bath
           className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--portal-ink-muted)]"
           aria-hidden
@@ -100,11 +95,11 @@ function RoomFields({ minBeds, minBaths, setMinBeds, setMinBaths }) {
           value={minBaths}
           onChange={(e) => setMinBaths(e.target.value)}
           className="home-search-field w-full rounded-2xl py-2.5 pl-9 text-[14px] outline-none transition sm:py-3 sm:pl-10 sm:text-[15px]"
-          aria-label="Minimum bathrooms"
+          aria-label={t("search.minBaths")}
         >
           {MIN_COUNT_OPTIONS.map((opt) => (
             <option key={`baths-${opt.value || "any"}`} value={opt.value}>
-              {opt.value ? `${opt.label} baths` : "Baths"}
+              {opt.value ? t("search.bathsN", { n: opt.label.replace("+", "") }) : t("search.baths")}
             </option>
           ))}
         </select>
@@ -118,6 +113,7 @@ function RoomFields({ minBeds, minBaths, setMinBeds, setMinBaths }) {
  * Desktop keeps filters inline with more room.
  */
 export default function HomePortalSearch() {
+  const { t } = useLanguage();
   const router = useRouter();
   const [location, setLocation] = useState("");
   const [propertyType, setPropertyType] = useState("All Properties");
@@ -169,13 +165,13 @@ export default function HomePortalSearch() {
   return (
     <form
       role="search"
-      aria-label="Search vacation rentals"
+      aria-label={t("search.aria")}
       onSubmit={handleSubmit}
       className="home-glass-search mx-auto w-full max-w-xl rounded-[1.5rem] px-5 py-6 sm:max-w-2xl sm:px-6 sm:py-7 lg:max-w-5xl lg:px-7 lg:py-6"
     >
       <div className="mb-5 flex items-center justify-between gap-3 sm:mb-6">
         <p className="text-left text-[12px] font-medium tracking-wide text-[var(--portal-ink-muted)]">
-          Find a stay
+          {t("search.findStay")}
         </p>
         <Currency variant="portal" />
       </div>
@@ -183,7 +179,7 @@ export default function HomePortalSearch() {
       <div className="flex flex-col gap-4 lg:gap-3.5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-3">
           <label className="relative min-w-0 flex-1 lg:flex-[2.2]">
-            <span className="sr-only">Location</span>
+            <span className="sr-only">{t("search.location")}</span>
             <MapPin
               className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--portal-accent)] sm:h-4 sm:w-4"
               aria-hidden
@@ -194,7 +190,7 @@ export default function HomePortalSearch() {
               name="location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="City, country, neighborhood…"
+              placeholder={t("search.locationPlaceholder")}
               autoComplete="off"
               enterKeyHint="search"
               className={fieldClass}
@@ -205,7 +201,7 @@ export default function HomePortalSearch() {
             className="relative min-w-0 lg:w-[12.5rem] lg:flex-none"
             ref={dropdownRef}
           >
-            <span className="sr-only">Property type</span>
+            <span className="sr-only">{t("search.propertyType")}</span>
             <Home
               className="pointer-events-none absolute left-3.5 top-1/2 z-10 h-3.5 w-3.5 -translate-y-1/2 text-[var(--portal-ink-muted)] sm:h-4 sm:w-4"
               aria-hidden
@@ -217,7 +213,7 @@ export default function HomePortalSearch() {
               aria-expanded={isDropdownOpen}
               onClick={() => setIsDropdownOpen((o) => !o)}
             >
-              <span className="block truncate">{propertyType}</span>
+              <span className="block truncate">{t(propertyTypeMessageKey(propertyType))}</span>
               <ChevronDown
                 className={`h-3.5 w-3.5 shrink-0 text-[var(--portal-ink-muted)] transition-transform sm:h-4 sm:w-4 ${isDropdownOpen ? "rotate-180" : ""}`}
                 aria-hidden
@@ -226,7 +222,7 @@ export default function HomePortalSearch() {
             {isDropdownOpen && (
               <ul
                 role="listbox"
-                aria-label="Property types"
+                aria-label={t("search.propertyTypes")}
                 className="absolute z-50 mt-2 max-h-56 w-full overflow-auto rounded-2xl border border-[var(--portal-border)] bg-white py-1 shadow-xl"
               >
                 {PROPERTY_TYPES.map((type) => (
@@ -247,7 +243,7 @@ export default function HomePortalSearch() {
                         setIsDropdownOpen(false);
                       }}
                     >
-                      {type}
+                      {t(propertyTypeMessageKey(type))}
                     </button>
                   </li>
                 ))}
@@ -265,7 +261,7 @@ export default function HomePortalSearch() {
             aria-expanded={filtersOpen}
           >
             <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
-            Filters
+            {t("search.filters")}
             {activeFilterCount > 0 ? (
               <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--portal-accent-soft)] px-1.5 text-[11px] font-semibold text-[var(--portal-accent)]">
                 {activeFilterCount}
@@ -284,12 +280,14 @@ export default function HomePortalSearch() {
                 maxPrice={maxPrice}
                 setMinPrice={setMinPrice}
                 setMaxPrice={setMaxPrice}
+                t={t}
               />
               <RoomFields
                 minBeds={minBeds}
                 minBaths={minBaths}
                 setMinBeds={setMinBeds}
                 setMinBaths={setMinBaths}
+                t={t}
               />
             </div>
           ) : null}
@@ -303,6 +301,7 @@ export default function HomePortalSearch() {
               maxPrice={maxPrice}
               setMinPrice={setMinPrice}
               setMaxPrice={setMaxPrice}
+              t={t}
             />
           </div>
           <div className="w-[17rem] flex-none">
@@ -311,6 +310,7 @@ export default function HomePortalSearch() {
               minBaths={minBaths}
               setMinBeds={setMinBeds}
               setMinBaths={setMinBaths}
+              t={t}
             />
           </div>
           <button
@@ -318,7 +318,7 @@ export default function HomePortalSearch() {
             className="home-search-cta inline-flex min-h-[44px] min-w-[8.5rem] items-center justify-center gap-2 rounded-2xl px-6 text-[15px] font-semibold transition active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--portal-accent)]"
           >
             <Search className="h-4 w-4" aria-hidden />
-            Search
+            {t("search.search")}
           </button>
         </div>
 
@@ -327,7 +327,7 @@ export default function HomePortalSearch() {
           className="home-search-cta mt-1 inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-2xl px-6 text-[15px] font-semibold transition active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--portal-accent)] lg:hidden"
         >
           <Search className="h-4 w-4" aria-hidden />
-          Search
+          {t("search.search")}
         </button>
       </div>
     </form>

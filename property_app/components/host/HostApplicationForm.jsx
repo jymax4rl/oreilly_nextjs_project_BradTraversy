@@ -12,6 +12,7 @@ import {
 import { emptyAddress } from "@/utils/address";
 import HostAddressFields from "@/components/forms/HostAddressFields";
 import { isAddressComplete } from "@/utils/address";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 const inputClass =
   "h-12 w-full rounded-xl border border-[var(--kama-border)] bg-white px-4 text-[15px] text-[var(--kama-ink)] outline-none transition placeholder:text-[var(--kama-ink-muted)] focus:border-[var(--kama-accent)] focus:ring-2 focus:ring-[var(--kama-accent-soft)]";
@@ -20,10 +21,10 @@ const labelClass =
   "mb-1.5 block text-sm font-medium text-[var(--kama-ink)]";
 
 const steps = [
-  { id: "contact", label: "Contact", icon: Phone },
-  { id: "identity", label: "Identity", icon: IdCard },
-  { id: "address", label: "Address", icon: MapPin },
-  { id: "about", label: "About you", icon: UserRound },
+  { id: "contact", labelKey: "host.contact", icon: Phone },
+  { id: "identity", labelKey: "host.identity", icon: IdCard },
+  { id: "address", labelKey: "host.homeAddress", icon: MapPin },
+  { id: "about", labelKey: "host.about", icon: UserRound },
 ];
 
 export default function HostApplicationForm({
@@ -33,6 +34,7 @@ export default function HostApplicationForm({
   submitting,
   error,
 }) {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     phone: initialData?.phone || "",
     idType: initialData?.idType || "passport",
@@ -50,9 +52,7 @@ export default function HostApplicationForm({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!isAddressComplete(formData.address)) {
-      setFormError(
-        "Please complete street, city, and country — they are saved on your host profile.",
-      );
+      setFormError(t("host.addressError"));
       return;
     }
     setFormError("");
@@ -75,7 +75,7 @@ export default function HostApplicationForm({
               <div className="min-w-0">
                 <Icon className="mb-0.5 h-3.5 w-3.5 text-[var(--kama-accent)]" />
                 <p className="truncate text-xs font-semibold text-[var(--kama-ink)]">
-                  {step.label}
+                  {t(step.labelKey)}
                 </p>
               </div>
             </div>
@@ -99,15 +99,15 @@ export default function HostApplicationForm({
             <Phone className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="text-lg font-semibold text-[var(--kama-ink)]">Contact</h2>
+            <h2 className="text-lg font-semibold text-[var(--kama-ink)]">{t("host.contact")}</h2>
             <p className="text-sm text-[var(--kama-ink-muted)]">
-              We&apos;ll use this to verify your application.
+              {t("host.contactHint")}
             </p>
           </div>
         </div>
         <div>
           <label htmlFor="phone" className={labelClass}>
-            Phone number <span className="text-red-500">*</span>
+            {t("host.phone")} <span className="text-red-500">*</span>
           </label>
           <input
             id="phone"
@@ -129,16 +129,16 @@ export default function HostApplicationForm({
             <IdCard className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="text-lg font-semibold text-[var(--kama-ink)]">Identity</h2>
+            <h2 className="text-lg font-semibold text-[var(--kama-ink)]">{t("host.identity")}</h2>
             <p className="text-sm text-[var(--kama-ink-muted)]">
-              Government ID helps keep guests and hosts safe.
+              {t("host.identityHint")}
             </p>
           </div>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="idType" className={labelClass}>
-              ID type <span className="text-red-500">*</span>
+              {t("host.idType")} <span className="text-red-500">*</span>
             </label>
             <select
               id="idType"
@@ -147,14 +147,14 @@ export default function HostApplicationForm({
               onChange={handleChange}
               className={inputClass}
             >
-              <option value="passport">Passport</option>
-              <option value="national_id">National ID</option>
-              <option value="drivers_license">Driver&apos;s license</option>
+              <option value="passport">{t("host.passport")}</option>
+              <option value="national_id">{t("host.nationalId")}</option>
+              <option value="drivers_license">{t("host.driversLicense")}</option>
             </select>
           </div>
           <div>
             <label htmlFor="idNumber" className={labelClass}>
-              ID number <span className="text-red-500">*</span>
+              {t("host.idNumber")} <span className="text-red-500">*</span>
             </label>
             <input
               id="idNumber"
@@ -164,7 +164,7 @@ export default function HostApplicationForm({
               value={formData.idNumber}
               onChange={handleChange}
               className={inputClass}
-              placeholder="Document number"
+              placeholder={t("host.idNumberPh")}
             />
           </div>
         </div>
@@ -177,9 +177,9 @@ export default function HostApplicationForm({
             <MapPin className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="text-lg font-semibold text-[var(--kama-ink)]">Home address</h2>
+            <h2 className="text-lg font-semibold text-[var(--kama-ink)]">{t("host.homeAddress")}</h2>
             <p className="text-sm text-[var(--kama-ink-muted)]">
-              Your verified address is stored on your host profile.
+              {t("host.addressHint")}
             </p>
           </div>
         </div>
@@ -199,9 +199,9 @@ export default function HostApplicationForm({
             <UserRound className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="text-lg font-semibold text-[var(--kama-ink)]">About you</h2>
+            <h2 className="text-lg font-semibold text-[var(--kama-ink)]">{t("host.about")}</h2>
             <p className="text-sm text-[var(--kama-ink-muted)]">
-              Optional — tell guests why you&apos;d be a great host.
+              {t("host.aboutHint")}
             </p>
           </div>
         </div>
@@ -211,7 +211,7 @@ export default function HostApplicationForm({
           value={formData.bio}
           onChange={handleChange}
           className={`${inputClass} min-h-[120px] resize-y py-3`}
-          placeholder="Share your experience hosting or welcoming travelers…"
+          placeholder={t("host.bioPh")}
         />
       </section>
 
@@ -219,8 +219,7 @@ export default function HostApplicationForm({
         <div className="flex gap-2">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[var(--kama-accent)]" />
           <p>
-            Your information is reviewed by our team. Approved hosts can list
-            properties and receive payouts across Africa.
+            {t("host.reviewNote")}
           </p>
         </div>
       </div>
@@ -231,10 +230,10 @@ export default function HostApplicationForm({
         className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[var(--kama-accent)] text-[16px] font-semibold text-white transition hover:bg-[var(--kama-accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {submitting
-          ? "Submitting…"
+          ? t("host.submitting")
           : isResubmission
-            ? "Resubmit application"
-            : "Submit application"}
+            ? t("host.resubmit")
+            : t("host.submit")}
         {!submitting ? <ChevronRight className="h-5 w-5" /> : null}
       </button>
     </form>

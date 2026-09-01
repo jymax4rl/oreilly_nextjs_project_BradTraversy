@@ -14,6 +14,8 @@ import { MenuOverlayProvider } from "@/contexts/MenuOverlayContext";
 import { ScrollNavProvider } from "@/contexts/ScrollNavContext";
 import ChunkErrorRecovery from "@/components/ChunkErrorRecovery";
 import TrafficProbe from "@/components/metrics/TrafficProbe";
+import { LanguageProvider } from "@/components/i18n/LanguageProvider";
+import { getRequestLang } from "@/lib/i18n/server";
 
 export const metadata = {
   metadataBase: new URL(
@@ -50,31 +52,35 @@ export const metadata = {
   },
 };
 
-function MainLayout({ children }) {
+async function MainLayout({ children }) {
+  const lang = await getRequestLang();
+
   return (
     <AuthProvider>
       <MenuOverlayProvider>
         <ScrollNavProvider>
           <CurrencyProvider>
-            <StyledComponentsRegistry>
-              <html lang="en">
-                <body className="flex flex-col min-h-screen">
-                  <ChunkErrorRecovery />
-                  <TrafficProbe />
-                  <Navbar />
-                  <MobileTopChromeGate />
-                  <MainShell>{children}</MainShell>
-                  <MobileBottomNavGate />
-                  {/* Footer is desktop-only; keep deploy marker visible on mobile too */}
-                  <span className="lg:hidden fixed bottom-20 right-3 z-50">
-                    <DeployCheckBadge surface="light" />
-                  </span>
-                  <FooterGate>
-                    <Footer className="hidden lg:block" />
-                  </FooterGate>
-                </body>
-              </html>
-            </StyledComponentsRegistry>
+            <LanguageProvider initialLang={lang}>
+              <StyledComponentsRegistry>
+                <html lang={lang}>
+                  <body className="flex flex-col min-h-screen">
+                    <ChunkErrorRecovery />
+                    <TrafficProbe />
+                    <Navbar />
+                    <MobileTopChromeGate />
+                    <MainShell>{children}</MainShell>
+                    <MobileBottomNavGate />
+                    {/* Footer is desktop-only; keep deploy marker visible on mobile too */}
+                    <span className="lg:hidden fixed bottom-20 right-3 z-50">
+                      <DeployCheckBadge surface="light" />
+                    </span>
+                    <FooterGate>
+                      <Footer className="hidden lg:block" />
+                    </FooterGate>
+                  </body>
+                </html>
+              </StyledComponentsRegistry>
+            </LanguageProvider>
           </CurrencyProvider>
         </ScrollNavProvider>
       </MenuOverlayProvider>

@@ -30,16 +30,19 @@ import { isExploreMobileLayout } from "@/utils/exploreLayout";
 import { isFullscreenRoute } from "@/utils/fullscreenRoutes";
 import { getLoginUrl } from "@/lib/legal/loginUrl";
 import { isOpsStaff } from "@/utils/opsAuth";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import LanguageToggle from "@/components/i18n/LanguageToggle";
 
 const navLinks = [
-  { path: "/", label: "Home", Icon: Home },
-  { path: "/properties", label: "Properties", Icon: Building2 },
+  { path: "/", labelKey: "nav.home", Icon: Home },
+  { path: "/properties", labelKey: "nav.properties", Icon: Building2 },
 ];
 
 const profileItemClass = "kama-profile-item font-medium";
 
 const Navbar = () => {
   const { data: session } = useSession();
+  const { t } = useLanguage();
   const { isOpen, toggle, close } = useMenuOverlay();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -109,9 +112,9 @@ const Navbar = () => {
 
   const getHostNavItem = () => {
     if (session?.user?.hostStatus === "verified") {
-      return { path: "/host", label: "Host console" };
+      return { path: "/host", label: t("nav.hostConsole") };
     }
-    return { path: "/host/onboarding", label: "Become a Host" };
+    return { path: "/host/onboarding", label: t("nav.becomeHost") };
   };
 
   const hostNavItem = getHostNavItem();
@@ -164,7 +167,7 @@ const Navbar = () => {
                 isHome || !isActive(link.path) ? "p-2 text-black" : "p-2 text-white"
               }
             >
-              <NavButton text={link.label} />
+              <NavButton text={t(link.labelKey)} />
             </Link>
           ))}
 
@@ -190,16 +193,18 @@ const Navbar = () => {
                   : "p-2 text-white"
               }
             >
-              <NavButton text="Ops" />
+              <NavButton text={t("nav.ops")} />
             </Link>
           )}
         </div>
 
         {/* Right Section */}
         <div className="flex w-full gap-3 lg:gap-6 items-center justify-end pointer mr-4">
+          <LanguageToggle className="hidden lg:inline-flex" />
           {!session && (
             <div className="hidden lg:block">
               <LoginNavButton
+                label={t("nav.signIn")}
                 onClick={() => {
                   window.location.assign(getLoginUrl(pathname || "/"));
                 }}
@@ -260,7 +265,7 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <LuUserRound />
-                    <span>Profile</span>
+                    <span>{t("nav.profile")}</span>
                   </Link>
 
                   <Link
@@ -270,7 +275,7 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <Heart />
-                    <span>Saved Properties</span>
+                    <span>{t("nav.saved")}</span>
                   </Link>
 
                   <Link
@@ -280,7 +285,7 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <CalendarCheck />
-                    <span>My Bookings</span>
+                    <span>{t("nav.bookings")}</span>
                   </Link>
 
                   <Link
@@ -290,7 +295,7 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <MessageSquare />
-                    <span>Messages</span>
+                    <span>{t("nav.messages")}</span>
                     {unreadCount > 0 && (
                       <span className="ml-auto flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[#1b5c57] px-1 text-[10px] font-bold text-white">
                         {unreadCount > 9 ? "9+" : unreadCount}
@@ -305,7 +310,7 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <Settings />
-                    <span>Settings</span>
+                    <span>{t("nav.settings")}</span>
                   </Link>
 
                   <Link
@@ -315,7 +320,7 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <Shield />
-                    <span>Policies & Terms</span>
+                    <span>{t("nav.policies")}</span>
                   </Link>
                 </div>
 
@@ -329,7 +334,7 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <LayoutList />
-                    <span>Host console</span>
+                    <span>{t("nav.hostConsole")}</span>
                   </Link>
                 )}
 
@@ -341,7 +346,7 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <PlusCircle />
-                    <span>Become a Host</span>
+                    <span>{t("nav.becomeHost")}</span>
                   </Link>
                 )}
 
@@ -353,7 +358,7 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <Shield />
-                    <span>Operations</span>
+                    <span>{t("nav.operations")}</span>
                   </Link>
                 )}
 
@@ -369,7 +374,7 @@ const Navbar = () => {
                   role="menuitem"
                 >
                   <LogOut className="h-4 w-4 shrink-0" aria-hidden />
-                  <span className="font-medium">Sign out</span>
+                  <span className="font-medium">{t("nav.signOut")}</span>
                 </button>
               </div>
             </div>

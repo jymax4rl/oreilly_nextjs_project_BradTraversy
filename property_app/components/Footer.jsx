@@ -1,9 +1,13 @@
+"use client";
+
 import DeployCheckBadge from "@/components/DeployCheckBadge";
-import Link from "next/link"; // Or 'react-router-dom'
-import { FaInstagram, FaTwitter, FaLinkedin, FaFacebook } from "react-icons/fa"; // Optional icons
+import Link from "next/link";
+import { FaInstagram, FaTwitter, FaLinkedin, FaFacebook } from "react-icons/fa";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 const Footer = ({ className = "" }) => {
   const currentYear = new Date().getFullYear();
+  const { t } = useLanguage();
   return (
     <footer
       className={`bg-zinc-950 text-zinc-400 relative pt-24 pb-12 overflow-hidden font-sans ${className}`}
@@ -14,17 +18,21 @@ const Footer = ({ className = "" }) => {
           {/* Left: Call to Action */}
           <div className="space-y-6">
             <h3 className="text-3xl md:text-5xl font-semibold text-white tracking-tight">
-              Ready to find your <br />
-              <span className="text-[var(--kama-accent,#1b5c57)]">dream stay?</span>
+              {t("footer.ready")} <br />
+              <span className="text-[var(--kama-accent,#1b5c57)]">
+                {t("footer.dreamStay")}
+              </span>
             </h3>
             <p className="max-w-md text-lg text-zinc-500">
-              Join thousands of satisfied clients who found their perfect home
-              with Kama Properties. Let&apos;s start the conversation.
+              {t("footer.blurb")}
             </p>
             <div className="flex gap-4 pt-4">
-              <button className="bg-white text-black px-8 py-3 rounded-full font-medium hover:bg-zinc-200 transition-colors">
-                Get Started
-              </button>
+              <Link
+                href="/properties"
+                className="bg-white text-black px-8 py-3 rounded-full font-medium hover:bg-zinc-200 transition-colors"
+              >
+                {t("footer.getStarted")}
+              </Link>
             </div>
           </div>
 
@@ -32,29 +40,29 @@ const Footer = ({ className = "" }) => {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8 lg:gap-12">
             {/* Column 1 */}
             <div className="flex flex-col space-y-4">
-              <h4 className="text-white font-medium mb-2">Company</h4>
-              <FooterLink href="/about">About</FooterLink>
-              <FooterLink href="/careers">Careers</FooterLink>
-              <FooterLink href="/press">Press</FooterLink>
-              <FooterLink href="/contact">Contact</FooterLink>
+              <h4 className="text-white font-medium mb-2">{t("footer.company")}</h4>
+              <FooterLink href="/about">{t("footer.about")}</FooterLink>
+              <FooterLink href="/careers">{t("footer.careers")}</FooterLink>
+              <FooterLink href="/press">{t("footer.press")}</FooterLink>
+              <FooterLink href="/contact">{t("footer.contact")}</FooterLink>
             </div>
 
             {/* Column 2 */}
             <div className="flex flex-col space-y-4">
-              <h4 className="text-white font-medium mb-2">Resources</h4>
-              <FooterLink href="/blog">Blog</FooterLink>
-              <FooterLink href="/guides">Guides</FooterLink>
-              <FooterLink href="/help">Help Center</FooterLink>
-              <FooterLink href="/partners">Partners</FooterLink>
+              <h4 className="text-white font-medium mb-2">{t("footer.resources")}</h4>
+              <FooterLink href="/blog">{t("footer.blog")}</FooterLink>
+              <FooterLink href="/guides">{t("footer.guides")}</FooterLink>
+              <FooterLink href="/help">{t("footer.help")}</FooterLink>
+              <FooterLink href="/partners">{t("footer.partners")}</FooterLink>
             </div>
 
             {/* Column 3 */}
             <div className="flex flex-col space-y-4">
-              <h4 className="text-white font-medium mb-2">Legal</h4>
-              <FooterLink href="/policies">Policies</FooterLink>
-              <FooterLink href="/policies/terms">Terms</FooterLink>
-              <FooterLink href="/policies/privacy">Privacy</FooterLink>
-              <FooterLink href="/policies/cookies">Cookies</FooterLink>
+              <h4 className="text-white font-medium mb-2">{t("footer.legal")}</h4>
+              <FooterLink href="/policies">{t("footer.policies")}</FooterLink>
+              <FooterLink href="/policies/terms">{t("footer.terms")}</FooterLink>
+              <FooterLink href="/policies/privacy">{t("footer.privacy")}</FooterLink>
+              <FooterLink href="/policies/cookies">{t("footer.cookies")}</FooterLink>
             </div>
           </div>
         </div>

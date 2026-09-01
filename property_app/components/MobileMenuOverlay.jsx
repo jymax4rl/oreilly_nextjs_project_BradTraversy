@@ -23,6 +23,8 @@ import { LuUserRound } from "react-icons/lu";
 import BrandLogo from "@/components/BrandLogo";
 import Currency from "@/components/Currency";
 import { isOpsStaff } from "@/utils/opsAuth";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import LanguageToggle from "@/components/i18n/LanguageToggle";
 
 /**
  * Full-screen mobile navigation overlay.
@@ -35,6 +37,7 @@ export default function MobileMenuOverlay({
   unreadCount = 0,
 }) {
   const pathname = usePathname();
+  const { t } = useLanguage();
   const user = session?.user;
   const isHost = user?.hostStatus === "verified";
   const isAdmin = isOpsStaff(user?.role);
@@ -67,6 +70,7 @@ export default function MobileMenuOverlay({
           <header className="kama-menu-header">
             <BrandLogo className="h-9 w-auto" href="/" />
             <div className="flex items-center gap-2">
+              <LanguageToggle />
               <div className="kama-menu-currency-chip">
                 <Currency variant="portal" align="end" />
               </div>
@@ -74,7 +78,7 @@ export default function MobileMenuOverlay({
                 type="button"
                 onClick={close}
                 className="kama-menu-close"
-                aria-label="Close menu"
+                aria-label={t("menu.close")}
               >
                 <X className="h-5 w-5" strokeWidth={1.75} aria-hidden />
               </button>
@@ -111,7 +115,7 @@ export default function MobileMenuOverlay({
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[0.95rem] font-semibold tracking-tight text-[#0c1a1a]">
-                      {user.name || "Your profile"}
+                      {user.name || t("menu.yourProfile")}
                     </p>
                     <p className="mt-0.5 truncate text-xs text-[#4a5c5b]">
                       {user.email}
@@ -125,10 +129,10 @@ export default function MobileMenuOverlay({
               ) : (
                 <div className="kama-menu-signin-block">
                   <p className="text-[0.95rem] font-semibold tracking-tight text-[#0c1a1a]">
-                    Welcome to Kama
+                    {t("menu.welcome")}
                   </p>
                   <p className="mt-1 text-sm leading-snug text-[#4a5c5b]">
-                    Sign in to save stays, message hosts, and manage bookings.
+                    {t("menu.signInHint")}
                   </p>
                   <button
                     type="button"
@@ -139,7 +143,7 @@ export default function MobileMenuOverlay({
                     className="kama-menu-cta mt-4"
                   >
                     <GoogleGlyph />
-                    Sign in with Google
+                    {t("menu.signInGoogle")}
                   </button>
                 </div>
               )}
@@ -147,12 +151,12 @@ export default function MobileMenuOverlay({
               {/* Discover */}
               <section className="kama-menu-group" aria-labelledby="menu-discover">
                 <h2 id="menu-discover" className="kama-menu-section">
-                  Discover
+                  {t("menu.discover")}
                 </h2>
-                <nav className="flex flex-col gap-0.5" aria-label="Discover">
+                <nav className="flex flex-col gap-0.5" aria-label={t("menu.discover")}>
                   <Link href="/" onClick={close} className={rowClass("/")}>
                     <Home className="kama-menu-row-icon" aria-hidden />
-                    Home
+                    {t("nav.home")}
                   </Link>
                   <Link
                     href="/properties"
@@ -160,7 +164,7 @@ export default function MobileMenuOverlay({
                     className={rowClass("/properties")}
                   >
                     <Building2 className="kama-menu-row-icon" aria-hidden />
-                    Properties
+                    {t("nav.properties")}
                   </Link>
                   <Link
                     href="/saved-properties"
@@ -168,7 +172,7 @@ export default function MobileMenuOverlay({
                     className={rowClass("/saved-properties")}
                   >
                     <Heart className="kama-menu-row-icon" aria-hidden />
-                    Saved
+                    {t("menu.saved")}
                   </Link>
                   <Link
                     href="/policies"
@@ -176,7 +180,7 @@ export default function MobileMenuOverlay({
                     className={rowClass("/policies")}
                   >
                     <Shield className="kama-menu-row-icon" aria-hidden />
-                    Policies & Terms
+                    {t("nav.policies")}
                   </Link>
                 </nav>
               </section>
@@ -185,9 +189,9 @@ export default function MobileMenuOverlay({
               {user && (
                 <section className="kama-menu-group" aria-labelledby="menu-travel">
                   <h2 id="menu-travel" className="kama-menu-section">
-                    Travel
+                    {t("menu.travel")}
                   </h2>
-                  <nav className="flex flex-col gap-0.5" aria-label="Travel">
+                  <nav className="flex flex-col gap-0.5" aria-label={t("menu.travel")}>
                     <Link
                       href="/my-bookings"
                       onClick={close}
@@ -197,7 +201,7 @@ export default function MobileMenuOverlay({
                         className="kama-menu-row-icon"
                         aria-hidden
                       />
-                      My bookings
+                      {t("menu.myBookings")}
                     </Link>
                     <Link
                       href="/messages"
@@ -208,7 +212,7 @@ export default function MobileMenuOverlay({
                         className="kama-menu-row-icon"
                         aria-hidden
                       />
-                      Messages
+                      {t("nav.messages")}
                       {unreadCount > 0 && (
                         <span className="kama-menu-badge">
                           {unreadCount > 9 ? "9+" : unreadCount}
@@ -225,9 +229,9 @@ export default function MobileMenuOverlay({
                 aria-labelledby="menu-hosting"
               >
                 <h2 id="menu-hosting" className="kama-menu-section">
-                  Hosting
+                  {t("menu.hosting")}
                 </h2>
-                <nav className="flex flex-col gap-0.5" aria-label="Hosting">
+                <nav className="flex flex-col gap-0.5" aria-label={t("menu.hosting")}>
                     {isHost ? (
                       <Link
                         href="/host"
@@ -238,7 +242,7 @@ export default function MobileMenuOverlay({
                           className="kama-menu-row-icon"
                           aria-hidden
                         />
-                        Host console
+                        {t("nav.hostConsole")}
                       </Link>
                     ) : (
                     <Link
@@ -250,7 +254,7 @@ export default function MobileMenuOverlay({
                         className="kama-menu-row-icon"
                         aria-hidden
                       />
-                      Become a host
+                      {t("menu.becomeHost")}
                     </Link>
                   )}
                 </nav>
@@ -260,16 +264,16 @@ export default function MobileMenuOverlay({
               {isAdmin && (
                 <section className="kama-menu-group" aria-labelledby="menu-admin">
                   <h2 id="menu-admin" className="kama-menu-section">
-                    Operations
+                    {t("nav.operations")}
                   </h2>
-                  <nav className="flex flex-col gap-0.5" aria-label="Operations">
+                  <nav className="flex flex-col gap-0.5" aria-label={t("nav.operations")}>
                     <Link
                       href="/ops"
                       onClick={close}
                       className={rowClass("/ops")}
                     >
                       <Shield className="kama-menu-row-icon" aria-hidden />
-                      Ops console
+                      {t("menu.opsConsole")}
                     </Link>
                   </nav>
                 </section>
@@ -282,16 +286,16 @@ export default function MobileMenuOverlay({
                   aria-labelledby="menu-account"
                 >
                   <h2 id="menu-account" className="kama-menu-section">
-                    Account
+                    {t("menu.account")}
                   </h2>
-                  <nav className="flex flex-col gap-0.5" aria-label="Account">
+                  <nav className="flex flex-col gap-0.5" aria-label={t("menu.account")}>
                     <Link
                       href="/settings"
                       onClick={close}
                       className={rowClass("/settings")}
                     >
                       <Settings className="kama-menu-row-icon" aria-hidden />
-                      Settings
+                      {t("nav.settings")}
                     </Link>
                     <Link
                       href="/policies"
@@ -299,7 +303,7 @@ export default function MobileMenuOverlay({
                       className={rowClass("/policies")}
                     >
                       <Shield className="kama-menu-row-icon" aria-hidden />
-                      Policies & Terms
+                      {t("nav.policies")}
                     </Link>
                     <button
                       type="button"
@@ -310,7 +314,7 @@ export default function MobileMenuOverlay({
                       className="kama-menu-signout"
                     >
                       <LogOut className="h-5 w-5 shrink-0" aria-hidden />
-                      Sign out
+                      {t("nav.signOut")}
                     </button>
                   </nav>
                 </section>

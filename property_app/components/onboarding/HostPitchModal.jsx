@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { HOST_PITCH_SLIDES } from "@/components/onboarding/hostPitchSlides";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 gsap.registerPlugin(useGSAP);
 
@@ -33,6 +34,7 @@ export default function HostPitchModal({
   onDismiss,
   onFinish,
 }) {
+  const { t } = useLanguage();
   const titleId = useId();
   const rootRef = useRef(null);
   const visualRef = useRef(null);
@@ -177,7 +179,7 @@ export default function HostPitchModal({
       <button
         type="button"
         className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
-        aria-label="Skip host introduction"
+        aria-label={t("hostPitch.skipIntro")}
         onClick={() => onDismiss?.()}
       />
 
@@ -189,7 +191,7 @@ export default function HostPitchModal({
           type="button"
           onClick={() => onDismiss?.()}
           className="absolute right-3 top-3 z-20 rounded-full bg-[var(--kama-surface)]/92 p-2 text-[var(--kama-ink-muted)] shadow-sm transition hover:bg-[var(--kama-field)] hover:text-[var(--kama-ink)] lg:bg-transparent lg:shadow-none"
-          aria-label="Close"
+          aria-label={t("hostPitch.close")}
         >
           <X size={18} aria-hidden />
         </button>
@@ -206,7 +208,7 @@ export default function HostPitchModal({
               strokeWidth={1.6}
             />
           </div>
-          <span className="sr-only">{slide.iconLabel}</span>
+          <span className="sr-only">{t(`hostPitch.${slide.id}.iconLabel`)}</span>
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col bg-[var(--kama-surface)] px-5 py-5 sm:px-8 sm:py-7">
@@ -215,20 +217,20 @@ export default function HostPitchModal({
               data-copy
               className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--kama-accent)]"
             >
-              {slide.eyebrow}
+              {t(`hostPitch.${slide.id}.eyebrow`)}
             </p>
             <h2
               id={titleId}
               data-copy
               className="mt-2 text-[1.4rem] font-semibold leading-[1.2] tracking-tight text-[var(--kama-ink)] sm:text-[1.75rem]"
             >
-              {slide.title}
+              {t(`hostPitch.${slide.id}.title`)}
             </h2>
             <p
               data-copy
               className="mt-3 max-w-md text-[15px] leading-relaxed text-[var(--kama-ink-muted)] sm:text-base"
             >
-              {slide.body}
+              {t(`hostPitch.${slide.id}.body`)}
             </p>
           </div>
 
@@ -243,14 +245,17 @@ export default function HostPitchModal({
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <div className="flex gap-1.5" role="tablist" aria-label="Pitch slides">
+              <div className="flex gap-1.5" role="tablist" aria-label={t("hostPitch.slides")}>
                 {slides.map((item, i) => (
                   <button
                     key={item.id}
                     type="button"
                     role="tab"
                     aria-selected={i === index}
-                    aria-label={`Slide ${i + 1}: ${item.title}`}
+                    aria-label={t("hostPitch.slideN", {
+                      n: i + 1,
+                      title: t(`hostPitch.${item.id}.title`),
+                    })}
                     onClick={() => setIndex(i)}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
                       i === index
@@ -268,7 +273,7 @@ export default function HostPitchModal({
                   onClick={() => setIndex((i) => i - 1)}
                   className="h-12 rounded-xl border border-[var(--kama-border)] px-4 text-sm font-medium text-[var(--kama-ink)] transition hover:bg-[var(--kama-field)]"
                 >
-                  Back
+                  {t("hostPitch.back")}
                 </button>
               ) : null}
               <button
@@ -279,8 +284,8 @@ export default function HostPitchModal({
               >
                 {isLast
                   ? finishLabel ||
-                    (signedIn ? "Start application" : "Log in to apply")
-                  : "Continue"}
+                    (signedIn ? t("host.startApp") : t("host.logInApply"))
+                  : t("hostPitch.continue")}
               </button>
             </div>
             <button
@@ -288,7 +293,7 @@ export default function HostPitchModal({
               onClick={() => onDismiss?.()}
               className="mt-3 w-full text-center text-[13px] font-medium text-[var(--kama-ink-muted)] transition hover:text-[var(--kama-ink)] hover:underline"
             >
-              Skip for now
+              {t("hostPitch.skip")}
             </button>
           </div>
         </div>

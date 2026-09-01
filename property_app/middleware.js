@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { isOpsStaff } from "@/utils/opsAuth";
+import {
+  LANG_CHOICE_KEY,
+  LANG_COOKIE_MAX_AGE,
+  LANG_PREFERENCE_KEY,
+} from "@/lib/legal/constants";
+import { resolveRequestLang } from "@/lib/i18n/resolveRequestLang";
+
+const langCookie = {
+  path: "/",
+  maxAge: LANG_COOKIE_MAX_AGE,
+  sameSite: "lax",
+};
 
 const signInUrl = (req, callbackUrl) => {
   const u = new URL("/login", req.url);
@@ -10,7 +22,26 @@ const signInUrl = (req, callbackUrl) => {
   return u;
 };
 
-export async function middleware(req) {
+function applyLocale(req, response) {
+  const { lang, source } = resolveRequestLang({
+    cookieLang: req.cookies.get(LANG_PREFERENCE_KEY)?.value,
+    explicitChoice: req.cookies.get(LANG_CHOICE_KEY)?.value === "1",
+    queryLang: req.nextUrl.searchParams.get("lang"),
+    country: req.headers.get("x-vercel-ip-country"),
+    acceptLanguage: req.headers.get("accept-language"),
+    timeZone: req.headers.get("x-vercel-ip-timezone"),
+  });
+
+  if (req.cookies.get(LANG_PREFERENCE_KEY)?.value !== lang) {
+    response.cookies.set(LANG_PREFERENCE_KEY, lang, langCookie);
+  }
+  if (source === "query" && req.cookies.get(LANG_CHOICE_KEY)?.value !== "1") {
+    response.cookies.set(LANG_CHOICE_KEY, "1", langCookie);
+  }
+  return response;
+}
+
+async function handleAuth(req) {
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,
@@ -84,12 +115,13 @@ export async function middleware(req) {
   return NextResponse.next();
 }
 
+export async function middleware(req) {
+  const response = await handleAuth(req);
+  return applyLocale(req, response);
+}
+
 export const config = {
   matcher: [
-    "/onboarding",
-    "/properties/add",
-    "/host/:path*",
-    "/admin/:path*",
-    "/ops/:path*",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?)$).*)",
   ],
 };

@@ -14,6 +14,7 @@ import {
 import { useScrollNav } from "@/contexts/ScrollNavContext";
 import { useMenuOverlay } from "@/contexts/MenuOverlayContext";
 import { getUnreadMessageCount } from "@/utils/actions/messageActions";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 /**
  * Primary mobile tab bar.
@@ -25,6 +26,7 @@ export default function MobileBottomNav() {
   const { navVisible } = useScrollNav();
   const { toggle } = useMenuOverlay();
   const { data: session } = useSession();
+  const { t } = useLanguage();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export default function MobileBottomNav() {
         <Link
           href="/"
           className={itemClass(pathname === "/")}
-          aria-label="Explore"
+          aria-label={t("mobileNav.explore")}
           aria-current={pathname === "/" ? "page" : undefined}
         >
           <MapPin
@@ -58,7 +60,7 @@ export default function MobileBottomNav() {
             strokeWidth={pathname === "/" ? 2.25 : 1.75}
             aria-hidden
           />
-          <span className="leading-none">Explore</span>
+          <span className="leading-none">{t("mobileNav.explore")}</span>
         </Link>
 
         <Link
@@ -73,7 +75,7 @@ export default function MobileBottomNav() {
             strokeWidth={pathname.startsWith("/properties") ? 2.25 : 1.75}
             aria-hidden
           />
-          <span className="leading-none">Browse</span>
+          <span className="leading-none">{t("mobileNav.browse")}</span>
         </Link>
 
         <Link
@@ -90,7 +92,7 @@ export default function MobileBottomNav() {
             }
             aria-hidden
           />
-          <span className="leading-none">Saved</span>
+          <span className="leading-none">{t("mobileNav.saved")}</span>
         </Link>
 
         <Link
@@ -110,20 +112,22 @@ export default function MobileBottomNav() {
               </span>
             )}
           </span>
-          <span className="leading-none">Messages</span>
+          <span className="leading-none">{t("mobileNav.messages")}</span>
         </Link>
 
         <button
           type="button"
           onClick={toggle}
           className={itemClass(false)}
-          aria-label="Open menu"
+          aria-label={t("mobileNav.openMenu")}
         >
           <CircleUserRound
             className="h-6 w-6 shrink-0 fill-none stroke-current"
             aria-hidden
           />
-          <span className="leading-none">{session ? "Menu" : "More"}</span>
+          <span className="leading-none">
+            {session ? t("mobileNav.menu") : t("mobileNav.more")}
+          </span>
         </button>
       </div>
     </nav>

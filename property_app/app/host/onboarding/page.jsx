@@ -8,9 +8,11 @@ import { addressFromLegacy } from "@/utils/address";
 import HostApplicationForm from "@/components/host/HostApplicationForm";
 import HostPitchModal from "@/components/onboarding/HostPitchModal";
 import { getLoginUrl } from "@/lib/legal/loginUrl";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 export default function HostOnboardingPage() {
   const { data: session, status, update } = useSession();
+  const { t } = useLanguage();
   const router = useRouter();
 
   const hostStatus = session?.user?.hostStatus;
@@ -105,12 +107,12 @@ export default function HostOnboardingPage() {
   const signedIn = Boolean(session?.user);
   const showForm = signedIn && !isPendingHost && !isVerifiedHost;
   const finishLabel = !signedIn
-    ? "Log in to apply"
+    ? t("host.logInApply")
     : isVerifiedHost
-      ? "List a property"
+      ? t("host.listProperty")
       : isPendingHost
-        ? "See application status"
-        : "Start application";
+        ? t("host.seeStatus")
+        : t("host.startApp");
 
   return (
     <div className="min-h-screen bg-[var(--kama-canvas)]">
@@ -127,31 +129,29 @@ export default function HostOnboardingPage() {
           {isResubmission ? (
             <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-left">
               <p className="text-sm font-semibold text-red-800">
-                Your previous application needs updates
+                {t("host.rejectedTitle")}
               </p>
               <p className="mt-1 text-sm text-red-700">
-                Review your details below — especially your address — and
-                resubmit for another review.
+                {t("host.rejectedBody")}
               </p>
             </div>
           ) : null}
 
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--kama-accent)]">
-            Host application
+            {t("host.application")}
           </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-[var(--kama-ink)] sm:text-4xl">
-            {isResubmission ? "Update your application" : "Become a host"}
+            {isResubmission ? t("host.update") : t("host.become")}
           </h1>
           <p className="mt-3 max-w-xl text-base leading-relaxed text-[var(--kama-ink-muted)]">
-            A short application. Then your home can reach guests across Africa
-            — on your terms, from one console.
+            {t("host.intro")}
           </p>
           <button
             type="button"
             onClick={() => setPitchOpen(true)}
             className="mt-3 text-sm font-semibold text-[var(--kama-accent)] hover:underline"
           >
-            Why host with isisel.com?
+            {t("host.whyHost")}
           </button>
         </div>
 
@@ -171,39 +171,37 @@ export default function HostOnboardingPage() {
         ) : isVerifiedHost ? (
           <div className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] p-8 text-center shadow-sm">
             <p className="mb-6 text-[var(--kama-ink-muted)]">
-              You&apos;re already an approved host. List a stay when you&apos;re
-              ready.
+              {t("host.alreadyHost")}
             </p>
             <Link
               href="/properties/add"
               className="kama-cta inline-flex h-12 items-center justify-center rounded-xl px-8 text-sm font-semibold"
             >
-              List a property
+              {t("host.listProperty")}
             </Link>
           </div>
         ) : isPendingHost ? (
           <div className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] p-8 text-center shadow-sm">
             <p className="mb-6 text-[var(--kama-ink-muted)]">
-              Your host application is under review. We&apos;ll notify you when
-              it&apos;s approved.
+              {t("host.pending")}
             </p>
             <Link
               href="/host/pending"
               className="kama-cta inline-flex h-12 items-center justify-center rounded-xl px-8 text-sm font-semibold"
             >
-              See application status
+              {t("host.seeStatus")}
             </Link>
           </div>
         ) : (
           <div className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] p-8 text-center shadow-sm">
             <p className="mb-6 text-[var(--kama-ink-muted)]">
-              Sign in or create an account to send your host application.
+              {t("host.signInToApply")}
             </p>
             <Link
               href={getLoginUrl("/host/onboarding")}
               className="kama-cta inline-flex h-12 items-center justify-center rounded-xl px-8 text-sm font-semibold"
             >
-              Log in or sign up
+              {t("host.logInOrSignUp")}
             </Link>
           </div>
         )}

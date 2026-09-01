@@ -11,12 +11,14 @@ import MobileMoneyBadge from "@/components/MobileMoneyBadge";
 import PropertyShareButton from "@/components/PropertyShareButton";
 import { useSession } from "next-auth/react";
 import { canUnlockPreviewListing } from "@/utils/listings/previewLockedHost";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 const PropertyCard = ({
   property,
   isSaved = false,
   allowOpen = false,
 }) => {
+  const { t } = useLanguage();
   const { data: session } = useSession();
   const { currencyCode, rates } = useCurrency();
   const {
@@ -55,22 +57,22 @@ const PropertyCard = ({
     if (ratesObj.nightly) {
       return {
         price: formatCurrency(ratesObj.nightly, currentRate, currentSymbol),
-        label: "/ night",
+        label: t("listing.perNight"),
       };
     }
     if (ratesObj.weekly) {
       return {
         price: formatCurrency(ratesObj.weekly, currentRate, currentSymbol),
-        label: "/ week",
+        label: t("listing.perWeek"),
       };
     }
     if (ratesObj.monthly) {
       return {
         price: formatCurrency(ratesObj.monthly, currentRate, currentSymbol),
-        label: "/ month",
+        label: t("listing.perMonth"),
       };
     }
-    return { price: "Contact", label: "for rates" };
+    return { price: t("listing.contact"), label: t("listing.forRates") };
   };
 
   const displayRate = getDisplayPrice(propertyRates);
@@ -188,7 +190,7 @@ const PropertyCard = ({
               </span>
             )}
             <span className="truncate text-xs font-medium text-[var(--kama-ink-muted)]">
-              Hosted by {hostName}
+              {t("listing.hostedBy", { name: hostName })}
             </span>
           </div>
         )}
@@ -206,7 +208,7 @@ const PropertyCard = ({
               {beds}
             </span>
             <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-              Beds
+              {t("listing.beds")}
             </span>
           </div>
 
@@ -222,7 +224,7 @@ const PropertyCard = ({
               {baths}
             </span>
             <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-              Baths
+              {t("listing.baths")}
             </span>
           </div>
 
@@ -238,7 +240,7 @@ const PropertyCard = ({
               {square_feet?.toLocaleString()}
             </span>
             <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-              Sq Ft
+              {t("listing.sqft")}
             </span>
           </div>
         </div>

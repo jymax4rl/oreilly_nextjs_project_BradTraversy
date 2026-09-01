@@ -2,11 +2,30 @@
 
 import {
   DEFAULT_LANG,
+  LANG_CHOICE_KEY,
+  LANG_COOKIE_MAX_AGE,
   LANG_PREFERENCE_KEY,
   SUPPORTED_LANGS,
   TERMS_ACCEPTANCE_KEY,
   TERMS_VERSION,
 } from "./constants";
+
+function readLangCookie() {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${LANG_PREFERENCE_KEY}=(en|fr)(?:;|$)`),
+  );
+  return match ? match[1] : null;
+}
+
+function writeLangCookies(lang, explicit) {
+  if (typeof document === "undefined") return;
+  const base = `Path=/; Max-Age=${LANG_COOKIE_MAX_AGE}; SameSite=Lax`;
+  document.cookie = `${LANG_PREFERENCE_KEY}=${lang}; ${base}`;
+  if (explicit) {
+    document.cookie = `${LANG_CHOICE_KEY}=1; ${base}`;
+  }
+}
 
 /**
  * @param {string | null | undefined} value
@@ -18,7 +37,7 @@ export function normalizeLang(value) {
 }
 
 /**
- * Resolve language: ?lang= → localStorage → default.
+ * Resolve language: ?lang= → cookie → localStorage → default.
  * @param {string | null | undefined} queryLang
  */
 export function resolveLang(queryLang) {
@@ -28,6 +47,8 @@ export function resolveLang(queryLang) {
   if (queryLang === "en" || queryLang === "fr") {
     return queryLang;
   }
+  const fromCookie = readLangCookie();
+  if (fromCookie) return fromCookie;
   try {
     const stored = window.localStorage.getItem(LANG_PREFERENCE_KEY);
     return normalizeLang(stored);
@@ -36,14 +57,18 @@ export function resolveLang(queryLang) {
   }
 }
 
-/** @param {"en" | "fr"} lang */
-export function persistLang(lang) {
+/**
+ * @param {"en" | "fr"} lang
+ * @param {{ explicit?: boolean }} [options]
+ */
+export function persistLang(lang, { explicit = true } = {}) {
   const next = normalizeLang(lang);
   try {
     window.localStorage.setItem(LANG_PREFERENCE_KEY, next);
   } catch {
     /* ignore quota / private mode */
   }
+  writeLangCookies(next, explicit);
   return next;
 }
 

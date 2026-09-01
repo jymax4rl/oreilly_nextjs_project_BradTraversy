@@ -7,12 +7,14 @@ import gsap from "gsap";
 import { ChevronDown } from "lucide-react";
 import LiquidPortalBackground from "./LiquidPortalBackground";
 import HomePortalSearch from "./HomePortalSearch";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 /**
  * Brand-led hero: name is the primary signal (no oversized duplicate logo mark).
  * Search is the interaction; currency lives inside the search card.
  */
 export default function HomePortalHero() {
+  const { t } = useLanguage();
   const rootRef = useRef(null);
 
   useEffect(() => {
@@ -61,7 +63,7 @@ export default function HomePortalHero() {
           data-hero-fade
           className="mt-4 text-[10px] font-semibold uppercase tracking-[0.34em] text-[var(--portal-accent)] sm:mt-5 sm:text-[11px]"
         >
-          African vacation rentals
+          {t("home.tagline")}
         </p>
 
         <div data-hero-fade className="mt-12 w-full sm:mt-14">
@@ -73,7 +75,7 @@ export default function HomePortalHero() {
             href="#stays"
             className="home-scroll-hint inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.26em] transition hover:text-[var(--portal-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--portal-accent)]"
           >
-            Browse stays
+            {t("home.browseStays")}
             <ChevronDown className="h-3.5 w-3.5 opacity-70" aria-hidden />
           </Link>
         </div>

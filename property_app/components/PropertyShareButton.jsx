@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Share } from "lucide-react";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 function resolveShareUrl(property, url) {
   if (url) return url;
@@ -20,6 +21,7 @@ export default function PropertyShareButton({
   variant = "text",
   className = "",
 }) {
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -29,7 +31,7 @@ export default function PropertyShareButton({
 
     const shareUrl = resolveShareUrl(property, url);
     const shareTitle = title || property?.name || "Kama Properties";
-    const shareText = `${shareTitle} — African vacation rental on Kama Properties`;
+    const shareText = t("listing.shareText", { title: shareTitle });
 
     setBusy(true);
     try {
@@ -56,7 +58,7 @@ export default function PropertyShareButton({
     }
   }
 
-  const label = copied ? "Copied" : "Share";
+  const label = copied ? t("listing.copied") : t("listing.share");
 
   if (variant === "icon") {
     return (
@@ -64,7 +66,7 @@ export default function PropertyShareButton({
         type="button"
         onClick={handleShare}
         disabled={busy}
-        aria-label={copied ? "Link copied" : "Share this stay"}
+        aria-label={copied ? t("listing.linkCopied") : t("listing.shareStay")}
         className={`absolute z-20 cursor-pointer rounded-full bg-black/55 p-2.5 text-white backdrop-blur-md transition-colors duration-200 hover:bg-black/70 focus:outline-none disabled:opacity-50 ${className}`}
       >
         {copied ? (
@@ -81,7 +83,7 @@ export default function PropertyShareButton({
       type="button"
       onClick={handleShare}
       disabled={busy}
-      aria-label={copied ? "Link copied" : "Share this stay"}
+      aria-label={copied ? t("listing.linkCopied") : t("listing.shareStay")}
       className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--kama-border)] bg-[var(--kama-surface)] px-3 py-2 text-sm font-medium text-[var(--kama-ink)] transition hover:border-[var(--kama-border-strong)] hover:bg-[var(--kama-field)] disabled:opacity-50 ${className}`}
     >
       {copied ? (
