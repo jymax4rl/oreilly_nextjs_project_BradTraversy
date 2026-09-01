@@ -5,6 +5,7 @@ import ListingWizard from "@/components/listing/ListingWizard";
 
 export const metadata = {
   title: "Add Property | Kama Properties",
+  robots: { index: false, follow: false },
 };
 
 export default async function AddPropertyPage() {

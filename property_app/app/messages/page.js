@@ -8,6 +8,7 @@ import MessageFilter from "@/components/MessageFilter";
 
 export const metadata = {
   title: "Messages",
+  robots: { index: false, follow: false },
 };
 
 export default async function MessagesPage({ searchParams }) {

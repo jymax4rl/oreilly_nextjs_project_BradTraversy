@@ -23,27 +23,19 @@ export const metadata = {
     default: "Kama Properties | African Vacation Rentals",
     template: "%s | Kama Properties",
   },
-  description: "Kama Properties made for Africans by Africans...",
-  keywords: "Rent in Senegal, Rent in Mali, Rent in Ghana...",
+  description:
+    "Book African vacation rentals — villas and apartments in Dakar, Accra, Cape Town, Cairo, Marrakech, and Zanzibar.",
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "/",
     siteName: "Kama Properties",
-    images: [
-      {
-        url: "/og-image.jpg", // Create this 1200x630 image
-        width: 1200,
-        height: 630,
-        alt: "Kama Properties - African Vacation Rentals",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kama Properties",
-    description: "Kama Properties made for Africans by Africans",
-    images: ["/og-image.jpg"],
+    title: "Kama Properties | African Vacation Rentals",
+    description:
+      "Book African vacation rentals — villas and apartments in Dakar, Accra, Cape Town, Cairo, Marrakech, and Zanzibar.",
   },
   robots: {
     index: true,

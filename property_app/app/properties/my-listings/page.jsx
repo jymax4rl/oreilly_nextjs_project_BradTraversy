@@ -4,6 +4,7 @@ import { authOptions } from "@/utils/authOptions";
 
 export const metadata = {
   title: "My Listings | Kama Properties",
+  robots: { index: false, follow: false },
 };
 
 /** Guest-nav URL kept for old bookmarks — host tools live in the console. */

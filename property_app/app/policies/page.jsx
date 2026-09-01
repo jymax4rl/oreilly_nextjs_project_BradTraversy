@@ -5,6 +5,7 @@ export const metadata = {
   title: "Policies | Kama Properties",
   description:
     "Guest and host policies, payments, privacy overview, and terms for Kama Properties.",
+  alternates: { canonical: "/policies" },
 };
 
 function PoliciesFallback() {

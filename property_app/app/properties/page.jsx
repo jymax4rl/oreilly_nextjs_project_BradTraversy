@@ -7,6 +7,13 @@ import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
 import { withApprovedListingFilter } from "@/utils/listingApproval";
 import { ensurePropertySlugs } from "@/utils/listings/propertySlug";
 
+export const metadata = {
+  title: "Vacation rentals in Africa",
+  description:
+    "Browse approved stays across Senegal, Ghana, Egypt, Morocco, South Africa, and Tanzania.",
+  alternates: { canonical: "/properties" },
+};
+
 // Listings need a live DB - do not prerender at image-build time (no secrets in Docker build).
 export const dynamic = "force-dynamic";
 

@@ -1,5 +1,6 @@
 import React from "react";
 import { propertyImageUrl } from "@/utils/propertyImageUrl";
+import { isPubliclyVisibleListing } from "@/utils/listingApproval";
 
 function stripHtml(html = "") {
   return String(html).replace(/<\/?[^>]+(>|$)/g, "");
@@ -46,28 +47,66 @@ export default function ServerProperty({ property, canonicalUrl }) {
     0;
   const priceCurrency = getCurrencyForCountry(property.location?.country);
 
+  const publicStay = isPubliclyVisibleListing(property);
+  const showStreet = Boolean(property.location?.showExactLocation);
+  const occupancy =
+    Number(property.listing?.maxGuests) ||
+    Number(property.beds) * 2 ||
+    2;
+  const placeType =
+    property.listing?.privacyType === "private_room"
+      ? "PrivateRoom"
+      : property.listing?.privacyType === "shared_room"
+        ? "SharedRoom"
+        : "EntirePlace";
+  const lat = Number(property.location?.lat);
+  const lng = Number(property.location?.lng);
+
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "RealEstateListing",
+    "@type": "VacationRental",
     name: property.name,
     description: shortDescription,
     url: canonicalUrl,
+    identifier: property.slug || property._id || canonicalUrl,
     image: [absoluteImageUrl],
     address: {
       "@type": "PostalAddress",
-      streetAddress: property.location?.street || "",
+      ...(showStreet && property.location?.street
+        ? { streetAddress: property.location.street }
+        : {}),
       addressLocality: property.location?.city || "",
-      addressRegion: property.location?.region || "",
+      addressRegion: property.location?.state || property.location?.region || "",
       addressCountry: property.location?.country || "",
+    },
+    ...(Number.isFinite(lat) && Number.isFinite(lng)
+      ? {
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: lat,
+            longitude: lng,
+          },
+        }
+      : {}),
+    numberOfBedrooms: Number(property.beds) || undefined,
+    numberOfBathroomsTotal: Number(property.baths) || undefined,
+    occupancy: {
+      "@type": "QuantitativeValue",
+      value: occupancy,
+    },
+    containsPlace: {
+      "@type": "Accommodation",
+      additionalType: placeType,
+      name: property.name,
     },
     offers: {
       "@type": "Offer",
       price: price,
       priceCurrency: priceCurrency,
       url: canonicalUrl,
-      availability: property.available
+      availability: publicStay
         ? "https://schema.org/InStock"
-        : "https://schema.org/Unavailable",
+        : "https://schema.org/SoldOut",
     },
   };
 

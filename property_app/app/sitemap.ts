@@ -4,6 +4,7 @@ import Property from "@/models/Property";
 import { approvedListingQuery } from "@/utils/listingApproval";
 import { ensurePropertySlug } from "@/utils/listings/propertySlug";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
+import { SECTION_IDS } from "@/lib/legal/content";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl =
@@ -29,6 +30,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.5,
     },
+    {
+      url: `${baseUrl}/policies`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.4,
+    },
+    ...SECTION_IDS.map((section) => ({
+      url: `${baseUrl}/policies/${section}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.3,
+    })),
   ];
 
   // Dynamic property pages — only when database is available at build/runtime

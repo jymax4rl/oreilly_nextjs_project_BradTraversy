@@ -11,6 +11,7 @@ import { ArrowLeft, Shield, UserRound } from "lucide-react";
 export const metadata = {
   title: "Profile | Kama Properties",
   description: "Your Kama Properties account, bookings, and hosting status",
+  robots: { index: false, follow: false },
 };
 
 function RoleBadge({ children, accent = false }) {

@@ -16,6 +16,7 @@ export async function generateMetadata({ params }) {
   return {
     title: `${hit.title.en} | Kama Properties`,
     description: hit.paragraphs.en[0]?.slice(0, 155) || "Kama Properties policies",
+    alternates: { canonical: `/policies/${section}` },
   };
 }
 

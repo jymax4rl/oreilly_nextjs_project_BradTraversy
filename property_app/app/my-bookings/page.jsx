@@ -14,6 +14,7 @@ import { ArrowLeft, CalendarCheck } from "lucide-react";
 export const metadata = {
   title: "My Bookings | Kama Properties",
   description: "Your confirmed reservations on Kama Properties",
+  robots: { index: false, follow: false },
 };
 
 export default async function MyBookingsPage({ searchParams }) {

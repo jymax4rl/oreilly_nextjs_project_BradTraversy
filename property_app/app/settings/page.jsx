@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Settings | Kama Properties",
   description: "Account preferences, notifications, and hosting options",
+  robots: { index: false, follow: false },
 };
 
 function RoleChip({ children, accent = false }) {

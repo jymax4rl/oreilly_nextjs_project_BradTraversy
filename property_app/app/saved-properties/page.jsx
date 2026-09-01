@@ -13,6 +13,7 @@ import { Heart, ArrowLeft } from "lucide-react";
 export const metadata = {
   title: "Saved Properties | Kama Properties",
   description: "Your saved favorite properties on Kama Properties",
+  robots: { index: false, follow: false },
 };
 
 const SavedPropertiesPage = async () => {

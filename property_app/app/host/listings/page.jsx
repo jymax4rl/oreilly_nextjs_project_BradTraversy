@@ -14,6 +14,7 @@ import { propertyPublicPath } from "@/utils/listings/propertyPath";
 export const metadata = {
   title: "My Listings | Kama Properties",
   description: "Manage your property listings on Kama Properties",
+  robots: { index: false, follow: false },
 };
 
 const statusConfig = {
