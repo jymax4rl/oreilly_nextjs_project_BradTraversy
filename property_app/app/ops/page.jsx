@@ -1,6 +1,7 @@
 import Link from "next/link";
 import OpsShell from "@/components/ops/OpsShell";
 import OpsOverviewPanel from "@/components/ops/OpsOverviewPanel";
+import OpsTrafficPanel from "@/components/ops/OpsTrafficPanel";
 
 export const metadata = {
   title: "Home",
@@ -28,7 +29,7 @@ export default function OpsHomePage() {
   return (
     <OpsShell
       title="Operations"
-      subtitle="Staff tools for marketplace moderation. Overview metrics and a recent-listings queue help triage new submissions."
+      subtitle="Staff tools for marketplace moderation. Live traffic shows how close browsing load is to the 3,000-visitor planning target."
     >
       <section aria-labelledby="ops-tools-heading">
         <h2
@@ -56,6 +57,7 @@ export default function OpsHomePage() {
         </ul>
       </section>
 
+      <OpsTrafficPanel />
       <OpsOverviewPanel />
     </OpsShell>
   );
