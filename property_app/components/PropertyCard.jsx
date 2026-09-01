@@ -8,6 +8,7 @@ import { useCurrency } from "@/utils/CurrencyContext";
 import { propertyCardImageUrl } from "@/utils/propertyImageUrl";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
 import MobileMoneyBadge from "@/components/MobileMoneyBadge";
+import PropertyShareButton from "@/components/PropertyShareButton";
 import { useSession } from "next-auth/react";
 
 const PropertyCard = ({ property, isSaved = false }) => {
@@ -140,6 +141,13 @@ const PropertyCard = ({ property, isSaved = false }) => {
           </div>
         </div>
       </Link>
+
+      <PropertyShareButton
+        property={property}
+        title={name}
+        variant="icon"
+        className="top-4 right-16"
+      />
 
       {/* Like Button */}
       <button

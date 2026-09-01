@@ -6,6 +6,7 @@ import PropertyDetails from "./PropertyDetails";
 import PropertyLocationMap from "@/components/maps/PropertyLocationMap";
 import { formatLocationLine } from "@/utils/listingPricing";
 import { MapPin, Star } from "lucide-react";
+import PropertyShareButton from "@/components/PropertyShareButton";
 
 export default function DynamicProperty({ property }) {
   const data = property;
@@ -22,16 +23,19 @@ export default function DynamicProperty({ property }) {
         </div>
 
         <header className="min-w-0 space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-[var(--kama-accent)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
-              {data.type}
-            </span>
-            {data.is_featured && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--kama-ink)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
-                <Star size={10} fill="currentColor" aria-hidden />
-                Featured
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <span className="inline-flex items-center rounded-full bg-[var(--kama-accent)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
+                {data.type}
               </span>
-            )}
+              {data.is_featured && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--kama-ink)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
+                  <Star size={10} fill="currentColor" aria-hidden />
+                  Featured
+                </span>
+              )}
+            </div>
+            <PropertyShareButton property={data} title={data.name} />
           </div>
           <h1 className="text-[1.65rem] font-semibold leading-snug tracking-tight text-[var(--kama-ink)] sm:text-3xl md:text-4xl">
             {data.name}
