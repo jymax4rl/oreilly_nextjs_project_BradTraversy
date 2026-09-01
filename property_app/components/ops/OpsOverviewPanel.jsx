@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import GlowBarChart from "@/components/ops/charts/GlowBarChart";
+import "@/components/ops/charts/ops-charts.css";
 
 const MAX_LOOKBACK_MINUTES = 60;
 const SLIDER_MARKS = [0, 5, 15, 30, 45, 60];
@@ -44,13 +46,26 @@ function hostLabel(listing) {
 function statusBadgeClass(status) {
   switch (status) {
     case "pending":
-      return "bg-amber-100 text-amber-900";
+      return "text-amber-800";
     case "approved":
-      return "bg-emerald-100 text-emerald-900";
+      return "text-emerald-700";
     case "rejected":
-      return "bg-red-100 text-red-800";
+      return "text-red-700";
     default:
-      return "bg-gray-100 text-gray-700";
+      return "text-slate-600";
+  }
+}
+
+function statusDotClass(status) {
+  switch (status) {
+    case "pending":
+      return "ops-status-dot--warn";
+    case "approved":
+      return "ops-status-dot--ok";
+    case "rejected":
+      return "ops-status-dot--bad";
+    default:
+      return "ops-status-dot--idle";
   }
 }
 
@@ -126,15 +141,15 @@ export default function OpsOverviewPanel() {
 
   const metricCards = [
     {
-      label: "Active listings",
+      label: "Live listings",
       value: metrics?.activeListings,
     },
     {
-      label: "Pending reviews",
+      label: "In review",
       value: metrics?.pendingReviews,
     },
     {
-      label: "Transactions (30d)",
+      label: "Tx 30d",
       value: metrics?.transactions30d,
     },
   ];
@@ -148,24 +163,28 @@ export default function OpsOverviewPanel() {
         >
           Overview
         </h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          {metricCards.map(({ label, value }) => (
-            <div
-              key={label}
-              className="rounded-xl border border-[var(--kama-border)] bg-[var(--kama-surface)] px-5 py-6"
-            >
-              <p className="text-xs font-medium text-[var(--kama-ink-muted)]">
-                {label}
-              </p>
-              <p className="mt-2 text-2xl font-semibold tabular-nums text-[var(--kama-ink)]">
-                {loading && metrics == null
-                  ? "…"
-                  : value == null
-                    ? "—"
-                    : value}
-              </p>
-            </div>
-          ))}
+        <div className="mt-4">
+          <GlowBarChart
+            label="Marketplace snapshot"
+            subtitle="Live · queue · bookings"
+            bars={[
+              {
+                label: "Live listings",
+                value: loading && metrics == null ? 0 : metricCards[0].value,
+                tone: "teal",
+              },
+              {
+                label: "In review",
+                value: loading && metrics == null ? 0 : metricCards[1].value,
+                tone: "amber",
+              },
+              {
+                label: "Tx 30d",
+                value: loading && metrics == null ? 0 : metricCards[2].value,
+                tone: "ink",
+              },
+            ]}
+          />
         </div>
       </section>
 
@@ -185,13 +204,13 @@ export default function OpsOverviewPanel() {
           </div>
           <Link
             href="/ops/listings"
-            className="inline-flex shrink-0 items-center justify-center rounded-lg border border-[#1B5C57]/30 bg-[#1B5C57]/5 px-3.5 py-2 text-sm font-semibold text-[#1B5C57] transition hover:bg-[#1B5C57]/10"
+            className="inline-flex shrink-0 items-center justify-center rounded-full bg-[#0c1a1a] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1b5c57]"
           >
             Open listings
           </Link>
         </div>
 
-        <div className="mt-5 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-surface)] px-5 py-5">
+        <div className="ops-card mt-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <label
               htmlFor="ops-recent-lookback"
@@ -254,7 +273,7 @@ export default function OpsOverviewPanel() {
           </p>
         ) : null}
 
-        <div className="mt-4 overflow-hidden rounded-xl border border-[var(--kama-border)] bg-[var(--kama-surface)]">
+        <div className="ops-card ops-card--flush mt-4">
           {loading ? (
             <div className="flex items-center justify-center gap-3 px-6 py-14 text-sm text-[var(--kama-ink-muted)]">
               <span
@@ -289,10 +308,14 @@ export default function OpsOverviewPanel() {
                         </p>
                         {listing.status ? (
                           <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${statusBadgeClass(
+                            className={`inline-flex items-center gap-1.5 text-[11px] font-semibold capitalize ${statusBadgeClass(
                               listing.status,
                             )}`}
                           >
+                            <span
+                              className={`ops-status-dot ${statusDotClass(listing.status)}`}
+                              aria-hidden
+                            />
                             {listing.status}
                           </span>
                         ) : null}
@@ -315,13 +338,13 @@ export default function OpsOverviewPanel() {
                     <div className="flex shrink-0 flex-wrap gap-2">
                       <Link
                         href={`/properties/${id}`}
-                        className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-[#1B5C57] transition hover:bg-[#1B5C57]/5"
+                        className="rounded-full border border-[var(--kama-border)] px-3 py-1.5 text-xs font-semibold text-[var(--kama-ink)] transition hover:bg-[var(--kama-field)]"
                       >
                         View
                       </Link>
                       <Link
                         href="/ops/listings"
-                        className="rounded-lg bg-[#1B5C57] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#164e4a]"
+                        className="rounded-full bg-[#1B5C57] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#144844]"
                       >
                         Review
                       </Link>

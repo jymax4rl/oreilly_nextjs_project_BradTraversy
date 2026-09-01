@@ -43,7 +43,7 @@ export default function OpsHomePage() {
             <li key={tool.href}>
               <Link
                 href={tool.href}
-                className="block h-full rounded-xl border border-[var(--kama-border)] bg-[var(--kama-surface)] px-5 py-5 transition hover:border-[var(--kama-border-strong)] hover:shadow-sm"
+                className="ops-card block h-full transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <span className="text-base font-semibold text-[var(--kama-ink)]">
                   {tool.title}

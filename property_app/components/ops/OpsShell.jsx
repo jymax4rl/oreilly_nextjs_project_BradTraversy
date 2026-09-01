@@ -1,4 +1,5 @@
 import OpsNav from "@/components/ops/OpsNav";
+import "@/components/ops/charts/ops-charts.css";
 
 export default function OpsShell({ children, title, subtitle }) {
   return (
@@ -8,7 +9,7 @@ export default function OpsShell({ children, title, subtitle }) {
         {(title || subtitle) && (
           <header className="mb-8 max-w-2xl">
             {title ? (
-              <h1 className="text-2xl font-semibold tracking-tight text-[var(--kama-ink)] sm:text-[1.75rem]">
+              <h1 className="text-[1.75rem] font-bold tracking-tight text-[var(--kama-ink)] sm:text-3xl">
                 {title}
               </h1>
             ) : null}

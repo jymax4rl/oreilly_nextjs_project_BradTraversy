@@ -1,5 +1,10 @@
+import TrafficBucket from "@/models/TrafficBucket";
 import TrafficDay from "@/models/TrafficDay";
 import TrafficSession from "@/models/TrafficSession";
+import {
+  BUCKET_TTL_MS,
+  trafficBucketId,
+} from "@/utils/metrics/trafficBuckets";
 
 const SID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -49,12 +54,27 @@ export async function recordTrafficHit({ sid, kind }) {
     { upsert: true },
   );
 
+  /**
+   * Page views increment two counters: the UTC calendar-day total and the
+   * current 15-minute bucket used by the ops curve. Heartbeats skip both.
+   */
   if (isView) {
-    await TrafficDay.findByIdAndUpdate(
-      dayKey,
-      { $inc: { views: 1 } },
-      { upsert: true },
-    );
+    const bucketId = trafficBucketId(now);
+    await Promise.all([
+      TrafficDay.findByIdAndUpdate(
+        dayKey,
+        { $inc: { views: 1 } },
+        { upsert: true },
+      ),
+      TrafficBucket.findByIdAndUpdate(
+        bucketId,
+        {
+          $inc: { views: 1 },
+          $set: { expireAt: new Date(now.getTime() + BUCKET_TTL_MS) },
+        },
+        { upsert: true },
+      ),
+    ]);
   }
 
   return { ok: true };
