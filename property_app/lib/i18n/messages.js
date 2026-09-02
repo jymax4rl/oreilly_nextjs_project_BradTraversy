@@ -4,6 +4,7 @@ export const messages = {
     nav: {
       home: "Home",
       properties: "Properties",
+      business: "Business",
       becomeHost: "Become a Host",
       hostConsole: "Host console",
       ops: "Ops",
@@ -124,6 +125,7 @@ export const messages = {
         "Join thousands of satisfied clients who found their perfect home with Isisel. Let's start the conversation.",
       getStarted: "Get Started",
       company: "Company",
+      forBusiness: "For businesses",
       about: "About",
       careers: "Careers",
       press: "Press",
@@ -265,6 +267,7 @@ export const messages = {
     nav: {
       home: "Accueil",
       properties: "Logements",
+      business: "Entreprises",
       becomeHost: "Devenir hôte",
       hostConsole: "Espace hôte",
       ops: "Ops",
@@ -386,6 +389,7 @@ export const messages = {
         "Rejoignez des milliers de voyageurs qui ont trouvé leur logement avec Isisel. Commençons la conversation.",
       getStarted: "Commencer",
       company: "Entreprise",
+      forBusiness: "Pour les entreprises",
       about: "À propos",
       careers: "Carrières",
       press: "Presse",

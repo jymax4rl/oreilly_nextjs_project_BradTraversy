@@ -36,6 +36,7 @@ import LanguageToggle from "@/components/i18n/LanguageToggle";
 const navLinks = [
   { path: "/", labelKey: "nav.home", Icon: Home },
   { path: "/properties", labelKey: "nav.properties", Icon: Building2 },
+  { path: "/business", labelKey: "nav.business", Icon: Building2 },
 ];
 
 const profileItemClass = "kama-profile-item font-medium";
@@ -48,6 +49,7 @@ const Navbar = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const isPhotoNav = isHome || pathname === "/business";
   const profileImage = session?.user?.image;
   const explore = isExploreMobileLayout(pathname);
 
@@ -128,13 +130,13 @@ const Navbar = () => {
       {!explore && (
         <nav
           className={`menu-container m-0 grid grid-cols-2 z-50 fixed top-0 w-screen h-[8vh] lg:hidden ${
-            isHome ? "home-glass-nav" : "bg-[var(--kama-canvas)]/80 backdrop-blur-sm"
+            isPhotoNav ? "home-glass-nav" : "bg-[var(--kama-canvas)]/80 backdrop-blur-sm"
           }`}
         >
           <div className="flex items-center ml-4 justify-start align-center">
             <BrandLogo
               className="h-10 w-24 cursor-pointer transition-all duration-300 hover:scale-105"
-              priority={isHome}
+              priority={isPhotoNav}
             />
           </div>
           <div className="flex w-full items-center justify-end pointer mr-4">
@@ -145,7 +147,7 @@ const Navbar = () => {
 
       <nav
         className={`menu-container m-0 hidden lg:grid grid-cols-[20%_60%_20%] z-50 fixed top-0 w-screen h-[8vh] ${
-          isHome
+          isPhotoNav
             ? "home-glass-nav home-glass-nav--desktop"
             : "bg-[var(--kama-canvas)]/80 backdrop-blur-sm"
         }`}
@@ -153,18 +155,18 @@ const Navbar = () => {
         <div className="flex items-center ml-4 lg:ml-22 justify-start align-center">
           <BrandLogo
             className="h-10 w-24 cursor-pointer transition-all duration-300 hover:scale-105 lg:h-12 lg:w-32"
-            priority={isHome}
+            priority={isPhotoNav}
           />
         </div>
 
         {/* Desktop Navigation */}
-        <div className="flex space-x-12 p-2 items-center justify-center">
+        <div className="flex space-x-8 p-2 items-center justify-center">
           {navLinks.map((link, index) => (
             <Link
               key={index}
               href={link.path}
               className={
-                isHome || !isActive(link.path) ? "p-2 text-black" : "p-2 text-white"
+                isPhotoNav || !isActive(link.path) ? "p-2 text-black" : "p-2 text-white"
               }
             >
               <NavButton text={t(link.labelKey)} />
@@ -175,7 +177,7 @@ const Navbar = () => {
             <Link
               href={hostNavItem.path}
               className={
-                isHome || !isActive(hostNavItem.path)
+                isPhotoNav || !isActive(hostNavItem.path)
                   ? "p-2 text-black"
                   : "p-2 text-white"
               }
@@ -188,7 +190,7 @@ const Navbar = () => {
             <Link
               href="/ops"
               className={
-                isHome || !isActive("/ops")
+                isPhotoNav || !isActive("/ops")
                   ? "p-2 text-black"
                   : "p-2 text-white"
               }
@@ -202,14 +204,14 @@ const Navbar = () => {
         <div className="flex w-full gap-3 lg:gap-6 items-center justify-end pointer mr-4">
           <LanguageToggle
             className={
-              isHome
+              isPhotoNav
                 ? "hidden lg:inline-flex !border-[rgba(247,244,238,0.28)] !bg-transparent !shadow-none !backdrop-blur-none"
                 : "hidden lg:inline-flex"
             }
           />
           {!session && (
             <div className="hidden lg:block">
-              {isHome ? (
+              {isPhotoNav ? (
                 <button
                   type="button"
                   className="home-nav-signin"
@@ -253,7 +255,7 @@ const Navbar = () => {
                 ) : (
                   <LuUserRound
                     className={`cursor-pointer w-8 h-8 transition-all duration-200 ${
-                      isHome
+                      isPhotoNav
                         ? "text-[#f7f4ee]/90 hover:text-[#e8d7b5] drop-shadow"
                         : "text-[#0c1a1a]/70 hover:text-[#1b5c57]"
                     }`}

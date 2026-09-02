@@ -256,7 +256,18 @@ export default function MobileMenuOverlay({
                       />
                       {t("menu.becomeHost")}
                     </Link>
-                  )}
+                    )}
+                    <Link
+                      href="/business"
+                      onClick={close}
+                      className={rowClass("/business")}
+                    >
+                      <Building2
+                        className="kama-menu-row-icon"
+                        aria-hidden
+                      />
+                      {t("nav.business")}
+                    </Link>
                 </nav>
               </section>
 
