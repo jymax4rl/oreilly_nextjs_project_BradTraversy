@@ -1,6 +1,8 @@
 import Link from "next/link";
 import {
   Megaphone,
+  Target,
+  Headset,
   Users,
   Building2,
   LayoutList,
@@ -15,6 +17,18 @@ export const metadata = {
 };
 
 const TOOLS = [
+  {
+    href: "/ops/marketing/acquisition",
+    title: "Host Acquisition",
+    description: "Prospect pipeline, follow-ups, and conversion to Isisel hosts.",
+    Icon: Target,
+  },
+  {
+    href: "/ops/marketing/acquisition/copilot",
+    title: "Sales Copilot",
+    description: "Live call guide — what to say, tap what they say, save to the CRM.",
+    Icon: Headset,
+  },
   {
     href: "/ops/marketing",
     title: "Marketing",

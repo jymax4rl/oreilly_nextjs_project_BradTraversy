@@ -120,6 +120,10 @@
     max-width: 72rem;
     padding: 1.75rem 2rem 2.75rem;
   }
+
+  .ops-app-inner--wide {
+    max-width: none;
+  }
 }
 
 .ops-rail-brand {
