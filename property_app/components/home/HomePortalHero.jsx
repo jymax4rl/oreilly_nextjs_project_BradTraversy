@@ -43,6 +43,15 @@ export default function HomePortalHero() {
     >
       <HomeHeroBackdrop />
 
+      <p
+        className="home-hero-cities"
+        aria-label={t("home.westCapitals")}
+      >
+        {["Dakar", "Bamako", "Banjul", "Accra", "Abidjan", "Lomé"].map((city) => (
+          <span key={city}>{city}</span>
+        ))}
+      </p>
+
       <div className="relative z-10 flex w-full max-w-xl flex-col items-center text-center">
         <h1
           id="isisel-hero-brand"

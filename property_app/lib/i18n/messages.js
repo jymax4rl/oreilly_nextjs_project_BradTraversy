@@ -44,6 +44,7 @@ export const messages = {
     },
     home: {
       tagline: "African vacation rentals",
+      westCapitals: "West African capitals: Dakar, Bamako, Banjul, Accra, Abidjan, Lomé",
       browseStays: "Browse stays",
       staysEyebrow: "Stays",
       staysTitle: "Available vacation rentals in Africa",
@@ -308,6 +309,7 @@ export const messages = {
     },
     home: {
       tagline: "Locations de vacances en Afrique",
+      westCapitals: "Capitales d’Afrique de l’Ouest : Dakar, Bamako, Banjul, Accra, Abidjan, Lomé",
       browseStays: "Voir les séjours",
       staysEyebrow: "Séjours",
       staysTitle: "Locations de vacances disponibles en Afrique",

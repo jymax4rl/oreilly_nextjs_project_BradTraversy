@@ -8,6 +8,7 @@ import HomeSearchSection from "./HomeSearchSection";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
+  style: ["normal", "italic"],
   variable: "--font-kama-display",
   display: "swap",
 });
