@@ -7,7 +7,7 @@ const LoginNavButton = ({ onClick, label = "Sign In" }) => {
     <StyledWrapper>
       <button
         onClick={onClick}
-        className="button flex  items-center justify-center cursor-pointer bg-[#000] text-[#fff]"
+        className="button flex items-center justify-center cursor-pointer text-[#fff]"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

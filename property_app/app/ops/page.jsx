@@ -1,4 +1,11 @@
 import Link from "next/link";
+import {
+  Megaphone,
+  Users,
+  Building2,
+  LayoutList,
+  CreditCard,
+} from "lucide-react";
 import OpsShell from "@/components/ops/OpsShell";
 import OpsOverviewPanel from "@/components/ops/OpsOverviewPanel";
 import OpsTrafficPanel from "@/components/ops/OpsTrafficPanel";
@@ -11,29 +18,32 @@ const TOOLS = [
   {
     href: "/ops/marketing",
     title: "Marketing",
-    description:
-      "Launch outreach: branded emails, PDF briefs, and a searchable send log.",
-    accent: true,
+    description: "1:1 host letters opened in Gmail, with a searchable log.",
+    Icon: Megaphone,
   },
   {
     href: "/ops/users",
     title: "Users",
-    description: "See every account created on the platform.",
+    description: "Every account on the marketplace.",
+    Icon: Users,
   },
   {
     href: "/ops/hosts",
     title: "Hosts",
-    description: "Review host applications and verification status.",
+    description: "Applications and verification.",
+    Icon: Building2,
   },
   {
     href: "/ops/listings",
     title: "Listings",
-    description: "Approve, reject, or inspect property submissions.",
+    description: "Approve, reject, or inspect stays.",
+    Icon: LayoutList,
   },
   {
     href: "/ops/transactions",
-    title: "Transactions",
-    description: "Browse booking payments and settlement records.",
+    title: "Payments",
+    description: "Booking charges and settlements.",
+    Icon: CreditCard,
   },
 ];
 
@@ -41,7 +51,7 @@ export default function OpsHomePage() {
   return (
     <OpsShell
       title="Operations"
-      subtitle="Staff tools for marketplace moderation. Live traffic shows how close browsing load is to the 3,000-visitor planning target."
+      subtitle="Moderation, traffic, and outreach in one console."
     >
       <section aria-labelledby="ops-tools-heading">
         <h2
@@ -50,32 +60,30 @@ export default function OpsHomePage() {
         >
           Tools
         </h2>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {TOOLS.map((tool) => (
-            <li key={tool.href}>
-              <Link
-                href={tool.href}
-                className={`ops-card block h-full transition hover:-translate-y-0.5 hover:shadow-md ${
-                  tool.accent ? "ops-card--accent" : ""
-                }`}
-              >
-                <span
-                  className={`text-base font-semibold ${
-                    tool.accent ? "text-white" : "text-[var(--kama-ink)]"
-                  }`}
+        <ul className="mt-3 grid grid-cols-1 gap-2 sm:mt-3 sm:grid-cols-2">
+          {TOOLS.map((tool) => {
+            const Icon = tool.Icon;
+            return (
+              <li key={tool.href}>
+                <Link
+                  href={tool.href}
+                  className="ops-card flex items-center gap-3 py-3 transition hover:bg-[#fafafa]"
                 >
-                  {tool.title}
-                </span>
-                <p
-                  className={`mt-1.5 text-sm leading-relaxed ${
-                    tool.accent ? "text-white/75" : "text-[var(--kama-ink-muted)]"
-                  }`}
-                >
-                  {tool.description}
-                </p>
-              </Link>
-            </li>
-          ))}
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-[#ececec] text-[#0a0a0a]">
+                    <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[13px] font-medium tracking-tight text-[#0a0a0a]">
+                      {tool.title}
+                    </span>
+                    <p className="mt-0.5 text-[12px] leading-snug text-[#6b6b6b]">
+                      {tool.description}
+                    </p>
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </section>
 

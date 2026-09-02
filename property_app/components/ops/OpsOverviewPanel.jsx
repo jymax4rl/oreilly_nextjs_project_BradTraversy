@@ -8,7 +8,6 @@ import "@/components/ops/charts/ops-charts.css";
 
 const MAX_LOOKBACK_MINUTES = 60;
 const SLIDER_MARKS = [0, 5, 15, 30, 45, 60];
-const TEAL = "#1B5C57";
 
 /**
  * Relative age for ops queue rows. Uses whole minutes for a calm, scannable label.
@@ -189,7 +188,7 @@ export default function OpsOverviewPanel() {
         </div>
       </section>
 
-      <section className="mt-10" aria-labelledby="ops-recent-heading">
+      <section className="mt-8 sm:mt-10" aria-labelledby="ops-recent-heading">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2
@@ -205,7 +204,7 @@ export default function OpsOverviewPanel() {
           </div>
           <Link
             href="/ops/listings"
-            className="inline-flex shrink-0 items-center justify-center rounded-full bg-[#0c1a1a] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1b5c57]"
+            className="inline-flex shrink-0 items-center justify-center rounded-md border border-[#e5e5e5] bg-white px-3 py-1.5 text-[13px] font-medium text-[#0a0a0a] transition hover:bg-[#fafafa]"
           >
             Open listings
           </Link>
@@ -218,7 +217,7 @@ export default function OpsOverviewPanel() {
               className="text-sm font-medium text-[var(--kama-ink)]"
             >
               Last{" "}
-              <span className="tabular-nums text-[#1B5C57]">
+              <span className="tabular-nums text-[#0a0a0a]">
                 {lookbackMinutes}
               </span>{" "}
               {lookbackMinutes === 1 ? "minute" : "minutes"}
@@ -238,8 +237,8 @@ export default function OpsOverviewPanel() {
             step={1}
             value={lookbackMinutes}
             onChange={(e) => setLookbackMinutes(Number(e.target.value))}
-            className="mt-3 w-full accent-[#1B5C57]"
-            style={{ accentColor: TEAL }}
+            className="mt-3 w-full accent-[#171717]"
+            style={{ accentColor: "#171717" }}
             aria-valuemin={0}
             aria-valuemax={MAX_LOOKBACK_MINUTES}
             aria-valuenow={lookbackMinutes}
@@ -256,9 +255,9 @@ export default function OpsOverviewPanel() {
                 key={m}
                 type="button"
                 onClick={() => setLookbackMinutes(m)}
-                className={`hover:text-[#1B5C57] ${
+                className={`hover:text-[#0a0a0a] ${
                   lookbackMinutes === m
-                    ? "font-semibold text-[#1B5C57]"
+                    ? "font-semibold text-[#0a0a0a]"
                     : ""
                 }`}
               >
@@ -278,7 +277,7 @@ export default function OpsOverviewPanel() {
           {loading ? (
             <div className="flex items-center justify-center gap-3 px-6 py-14 text-sm text-[var(--kama-ink-muted)]">
               <span
-                className="h-8 w-8 animate-spin rounded-full border-2 border-[#1B5C57] border-t-transparent"
+                className="h-5 w-5 animate-spin rounded-full border-2 border-[#171717] border-t-transparent"
                 aria-hidden
               />
               Loading recent listings…
@@ -339,13 +338,13 @@ export default function OpsOverviewPanel() {
                     <div className="flex shrink-0 flex-wrap gap-2">
                       <Link
                         href={propertyPublicPath(listing)}
-                        className="rounded-full border border-[var(--kama-border)] px-3 py-1.5 text-xs font-semibold text-[var(--kama-ink)] transition hover:bg-[var(--kama-field)]"
+                        className="rounded-md border border-[#e5e5e5] px-2.5 py-1 text-xs font-medium text-[#0a0a0a] transition hover:bg-[#fafafa]"
                       >
                         View
                       </Link>
                       <Link
                         href="/ops/listings"
-                        className="rounded-full bg-[#1B5C57] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#144844]"
+                        className="rounded-md bg-[#171717] px-2.5 py-1 text-xs font-medium text-white transition hover:bg-[#0a0a0a]"
                       >
                         Review
                       </Link>

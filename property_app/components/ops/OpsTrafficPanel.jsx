@@ -103,7 +103,7 @@ export default function OpsTrafficPanel() {
   const places = history?.places || [];
 
   return (
-    <section className="mt-10" aria-labelledby="ops-traffic-heading">
+    <section className="mt-8 sm:mt-10" aria-labelledby="ops-traffic-heading">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2

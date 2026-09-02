@@ -24,7 +24,7 @@ export default function GlowBarChart({
         {subtitle ? <span className="ops-chart-sub">{subtitle}</span> : null}
       </figcaption>
       <div
-        className="flex h-[220px] items-end justify-around gap-3 px-1"
+        className="flex h-[148px] items-end justify-around gap-6 px-2 sm:h-[176px] sm:gap-10 sm:px-4"
         role="img"
         aria-label={label}
       >
@@ -35,7 +35,7 @@ export default function GlowBarChart({
         ) : (
           bars.map((bar) => {
             const v = Number(bar.value) || 0;
-            const h = Math.max(v > 0 ? 10 : 4, Math.round((v / max) * 158));
+            const h = Math.max(v > 0 ? 8 : 3, Math.round((v / max) * 96));
             const tone = TONE_CLASS[bar.tone] || TONE_CLASS.teal;
             return (
               <div key={bar.label} className="ops-bar-col">

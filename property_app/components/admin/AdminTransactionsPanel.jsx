@@ -114,7 +114,7 @@ export default function AdminTransactionsPanel() {
 
       <div className="overflow-hidden rounded-xl border border-[var(--kama-border)] bg-[var(--kama-surface)]">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-500">
+          <table className="w-full min-w-[44rem] text-left text-sm text-gray-500">
             <thead className="border-b bg-gray-50 text-xs uppercase text-gray-700">
               <tr>
                 <th className="px-6 py-4">Transaction ID / Ref</th>

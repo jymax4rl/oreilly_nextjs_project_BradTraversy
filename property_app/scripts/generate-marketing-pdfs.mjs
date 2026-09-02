@@ -47,7 +47,7 @@ function printOne(htmlPath, pdfPath) {
     "--headless=new",
     "--disable-gpu",
     "--no-pdf-header-footer",
-    "--virtual-time-budget=12000",
+    "--virtual-time-budget=20000",
     `--print-to-pdf=${pdfPath}`,
     htmlUrl,
   ];

@@ -53,9 +53,11 @@ export default function MobileTopChrome() {
       className={`lg:hidden fixed left-0 right-0 top-0 z-50 transition-transform duration-300 ease-out will-change-transform ${
         navVisible ? "translate-y-0" : "-translate-y-full"
       } ${
-        isHome || isPropertyScopedPath(pathname)
-          ? "border-b border-[var(--kama-border)] bg-[color-mix(in_srgb,var(--kama-canvas)_78%,transparent)] shadow-none backdrop-blur-xl"
-          : "border-b border-[var(--kama-border)] bg-[var(--kama-surface)] shadow-sm"
+        isHome
+          ? "home-glass-nav"
+          : isPropertyScopedPath(pathname)
+            ? "border-b border-[var(--kama-border)] bg-[color-mix(in_srgb,var(--kama-canvas)_78%,transparent)] shadow-none backdrop-blur-xl"
+            : "border-b border-[var(--kama-border)] bg-[var(--kama-surface)] shadow-sm"
       }`}
     >
       <div className="pt-2 [padding-top:max(0.5rem,env(safe-area-inset-top))]">

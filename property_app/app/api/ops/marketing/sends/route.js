@@ -45,7 +45,7 @@ export async function GET(request) {
 
     const priorForEmail =
       exactEmail && EMAIL_RE.test(exactEmail)
-        ? sends.filter((s) => s.recipientEmail === exactEmail)
+        ? sends.filter((s) => s.recipientEmail === exactEmail && !s.isTest)
         : [];
 
     return Response.json({
@@ -54,7 +54,7 @@ export async function GET(request) {
       alreadySentTemplateIds: [
         ...new Set(
           priorForEmail
-            .filter((s) => s.status === "sent")
+            .filter((s) => s.status === "sent" && !s.isTest)
             .map((s) => s.templateId),
         ),
       ],
@@ -71,11 +71,15 @@ function serializeSend(doc) {
     recipientName: doc.recipientName,
     recipientEmail: doc.recipientEmail,
     templateId: doc.templateId,
+    locale: doc.locale || "en",
+    isTest: Boolean(doc.isTest),
     subject: doc.subject,
     status: doc.status,
+    channel: doc.channel || "resend",
     resendId: doc.resendId || null,
     error: doc.error || null,
     attachment: doc.attachment || null,
+    socialUrl: doc.socialUrl || null,
     sentBy: doc.sentBy || null,
     createdAt: doc.createdAt,
   };

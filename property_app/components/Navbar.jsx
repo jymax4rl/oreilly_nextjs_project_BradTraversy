@@ -200,15 +200,33 @@ const Navbar = () => {
 
         {/* Right Section */}
         <div className="flex w-full gap-3 lg:gap-6 items-center justify-end pointer mr-4">
-          <LanguageToggle className="hidden lg:inline-flex" />
+          <LanguageToggle
+            className={
+              isHome
+                ? "hidden lg:inline-flex !border-[rgba(247,244,238,0.28)] !bg-transparent !shadow-none !backdrop-blur-none"
+                : "hidden lg:inline-flex"
+            }
+          />
           {!session && (
             <div className="hidden lg:block">
-              <LoginNavButton
-                label={t("nav.signIn")}
-                onClick={() => {
-                  window.location.assign(getLoginUrl(pathname || "/"));
-                }}
-              />
+              {isHome ? (
+                <button
+                  type="button"
+                  className="home-nav-signin"
+                  onClick={() => {
+                    window.location.assign(getLoginUrl(pathname || "/"));
+                  }}
+                >
+                  {t("nav.signIn")}
+                </button>
+              ) : (
+                <LoginNavButton
+                  label={t("nav.signIn")}
+                  onClick={() => {
+                    window.location.assign(getLoginUrl(pathname || "/"));
+                  }}
+                />
+              )}
             </div>
           )}
 
@@ -233,7 +251,13 @@ const Navbar = () => {
                     }}
                   />
                 ) : (
-                  <LuUserRound className="cursor-pointer w-8 h-8 text-[#0c1a1a]/70 hover:text-[#1b5c57] transition-all duration-200" />
+                  <LuUserRound
+                    className={`cursor-pointer w-8 h-8 transition-all duration-200 ${
+                      isHome
+                        ? "text-[#f7f4ee]/90 hover:text-[#e8d7b5] drop-shadow"
+                        : "text-[#0c1a1a]/70 hover:text-[#1b5c57]"
+                    }`}
+                  />
                 )}
               </button>
 

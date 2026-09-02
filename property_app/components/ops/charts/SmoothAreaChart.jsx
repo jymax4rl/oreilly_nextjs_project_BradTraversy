@@ -45,7 +45,7 @@ export default function SmoothAreaChart({
       </figcaption>
       <svg
         viewBox={`0 0 ${W} ${H}`}
-        className="h-[220px] w-full overflow-visible"
+        className="h-[160px] w-full overflow-visible sm:h-[220px]"
         role="img"
         aria-label={label}
       >

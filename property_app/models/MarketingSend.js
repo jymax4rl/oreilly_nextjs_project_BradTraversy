@@ -34,6 +34,11 @@ const MarketingSendSchema = new Schema(
       type: String,
       default: null,
     },
+    channel: {
+      type: String,
+      enum: ["resend", "gmail"],
+      default: "resend",
+    },
     error: {
       type: String,
       default: null,
@@ -42,6 +47,20 @@ const MarketingSendSchema = new Schema(
     attachment: {
       type: String,
       default: null,
+    },
+    locale: {
+      type: String,
+      enum: ["en", "fr"],
+      default: "en",
+    },
+    isTest: {
+      type: Boolean,
+      default: false,
+    },
+    socialUrl: {
+      type: String,
+      default: null,
+      maxlength: 300,
     },
     sentBy: {
       id: { type: String, default: null },

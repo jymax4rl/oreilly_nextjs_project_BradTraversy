@@ -4,36 +4,28 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { isOpsStaff } from "@/utils/opsAuth";
-import { Paperclip, Search, Send } from "lucide-react";
+import { composeMarketingLetter } from "@/utils/marketing/templates";
+import { Mail, Search, SlidersHorizontal } from "lucide-react";
 
 const SEARCH_DEBOUNCE_MS = 280;
+const GMAIL_COMPOSE = "https://mail.google.com/mail/?view=cm&fs=1&tf=1";
+const GMAIL_URL_MAX = 7000;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const PLAYBOOK = [
-  {
-    title: "Hosts in Africa",
-    body: "Owners of villas, apartments, guesthouses, and lodges. Lead with founding-host terms and the host console — not a generic “list with us.”",
-  },
-  {
-    title: "Lifestyle & travel creators",
-    body: "Two nights in West Africa when the host they introduce is approved. Stay-for-listing, not a paid post. Attach the partnership brief.",
-  },
-  {
-    title: "Property managers",
-    body: "People who already operate inventory. Offer a portfolio walkthrough instead of a single listing form.",
-  },
-  {
-    title: "Diaspora owners",
-    body: "Family homes that sit empty. You approve every request — nothing books itself.",
-  },
-  {
-    title: "Also worth a letter",
-    body: "Boutique hotels, wedding planners, tourism boards, university alumni groups, and African food / culture accounts that already send people home.",
-  },
-];
-
-function interpolate(text, name) {
-  const safe = String(name || "").trim() || "there";
-  return String(text || "").replaceAll("{{name}}", safe);
+function buildGmailComposeUrl(to, subject, body) {
+  const toPart = to ? `&to=${encodeURIComponent(to)}` : "";
+  const su = encodeURIComponent(subject);
+  const gmailBody = String(body || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\n/g, "\r\n");
+  const withBody = `${GMAIL_COMPOSE}${toPart}&su=${su}&body=${encodeURIComponent(gmailBody)}`;
+  if (withBody.length <= GMAIL_URL_MAX) {
+    return { href: withBody, bodyInUrl: true };
+  }
+  return {
+    href: `${GMAIL_COMPOSE}${toPart}&su=${su}`,
+    bodyInUrl: false,
+  };
 }
 
 function formatWhen(value) {
@@ -51,21 +43,36 @@ function formatWhen(value) {
   }
 }
 
+function templateLabel(template, locale) {
+  if (!template) return "Letter";
+  return locale === "fr" ? template.labelFr || template.label : template.label;
+}
+
 export default function OpsMarketingPanel() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [templates, setTemplates] = useState([]);
-  const [emailConfigured, setEmailConfigured] = useState(true);
   const [templateId, setTemplateId] = useState("");
+  const [locale, setLocale] = useState("en");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [attachPdf, setAttachPdf] = useState(true);
-  const [sending, setSending] = useState(false);
+  const [socialUrl, setSocialUrl] = useState("");
+  const [propertyName, setPropertyName] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("");
+  const [originalSubject, setOriginalSubject] = useState("");
+  const [subjectOption, setSubjectOption] = useState(0);
+  const [draftSubject, setDraftSubject] = useState("");
+  const [draftBody, setDraftBody] = useState("");
+  const [letterDirty, setLetterDirty] = useState(false);
+  const [logging, setLogging] = useState(false);
+  const [modifyOpen, setModifyOpen] = useState(false);
   const [notice, setNotice] = useState(null);
   const [conflict, setConflict] = useState(null);
   const [sends, setSends] = useState([]);
   const [priorCount, setPriorCount] = useState(0);
   const [alreadySent, setAlreadySent] = useState([]);
+  const [priorAtByTemplate, setPriorAtByTemplate] = useState({});
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [logLoading, setLogLoading] = useState(true);
@@ -102,12 +109,11 @@ export default function OpsMarketingPanel() {
         const data = await res.json();
         if (cancelled) return;
         setTemplates(data.templates || []);
-        setEmailConfigured(Boolean(data.emailConfigured));
         setTemplateId((current) => current || data.templates?.[0]?.id || "");
       } catch (err) {
         if (!cancelled) {
           setNotice({
-            tone: "error",
+            tone: "err",
             text: err.message || "Could not load templates",
           });
         }
@@ -157,6 +163,7 @@ export default function OpsMarketingPanel() {
     if (!trimmed.includes("@")) {
       setPriorCount(0);
       setAlreadySent([]);
+      setPriorAtByTemplate({});
       return;
     }
     const t = window.setTimeout(async () => {
@@ -164,366 +171,648 @@ export default function OpsMarketingPanel() {
         const data = await loadSends({ lookupEmail: trimmed });
         setPriorCount(data.priorCount || 0);
         setAlreadySent(data.alreadySentTemplateIds || []);
+        const at = {};
+        for (const row of data.sends || []) {
+          if (row.isTest || row.status !== "sent" || at[row.templateId]) continue;
+          at[row.templateId] = row.createdAt;
+        }
+        setPriorAtByTemplate(at);
       } catch {
         setPriorCount(0);
         setAlreadySent([]);
+        setPriorAtByTemplate({});
       }
     }, SEARCH_DEBOUNCE_MS);
     return () => window.clearTimeout(t);
   }, [email, loadSends]);
 
-  async function onSend(force = false) {
+  useEffect(() => {
+    setLetterDirty(false);
+    setSubjectOption(0);
+  }, [templateId, locale]);
+
+  const composeVars = useMemo(
+    () => ({
+      firstName: name,
+      propertyName,
+      businessName: propertyName,
+      city,
+      country,
+      originalSubject,
+      socialUrl,
+    }),
+    [name, propertyName, city, country, originalSubject, socialUrl],
+  );
+
+  const composed = useMemo(
+    () =>
+      composeMarketingLetter(template, {
+        ...composeVars,
+        locale,
+        subjectOption,
+      }),
+    [template, composeVars, locale, subjectOption],
+  );
+
+  useEffect(() => {
+    if (!template || letterDirty) return;
+    setDraftSubject(composed.subject);
+    setDraftBody(composed.body);
+  }, [template, composed.subject, composed.body, letterDirty]);
+
+  const thisTemplateSent = template
+    ? alreadySent.includes(template.id)
+    : false;
+
+  useEffect(() => {
+    if (!modifyOpen) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    function onKey(event) {
+      if (event.key === "Escape") setModifyOpen(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [modifyOpen]);
+
+  async function logGmailCompose({ force = false } = {}) {
+    const res = await fetch("/api/ops/marketing/send", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        via: "gmail",
+        name: name.trim(),
+        email: email.trim(),
+        templateId: template?.id,
+        force,
+        locale,
+        subject: draftSubject,
+        body: draftBody,
+        propertyName: propertyName.trim(),
+        businessName: propertyName.trim(),
+        city: city.trim(),
+        country: country.trim(),
+        originalSubject: originalSubject.trim(),
+        socialUrl: socialUrl.trim(),
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 409 && data.code === "already_sent") {
+      return { conflict: data };
+    }
+    if (!res.ok) {
+      throw new Error(data.error || `Could not log this send (${res.status})`);
+    }
+    return { ok: true, send: data.send };
+  }
+
+  async function openInGmail(force = false) {
     setNotice(null);
-    setConflict(null);
-    setSending(true);
-    try {
-      const res = await fetch("/api/ops/marketing/send", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-          templateId: template?.id,
-          attachPdf,
-          force,
-        }),
+    if (name.trim().length < 2) {
+      setNotice({ tone: "err", text: "Enter the recipient's name." });
+      return;
+    }
+    if (!EMAIL_RE.test(email.trim())) {
+      setNotice({ tone: "err", text: "Enter a valid email address." });
+      return;
+    }
+    if (
+      !template ||
+      draftSubject.trim().length < 3 ||
+      draftBody.trim().length < 20
+    ) {
+      setModifyOpen(true);
+      setNotice({
+        tone: "err",
+        text: "Modify the letter before opening Gmail.",
       });
-      const data = await res.json().catch(() => ({}));
-      if (res.status === 409 && data.code === "already_sent") {
-        setConflict(data);
-        setSending(false);
-        return;
-      }
-      if (!res.ok) {
-        throw new Error(data.error || `Send failed (${res.status})`);
-      }
+      return;
+    }
+    if (thisTemplateSent && !force) {
+      setConflict({
+        prior: { createdAt: priorAtByTemplate[template.id] || null },
+      });
+      return;
+    }
+
+    const { href, bodyInUrl } = buildGmailComposeUrl(
+      email.trim(),
+      draftSubject.trim(),
+      draftBody.trim(),
+    );
+    const popup = window.open(href, "_blank");
+    if (popup) popup.opener = null;
+    if (!bodyInUrl) {
+      navigator.clipboard.writeText(draftBody.trim()).catch(() => {});
+    }
+    if (!popup) {
+      setNotice({
+        tone: "err",
+        text: "Allow pop-ups for this site so Gmail can open.",
+      });
+      return;
+    }
+
+    setModifyOpen(false);
+    setConflict(null);
+    setLogging(true);
+    try {
+      const result = await logGmailCompose({
+        force: force || thisTemplateSent,
+      });
+      const loggedTo = result.send?.recipientEmail || email.trim();
       setNotice({
         tone: "ok",
-        text: data.attachmentMissing
-          ? `Sent to ${email.trim()}. PDF was not on disk — email went without the attachment.`
-          : `Sent to ${email.trim()}.`,
+        text: bodyInUrl
+          ? `Opened Gmail for ${loggedTo}.`
+          : `Opened Gmail for ${loggedTo}. The letter was copied — paste it if the body is empty.`,
       });
-      setConflict(null);
       const dataLog = await loadSends({ q: searchQuery });
       setSends(dataLog.sends || []);
       const again = await loadSends({ lookupEmail: email.trim().toLowerCase() });
       setPriorCount(again.priorCount || 0);
       setAlreadySent(again.alreadySentTemplateIds || []);
+      const at = {};
+      for (const row of again.sends || []) {
+        if (row.isTest || row.status !== "sent" || at[row.templateId]) continue;
+        at[row.templateId] = row.createdAt;
+      }
+      setPriorAtByTemplate(at);
     } catch (err) {
-      setNotice({ tone: "error", text: err.message || "Send failed" });
+      setNotice({
+        tone: "err",
+        text: err.message || "Gmail opened, but the send was not logged.",
+      });
     } finally {
-      setSending(false);
+      setLogging(false);
     }
   }
 
   if (status === "loading") {
-    return (
-      <div className="ops-card text-sm text-[var(--kama-ink-muted)]">
-        Loading marketing…
-      </div>
-    );
+    return <div className="mkt-compose mkt-empty">Loading marketing…</div>;
   }
 
-  const previewSubject = template
-    ? interpolate(template.subject, name)
-    : "";
-  const previewBody = template
-    ? interpolate(template.body?.[0] || "", name)
-    : "";
-  const thisTemplateSent = template
-    ? alreadySent.includes(template.id)
-    : false;
+  const summaryBits = [
+    templateLabel(template, locale),
+    locale.toUpperCase(),
+    letterDirty ? "edited" : null,
+  ].filter(Boolean);
 
   return (
-    <div className="space-y-6">
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        {PLAYBOOK.map((item) => (
-          <article
-            key={item.title}
-            className="rounded-2xl border border-white/15 bg-white/90 p-4 shadow-sm backdrop-blur-sm"
-          >
-            <h2 className="text-sm font-semibold text-[var(--kama-ink)]">
-              {item.title}
-            </h2>
-            <p className="mt-1.5 text-xs leading-relaxed text-[var(--kama-ink-muted)]">
-              {item.body}
-            </p>
-          </article>
-        ))}
-      </section>
+    <div className="mkt">
+      <form
+        className="mkt-compose"
+        data-mkt-surface="compose"
+        data-mkt-variant="control"
+        onSubmit={(e) => {
+          e.preventDefault();
+          openInGmail(false);
+        }}
+      >
+        <div className="mkt-compose__head">
+          <p className="mkt-kicker">Gmail</p>
+          <p className="mkt-from">Opens in your Gmail</p>
+        </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-        <form
-          className="ops-card space-y-5"
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSend(false);
-          }}
-        >
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--kama-ink-muted)]">
-              Compose
-            </p>
-            <h2 className="mt-1 text-xl font-semibold tracking-tight">
-              Send a launch letter
-            </h2>
-            <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
-              Sends as a plain letter from Camara — not a branded campaign
-              layout. Name and address are merged in. Do not paste purchased
-              lists.
-            </p>
-          </div>
-
-          {!emailConfigured ? (
-            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
-              Resend is not configured in this environment. You can still preview
-              templates. Sends use Camara Djehuty
-              &lt;camara-djehuty@isisel.com&gt;.
-            </p>
-          ) : null}
-
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[var(--kama-ink-muted)]">
-              Template
-            </span>
-            <select
-              value={template?.id || ""}
-              onChange={(e) => setTemplateId(e.target.value)}
-              className="h-12 w-full rounded-lg border border-[var(--kama-border-strong)] bg-white px-3.5 text-[15px] outline-none focus:border-[var(--kama-accent)] focus:shadow-[var(--kama-focus-ring)]"
-            >
-              {templates.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-            {template ? (
-              <span className="mt-1.5 block text-xs text-[var(--kama-ink-muted)]">
-                Audience: {template.audience}
-              </span>
-            ) : null}
+        <div className="mkt-duo">
+          <label className="mkt-label">
+            <span>Name</span>
+            <input
+              required
+              minLength={2}
+              autoComplete="given-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mkt-input"
+              placeholder="Amina"
+            />
           </label>
+          <label className="mkt-label">
+            <span>Email</span>
+            <input
+              required
+              type="email"
+              autoComplete="email"
+              inputMode="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mkt-input"
+              placeholder="amina@example.com"
+            />
+          </label>
+        </div>
+        <label className="mkt-label mkt-social">
+          <span>
+            Social URL
+            <em className="mkt-opt">optional</em>
+          </span>
+          <input
+            type="text"
+            inputMode="url"
+            autoComplete="url"
+            value={socialUrl}
+            onChange={(e) => setSocialUrl(e.target.value)}
+            className="mkt-input"
+            placeholder="instagram.com/…"
+          />
+        </label>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block">
-              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[var(--kama-ink-muted)]">
-                Name
-              </span>
-              <input
-                required
-                minLength={2}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="h-12 w-full rounded-lg border border-[var(--kama-border-strong)] bg-white px-3.5 text-[15px] outline-none focus:border-[var(--kama-accent)] focus:shadow-[var(--kama-focus-ring)]"
-                placeholder="Amina Diallo"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[var(--kama-ink-muted)]">
-                Email
-              </span>
-              <input
-                required
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-12 w-full rounded-lg border border-[var(--kama-border-strong)] bg-white px-3.5 text-[15px] outline-none focus:border-[var(--kama-accent)] focus:shadow-[var(--kama-focus-ring)]"
-                placeholder="amina@example.com"
-              />
-            </label>
+        <p className="mkt-summary">
+          <strong>{summaryBits[0]}</strong>
+          {summaryBits.slice(1).map((bit) => (
+            <span key={bit}> · {bit}</span>
+          ))}
+        </p>
+
+        {priorCount > 0 ? (
+          <p
+            className={`mkt-note ${
+              thisTemplateSent ? "mkt-note--warn" : "mkt-note--mute"
+            }`}
+          >
+            {priorCount} earlier email{priorCount === 1 ? "" : "s"} to this
+            address
+            {thisTemplateSent
+              ? " — this letter was already opened in Gmail."
+              : "."}
+          </p>
+        ) : null}
+
+        {notice ? (
+          <p
+            className={`mkt-note ${
+              notice.tone === "ok" ? "mkt-note--ok" : "mkt-note--err"
+            }`}
+            role="status"
+          >
+            {notice.text}
+          </p>
+        ) : null}
+
+        {conflict ? (
+          <div className="mkt-note mkt-note--warn">
+            <p>
+              Already opened {formatWhen(conflict.prior?.createdAt)}. Open this
+              letter in Gmail again?
+            </p>
+            <button
+              type="button"
+              onClick={() => openInGmail(true)}
+              disabled={logging || !template}
+              className="mkt-tool mkt-tool--primary"
+              style={{ marginTop: "0.5rem", width: "auto", padding: "0 0.85rem" }}
+            >
+              Open anyway
+            </button>
           </div>
+        ) : null}
 
-          {priorCount > 0 ? (
-            <p
-              className={`rounded-lg px-3 py-2 text-sm ${
-                thisTemplateSent
-                  ? "border border-amber-200 bg-amber-50 text-amber-950"
-                  : "border border-[var(--kama-border)] bg-[var(--kama-field)] text-[var(--kama-ink)]"
-              }`}
-            >
-              {priorCount} earlier email{priorCount === 1 ? "" : "s"} to this
-              address
-              {thisTemplateSent
-                ? " — this template was already sent. Sending again needs confirmation."
-                : "."}
-            </p>
-          ) : null}
-
-          {template?.pdf ? (
-            <label className="flex items-start gap-3 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3.5 py-3 text-sm">
-              <input
-                type="checkbox"
-                checked={attachPdf}
-                onChange={(e) => setAttachPdf(e.target.checked)}
-                className="mt-0.5"
-              />
-              <span>
-                <span className="flex items-center gap-1.5 font-semibold">
-                  <Paperclip className="h-3.5 w-3.5" />
-                  Attach {template.pdf.label}
-                </span>
-                <span className="mt-1 block text-xs text-[var(--kama-ink-muted)]">
-                  The letter stays plain. Uncheck this if Gmail still files the
-                  PDF in Promotions.
-                </span>
-                <a
-                  href={`/api/ops/marketing/assets/${template.pdf.filename}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-1 inline-block text-xs text-[var(--kama-accent)] underline underline-offset-2"
-                >
-                  Preview PDF
-                </a>
-              </span>
-            </label>
-          ) : (
-            <p className="text-xs text-[var(--kama-ink-muted)]">
-              This follow-up does not attach a PDF.
-            </p>
-          )}
-
-          {template ? (
-            <div className="rounded-xl border border-[var(--kama-border)] bg-[#fbfaf6] p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--kama-ink-muted)]">
-                Preview
-              </p>
-              <p className="mt-2 text-sm font-semibold text-[var(--kama-ink)]">
-                {previewSubject}
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--kama-ink-muted)]">
-                {previewBody}
-              </p>
-            </div>
-          ) : null}
-
-          {notice ? (
-            <p
-              className={`rounded-lg px-3 py-2 text-sm ${
-                notice.tone === "ok"
-                  ? "border border-emerald-200 bg-emerald-50 text-emerald-950"
-                  : "border border-red-200 bg-red-50 text-red-800"
-              }`}
-              role="status"
-            >
-              {notice.text}
-            </p>
-          ) : null}
-
-          {conflict ? (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-950">
-              <p>
-                Already sent {formatWhen(conflict.prior?.createdAt)}. Send this
-                template again?
-              </p>
-              <button
-                type="button"
-                onClick={() => onSend(true)}
-                disabled={sending || !emailConfigured}
-                className="mt-2 rounded-lg bg-amber-950 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
-              >
-                Send anyway
-              </button>
-            </div>
-          ) : null}
-
+        <div className="mkt-actions">
           <button
             type="submit"
-            disabled={sending || !emailConfigured || !template}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#1B5C57] px-5 text-[15px] font-semibold text-white transition hover:bg-[var(--kama-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={logging || !template}
+            className="mkt-send"
           >
-            <Send className="h-4 w-4" />
-            {sending ? "Sending…" : "Send email"}
+            <Mail className="h-4 w-4" />
+            {logging ? "Opening…" : "Open in Gmail"}
           </button>
-        </form>
-
-        <section className="ops-card">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--kama-ink-muted)]">
-                Ledger
-              </p>
-              <h2 className="mt-1 text-xl font-semibold tracking-tight">
-                Sent emails
-              </h2>
-            </div>
-            <label className="relative block w-full sm:max-w-xs">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--kama-ink-muted)]" />
-              <input
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search name or email"
-                className="h-11 w-full rounded-lg border border-[var(--kama-border-strong)] bg-white pl-9 pr-3 text-sm outline-none focus:border-[var(--kama-accent)] focus:shadow-[var(--kama-focus-ring)]"
-              />
-            </label>
+          <div className="mkt-tools">
+            <button
+              type="button"
+              className="mkt-tool"
+              onClick={() => setModifyOpen(true)}
+              aria-expanded={modifyOpen}
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              Modify
+            </button>
           </div>
+        </div>
+      </form>
 
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-[var(--kama-border)] text-[11px] uppercase tracking-wide text-[var(--kama-ink-muted)]">
-                  <th className="py-2 pr-3 font-semibold">When</th>
-                  <th className="py-2 pr-3 font-semibold">Recipient</th>
-                  <th className="py-2 pr-3 font-semibold">Template</th>
-                  <th className="py-2 font-semibold">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logLoading ? (
-                  <tr>
-                    <td colSpan={4} className="py-8 text-[var(--kama-ink-muted)]">
-                      Loading history…
-                    </td>
-                  </tr>
-                ) : sends.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="py-8 text-[var(--kama-ink-muted)]">
-                      No emails match that search yet.
-                    </td>
-                  </tr>
-                ) : (
-                  sends.map((row) => (
-                    <tr
-                      key={row.id}
-                      className="border-b border-[var(--kama-border)] last:border-0"
+      {modifyOpen ? (
+        <div
+          className="mkt-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="mkt-modify-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setModifyOpen(false);
+          }}
+        >
+          <div className="mkt-sheet">
+            <div className="mkt-sheet__bar">
+              <h2 id="mkt-modify-title">Modify letter</h2>
+              <button
+                type="button"
+                className="mkt-sheet__done"
+                onClick={() => setModifyOpen(false)}
+              >
+                Done
+              </button>
+            </div>
+            <div className="mkt-sheet__body">
+              <div className="mkt-grid mkt-grid--2">
+                <label className="mkt-label" style={{ gridColumn: "1 / -1" }}>
+                  <span>Letter</span>
+                  <select
+                    value={template?.id || ""}
+                    onChange={(e) => setTemplateId(e.target.value)}
+                    className="mkt-input"
+                  >
+                    {templates.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {locale === "fr" ? t.labelFr || t.label : t.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <fieldset className="mkt-label">
+                  <span>Language</span>
+                  <div className="mkt-lang">
+                    <button
+                      type="button"
+                      aria-pressed={locale === "en"}
+                      onClick={() => setLocale("en")}
                     >
-                      <td className="py-3 pr-3 align-top text-xs text-[var(--kama-ink-muted)]">
+                      EN
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={locale === "fr"}
+                      onClick={() => setLocale("fr")}
+                    >
+                      FR
+                    </button>
+                  </div>
+                </fieldset>
+              </div>
+
+              {template ? (
+                <p className="mkt-summary" style={{ marginTop: 0 }}>
+                  {locale === "fr"
+                    ? template.audienceFr || template.audience
+                    : template.audience}
+                </p>
+              ) : null}
+
+              <div className="mkt-grid mkt-grid--2">
+                <label className="mkt-label" style={{ gridColumn: "1 / -1" }}>
+                  <span>Property / business / hotel</span>
+                  <input
+                    value={propertyName}
+                    onChange={(e) => setPropertyName(e.target.value)}
+                    className="mkt-input"
+                    placeholder="Only if you know it"
+                  />
+                </label>
+                <label className="mkt-label">
+                  <span>City</span>
+                  <input
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="mkt-input"
+                    placeholder="Dakar"
+                  />
+                </label>
+                <label className="mkt-label">
+                  <span>Country</span>
+                  <input
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    className="mkt-input"
+                    placeholder="Senegal"
+                  />
+                </label>
+                {template?.followUp ? (
+                  <label className="mkt-label" style={{ gridColumn: "1 / -1" }}>
+                    <span>Original subject</span>
+                    <input
+                      value={originalSubject}
+                      onChange={(e) => setOriginalSubject(e.target.value)}
+                      className="mkt-input"
+                      placeholder="Subject of the first note"
+                    />
+                  </label>
+                ) : null}
+              </div>
+
+              {template?.pdf ? (
+                <p className="mkt-summary" style={{ marginTop: 0 }}>
+                  <a
+                    href={`/api/ops/marketing/assets/${template.pdf.filename}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[#171717] underline underline-offset-2"
+                  >
+                    Preview {template.pdf.label}
+                  </a>
+                  {" · attach in Gmail only if you need it"}
+                </p>
+              ) : null}
+
+              {template ? (
+                <>
+                  {composed.subjectOptions?.length > 1 ? (
+                    <label className="mkt-label">
+                      <span>Subject line</span>
+                      <select
+                        className="mkt-input"
+                        value={Math.min(
+                          subjectOption,
+                          Math.max(0, composed.subjectOptions.length - 1),
+                        )}
+                        onChange={(e) => {
+                          setSubjectOption(Number(e.target.value));
+                          setLetterDirty(false);
+                        }}
+                      >
+                        {composed.subjectOptions.map((option, index) => (
+                          <option key={`${option}-${index}`} value={index}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ) : null}
+                  <label className="mkt-label">
+                    <span>Subject</span>
+                    <input
+                      minLength={3}
+                      value={draftSubject}
+                      onChange={(e) => {
+                        setLetterDirty(true);
+                        setDraftSubject(e.target.value);
+                      }}
+                      className="mkt-input"
+                    />
+                  </label>
+                  <label className="mkt-label">
+                    <span
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "baseline",
+                      }}
+                    >
+                      Letter
+                      {letterDirty ? (
+                        <button
+                          type="button"
+                          className="mkt-reset"
+                          onClick={() => {
+                            setDraftSubject(composed.subject);
+                            setDraftBody(composed.body);
+                            setLetterDirty(false);
+                          }}
+                        >
+                          Reset
+                        </button>
+                      ) : null}
+                    </span>
+                    <textarea
+                      minLength={20}
+                      rows={10}
+                      value={draftBody}
+                      onChange={(e) => {
+                        setLetterDirty(true);
+                        setDraftBody(e.target.value);
+                      }}
+                      className="mkt-letter"
+                    />
+                  </label>
+                </>
+              ) : null}
+            </div>
+            <div className="mkt-sheet__foot">
+              <button
+                type="button"
+                className="mkt-send"
+                disabled={logging || !template}
+                onClick={() => openInGmail(false)}
+              >
+                <Mail className="h-4 w-4" />
+                {logging ? "Opening…" : "Open in Gmail"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <section className="mkt-ledger">
+        <div className="mkt-ledger__head">
+          <div>
+            <p className="mkt-kicker">Sent</p>
+            <h2>Emails</h2>
+          </div>
+          <label className="relative block w-full sm:max-w-xs">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#a3a3a3]" />
+            <input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search name or email"
+              className="mkt-input"
+              style={{ paddingLeft: "2.25rem" }}
+            />
+          </label>
+        </div>
+
+        {logLoading ? (
+          <p className="mkt-empty">Loading history…</p>
+        ) : sends.length === 0 ? (
+          <p className="mkt-empty">No emails match that search yet.</p>
+        ) : (
+          <>
+            <div className="mkt-cards">
+              {sends.map((row) => (
+                <article key={row.id} className="mkt-card">
+                  <div className="mkt-card__top">
+                    <div>
+                      <div className="mkt-card__name">{row.recipientName}</div>
+                      <div className="mkt-card__email">{row.recipientEmail}</div>
+                    </div>
+                    <span
+                      className={`mkt-pill ${
+                        row.status === "sent" ? "mkt-pill--ok" : "mkt-pill--err"
+                      }`}
+                    >
+                      {row.status}
+                    </span>
+                  </div>
+                  <div className="mkt-card__meta">
+                    {templates.find((t) => t.id === row.templateId)?.label ||
+                      row.templateId}
+                    {" · "}
+                    {(row.locale || "en").toUpperCase()}
+                    {row.channel === "gmail" ? " · Gmail" : ""}
+                    {row.isTest ? " · test" : ""}
+                    {row.attachment ? ` · ${row.attachment}` : ""}
+                    {row.socialUrl
+                      ? ` · ${String(row.socialUrl).replace(/^https?:\/\//i, "")}`
+                      : ""}
+                  </div>
+                  <div className="mkt-card__when">{formatWhen(row.createdAt)}</div>
+                </article>
+              ))}
+            </div>
+            <div className="mkt-table-wrap">
+              <table className="mkt-table">
+                <thead>
+                  <tr>
+                    <th>When</th>
+                    <th>Recipient</th>
+                    <th>Letter</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sends.map((row) => (
+                    <tr key={`t-${row.id}`}>
+                      <td className="text-xs text-[#8a8a8a]">
                         {formatWhen(row.createdAt)}
                       </td>
-                      <td className="py-3 pr-3 align-top">
+                      <td>
                         <div className="font-medium">{row.recipientName}</div>
-                        <div className="text-xs text-[var(--kama-ink-muted)]">
+                        <div className="text-xs text-[#8a8a8a]">
                           {row.recipientEmail}
                         </div>
                       </td>
-                      <td className="py-3 pr-3 align-top text-xs">
+                      <td className="text-xs">
                         {templates.find((t) => t.id === row.templateId)?.label ||
                           row.templateId}
-                        {row.attachment ? (
-                          <div className="mt-0.5 text-[11px] text-[var(--kama-ink-muted)]">
-                            {row.attachment}
-                          </div>
-                        ) : null}
+                        <div className="mt-0.5 text-[11px] text-[#8a8a8a]">
+                          {(row.locale || "en").toUpperCase()}
+                          {row.channel === "gmail" ? " · Gmail" : ""}
+                          {row.isTest ? " · test" : ""}
+                          {row.attachment ? ` · ${row.attachment}` : ""}
+                          {row.socialUrl
+                            ? ` · ${String(row.socialUrl).replace(/^https?:\/\//i, "")}`
+                            : ""}
+                        </div>
                       </td>
-                      <td className="py-3 align-top">
+                      <td>
                         <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                          className={`mkt-pill ${
                             row.status === "sent"
-                              ? "bg-emerald-50 text-emerald-800"
-                              : "bg-red-50 text-red-800"
+                              ? "mkt-pill--ok"
+                              : "mkt-pill--err"
                           }`}
                         >
                           {row.status}
                         </span>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </section>
     </div>
   );
 }

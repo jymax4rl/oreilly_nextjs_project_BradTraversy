@@ -102,7 +102,7 @@ export default function OpsLiveMap({
   dots = [],
   historyDots = [],
   activeCount = 0,
-  className = "h-[320px] w-full sm:h-[380px]",
+  className = "h-[240px] w-full sm:h-[320px] lg:h-[380px]",
 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
@@ -292,7 +292,7 @@ export default function OpsLiveMap({
 
   return (
     <figure className="ops-card ops-card--flush">
-      <figcaption className="flex flex-wrap items-end justify-between gap-2 px-5 pt-5">
+      <figcaption className="flex flex-wrap items-end justify-between gap-2 px-4 pt-4 sm:px-5 sm:pt-5">
         <div>
           <p className="ops-chart-title inline-flex items-center gap-2">
             <span className="ops-live-now" aria-hidden />

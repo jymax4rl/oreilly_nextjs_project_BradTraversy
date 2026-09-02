@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Fraunces, Outfit } from "next/font/google";
 import Lenis from "lenis";
 import HomePortalHero from "./HomePortalHero";
+import HomeSearchSection from "./HomeSearchSection";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -46,6 +47,7 @@ export default function HomeImmersive({ children }) {
     <div className={`home-portal ${fraunces.variable} ${outfit.variable}`}>
       <div className="home-portal-content">
         <HomePortalHero />
+        <HomeSearchSection />
         {children}
       </div>
     </div>

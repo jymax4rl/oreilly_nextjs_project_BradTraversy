@@ -67,7 +67,7 @@ export default function AdminListingsPanel() {
   const [countryFilter, setCountryFilter] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [mapOpenMobile, setMapOpenMobile] = useState(true);
+  const [mapOpenMobile, setMapOpenMobile] = useState(false);
   const [profileUserId, setProfileUserId] = useState(null);
 
   useEffect(() => {
@@ -249,7 +249,7 @@ export default function AdminListingsPanel() {
   return (
     <div>
       <header className="mb-8 max-w-2xl">
-        <h1 className="text-2xl font-semibold tracking-tight text-[var(--kama-ink)] sm:text-[1.75rem]">
+        <h1 className="text-[1.45rem] font-semibold tracking-tight text-[var(--kama-ink)] sm:text-[1.75rem]">
           Property listings
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-[var(--kama-ink-muted)]">

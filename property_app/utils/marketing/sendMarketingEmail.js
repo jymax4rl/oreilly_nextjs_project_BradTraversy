@@ -3,11 +3,14 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Resend } from "resend";
 import { getBookingResendApiKey } from "@/utils/email/resendKeys";
-import { getEmailFrom, getEmailReplyTo } from "@/utils/email/fromAddress";
+import { getMarketingEmailFrom, getMarketingReplyTo } from "@/utils/email/fromAddress";
 import { DEFAULT_PRODUCTION_APP_URL } from "@/utils/appUrl";
 import {
   MARKETING_PDFS,
+  composeMarketingLetter,
   getMarketingTemplate,
+  interpolate,
+  normalizeMarketingLocale,
 } from "@/utils/marketing/templates";
 import { renderMarketingEmailHtml, renderMarketingEmailText } from "@/utils/marketing/renderMarketingEmail";
 
@@ -71,12 +74,17 @@ export async function loadMarketingAttachment(pdfKey) {
 
 /**
  * Send one 1:1 outreach letter. Caller must persist MarketingSend.
+ * Pass `subject` + `body` to send an edited letter; otherwise the template is composed.
  */
 export async function sendMarketingOutreachEmail({
   templateId,
   name,
   email,
-  attachPdf = true,
+    attachPdf = true,
+  locale = "en",
+  subject: subjectOverride,
+  body: bodyOverride,
+  vars = {},
 }) {
   const template = getMarketingTemplate(templateId);
   if (!template) {
@@ -84,7 +92,7 @@ export async function sendMarketingOutreachEmail({
   }
 
   const resend = getResend();
-  const from = getEmailFrom();
+  const from = getMarketingEmailFrom();
   if (!resend) {
     return {
       ok: false,
@@ -92,8 +100,36 @@ export async function sendMarketingOutreachEmail({
     };
   }
 
-  const { html, subject } = renderMarketingEmailHtml(template, { name });
-  const text = renderMarketingEmailText(template, { name });
+  const lang = normalizeMarketingLocale(locale);
+  const mergedVars = { firstName: name, name, ...vars };
+  const generated = composeMarketingLetter(template, {
+    ...mergedVars,
+    locale: lang,
+  });
+  const subject = interpolate(
+    String(subjectOverride || generated.subject).trim(),
+    mergedVars,
+    lang,
+  ).slice(0, 200);
+  const body = interpolate(
+    String(bodyOverride || generated.body).trim(),
+    mergedVars,
+    lang,
+  );
+
+  if (subject.length < 3) {
+    return { ok: false, error: "Subject is too short." };
+  }
+  if (body.length < 20) {
+    return { ok: false, error: "The letter is too short." };
+  }
+
+  const { html } = renderMarketingEmailHtml({
+    subject,
+    body,
+    previewText: generated.previewText,
+  });
+  const text = renderMarketingEmailText({ body });
   const to = String(email).trim().toLowerCase();
 
   /** @type {{ filename: string, content: Buffer }[]} */
@@ -121,7 +157,7 @@ export async function sendMarketingOutreachEmail({
     subject,
     html,
     text,
-    replyTo: getEmailReplyTo(),
+    replyTo: getMarketingReplyTo(),
   };
   if (attachments.length) {
     payload.attachments = attachments;
@@ -133,6 +169,7 @@ export async function sendMarketingOutreachEmail({
       ok: false,
       error: error.message || "Resend rejected the send",
       subject,
+      from,
       attachment: attachmentName,
     };
   }
@@ -141,6 +178,7 @@ export async function sendMarketingOutreachEmail({
     ok: true,
     resendId: data?.id || null,
     subject,
+    from,
     attachment: attachmentName,
     attachmentMissing,
   };

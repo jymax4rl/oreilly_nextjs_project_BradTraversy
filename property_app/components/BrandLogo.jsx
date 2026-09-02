@@ -18,7 +18,7 @@ export default function BrandLogo({
     <Image
       src={KamaLogoTeal}
       alt={alt}
-      className={`object-contain object-left ${className}`}
+      className={`object-contain ${className}`}
       width={120}
       height={40}
       priority={priority}
