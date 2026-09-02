@@ -1,7 +1,7 @@
 export const metadata = {
   title: {
     default: "Operations",
-    template: "%s · Kama Ops",
+    template: "%s · Isisel Ops",
   },
   robots: {
     index: false,

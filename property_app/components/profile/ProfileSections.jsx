@@ -212,7 +212,7 @@ export default function ProfileSections({ profile }) {
               href="/host/onboarding"
               icon={PlusCircle}
               label="Become a host"
-              description="Apply to list properties on Kama"
+              description="Apply to list properties on Isisel"
             />
           </div>
         )}

@@ -22,8 +22,8 @@ export async function generateMetadata({ params }) {
   const property = await findPropertyByParam(id, "name");
   return {
     title: property
-      ? `Reservations — ${property.name} | Kama Properties`
-      : "Reservations | Kama Properties",
+      ? `Reservations — ${property.name} | Isisel`
+      : "Reservations | Isisel",
     robots: { index: false, follow: false },
   };
 }

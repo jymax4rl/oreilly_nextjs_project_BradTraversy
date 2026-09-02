@@ -14,7 +14,7 @@ export async function generateMetadata({ searchParams }) {
   if (location) {
     return {
       title: `Vacation rentals in ${location}`,
-      description: `Browse Kama Properties vacation rentals in ${location} — African stays with beds, baths, and nightly rates.`,
+      description: `Browse Isisel vacation rentals in ${location} — African stays with beds, baths, and nightly rates.`,
       alternates: {
         canonical: `/properties?location=${encodeURIComponent(location)}`,
       },
@@ -23,7 +23,7 @@ export async function generateMetadata({ searchParams }) {
   return {
     title: "Vacation rentals in Africa",
     description:
-      "Browse Kama Properties stays across Senegal, Ghana, Egypt, Morocco, South Africa, and Tanzania.",
+      "Browse Isisel stays across Senegal, Ghana, Egypt, Morocco, South Africa, and Tanzania.",
     alternates: { canonical: "/properties" },
   };
 }

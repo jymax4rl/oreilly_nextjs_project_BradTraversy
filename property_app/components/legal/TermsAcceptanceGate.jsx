@@ -8,7 +8,7 @@ import { persistTermsAcceptance } from "@/lib/legal/acceptance";
 const COPY = {
   en: {
     title: "Before you continue",
-    body: "Please review and accept the Terms & Conditions to sign in to Kama Properties. This protects guests and hosts on our African vacation rentals marketplace.",
+    body: "Please review and accept the Terms & Conditions to sign in to Isisel. This protects guests and hosts on our African vacation rentals marketplace.",
     checkbox: "I agree to the Terms & Conditions",
     link: "Read full Terms & Policies",
     continue: "Continue to sign in",
@@ -18,7 +18,7 @@ const COPY = {
   },
   fr: {
     title: "Avant de continuer",
-    body: "Veuillez lire et accepter les Conditions d’utilisation pour vous connecter à Kama Properties. Cela protège voyageurs et hôtes sur notre marketplace de locations en Afrique.",
+    body: "Veuillez lire et accepter les Conditions d’utilisation pour vous connecter à Isisel. Cela protège voyageurs et hôtes sur notre marketplace de locations en Afrique.",
     checkbox: "J’accepte les Conditions d’utilisation",
     link: "Lire les Conditions et Politiques",
     continue: "Continuer vers la connexion",
@@ -38,7 +38,7 @@ export default function TermsAcceptanceGate({ lang = "en", onAccepted }) {
   return (
     <div className="mx-auto flex w-full min-w-0 max-w-[400px] flex-1 flex-col justify-center px-1 pt-10 sm:px-0 lg:pt-0">
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--kama-accent)]">
-        Kama Properties
+        Isisel
       </p>
       <h1 className="mt-3 text-center text-[1.65rem] font-semibold tracking-tight break-words text-zinc-900 lg:text-left lg:text-3xl">
         {t.title}

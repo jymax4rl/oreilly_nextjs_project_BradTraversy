@@ -6,7 +6,7 @@ import { FaWhatsapp } from "react-icons/fa";
 
 /**
  * Collects a WhatsApp-preferred guest phone before submitting a reservation request.
- * Matches other Kama dialogs: Escape, overlay click, body scroll lock, teal CTAs.
+ * Matches other Isisel dialogs: Escape, overlay click, body scroll lock, teal CTAs.
  */
 export default function GuestPhoneModal({
   open,

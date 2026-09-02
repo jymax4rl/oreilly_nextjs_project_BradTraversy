@@ -28,7 +28,7 @@ export default function AdminListingCardActions({
     session.user.id !== recipientId;
 
   const senderName =
-    session?.user?.name || session?.user?.email || "Kama Ops";
+    session?.user?.name || session?.user?.email || "Isisel Ops";
   const senderEmail = session?.user?.email || "";
 
   return (

@@ -11,7 +11,7 @@ function typeLabel(property) {
 }
 
 /**
- * Title segment for the root layout template (`%s | Kama Properties`).
+ * Title segment for the root layout template (`%s | Isisel`).
  * Example: "Nile View Retreat - Villa Rental in Cairo, Egypt"
  */
 export function listingTitleSegment(property) {
@@ -55,7 +55,7 @@ export function listingKeywords(property) {
     property?.location?.country,
     "vacation rental",
     "Africa",
-    "Kama Properties",
+    "Isisel",
   ]
     .filter(Boolean)
     .join(", ");

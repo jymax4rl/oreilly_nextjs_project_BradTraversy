@@ -82,7 +82,7 @@ export default function ServerProperty({ property, canonicalUrl }) {
     },
     brand: {
       "@type": "Brand",
-      name: "Kama Properties",
+      name: "Isisel",
     },
     ...(hasOffer
       ? {

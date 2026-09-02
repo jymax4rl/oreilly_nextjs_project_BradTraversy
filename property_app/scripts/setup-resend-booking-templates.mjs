@@ -73,7 +73,7 @@ async function upsertTemplate(meta) {
     subject: meta.subject,
     html: meta.html,
     variables: meta.variables,
-    from: process.env.EMAIL_FROM || undefined,
+    from: process.env.EMAIL_FROM || "Camara Djehuty <camara-djehuty@isisel.com>",
   });
 
   const publishResult = await created.publish();

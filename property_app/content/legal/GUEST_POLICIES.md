@@ -1,4 +1,4 @@
-# Guest Policies — Kama Properties
+# Guest Policies — Isisel
 
 > **Template for product use — not formal legal advice.**  
 > **Version:** `kama-terms-v1.0-2026-08-31`
@@ -17,8 +17,8 @@ MVP may use cash, mobile money, or other off-platform methods agreed with the ho
 
 ## Disputes
 
-Message the host first with facts. Contact Kama with evidence if unresolved. Informal mediation only in MVP — not a court.
+Message the host first with facts. Contact Isisel with evidence if unresolved. Informal mediation only in MVP — not a court.
 
 ## Safety
 
-Leave if you feel unsafe and contact local emergency services when needed. Report trust & safety issues to Kama.
+Leave if you feel unsafe and contact local emergency services when needed. Report trust & safety issues to Isisel.

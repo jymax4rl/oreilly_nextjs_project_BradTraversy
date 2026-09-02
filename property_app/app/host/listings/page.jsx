@@ -12,8 +12,8 @@ import { isAwaitingListingModeration } from "@/utils/listingApproval";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
 
 export const metadata = {
-  title: "My Listings | Kama Properties",
-  description: "Manage your property listings on Kama Properties",
+  title: "My Listings | Isisel",
+  description: "Manage your property listings on Isisel",
   robots: { index: false, follow: false },
 };
 
@@ -101,7 +101,7 @@ export default async function HostListingsPage() {
               No listings yet
             </h2>
             <p className="text-gray-500 max-w-sm mx-auto mb-6">
-              Start earning by listing your first property on Kama Properties.
+              Start earning by listing your first property on Isisel.
             </p>
             <Link
               href="/properties/add"

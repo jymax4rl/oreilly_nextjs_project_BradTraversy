@@ -1,4 +1,4 @@
-# Politique de confidentialité — Kama Properties
+# Politique de confidentialité — Isisel
 
 > **Modèle produit — pas un avis juridique formel.**  
 > **Version :** `kama-terms-v1.0-2026-08-31`

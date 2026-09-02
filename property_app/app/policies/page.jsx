@@ -2,9 +2,9 @@ import { Suspense } from "react";
 import PoliciesShell from "@/components/legal/PoliciesShell";
 
 export const metadata = {
-  title: "Policies | Kama Properties",
+  title: "Policies | Isisel",
   description:
-    "Guest and host policies, payments, privacy overview, and terms for Kama Properties.",
+    "Guest and host policies, payments, privacy overview, and terms for Isisel.",
   alternates: { canonical: "/policies" },
 };
 

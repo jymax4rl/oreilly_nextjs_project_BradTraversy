@@ -9,6 +9,7 @@ import {
 } from "@/utils/email/bookingEmailTemplateHtml";
 import { brandLogoUrl } from "@/utils/appUrl";
 import { getBookingResendApiKey } from "@/utils/email/resendKeys";
+import { getEmailFrom, getEmailReplyTo } from "@/utils/email/fromAddress";
 import {
   formatPropertyLocation,
   getAbsoluteAppUrl,
@@ -31,21 +32,14 @@ function getResend() {
   return resendClient;
 }
 
-/** True when Resend + from-address are configured for booking mail. */
+/** True when Resend is configured. From-address defaults to Camara Djehuty <camara-djehuty@isisel.com>. */
 export function isBookingEmailConfigured() {
-  return Boolean(getBookingResendApiKey() && process.env.EMAIL_FROM);
+  return Boolean(getBookingResendApiKey());
 }
 
 export function bookingEmailConfigError() {
-  const missing = [];
-  if (!getBookingResendApiKey()) {
-    missing.push("RESEND_BOOKING_API_KEY (or RESEND_API_KEY)");
-  }
-  if (!process.env.EMAIL_FROM) {
-    missing.push("EMAIL_FROM");
-  }
-  if (missing.length === 0) return null;
-  return `Missing ${missing.join(" and ")} — add them to .env.local and restart npm run dev`;
+  if (getBookingResendApiKey()) return null;
+  return "Missing RESEND_BOOKING_API_KEY (or RESEND_API_KEY) — add it to .env.local and restart npm run dev";
 }
 
 function formatStayLabel(checkIn, checkOut, nights) {
@@ -113,7 +107,7 @@ function buildPlainTextBookingEmail({
     amountLabel ? `Amount: ${amountLabel}` : null,
     guestLine ? `Guest: ${guestLine}` : null,
     "",
-    "Kama Properties — https://www.isisel.com",
+    "Isisel — https://www.isisel.com",
   ].filter((l) => l != null);
   return lines.join("\n");
 }
@@ -487,9 +481,9 @@ async function sendViaResend({
   tags = [],
 }) {
   const resend = getResend();
-  const from = process.env.EMAIL_FROM;
+  const from = getEmailFrom();
 
-  if (!resend || !from) {
+  if (!resend) {
     return {
       sent: false,
       error: bookingEmailConfigError() || "Email not configured",
@@ -512,8 +506,9 @@ async function sendViaResend({
     if (text) payload.text = text;
   }
 
-  if (process.env.EMAIL_REPLY_TO) {
-    payload.replyTo = process.env.EMAIL_REPLY_TO;
+  const replyTo = getEmailReplyTo();
+  if (replyTo) {
+    payload.replyTo = replyTo;
   }
 
   // Resend SDK: idempotencyKey is a 2nd options arg (Idempotency-Key header), not body.

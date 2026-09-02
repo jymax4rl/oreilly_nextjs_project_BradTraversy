@@ -1,4 +1,4 @@
-# Politiques voyageur — Kama Properties
+# Politiques voyageur — Isisel
 
 > **Modèle produit — pas un avis juridique formel.**  
 > **Version :** `kama-terms-v1.0-2026-08-31`
@@ -17,8 +17,8 @@ MVP : espèces, mobile money ou hors plateforme selon accord. Références traç
 
 ## Litiges
 
-Écrire d’abord à l’hôte. Contacter Kama avec preuves si besoin. Médiation informelle en MVP seulement.
+Écrire d’abord à l’hôte. Contacter Isisel avec preuves si besoin. Médiation informelle en MVP seulement.
 
 ## Sécurité
 
-Partir si danger ; urgences locales si nécessaire. Signaler à Kama les problèmes confiance & sécurité.
+Partir si danger ; urgences locales si nécessaire. Signaler à Isisel les problèmes confiance & sécurité.

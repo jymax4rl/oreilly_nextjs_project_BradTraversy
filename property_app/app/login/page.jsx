@@ -157,7 +157,7 @@ function LoginContent() {
         />
         <div className="relative z-10 flex h-full flex-col justify-end p-12 text-white">
           <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-white/70">
-            Kama Properties
+            Isisel
           </p>
           <h2 className="max-w-md text-4xl font-extrabold leading-tight">
             {t("login.heroTitle")}
@@ -294,7 +294,7 @@ function LoginContent() {
                 </>
               ) : (
                 <>
-                  By continuing, you confirm you accepted Kama Properties&apos;{" "}
+                  By continuing, you confirm you accepted Isisel&apos;s{" "}
                   <Link
                     href="/policies/terms?lang=en"
                     className="underline underline-offset-2 hover:text-zinc-600"

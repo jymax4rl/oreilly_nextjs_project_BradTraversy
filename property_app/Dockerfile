@@ -1,4 +1,4 @@
-# Kama Properties — production Next.js image (standalone)
+# Isisel — production Next.js image (standalone)
 # Build context: property_app/
 #
 # Preferred (versioned tags from VERSION file, e.g. 1.1.0 → :1.1.0 and :1.1):
@@ -77,7 +77,7 @@ WORKDIR /app
 ARG APP_VERSION=0.0.0
 ARG APP_CHANNEL=
 
-LABEL org.opencontainers.image.title="Kama Properties" \
+LABEL org.opencontainers.image.title="Isisel" \
       org.opencontainers.image.description="African vacation rentals marketplace" \
       org.opencontainers.image.version="${APP_VERSION}" \
       org.opencontainers.image.source="https://github.com/jymax4rl/oreilly_nextjs_project_BradTraversy"

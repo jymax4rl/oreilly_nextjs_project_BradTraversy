@@ -128,7 +128,7 @@ function RightColumn({ data }) {
 
   const config = {
     public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY,
-    tx_ref: `KAMA-${Date.now()}`,
+    tx_ref: `ISISEL-${Date.now()}`,
     amount: numericalTotal,
     currency: paymentCurrency,
     country: getFlutterwaveCountry(paymentCurrency),
@@ -139,7 +139,7 @@ function RightColumn({ data }) {
       name: session?.user?.name || "",
     },
     customizations: {
-      title: "Kama Properties",
+      title: "Isisel",
       description: `Reservation for ${data.name || "Property"}${
         checkIn && checkOut ? ` (${checkIn} – ${checkOut})` : ""
       }`,

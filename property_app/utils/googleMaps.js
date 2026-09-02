@@ -178,7 +178,7 @@ function clearWindowCallback(name) {
  * Never hangs forever: rejects after GOOGLE_MAPS_LOAD_TIMEOUT_MS so UI can soft-fail
  * to manual address entry.
  *
- * Preferred libraries for Kama: places (Places API New autocomplete), marker.
+ * Preferred libraries for Isisel: places (Places API New autocomplete), marker.
  * Callers should request only what they need — map display does not need places.
  */
 export function loadGoogleMapsApi(libraries = ["maps"]) {

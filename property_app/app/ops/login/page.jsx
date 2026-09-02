@@ -203,7 +203,7 @@ function OpsLoginForm() {
           <p className="mt-2 text-sm leading-relaxed text-[var(--kama-ink-muted)]">
             {isFounderMode
               ? "No ops password exists yet. Set a strong password for the founding superadmin. This form disappears after the first successful setup."
-              : "For Kama Properties administrators. Guest and host accounts use the main site login."}
+              : "For Isisel administrators. Guest and host accounts use the main site login."}
           </p>
 
           {error ? (
@@ -352,7 +352,7 @@ function OpsLoginForm() {
         <div className="relative z-10 flex h-full flex-col justify-between p-12 text-white xl:p-16">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/55">
-              Kama Properties
+              Isisel
             </p>
             <h2 className="mt-4 max-w-md text-3xl font-semibold leading-snug tracking-tight xl:text-4xl">
               Operations console for hosts, listings, and payments.
@@ -376,7 +376,7 @@ function OpsLoginForm() {
         }}
       >
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">
-          Kama Properties
+          Isisel
         </p>
         <p className="mt-2 text-sm leading-relaxed text-white/80">
           Staff operations for African vacation rentals.

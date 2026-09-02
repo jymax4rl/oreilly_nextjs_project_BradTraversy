@@ -2,7 +2,6 @@ import "@/assets/styles/globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FooterGate from "@/components/FooterGate";
-import DeployCheckBadge from "@/components/DeployCheckBadge";
 import MainShell from "@/components/MainShell";
 import MobileBottomNavGate from "@/components/MobileBottomNavGate";
 import MobileTopChromeGate from "@/components/MobileTopChromeGate";
@@ -17,14 +16,19 @@ import TrafficProbe from "@/components/metrics/TrafficProbe";
 import { LanguageProvider } from "@/components/i18n/LanguageProvider";
 import { getRequestLang } from "@/lib/i18n/server";
 import SiteJsonLd from "@/components/seo/SiteJsonLd";
+import {
+  BRAND_NAME,
+  BRAND_TITLE_DEFAULT,
+  BRAND_TITLE_TEMPLATE,
+} from "@/utils/brand";
 
 export const metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://www.isisel.com",
   ),
   title: {
-    default: "Kama Properties | African Vacation Rentals",
-    template: "%s | Kama Properties",
+    default: BRAND_TITLE_DEFAULT,
+    template: BRAND_TITLE_TEMPLATE,
   },
   description:
     "Book African vacation rentals — villas and apartments in Dakar, Accra, Cape Town, Cairo, Marrakech, and Zanzibar.",
@@ -32,11 +36,11 @@ export const metadata = {
     type: "website",
     locale: "en_US",
     url: "/",
-    siteName: "Kama Properties",
+    siteName: BRAND_NAME,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kama Properties | African Vacation Rentals",
+    title: BRAND_TITLE_DEFAULT,
     description:
       "Book African vacation rentals — villas and apartments in Dakar, Accra, Cape Town, Cairo, Marrakech, and Zanzibar.",
   },
@@ -72,10 +76,6 @@ async function MainLayout({ children }) {
                     <MobileTopChromeGate />
                     <MainShell>{children}</MainShell>
                     <MobileBottomNavGate />
-                    {/* Footer is desktop-only; keep deploy marker visible on mobile too */}
-                    <span className="lg:hidden fixed bottom-20 right-3 z-50">
-                      <DeployCheckBadge surface="light" />
-                    </span>
                     <FooterGate>
                       <Footer className="hidden lg:block" />
                     </FooterGate>

@@ -9,6 +9,13 @@ export const metadata = {
 
 const TOOLS = [
   {
+    href: "/ops/marketing",
+    title: "Marketing",
+    description:
+      "Launch outreach: branded emails, PDF briefs, and a searchable send log.",
+    accent: true,
+  },
+  {
     href: "/ops/users",
     title: "Users",
     description: "See every account created on the platform.",
@@ -48,12 +55,22 @@ export default function OpsHomePage() {
             <li key={tool.href}>
               <Link
                 href={tool.href}
-                className="ops-card block h-full transition hover:-translate-y-0.5 hover:shadow-md"
+                className={`ops-card block h-full transition hover:-translate-y-0.5 hover:shadow-md ${
+                  tool.accent ? "ops-card--accent" : ""
+                }`}
               >
-                <span className="text-base font-semibold text-[var(--kama-ink)]">
+                <span
+                  className={`text-base font-semibold ${
+                    tool.accent ? "text-white" : "text-[var(--kama-ink)]"
+                  }`}
+                >
                   {tool.title}
                 </span>
-                <p className="mt-1.5 text-sm leading-relaxed text-[var(--kama-ink-muted)]">
+                <p
+                  className={`mt-1.5 text-sm leading-relaxed ${
+                    tool.accent ? "text-white/75" : "text-[var(--kama-ink-muted)]"
+                  }`}
+                >
                   {tool.description}
                 </p>
               </Link>

@@ -18,8 +18,8 @@ export async function generateMetadata({ params }) {
   const property = await findPropertyByParam(id, "name");
   return {
     title: property
-      ? `Calendar — ${property.name} | Kama Properties`
-      : "Calendar | Kama Properties",
+      ? `Calendar — ${property.name} | Isisel`
+      : "Calendar | Isisel",
     robots: { index: false, follow: false },
   };
 }

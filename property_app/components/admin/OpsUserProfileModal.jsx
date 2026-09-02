@@ -136,7 +136,7 @@ export default function OpsUserProfileModal({
     String(session.user.id) !== String(userId);
 
   const senderName =
-    session?.user?.name || session?.user?.email || "Kama Ops";
+    session?.user?.name || session?.user?.email || "Isisel Ops";
   const senderEmail = session?.user?.email || "";
 
   const handleBanToggle = async () => {

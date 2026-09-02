@@ -1,6 +1,8 @@
+import { BRAND_EMAIL, BRAND_NAME, BRAND_SITE_URL } from "@/utils/brand";
+
 export default function SiteJsonLd() {
   const siteUrl = (
-    process.env.NEXT_PUBLIC_SITE_URL || "https://www.isisel.com"
+    process.env.NEXT_PUBLIC_SITE_URL || BRAND_SITE_URL
   ).replace(/\/$/, "");
 
   const graph = {
@@ -9,17 +11,18 @@ export default function SiteJsonLd() {
       {
         "@type": "Organization",
         "@id": `${siteUrl}/#organization`,
-        name: "Kama Properties",
-        legalName: "Kama Properties",
-        alternateName: ["Kama", "isisel.com"],
+        name: BRAND_NAME,
+        legalName: BRAND_NAME,
+        alternateName: ["isisel.com"],
         url: siteUrl,
+        email: BRAND_EMAIL,
         description:
           "African vacation rentals marketplace for villas and apartments across Senegal, Ghana, Egypt, Morocco, South Africa, and Tanzania.",
       },
       {
         "@type": "WebSite",
         "@id": `${siteUrl}/#website`,
-        name: "Kama Properties",
+        name: BRAND_NAME,
         alternateName: "isisel.com",
         url: siteUrl,
         inLanguage: ["en", "fr"],

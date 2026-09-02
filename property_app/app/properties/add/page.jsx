@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import ListingWizard from "@/components/listing/ListingWizard";
 
 export const metadata = {
-  title: "Add Property | Kama Properties",
+  title: "Add Property | Isisel",
   robots: { index: false, follow: false },
 };
 

@@ -12,8 +12,8 @@ import {
 import { ArrowLeft, CalendarCheck } from "lucide-react";
 
 export const metadata = {
-  title: "My Bookings | Kama Properties",
-  description: "Your confirmed reservations on Kama Properties",
+  title: "My Bookings | Isisel",
+  description: "Your confirmed reservations on Isisel",
   robots: { index: false, follow: false },
 };
 

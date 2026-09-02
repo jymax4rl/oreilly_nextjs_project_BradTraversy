@@ -1,4 +1,4 @@
-# Terms of Service — Kama Properties
+# Terms of Service — Isisel
 
 > **Template for product use — not formal legal advice.**  
 > Have qualified counsel review before treating as binding counsel-approved terms.  
@@ -6,11 +6,11 @@
 
 ## 1. Agreement
 
-By creating an account or using Kama Properties (including www.isisel.com), you agree to these Terms and our Policies. If you do not agree, do not use the service.
+By creating an account or using Isisel (including www.isisel.com), you agree to these Terms and our Policies. If you do not agree, do not use the service.
 
 ## 2. The service
 
-Kama Properties is an African vacation rentals marketplace connecting guests and hosts. Features may include listings, messaging, bookings, moderation, and (where enabled) payment integrations. The product is evolving.
+Isisel is an African vacation rentals marketplace connecting guests and hosts. Features may include listings, messaging, bookings, moderation, and (where enabled) payment integrations. The product is evolving.
 
 ## 3. Accounts
 
@@ -26,7 +26,7 @@ Hosts must keep listings and availability accurate. See **HOST_TERMS.md**.
 
 ## 6. Content & IP
 
-You retain rights in content you upload and grant Kama a license to host and display it on the service. Kama brand, software, and design remain our property.
+You retain rights in content you upload and grant Isisel a license to host and display it on the service. Isisel brand, software, and design remain our property.
 
 ## 7. Disclaimer & liability
 

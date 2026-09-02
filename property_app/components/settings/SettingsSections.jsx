@@ -79,7 +79,7 @@ export default function SettingsSections({ settings }) {
     <div className="mt-2">
       <Section
         title="Account & security"
-        description="Sign-in is Google OAuth only — no password is stored on Kama. Edit your public name and photo on Profile."
+        description="Sign-in is Google OAuth only — no password is stored on Isisel. Edit your public name and photo on Profile."
       >
         <dl className="space-y-4 text-sm">
           <div>
@@ -218,7 +218,7 @@ export default function SettingsSections({ settings }) {
               href="/host/onboarding"
               icon={Building2}
               label="Become a host"
-              description="Apply to list properties on Kama"
+              description="Apply to list properties on Isisel"
             />
           )}
         </Section>

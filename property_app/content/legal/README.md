@@ -1,4 +1,4 @@
-# Legal content (Kama Properties)
+# Legal content (Isisel)
 
 Product template documents for Terms, Privacy, Guest Policies, and Host Terms.
 

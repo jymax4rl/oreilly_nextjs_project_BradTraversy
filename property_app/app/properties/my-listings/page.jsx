@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/utils/authOptions";
 
 export const metadata = {
-  title: "My Listings | Kama Properties",
+  title: "My Listings | Isisel",
   robots: { index: false, follow: false },
 };
 

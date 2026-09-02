@@ -43,20 +43,17 @@ export default function HomePortalHero() {
     <section
       ref={rootRef}
       className="relative isolate flex min-h-[min(72dvh,680px)] flex-col items-center justify-center overflow-x-clip overflow-y-visible px-4 pb-10 pt-[4.75rem] sm:px-6 lg:min-h-[70dvh] lg:pb-12 lg:pt-28"
-      aria-labelledby="kama-hero-brand"
+      aria-labelledby="isisel-hero-brand"
     >
       <LiquidPortalBackground />
 
       <div className="relative z-10 flex w-full max-w-3xl flex-col items-center text-center lg:max-w-5xl">
         <h1
-          id="kama-hero-brand"
+          id="isisel-hero-brand"
           data-hero-fade
           className="font-display max-w-[16ch] text-[clamp(2.65rem,9vw,4.75rem)] leading-[1.02] tracking-[-0.03em] text-[var(--portal-ink)]"
         >
-          Kama{" "}
-          <span className="whitespace-nowrap font-[450] text-[0.72em] tracking-[-0.02em] text-[var(--portal-ink)]">
-            Properties
-          </span>
+          Isisel
         </h1>
 
         <p

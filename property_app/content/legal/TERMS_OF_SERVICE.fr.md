@@ -1,4 +1,4 @@
-# Conditions d’utilisation — Kama Properties
+# Conditions d’utilisation — Isisel
 
 > **Modèle produit — pas un avis juridique formel.**  
 > Faites examiner ces textes par un conseil qualifié.  
@@ -6,7 +6,7 @@
 
 ## 1. Accord
 
-En créant un compte ou en utilisant Kama Properties (y compris www.isisel.com), vous acceptez ces Conditions et nos Politiques.
+En créant un compte ou en utilisant Isisel (y compris www.isisel.com), vous acceptez ces Conditions et nos Politiques.
 
 ## 2. Le service
 
@@ -26,7 +26,7 @@ Annonces et disponibilités exactes. Voir **HOST_TERMS.md**.
 
 ## 6. Contenu et PI
 
-Vous conservez vos contenus et accordez une licence d’affichage. La marque et le logiciel Kama restent notre propriété.
+Vous conservez vos contenus et accordez une licence d’affichage. La marque et le logiciel Isisel restent notre propriété.
 
 ## 7. Responsabilité
 

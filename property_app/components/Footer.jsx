@@ -1,6 +1,5 @@
 "use client";
 
-import DeployCheckBadge from "@/components/DeployCheckBadge";
 import Link from "next/link";
 import { FaInstagram, FaTwitter, FaLinkedin, FaFacebook } from "react-icons/fa";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
@@ -44,7 +43,12 @@ const Footer = ({ className = "" }) => {
               <FooterLink href="/about">{t("footer.about")}</FooterLink>
               <FooterLink href="/careers">{t("footer.careers")}</FooterLink>
               <FooterLink href="/press">{t("footer.press")}</FooterLink>
-              <FooterLink href="/contact">{t("footer.contact")}</FooterLink>
+              <a
+                href="mailto:contact@isisel.com"
+                className="hover:text-white hover:translate-x-1 transition-all duration-300 ease-in-out"
+              >
+                {t("footer.contact")}
+              </a>
             </div>
 
             {/* Column 2 */}
@@ -89,18 +93,22 @@ const Footer = ({ className = "" }) => {
               <FaFacebook />
             </a>
           </div>
-          <div className="flex flex-col items-end gap-2 md:flex-row md:items-center md:gap-3">
-            <DeployCheckBadge surface="dark" />
-            <p className="text-sm hover:text-white transition-colors cursor-pointer ">
-            © {currentYear} Kama Properties Inc.
+          <p className="text-sm hover:text-white transition-colors">
+            © {currentYear} Isisel
+            {" · "}
+            <a
+              href="mailto:contact@isisel.com"
+              className="underline underline-offset-2 hover:text-white"
+            >
+              contact@isisel.com
+            </a>
           </p>
-          </div>
         </div>
 
         {/* Giant Footer Title (Modern Trend) */}
         <div className="mt-20 border-t border-zinc-900 pt-8 text-center">
           <p className="text-[12vw] cursor-pointer leading-none font-bold text-zinc-900 select-none tracking-tighter hover:text-zinc-800 transition-colors duration-500">
-            KAMA PROPERTIES
+            ISISEL
           </p>
         </div>
       </div>

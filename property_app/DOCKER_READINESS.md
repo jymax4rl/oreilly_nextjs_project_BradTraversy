@@ -1,4 +1,4 @@
-# Docker readiness contract — Kama Properties (`property_app`)
+# Docker readiness contract — Isisel (`property_app`)
 
 Prepared for containerisation.
 
@@ -104,7 +104,7 @@ Rebuild command (from `property_app/`): `npm run docker:release -- --tag mvp` th
 | `CLOUDINARY_URL` *or* `CLOUDINARY_CLOUD_NAME` + `CLOUDINARY_API_KEY` + `CLOUDINARY_API_SECRET` | Yes for media upload | **Yes** (secret) | Uploads / signatures |
 | `FLUTTERWAVE_SECRET_KEY` | Yes if payments | **Yes** | Verify / initialize |
 | `FLUTTERWAVE_WEBHOOK_SECRET` | Yes if webhooks | **Yes** | Webhook auth |
-| `EMAIL_FROM` | Yes for email | No | Resend from-address |
+| `EMAIL_FROM` | Optional | No | Defaults to `Isisel <contact@isisel.com>` |
 | `EMAIL_REPLY_TO` | Optional | No | Reply-To |
 | `RESEND_API_KEY` / `RESEND_BOOKING_API_KEY` / `RESEND_ADMIN_API_KEY` | Yes for email | **Yes** | Resend |
 | `RESEND_TEMPLATE_*` / `RESEND_TEMPLATES_READY` | Optional | No | Template IDs |

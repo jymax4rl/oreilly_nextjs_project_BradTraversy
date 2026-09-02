@@ -107,7 +107,7 @@ export default function PoliciesShell({ initialSection = null }) {
         <div className="mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-6 px-4 py-10 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:px-8 lg:py-14">
           <div className="min-w-0 max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--kama-accent)]">
-              Kama Properties
+              Isisel
             </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight break-words sm:text-4xl">
               {meta.title}

@@ -1,4 +1,4 @@
-# Privacy Policy — Kama Properties
+# Privacy Policy — Isisel
 
 > **Template for product use — not formal legal advice.**  
 > **Version:** `kama-terms-v1.0-2026-08-31` · **Last updated:** 31 August 2026

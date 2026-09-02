@@ -1,3 +1,117 @@
+.ops-app {
+  display: flex;
+  min-height: 100dvh;
+  background: var(--kama-canvas-soft);
+}
+
+.ops-app--marketing {
+  background:
+    radial-gradient(1200px 420px at 100% -10%, rgba(196, 165, 116, 0.18), transparent 50%),
+    linear-gradient(180deg, #123f3c 0%, #1b5c57 140px, var(--kama-canvas-soft) 340px);
+}
+
+.ops-app-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ops-app-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+@media (min-width: 640px) {
+  .ops-app-inner {
+    padding: 2.5rem 1.5rem 3.5rem;
+  }
+}
+
+.ops-app-inner--marketing {
+  max-width: 1480px;
+}
+
+.ops-marketing-hero {
+  margin-bottom: 1.75rem;
+}
+
+.ops-sidebar {
+  display: none;
+  width: 232px;
+  flex-shrink: 0;
+  flex-direction: column;
+  background: #0c1a1a;
+  color: #f7f4ee;
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+}
+
+@media (min-width: 1024px) {
+  .ops-sidebar {
+    display: flex;
+  }
+}
+
+.ops-sidebar--open {
+  display: flex;
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 50;
+  width: min(232px, 86vw);
+  box-shadow: 16px 0 40px rgba(0, 0, 0, 0.35);
+}
+
+.ops-side-label {
+  padding: 0 0.65rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(247, 244, 238, 0.38);
+}
+
+.ops-side-link {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border-radius: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(247, 244, 238, 0.72);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ops-side-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.ops-side-link--active {
+  background: #fff;
+  color: #0c1a1a;
+}
+
+.ops-side-link--marketing {
+  margin-top: 0.35rem;
+  border: 1px solid rgba(196, 165, 116, 0.35);
+  color: #e8d7b5;
+}
+
+.ops-side-link--marketing:hover {
+  border-color: rgba(196, 165, 116, 0.7);
+  color: #fff;
+}
+
+.ops-side-link--marketing-active {
+  background: linear-gradient(165deg, #1b5c57, #144844);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 10px 24px -12px rgba(27, 92, 87, 0.9);
+}
+
 .ops-nav-pills {
   scrollbar-width: none;
 }

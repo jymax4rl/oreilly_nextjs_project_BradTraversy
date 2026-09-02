@@ -1,5 +1,5 @@
 /**
- * Checkout payment mode for Kama Properties.
+ * Checkout payment mode for Isisel.
  *
  * Default: offline / arrange-with-host (no Flutterwave redirect).
  * Set NEXT_PUBLIC_USE_PAYMENT_GATEWAY=true to restore gateway checkout.

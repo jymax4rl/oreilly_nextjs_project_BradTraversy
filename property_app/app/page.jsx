@@ -4,18 +4,18 @@ import HomeStaysHeading from "@/components/home/HomeStaysHeading";
 import PropertiesPage from "./properties/page";
 
 export const metadata = {
-  title: { absolute: "Kama Properties | African Vacation Rentals" },
+  title: { absolute: "Isisel | African Vacation Rentals" },
   description:
-    "Book African vacation rentals on Kama Properties — villas and apartments in Dakar, Accra, Cape Town, Cairo, Marrakech, and Zanzibar.",
+    "Book African vacation rentals on Isisel — villas and apartments in Dakar, Accra, Cape Town, Cairo, Marrakech, and Zanzibar.",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "/",
-    siteName: "Kama Properties",
-    title: "Kama Properties | African Vacation Rentals",
+    siteName: "Isisel",
+    title: "Isisel | African Vacation Rentals",
     description:
-      "Book African vacation rentals on Kama Properties — villas and apartments in Dakar, Accra, Cape Town, Cairo, Marrakech, and Zanzibar.",
+      "Book African vacation rentals on Isisel — villas and apartments in Dakar, Accra, Cape Town, Cairo, Marrakech, and Zanzibar.",
   },
 };
 

@@ -11,11 +11,11 @@ export async function generateMetadata({ params }) {
   const { section } = await params;
   const hit = getSectionById(section);
   if (!hit) {
-    return { title: "Policies | Kama Properties" };
+    return { title: "Policies | Isisel" };
   }
   return {
-    title: `${hit.title.en} | Kama Properties`,
-    description: hit.paragraphs.en[0]?.slice(0, 155) || "Kama Properties policies",
+    title: `${hit.title.en} | Isisel`,
+    description: hit.paragraphs.en[0]?.slice(0, 155) || "Isisel policies",
     alternates: { canonical: `/policies/${section}` },
   };
 }

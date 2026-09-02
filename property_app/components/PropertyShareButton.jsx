@@ -30,7 +30,7 @@ export default function PropertyShareButton({
     event.stopPropagation();
 
     const shareUrl = resolveShareUrl(property, url);
-    const shareTitle = title || property?.name || "Kama Properties";
+    const shareTitle = title || property?.name || "Isisel";
     const shareText = t("listing.shareText", { title: shareTitle });
 
     setBusy(true);

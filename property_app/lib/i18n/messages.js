@@ -29,7 +29,7 @@ export const messages = {
     menu: {
       close: "Close menu",
       yourProfile: "Your profile",
-      welcome: "Welcome to Kama",
+      welcome: "Welcome to Isisel",
       signInHint: "Sign in to save stays, message hosts, and manage bookings.",
       signInGoogle: "Sign in with Google",
       discover: "Discover",
@@ -99,7 +99,7 @@ export const messages = {
       copied: "Copied",
       shareStay: "Share this stay",
       linkCopied: "Link copied",
-      shareText: "{title} — African vacation rental on Kama Properties",
+      shareText: "{title} — African vacation rental on Isisel",
       perNight: "/ night",
       perWeek: "/ week",
       perMonth: "/ month",
@@ -121,7 +121,7 @@ export const messages = {
       ready: "Ready to find your",
       dreamStay: "dream stay?",
       blurb:
-        "Join thousands of satisfied clients who found their perfect home with Kama Properties. Let's start the conversation.",
+        "Join thousands of satisfied clients who found their perfect home with Isisel. Let's start the conversation.",
       getStarted: "Get Started",
       company: "Company",
       about: "About",
@@ -290,7 +290,7 @@ export const messages = {
     menu: {
       close: "Fermer le menu",
       yourProfile: "Votre profil",
-      welcome: "Bienvenue sur Kama",
+      welcome: "Bienvenue sur Isisel",
       signInHint:
         "Connectez-vous pour enregistrer des séjours, écrire aux hôtes et gérer vos réservations.",
       signInGoogle: "Se connecter avec Google",
@@ -361,7 +361,7 @@ export const messages = {
       copied: "Copié",
       shareStay: "Partager ce séjour",
       linkCopied: "Lien copié",
-      shareText: "{title} — location de vacances en Afrique sur Kama Properties",
+      shareText: "{title} — location de vacances en Afrique sur Isisel",
       perNight: "/ nuit",
       perWeek: "/ semaine",
       perMonth: "/ mois",
@@ -383,7 +383,7 @@ export const messages = {
       ready: "Prêt à trouver votre",
       dreamStay: "séjour idéal ?",
       blurb:
-        "Rejoignez des milliers de voyageurs qui ont trouvé leur logement avec Kama Properties. Commençons la conversation.",
+        "Rejoignez des milliers de voyageurs qui ont trouvé leur logement avec Isisel. Commençons la conversation.",
       getStarted: "Commencer",
       company: "Entreprise",
       about: "À propos",

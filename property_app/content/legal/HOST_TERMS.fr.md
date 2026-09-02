@@ -1,4 +1,4 @@
-# Conditions hôtes — Kama Properties
+# Conditions hôtes — Isisel
 
 > **Modèle produit — pas un avis juridique formel.**  
 > **Version :** `kama-terms-v1.0-2026-08-31`
@@ -13,7 +13,7 @@ Tenir les disponibilités à jour. Pas de réservations que vous ne pouvez pas h
 
 ## 3. Paiements (MVP)
 
-Paiements hors plateforme autorisés (espèces, mobile money, virement). Honorer les séjours confirmés. Kama ne détient pas ces fonds en MVP.
+Paiements hors plateforme autorisés (espèces, mobile money, virement). Honorer les séjours confirmés. Isisel ne détient pas ces fonds en MVP.
 
 ## 4. Modération
 
@@ -21,7 +21,7 @@ Modération, restriction ou suspension possibles en cas de fraude, risque, discr
 
 ## 5. Propriété intellectuelle
 
-Vous conservez vos contenus et accordez une licence d’affichage. Marque et logiciel Kama : notre propriété.
+Vous conservez vos contenus et accordez une licence d’affichage. Marque et logiciel Isisel : notre propriété.
 
 ## 6. Responsabilité
 

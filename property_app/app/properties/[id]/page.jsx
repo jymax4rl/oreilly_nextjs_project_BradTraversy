@@ -37,7 +37,7 @@ export async function generateMetadata({ params }) {
 
   if (!property) {
     return {
-      title: { absolute: "Property Not Found | Kama Properties" },
+      title: { absolute: "Property Not Found | Isisel" },
       robots: { index: false, follow: false },
     };
   }
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }) {
   const session = await getServerSession(authOptions);
   if (!canUserViewListing(property, session)) {
     return {
-      title: { absolute: "Property Not Found | Kama Properties" },
+      title: { absolute: "Property Not Found | Isisel" },
       robots: { index: false, follow: false },
     };
   }
@@ -55,7 +55,7 @@ export async function generateMetadata({ params }) {
     !isListingOwner(session, property)
   ) {
     return {
-      title: { absolute: "Property Not Found | Kama Properties" },
+      title: { absolute: "Property Not Found | Isisel" },
       robots: { index: false, follow: false },
     };
   }
@@ -80,11 +80,11 @@ export async function generateMetadata({ params }) {
     keywords: listingKeywords(property),
     alternates: { canonical: canonicalUrl },
     openGraph: {
-      title: `${title} | Kama Properties`,
+      title: `${title} | Isisel`,
       description,
       url: canonicalUrl,
       type: "website",
-      siteName: "Kama Properties",
+      siteName: "Isisel",
       images: [
         {
           url: ogImage,
@@ -96,7 +96,7 @@ export async function generateMetadata({ params }) {
     },
     twitter: {
       card: "summary_large_image",
-      title: `${title} | Kama Properties`,
+      title: `${title} | Isisel`,
       description,
       images: [ogImage],
     },

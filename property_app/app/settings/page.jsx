@@ -9,7 +9,7 @@ import { ArrowLeft, Settings as SettingsIcon, Shield } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Settings | Kama Properties",
+  title: "Settings | Isisel",
   description: "Account preferences, notifications, and hosting options",
   robots: { index: false, follow: false },
 };

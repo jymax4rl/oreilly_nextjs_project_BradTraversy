@@ -2,6 +2,11 @@ import { Resend } from "resend";
 import connectToDatabase from "@/config/database";
 import User from "@/models/User";
 import { getBookingResendApiKey } from "@/utils/email/resendKeys";
+import {
+  getAdminNotificationEmailsFromEnv,
+  getEmailFrom,
+  getEmailReplyTo,
+} from "@/utils/email/fromAddress";
 import { getAbsoluteAppUrl } from "@/utils/email/propertyImageUrl";
 import { listingPublicUrlFor } from "@/utils/listings/propertySlug";
 
@@ -19,21 +24,10 @@ function getResend() {
 }
 
 function isConfigured() {
-  return Boolean(getBookingResendApiKey() && process.env.EMAIL_FROM);
+  return Boolean(getBookingResendApiKey());
 }
 
-/** Extra recipients (always unioned with DB admins): ADMIN_EMAIL / ADMIN_NOTIFICATION_EMAIL / EMAIL_REPLY_TO. */
-export function getAdminNotificationEmailsFromEnv() {
-  const raw =
-    process.env.ADMIN_EMAIL ||
-    process.env.ADMIN_NOTIFICATION_EMAIL ||
-    process.env.EMAIL_REPLY_TO ||
-    "";
-  return String(raw)
-    .split(",")
-    .map((e) => e.trim())
-    .filter(Boolean);
-}
+export { getAdminNotificationEmailsFromEnv };
 
 /** @deprecated Use getAdminNotificationEmailsFromEnv or resolveAdminRecipientEmails. */
 export function getAdminNotificationEmails() {
@@ -113,9 +107,9 @@ export async function sendListingSubmittedAdminEmail({
 }) {
   if (!isConfigured()) {
     console.warn(
-      "Listing moderation email skipped: EMAIL_FROM / Resend key not configured",
+      "Listing moderation email skipped: Resend key not configured",
       {
-        hasEmailFrom: Boolean(process.env.EMAIL_FROM),
+        hasResendKey: Boolean(getBookingResendApiKey()),
         hasResendKey: Boolean(getBookingResendApiKey()),
         propertyId: propertyId || null,
       },
@@ -159,7 +153,7 @@ export async function sendListingSubmittedAdminEmail({
     </div>
   `;
 
-  const from = process.env.EMAIL_FROM;
+  const from = getEmailFrom();
   console.info("sendListingSubmittedAdminEmail: sending", {
     propertyId: propertyId || null,
     recipientCount: admins.length,
@@ -173,6 +167,7 @@ export async function sendListingSubmittedAdminEmail({
       const { data, error } = await resend.emails.send({
         from,
         to: [to],
+        replyTo: getEmailReplyTo(),
         subject,
         html,
       });
@@ -241,8 +236,8 @@ export async function sendListingDecisionHostEmail({
     : getAbsoluteAppUrl("/host/listings");
   const myListingsUrl = getAbsoluteAppUrl("/host/listings");
   const subject = approved
-    ? `Your listing was approved: ${propertyName || "Kama Properties"}`
-    : `Your listing was not approved: ${propertyName || "Kama Properties"}`;
+    ? `Your listing was approved: ${propertyName || "Isisel"}`
+    : `Your listing was not approved: ${propertyName || "Isisel"}`;
 
   const reasonBlock =
     !approved && rejectionReason
@@ -265,8 +260,9 @@ export async function sendListingDecisionHostEmail({
 
   try {
     await resend.emails.send({
-      from: process.env.EMAIL_FROM,
+      from: getEmailFrom(),
       to: [hostEmail],
+      replyTo: getEmailReplyTo(),
       subject,
       html,
     });

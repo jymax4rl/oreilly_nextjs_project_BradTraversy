@@ -574,7 +574,7 @@ export default function ListingWizard() {
             <div className="flex flex-1 flex-col justify-center">
               <IntroIllustration className="mx-auto mb-6 h-36 w-full max-w-xs" />
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-[var(--kama-accent)]">
-                Kama Properties
+                Isisel
               </p>
               <h1 className="mt-3 text-3xl font-bold tracking-tight text-[var(--kama-ink)] sm:text-4xl">
                 It&apos;s easy to list your place

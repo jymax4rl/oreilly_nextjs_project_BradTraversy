@@ -21,7 +21,7 @@ export async function generateMetadata({ params }) {
   const property = await findPropertyByParam(id, "name seller_info");
 
   if (!property) {
-    return { title: "Message | Kama Properties" };
+    return { title: "Message | Isisel" };
   }
 
   const owner = property.seller_info?.name || "host";

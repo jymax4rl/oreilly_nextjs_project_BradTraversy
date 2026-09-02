@@ -1,5 +1,5 @@
 /**
- * Kama Properties — legal & policies content (EN + FR).
+ * Isisel — legal & policies content (EN + FR).
  * Single source of truth for the /policies UI.
  *
  * Template for product use — not formal legal advice.
@@ -7,15 +7,15 @@
  */
 
 export const LEGAL_DISCLAIMER = {
-  en: "These pages are a product template for Kama Properties and are not formal legal advice. Have qualified counsel review them for your jurisdiction before relying on them as binding legal documents.",
-  fr: "Ces pages constituent un modèle produit pour Kama Properties et ne constituent pas un avis juridique formel. Faites-les examiner par un conseil qualifié pour votre juridiction avant de les considérer comme des documents juridiquement contraignants.",
+  en: "These pages are a product template for Isisel and are not formal legal advice. Have qualified counsel review them for your jurisdiction before relying on them as binding legal documents.",
+  fr: "Ces pages constituent un modèle produit pour Isisel et ne constituent pas un avis juridique formel. Faites-les examiner par un conseil qualifié pour votre juridiction avant de les considérer comme des documents juridiquement contraignants.",
 };
 
 export const POLICIES_META = {
   en: {
     title: "Policies",
     subtitle:
-      "Clear rules for guests and hosts on Kama Properties — African vacation rentals, with room to grow.",
+      "Clear rules for guests and hosts on Isisel — African vacation rentals, with room to grow.",
     toc: "On this page",
     lastUpdated: "Last updated: 31 August 2026",
     versionLabel: "Terms version",
@@ -23,7 +23,7 @@ export const POLICIES_META = {
   fr: {
     title: "Politiques",
     subtitle:
-      "Règles claires pour voyageurs et hôtes sur Kama Properties — locations de vacances en Afrique, avec une ambition d’évolution.",
+      "Règles claires pour voyageurs et hôtes sur Isisel — locations de vacances en Afrique, avec une ambition d’évolution.",
     toc: "Sur cette page",
     lastUpdated: "Dernière mise à jour : 31 août 2026",
     versionLabel: "Version des conditions",
@@ -45,13 +45,13 @@ export const POLICY_SECTIONS = [
     },
     paragraphs: {
       en: [
-        "Kama Properties connects travelers with hosts offering short-stay lodging across Africa, starting with markets such as The Gambia and expanding regionally.",
+        "Isisel connects travelers with hosts offering short-stay lodging across Africa, starting with markets such as The Gambia and expanding regionally.",
         "When you request or confirm a stay, you agree to provide accurate guest details, respect house rules published on the listing, and treat the property and neighbors with care.",
         "You are responsible for the conduct of everyone in your party. Damage, unauthorized parties, or illegal activity may lead to cancellation without refund (where applicable), account restrictions, and reporting to local authorities when required.",
         "Listing information is provided by hosts. We moderate for quality and safety, but we do not guarantee that every detail of every property is perfect — verify critical needs with the host before arrival when unsure.",
       ],
       fr: [
-        "Kama Properties met en relation voyageurs et hôtes proposant des séjours de courte durée en Afrique, en commençant par des marchés comme la Gambie, avec une expansion régionale.",
+        "Isisel met en relation voyageurs et hôtes proposant des séjours de courte durée en Afrique, en commençant par des marchés comme la Gambie, avec une expansion régionale.",
         "Lorsque vous demandez ou confirmez un séjour, vous vous engagez à fournir des informations exactes, à respecter le règlement intérieur publié sur l’annonce, et à traiter le logement et le voisinage avec soin.",
         "Vous êtes responsable du comportement de toutes les personnes de votre groupe. Dommages, fêtes non autorisées ou activités illégales peuvent entraîner une annulation sans remboursement (le cas échéant), des restrictions de compte, et un signalement aux autorités locales si nécessaire.",
         "Les informations des annonces sont fournies par les hôtes. Nous modérons pour la qualité et la sécurité, mais nous ne garantissons pas chaque détail de chaque bien — vérifiez vos besoins critiques avec l’hôte avant l’arrivée en cas de doute.",
@@ -70,13 +70,13 @@ export const POLICY_SECTIONS = [
         "Cancellation and change rules are driven by the listing’s published booking policy and any confirmation messages between guest and host.",
         "Where the platform supports modify/cancel flows, use in-product tools so both parties have a clear record. Off-platform agreements should still be confirmed in writing (message thread or email).",
         "Hosts should honor confirmed reservations except for force majeure, safety issues, or guest policy violations. Repeated no-shows or last-minute cancellations by either party may affect account standing.",
-        "Refunds for payments made outside Kama (cash, mobile money, bank transfer arranged directly) are between guest and host according to their agreed terms. Kama does not hold those funds in MVP.",
+        "Refunds for payments made outside Isisel (cash, mobile money, bank transfer arranged directly) are between guest and host according to their agreed terms. Isisel does not hold those funds in MVP.",
       ],
       fr: [
         "Les règles d’annulation et de modification suivent la politique de réservation publiée sur l’annonce et les messages de confirmation entre voyageur et hôte.",
         "Lorsque la plateforme propose des flux de modification/annulation, utilisez-les pour laisser une trace claire aux deux parties. Les accords hors plateforme doivent aussi être confirmés par écrit (messagerie ou e-mail).",
         "Les hôtes doivent honorer les réservations confirmées, sauf force majeure, problème de sécurité ou violation des règles par le voyageur. Les absences répétées ou annulations de dernière minute peuvent affecter le statut du compte.",
-        "Les remboursements pour paiements hors Kama (espèces, mobile money, virement convenu directement) relèvent de l’accord entre voyageur et hôte. Kama ne détient pas ces fonds en MVP.",
+        "Les remboursements pour paiements hors Isisel (espèces, mobile money, virement convenu directement) relèvent de l’accord entre voyageur et hôte. Isisel ne détient pas ces fonds en MVP.",
       ],
     },
   },
@@ -92,14 +92,14 @@ export const POLICY_SECTIONS = [
         "Hosts must keep listings accurate: photos, amenities, location context, capacity, pricing, and house rules. Misleading listings may be unpublished or suspended.",
         "Keep your availability calendar honest. Blocking dates you cannot honor protects guests and your reputation; double-booking or ghosting confirmed guests is grounds for enforcement.",
         "Respond to booking inquiries and messages within a reasonable time. Provide clear check-in instructions and be reachable for urgent issues during the stay.",
-        "You remain responsible for compliance with local lodging, tax, and safety rules in your country. Kama provides a marketplace layer — not a substitute for local licensing or insurance advice.",
+        "You remain responsible for compliance with local lodging, tax, and safety rules in your country. Isisel provides a marketplace layer — not a substitute for local licensing or insurance advice.",
         "Full host terms live in our Host Terms document in the product repository and are summarized on this page under Host Terms.",
       ],
       fr: [
         "Les hôtes doivent maintenir des annonces exactes : photos, équipements, contexte de localisation, capacité, tarifs et règlement intérieur. Les annonces trompeuses peuvent être dépubliées ou suspendues.",
         "Tenez un calendrier de disponibilité honnête. Bloquer les dates que vous ne pouvez pas honorer protège les voyageurs et votre réputation ; la double réservation ou l’absence de réponse après confirmation justifie des mesures.",
         "Répondez aux demandes et messages dans un délai raisonnable. Fournissez des instructions d’arrivée claires et restez joignable en cas d’urgence pendant le séjour.",
-        "Vous restez responsable du respect des règles locales d’hébergement, fiscales et de sécurité. Kama fournit une couche marketplace — pas un substitut aux licences ou conseils d’assurance locaux.",
+        "Vous restez responsable du respect des règles locales d’hébergement, fiscales et de sécurité. Isisel fournit une couche marketplace — pas un substitut aux licences ou conseils d’assurance locaux.",
         "Les conditions hôtes complètes figurent dans notre document Host Terms du dépôt produit et sont résumées sur cette page.",
       ],
     },
@@ -114,14 +114,14 @@ export const POLICY_SECTIONS = [
     paragraphs: {
       en: [
         "In the current MVP, many stays may be paid via arrangements that hosts and guests agree — including cash on arrival, mobile money (e.g. Orange Money and similar), or other local methods. Off-platform payment is explicitly allowed for MVP convenience.",
-        "Where Kama offers in-app payment providers in the future, those flows will show clear fees and confirmation states. Until then, treat the platform as the booking and messaging layer; money movement may happen outside our rails.",
-        "Never share passwords or one-time codes. Prefer traceable mobile-money references when possible. Kama is not a bank and does not insure peer-to-peer transfers made outside the product.",
+        "Where Isisel offers in-app payment providers in the future, those flows will show clear fees and confirmation states. Until then, treat the platform as the booking and messaging layer; money movement may happen outside our rails.",
+        "Never share passwords or one-time codes. Prefer traceable mobile-money references when possible. Isisel is not a bank and does not insure peer-to-peer transfers made outside the product.",
         "If an in-platform payment integration is enabled on a listing, follow the on-screen instructions; chargebacks and provider disputes follow that provider’s rules.",
       ],
       fr: [
         "Dans le MVP actuel, de nombreux séjours peuvent être payés selon l’accord hôte–voyageur — y compris espèces à l’arrivée, mobile money (ex. Orange Money et équivalents) ou autres moyens locaux. Le paiement hors plateforme est explicitement autorisé pour la commodité du MVP.",
-        "Lorsque Kama proposera des prestataires de paiement intégrés, les frais et confirmations seront affichés clairement. D’ici là, considérez la plateforme comme couche de réservation et de messagerie ; les fonds peuvent circuler hors de nos rails.",
-        "Ne partagez jamais mots de passe ni codes à usage unique. Préférez des références mobile money traçables lorsque c’est possible. Kama n’est pas une banque et n’assure pas les transferts de pair à pair hors produit.",
+        "Lorsque Isisel proposera des prestataires de paiement intégrés, les frais et confirmations seront affichés clairement. D’ici là, considérez la plateforme comme couche de réservation et de messagerie ; les fonds peuvent circuler hors de nos rails.",
+        "Ne partagez jamais mots de passe ni codes à usage unique. Préférez des références mobile money traçables lorsque c’est possible. Isisel n’est pas une banque et n’assure pas les transferts de pair à pair hors produit.",
         "Si un paiement intégré est activé sur une annonce, suivez les instructions à l’écran ; litiges et rétrofacturations suivent les règles du prestataire.",
       ],
     },
@@ -180,12 +180,12 @@ export const POLICY_SECTIONS = [
     paragraphs: {
       en: [
         "First, message the other party politely with facts, dates, and desired outcome. Most stay issues resolve between guest and host.",
-        "If you cannot resolve it, contact Kama with booking references and evidence (messages, receipts, photos). We may mediate informally for marketplace integrity; we are not a court or arbitration panel in MVP.",
+        "If you cannot resolve it, contact Isisel with booking references and evidence (messages, receipts, photos). We may mediate informally for marketplace integrity; we are not a court or arbitration panel in MVP.",
         "Nothing in these policies prevents either party from seeking remedies available under local law. For Gambia- and Africa-focused stays, local consumer and lodging norms may apply alongside these platform rules.",
       ],
       fr: [
         "Commencez par écrire poliment à l’autre partie avec faits, dates et résultat souhaité. La plupart des problèmes se règlent entre voyageur et hôte.",
-        "Si aucun accord n’est trouvé, contactez Kama avec références de réservation et preuves. Nous pouvons médier de façon informelle ; nous ne sommes pas un tribunal en MVP.",
+        "Si aucun accord n’est trouvé, contactez Isisel avec références de réservation et preuves. Nous pouvons médier de façon informelle ; nous ne sommes pas un tribunal en MVP.",
         "Rien n’empêche les parties d’exercer les recours prévus par le droit local. Pour les séjours centrés sur la Gambie et l’Afrique, les normes locales peuvent s’appliquer avec ces règles plateforme.",
       ],
     },
@@ -196,11 +196,11 @@ export const POLICY_SECTIONS = [
     title: { en: "Contact", fr: "Contact" },
     paragraphs: {
       en: [
-        "For policy questions, trust & safety reports, or privacy requests related to Kama Properties, use the in-app messaging tools where available, or email the address published on www.isisel.com / the Contact page when live.",
+        "For policy questions, trust & safety reports, or privacy requests, email contact@isisel.com or use in-app messaging.",
         "Include your account email, relevant listing or booking IDs, and a clear summary so we can respond efficiently.",
       ],
       fr: [
-        "Pour les questions de politique, signalements confiance & sécurité, ou demandes de confidentialité, utilisez la messagerie in-app si disponible, ou l’e-mail publié sur www.isisel.com / la page Contact lorsqu’elle sera en ligne.",
+        "Pour les questions de politique, signalements confiance & sécurité, ou demandes de confidentialité, écrivez à contact@isisel.com ou utilisez la messagerie in-app.",
         "Indiquez l’e-mail du compte, les identifiants d’annonce ou de réservation, et un résumé clair pour une réponse efficace.",
       ],
     },
@@ -214,14 +214,14 @@ export const POLICY_SECTIONS = [
     },
     paragraphs: {
       en: [
-        "Kama Properties today focuses on vacation rentals and short stays. We may expand into land and property buy/sell marketplace features in the future.",
+        "Isisel today focuses on vacation rentals and short stays. We may expand into land and property buy/sell marketplace features in the future.",
         "That expansion is a product roadmap possibility — not a live claim that land transactions are available on the platform today. When those features launch, additional terms, KYC, and local compliance requirements will apply and will be published before use.",
-        "Using the current rental product does not create any right to list or purchase land on Kama until those features are officially released.",
+        "Using the current rental product does not create any right to list or purchase land on Isisel until those features are officially released.",
       ],
       fr: [
-        "Kama Properties se concentre aujourd’hui sur les locations de vacances et séjours courts. Nous pourrons élargir vers l’achat/vente de terrains et biens immobiliers à l’avenir.",
+        "Isisel se concentre aujourd’hui sur les locations de vacances et séjours courts. Nous pourrons élargir vers l’achat/vente de terrains et biens immobiliers à l’avenir.",
         "Cette expansion est une possibilité produit — pas une affirmation que les transactions foncières sont disponibles aujourd’hui. Au lancement, des conditions supplémentaires, KYC et exigences locales s’appliqueront et seront publiées avant usage.",
-        "L’usage du produit de location actuel ne crée aucun droit de lister ou d’acheter un terrain sur Kama avant la sortie officielle de ces fonctions.",
+        "L’usage du produit de location actuel ne crée aucun droit de lister ou d’acheter un terrain sur Isisel avant la sortie officielle de ces fonctions.",
       ],
     },
   },
@@ -234,14 +234,14 @@ export const POLICY_SECTIONS = [
     },
     paragraphs: {
       en: [
-        "By creating an account or using Kama Properties, you agree to these Policies and the Terms of Service version shown at acceptance (currently stored as a versioned key on device and, after sign-in, on your user profile when available).",
+        "By creating an account or using Isisel, you agree to these Policies and the Terms of Service version shown at acceptance (currently stored as a versioned key on device and, after sign-in, on your user profile when available).",
         "We grant you a limited, non-exclusive license to use the product for lawful booking and hosting. You may not scrape, abuse APIs, reverse-engineer for competitive cloning, or interfere with other users.",
         "The service is provided “as is” within commercial reasonableness for an early-stage marketplace. We limit liability to the maximum extent permitted by applicable law; we are not liable for off-platform payments, host–guest disputes beyond our mediation role, or indirect damages.",
         "We may update terms when the product changes. Material updates will bump the terms version; you may be asked to re-accept before signing in again.",
         "Durable full text: see content/legal/TERMS_OF_SERVICE.md in the project repository.",
       ],
       fr: [
-        "En créant un compte ou en utilisant Kama Properties, vous acceptez ces Politiques et la version des Conditions affichée à l’acceptation (clé versionnée sur l’appareil et, après connexion, sur le profil utilisateur lorsque disponible).",
+        "En créant un compte ou en utilisant Isisel, vous acceptez ces Politiques et la version des Conditions affichée à l’acceptation (clé versionnée sur l’appareil et, après connexion, sur le profil utilisateur lorsque disponible).",
         "Nous vous accordons une licence limitée et non exclusive d’usage légal pour réserver et héberger. Interdiction de scraper, d’abuser des API, de rétro-ingénierie concurrentielle ou de nuire aux autres utilisateurs.",
         "Le service est fourni « en l’état » dans la limite du raisonnable pour une marketplace en phase initiale. Nous limitons la responsabilité dans la mesure permise par la loi ; nous ne sommes pas responsables des paiements hors plateforme, des litiges hôte–voyageur au-delà de notre rôle de médiation, ni des dommages indirects.",
         "Nous pouvons mettre à jour les conditions lorsque le produit évolue. Une mise à jour matérielle incrémente la version ; une nouvelle acceptation pourra être demandée avant connexion.",
@@ -256,13 +256,13 @@ export const POLICY_SECTIONS = [
     paragraphs: {
       en: [
         "Listing accuracy, calendar honesty, and lawful operation of your lodging are mandatory. Payments may be arranged off-platform in MVP; you must still honor confirmed stays and communicate clearly.",
-        "We may moderate, unpublish, or suspend accounts for fraud, safety risk, discrimination, or repeated guest harm. Intellectual property in the Kama brand and software remains ours; you keep rights in your own photos and text, and grant us a license to display them on the service.",
+        "We may moderate, unpublish, or suspend accounts for fraud, safety risk, discrimination, or repeated guest harm. Intellectual property in the Isisel brand and software remains ours; you keep rights in your own photos and text, and grant us a license to display them on the service.",
         "Liability between host and guest for the stay is primarily between those parties. Platform liability limits in the Terms of Service apply. Market context: we build for African hospitality realities, including mobile money and relationship-driven bookings — without waiving legal compliance.",
         "Future land marketplace clauses: the platform may expand; additional host/seller terms will apply then. Durable full text: content/legal/HOST_TERMS.md.",
       ],
       fr: [
         "L’exactitude des annonces, l’honnêteté du calendrier et l’exploitation légale de votre hébergement sont obligatoires. Les paiements peuvent être hors plateforme en MVP ; vous devez honorer les séjours confirmés et communiquer clairement.",
-        "Nous pouvons modérer, dépublier ou suspendre en cas de fraude, risque de sécurité, discrimination ou préjudices répétés. La propriété intellectuelle de la marque et du logiciel Kama nous appartient ; vous conservez vos photos et textes, et nous accordez une licence d’affichage sur le service.",
+        "Nous pouvons modérer, dépublier ou suspendre en cas de fraude, risque de sécurité, discrimination ou préjudices répétés. La propriété intellectuelle de la marque et du logiciel Isisel nous appartient ; vous conservez vos photos et textes, et nous accordez une licence d’affichage sur le service.",
         "La responsabilité du séjour pèse surtout entre hôte et voyageur. Les limites de responsabilité des Conditions s’appliquent. Contexte : nous concevons pour l’hospitalité africaine, y compris mobile money et réservations relationnelles — sans écarter le respect de la loi.",
         "Clause marketplace foncière future : la plateforme pourra s’étendre ; des conditions vendeur supplémentaires s’appliqueront alors. Texte durable : content/legal/HOST_TERMS.md.",
       ],
