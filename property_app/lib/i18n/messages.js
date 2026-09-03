@@ -108,6 +108,10 @@ export const messages = {
       perMonth: "/ month",
       contact: "Contact",
       forRates: "for rates",
+      guests: "Guests",
+      moreFromHost: "More from {name}",
+      moreFromHostFallback: "More from this host",
+      moreStays: "{count} more stays",
     },
     empty: {
       noListings: "No listings yet",
@@ -677,6 +681,10 @@ export const messages = {
       perMonth: "/ mois",
       contact: "Contacter",
       forRates: "pour les tarifs",
+      guests: "Voyageurs",
+      moreFromHost: "Autres logements de {name}",
+      moreFromHostFallback: "Autres logements de cet hôte",
+      moreStays: "{count} autres séjours",
     },
     empty: {
       noListings: "Aucun logement pour l’instant",

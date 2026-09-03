@@ -23,6 +23,7 @@ import {
   isListingOwner,
 } from "@/utils/listings/previewLockedHost";
 import { isListingPreviewLocked } from "@/utils/listings/previewLockedHost.server";
+import { findSameOwnerPublicListings } from "@/utils/listings/sameOwnerListings";
 
 async function loadPublicListing(param) {
   await connectToDatabase();
@@ -131,13 +132,18 @@ export default async function PropertyPage({ params }) {
     permanentRedirect(publicPath);
   }
 
+  const siblingListings = await findSameOwnerPublicListings(property);
+
   return (
     <div className="overflow-x-hidden">
       <ServerProperty
         property={serialized}
         canonicalUrl={propertyPublicUrl(property)}
       />
-      <DynamicProperty property={serialized} />
+      <DynamicProperty
+        property={serialized}
+        siblingListings={siblingListings}
+      />
     </div>
   );
 }
