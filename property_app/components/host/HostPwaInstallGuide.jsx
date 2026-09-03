@@ -11,8 +11,9 @@ import {
   X,
 } from "lucide-react";
 import usePwaInstall from "@/hooks/usePwaInstall";
+import { HOST_INSTALL_SEEN_KEY } from "@/utils/hostPwaInstall";
 
-const LS_DONE = "isisel_host_pwa_install_seen";
+const LS_DONE = HOST_INSTALL_SEEN_KEY;
 
 const IOS_STEPS = [
   {

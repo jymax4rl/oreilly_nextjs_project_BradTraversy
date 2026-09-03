@@ -14,6 +14,7 @@ import {
 import NotificationToggles from "@/components/settings/NotificationToggles";
 import CurrencyPreference from "@/components/settings/CurrencyPreference";
 import SignOutButton from "@/components/settings/SignOutButton";
+import { BECOME_A_HOST_HREF } from "@/utils/hostPwaInstall";
 
 function Section({ title, description, children }) {
   return (
@@ -242,7 +243,7 @@ export default function SettingsSections({ settings }) {
 
           {showBecomeHost && (
             <DeepLink
-              href="/host/onboarding"
+              href={BECOME_A_HOST_HREF}
               icon={Building2}
               label="Become a host"
               description="Apply to list properties on Kama"

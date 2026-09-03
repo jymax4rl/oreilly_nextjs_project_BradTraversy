@@ -21,6 +21,7 @@ import {
 import { LuUserRound } from "react-icons/lu";
 import BrandLogo from "@/components/BrandLogo";
 import Currency from "@/components/Currency";
+import { BECOME_A_HOST_HREF } from "@/utils/hostPwaInstall";
 
 /**
  * Full-screen mobile navigation overlay.
@@ -257,9 +258,9 @@ export default function MobileMenuOverlay({
                       </>
                     ) : (
                       <Link
-                        href="/host/onboarding"
+                        href={BECOME_A_HOST_HREF}
                         onClick={close}
-                        className={`${rowClass("/host/onboarding")} kama-menu-row--accent`}
+                        className={`${rowClass("/host/install")} kama-menu-row--accent`}
                       >
                         <PlusCircle
                           className="kama-menu-row-icon"

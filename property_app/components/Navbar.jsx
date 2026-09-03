@@ -7,6 +7,7 @@ import "./navbar.css";
 import gsap from "gsap";
 import NavButton from "./NavButton";
 import BrandLogo from "@/components/BrandLogo";
+import { BECOME_A_HOST_HREF } from "@/utils/hostPwaInstall";
 import MobileMenuOverlay from "@/components/MobileMenuOverlay";
 import { LuUserRound } from "react-icons/lu";
 import {
@@ -110,7 +111,7 @@ const Navbar = () => {
     if (session.user.hostStatus === "verified") {
       return { path: "/properties/add", label: "List Property" };
     }
-    return { path: "/host/onboarding", label: "Become a Host" };
+    return { path: BECOME_A_HOST_HREF, label: "Become a Host" };
   };
 
   const hostNavItem = getHostNavItem();
@@ -340,7 +341,7 @@ const Navbar = () => {
 
                 {session?.user && session.user.hostStatus !== "verified" && (
                   <Link
-                    href="/host/onboarding"
+                    href={BECOME_A_HOST_HREF}
                     className={`${profileItemClass} !text-[#1b5c57]`}
                     role="menuitem"
                     onClick={() => setIsProfileOpen(false)}

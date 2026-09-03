@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -8,10 +8,31 @@ import { needsHostWelcome } from "@/utils/hostWelcomeOnboarding";
 import { addressFromLegacy } from "@/utils/address";
 import HostApplicationForm from "@/components/host/HostApplicationForm";
 import BrandLogo from "@/components/BrandLogo";
+import {
+  HostPwaInstallCard,
+  HostPwaInstallModal,
+} from "@/components/host/HostPwaInstallGuide";
+import usePwaInstall from "@/hooks/usePwaInstall";
+import { HOST_INSTALL_SEEN_KEY } from "@/utils/hostPwaInstall";
+
+function readInstallSeen() {
+  try {
+    return localStorage.getItem(HOST_INSTALL_SEEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 export default function HostOnboardingPage() {
   const { data: session, update } = useSession();
   const router = useRouter();
+  const { ready, installed } = usePwaInstall();
+  const [dismissedInstall, setDismissedInstall] = useState(false);
+  const installSeen = useSyncExternalStore(
+    () => () => {},
+    readInstallSeen,
+    () => true,
+  );
 
   const isResubmission = session?.user?.hostStatus === "rejected";
 
@@ -19,6 +40,15 @@ export default function HostOnboardingPage() {
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const showInstallModal =
+    ready &&
+    !installed &&
+    !installSeen &&
+    !dismissedInstall &&
+    Boolean(session?.user) &&
+    session.user.hostStatus !== "verified" &&
+    session.user.hostStatus !== "onboarding";
 
   useEffect(() => {
     if (!isResubmission) {
@@ -147,6 +177,8 @@ export default function HostOnboardingPage() {
           </p>
         </div>
 
+        <HostPwaInstallCard className="mb-6" />
+
         <HostApplicationForm
           key={isResubmission ? "resubmit" : "new"}
           initialData={initialData || {}}
@@ -156,6 +188,11 @@ export default function HostOnboardingPage() {
           error={error}
         />
       </div>
+
+      <HostPwaInstallModal
+        open={showInstallModal}
+        onClose={() => setDismissedInstall(true)}
+      />
     </div>
   );
 }

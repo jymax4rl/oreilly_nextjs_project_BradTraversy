@@ -12,6 +12,7 @@ import {
   ArrowRight,
   Smartphone,
 } from "lucide-react";
+import { BECOME_A_HOST_HREF } from "@/utils/hostPwaInstall";
 
 const HOST_STATUS_UI = {
   none: {
@@ -242,7 +243,7 @@ export default function ProfileSections({ profile }) {
         {hostStatus === "none" && (
           <div className="space-y-0.5">
             <QuickLink
-              href="/host/onboarding"
+              href={BECOME_A_HOST_HREF}
               icon={PlusCircle}
               label="Become a host"
               description="Apply to list properties on Kama"
