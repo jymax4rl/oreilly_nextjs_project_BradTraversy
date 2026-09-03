@@ -7,7 +7,7 @@ import DeletePropertyControl from "@/components/properties/DeletePropertyControl
 import AdminMessageHostModal from "./AdminMessageHostModal";
 
 /**
- * Ops listing card actions: View, Message host, Delete (type-confirm).
+ * Ops listing card actions: View, Message host, Hide (superadmin), Delete.
  */
 export default function AdminListingCardActions({
   propertyId,
@@ -16,6 +16,9 @@ export default function AdminListingCardActions({
   ownerId,
   hostLabel,
   moderationButtons = null,
+  listed = true,
+  canHide = false,
+  onToggleListed,
   onDeleted,
 }) {
   const { data: session } = useSession();
@@ -50,6 +53,16 @@ export default function AdminListingCardActions({
             Message host
           </button>
         )}
+
+        {canHide && typeof onToggleListed === "function" ? (
+          <button
+            type="button"
+            onClick={() => onToggleListed(!listed)}
+            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50"
+          >
+            {listed ? "Hide" : "Show on web"}
+          </button>
+        ) : null}
 
         <DeletePropertyControl
           propertyId={propertyId}

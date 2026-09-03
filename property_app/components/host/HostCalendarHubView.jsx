@@ -16,6 +16,16 @@ export default function HostCalendarHubView({ properties }) {
         <p className="mt-2 text-sm text-[var(--kama-ink-muted)]">
           {t("hostConsole.calendarBlurb")}
         </p>
+        {properties.length > 0 ? (
+          <p className="mt-3">
+            <Link
+              href="/host/calendar/timeline"
+              className="text-sm font-semibold text-[var(--kama-accent)] hover:underline"
+            >
+              {t("hostConsole.resCal.title")}
+            </Link>
+          </p>
+        ) : null}
       </header>
 
       {properties.length === 0 ? (
@@ -45,6 +55,11 @@ export default function HostCalendarHubView({ properties }) {
                     {[p.city, p.country].filter(Boolean).join(", ")}
                   </p>
                 )}
+                <p className="mt-3 text-sm text-[var(--kama-ink)]">
+                  {t("hostConsole.futureReservations", {
+                    n: p.futureCount || 0,
+                  })}
+                </p>
                 <p className="mt-3 text-xs font-semibold text-[var(--kama-accent)]">
                   {t("hostConsole.calendarOpen")}
                 </p>

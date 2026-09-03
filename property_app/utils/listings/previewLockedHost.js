@@ -1,9 +1,9 @@
 import { isOpsStaff } from "@/utils/opsAuth";
 
 /** Preview-lock hosts stay in the catalog, but listing pages and sitemaps stay private. */
-export const PREVIEW_LOCKED_HOST_EMAILS = ["camara23.pro@gmail.com"];
+export const PREVIEW_LOCKED_HOST_EMAILS = [];
 
-export const PREVIEW_LOCKED_HOST_NAMES = ["jimmeh camara", "jimmeh gakou"];
+export const PREVIEW_LOCKED_HOST_NAMES = [];
 
 export function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();

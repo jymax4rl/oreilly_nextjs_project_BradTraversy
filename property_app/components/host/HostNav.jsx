@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import {
   Building2,
   CalendarCheck,
-  CalendarDays,
+  CalendarRange,
   LayoutDashboard,
   MessageSquare,
   Plus,
@@ -22,7 +22,7 @@ import "./host-nav.css";
 const NAV = [
   { href: "/host", labelKey: "hostConsole.home", exact: true, Icon: LayoutDashboard },
   { href: "/host/reservations", labelKey: "hostConsole.reservations", Icon: CalendarCheck },
-  { href: "/host/calendar", labelKey: "hostConsole.calendar", Icon: CalendarDays },
+  { href: "/host/calendar", labelKey: "hostConsole.resCal.nav", Icon: CalendarRange },
   { href: "/host/listings", labelKey: "hostConsole.listings", Icon: Building2 },
   { href: "/host/messages", labelKey: "hostConsole.inbox", Icon: MessageSquare },
 ];
@@ -116,7 +116,7 @@ export default function HostNav() {
   }, [activeIndex]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--kama-border)] bg-[var(--kama-surface)]/90 shadow-[0_8px_28px_-20px_rgba(27,92,87,0.45)] backdrop-blur-md">
+    <header className="sticky top-0 z-[60] border-b border-[var(--kama-border)] bg-[var(--kama-surface)]/90 shadow-[0_8px_28px_-20px_rgba(27,92,87,0.45)] backdrop-blur-md">
       <div className="mx-auto max-w-[1400px]">
         <div className="flex h-12 items-center gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-2.5">

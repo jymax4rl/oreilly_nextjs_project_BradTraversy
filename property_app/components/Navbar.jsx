@@ -83,6 +83,8 @@ const Navbar = () => {
   }, []);
 
   const closeMenuAnimation = () => {
+    if (typeof document === "undefined") return;
+    if (!document.querySelector(".overlay-wrapper")) return;
     gsap.to(".overlay-wrapper", {
       clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
       duration: 0.85,
@@ -91,6 +93,8 @@ const Navbar = () => {
   };
 
   const openMenuAnimation = () => {
+    if (typeof document === "undefined") return;
+    if (!document.querySelector(".overlay-wrapper")) return;
     gsap.to(".overlay-wrapper", {
       clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
       duration: 0.85,

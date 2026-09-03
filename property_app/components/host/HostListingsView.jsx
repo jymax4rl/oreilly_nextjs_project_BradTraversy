@@ -122,12 +122,19 @@ export default function HostListingsView({
                       )}
                     </div>
 
+                    <div className="flex flex-wrap items-center gap-1.5">
                     <span
                       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_CLASS[status] || STATUS_CLASS.pending}`}
                     >
                       <StatusIcon className="h-3 w-3" />
                       {t(STATUS_KEY[status] || STATUS_KEY.pending)}
                     </span>
+                    {property.listed === false ? (
+                      <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                        Hidden from site
+                      </span>
+                    ) : null}
+                    </div>
                   </div>
 
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">

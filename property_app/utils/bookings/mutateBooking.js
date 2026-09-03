@@ -16,6 +16,80 @@ import {
   notifyBookingModified,
 } from "@/utils/bookings/notifyBookingEmails";
 
+export function isBookingListed(booking) {
+  return booking?.listed !== false;
+}
+
+/**
+ * Hide or restore a reservation on calendars without cancelling it.
+ * Relist checks that the nights are still free.
+ */
+export async function setBookingListed({
+  bookingId,
+  listed,
+  actor,
+  actorUserId,
+}) {
+  const booking = await Booking.findById(bookingId);
+  if (!booking) {
+    return { ok: false, status: 404, error: "Booking not found" };
+  }
+
+  if (booking.status === "cancelled") {
+    return {
+      ok: false,
+      status: 400,
+      error: "Cancelled reservations cannot be listed on the calendar",
+    };
+  }
+
+  const wantListed = listed !== false;
+  const currentlyListed = isBookingListed(booking);
+  if (wantListed === currentlyListed) {
+    return { ok: true, booking: booking.toObject(), unchanged: true };
+  }
+
+  if (wantListed) {
+    const propertyId = booking.propertyId.toString();
+    const [availDoc, confirmed] = await Promise.all([
+      ensurePropertyAvailability(propertyId),
+      getConfirmedBookings(propertyId),
+    ]);
+    const otherBookings = confirmed.filter(
+      (b) => String(b._id) !== String(booking._id),
+    );
+    const unavailable = buildUnavailableRanges(
+      availDoc.hostBlocks || [],
+      otherBookings,
+    );
+    const validation = validateStayDates(
+      booking.checkIn,
+      booking.checkOut,
+      unavailable,
+    );
+    if (!validation.ok) {
+      return {
+        ok: false,
+        status: 409,
+        error:
+          validation.error ||
+          "Those dates are no longer available. Change the dates or keep this reservation unlisted.",
+      };
+    }
+    booking.listed = true;
+    booking.unlistedAt = undefined;
+    booking.unlistedBy = undefined;
+  } else {
+    booking.listed = false;
+    booking.unlistedAt = new Date();
+    booking.unlistedBy = `${actor}:${actorUserId || "unknown"}`;
+  }
+
+  booking.version = (booking.version || 0) + 1;
+  await booking.save();
+  return { ok: true, booking: booking.toObject() };
+}
+
 /**
  * Cancel a booking after policy + auth checks (caller supplies actor).
  * Does not process payment refunds — sets refundStatus pending when eligible.
@@ -198,6 +272,8 @@ export function bookingWithPolicyFlags(booking, property, actor = "guest") {
     checkIn: plain.checkIn,
     checkOut: plain.checkOut,
     status: plain.status,
+    listed: isBookingListed(plain),
+    unlistedAt: plain.unlistedAt || null,
     paymentMode: plain.paymentMode || null,
     guestId: plain.guestId,
     guestName: plain.guestName,

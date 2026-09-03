@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { isOpsStaff } from "@/utils/opsAuth";
+import { isOpsStaff, isSuperAdmin } from "@/utils/opsAuth";
 import AdminListingCardActions from "@/components/admin/AdminListingCardActions";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
 import OpsUserProfileModal from "@/components/admin/OpsUserProfileModal";
@@ -60,6 +60,7 @@ export default function AdminListingsPanel() {
     pending: 0,
     approved: 0,
     rejected: 0,
+    hidden: 0,
   });
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("pending");
@@ -108,6 +109,7 @@ export default function AdminListingsPanel() {
             pending: Number(data.counts.pending) || 0,
             approved: Number(data.counts.approved) || 0,
             rejected: Number(data.counts.rejected) || 0,
+            hidden: Number(data.counts.hidden) || 0,
           });
         }
       } catch (error) {
@@ -194,6 +196,7 @@ export default function AdminListingsPanel() {
             pending: Number(syncData.counts.pending) || 0,
             approved: Number(syncData.counts.approved) || 0,
             rejected: Number(syncData.counts.rejected) || 0,
+            hidden: Number(syncData.counts.hidden) || 0,
           });
         }
       } else {
@@ -201,6 +204,59 @@ export default function AdminListingsPanel() {
       }
     } catch (error) {
       console.error("handleAction error:", error);
+      alert("Failed: " + error.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleVisibility = async (id, listed) => {
+    const idStr = String(id);
+    if (
+      !listed &&
+      !window.confirm(
+        "Hide this listing from the public website? It will not be deleted. Find it under Hidden to show it again.",
+      )
+    ) {
+      return;
+    }
+    setActionLoading(idStr);
+    try {
+      const res = await fetch(`/api/admin/listings/${idStr}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listed }),
+        cache: "no-store",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Server returned ${res.status}`);
+      }
+      const syncRes = await fetch(
+        `/api/admin/listings?status=${encodeURIComponent(filter)}&nc=${Date.now()}`,
+        {
+          cache: "no-store",
+          credentials: "include",
+          headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+        },
+      );
+      if (syncRes.ok) {
+        const syncData = await syncRes.json();
+        setProperties(syncData.properties || []);
+        if (syncData.counts) {
+          setCounts({
+            pending: Number(syncData.counts.pending) || 0,
+            approved: Number(syncData.counts.approved) || 0,
+            rejected: Number(syncData.counts.rejected) || 0,
+            hidden: Number(syncData.counts.hidden) || 0,
+          });
+        }
+      } else {
+        setProperties((prev) => prev.filter((p) => String(p._id) !== idStr));
+      }
+    } catch (error) {
+      console.error("handleVisibility error:", error);
       alert("Failed: " + error.message);
     } finally {
       setActionLoading(null);
@@ -255,12 +311,13 @@ export default function AdminListingsPanel() {
         <p className="mt-2 text-sm leading-relaxed text-[var(--kama-ink-muted)]">
           Approve to publish publicly, or reject with a reason for the host.
           Pending shows new submissions only; older listings stay under Approved.
+          Superadmins can Hide a live listing from the public site without deleting it.
           Filter by country or search host and location within the active tab.
         </p>
       </header>
 
       <div className="mb-4 flex flex-wrap gap-2">
-        {["pending", "approved", "rejected"].map((statusFilter) => (
+        {["pending", "approved", "hidden", "rejected"].map((statusFilter) => (
           <button
             key={statusFilter}
             type="button"
@@ -447,6 +504,11 @@ export default function AdminListingsPanel() {
                                 property.listingModerationRequestedAt,
                               ).toLocaleDateString()}`
                             : null}
+                          {property.listed === false ? (
+                            <span className="ml-1.5 rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
+                              Hidden from web
+                            </span>
+                          ) : null}
                         </p>
                         {property.status === "rejected" &&
                           property.rejectionReason && (
@@ -464,6 +526,11 @@ export default function AdminListingsPanel() {
                           typeof ownerLabel === "string" ? ownerLabel : "host"
                         }
                         moderationButtons={moderationButtons}
+                        listed={property.listed !== false}
+                        canHide={isSuperAdmin(session?.user?.role)}
+                        onToggleListed={(nextListed) =>
+                          handleVisibility(id, nextListed)
+                        }
                         onDeleted={() => {
                           setProperties((prev) =>
                             prev.filter((p) => String(p._id) !== id),

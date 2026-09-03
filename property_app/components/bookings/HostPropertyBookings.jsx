@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   CalendarCheck,
+  Eye,
+  EyeOff,
   Loader2,
   Mail,
   MessageCircle,
@@ -35,7 +37,9 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
   const nights = countNights(booking.checkIn, booking.checkOut);
   const amountLabel = formatAmount(booking.amount, booking.currency);
   const statusClass =
-    booking.status === "confirmed"
+    booking.listed === false
+      ? "bg-slate-100 text-slate-600"
+      : booking.status === "confirmed"
       ? "bg-emerald-100 text-emerald-800"
       : booking.status === "pending"
         ? "bg-amber-100 text-amber-800"
@@ -104,6 +108,38 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
     });
   };
 
+  const handleToggleListed = () => {
+    const relist = booking.listed === false;
+    if (
+      !relist &&
+      !window.confirm(t("hostConsole.bookings.unlistConfirm"))
+    ) {
+      return;
+    }
+    run(relist ? "relist" : "unlist", async () => {
+      const res = await fetch(`/api/properties/${pid}/bookings/${booking._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listed: relist }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(
+          data.error ||
+            (relist
+              ? t("hostConsole.bookings.couldNotRelist")
+              : t("hostConsole.bookings.couldNotUnlist")),
+        );
+      }
+      setMessage({
+        ok: true,
+        text: relist
+          ? t("hostConsole.bookings.reservationRelisted")
+          : t("hostConsole.bookings.reservationUnlisted"),
+      });
+    });
+  };
+
   const handleSaveDates = () =>
     run("modify", async () => {
       const res = await fetch(`/api/properties/${pid}/bookings/${booking._id}`, {
@@ -133,7 +169,9 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
           <span
             className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${statusClass}`}
           >
-            {booking.status === "pending" && booking.paymentMode === "manual"
+            {booking.listed === false
+              ? t("hostConsole.bookings.unlisted")
+              : booking.status === "pending" && booking.paymentMode === "manual"
               ? t("hostConsole.bookings.awaitingPayment")
               : booking.status === "confirmed"
                 ? t("hostConsole.bookings.confirmed")
@@ -261,6 +299,25 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
               {t("hostConsole.bookings.modifyDates")}
             </button>
           )}
+          <button
+            type="button"
+            disabled={!!busy}
+            onClick={handleToggleListed}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+          >
+            {booking.listed === false ? (
+              <Eye size={13} aria-hidden />
+            ) : (
+              <EyeOff size={13} aria-hidden />
+            )}
+            {busy === "unlist"
+              ? t("hostConsole.bookings.unlisting")
+              : busy === "relist"
+                ? t("hostConsole.bookings.relisting")
+                : booking.listed === false
+                  ? t("hostConsole.bookings.relist")
+                  : t("hostConsole.bookings.unlist")}
+          </button>
           {canCancel && (
             <button
               type="button"
@@ -363,7 +420,7 @@ export default function HostPropertyBookings({
       const params = new URLSearchParams();
       if (mode === "all") {
         params.set("status", statusFilter);
-      } else if (statusFilter !== "active") {
+      } else if (statusFilter !== "active" && statusFilter !== "unlisted") {
         params.set("status", statusFilter);
       }
       if (searchQuery) params.set("q", searchQuery);
@@ -378,7 +435,9 @@ export default function HostPropertyBookings({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || t("hostConsole.bookings.loadFailed"));
       let list = data.bookings || [];
-      if (mode === "property" && statusFilter === "active") {
+      if (mode === "property" && statusFilter === "unlisted") {
+        list = list.filter((b) => b.listed === false);
+      } else if (mode === "property" && statusFilter === "active") {
         list = list.filter((b) =>
           ["pending", "confirmed"].includes(b.status),
         );
@@ -400,10 +459,19 @@ export default function HostPropertyBookings({
     load();
   }, [load]);
   const upcoming = bookings.filter(
-    (b) => b.status !== "cancelled" && b.checkOut >= todayUtc(),
+    (b) =>
+      b.listed !== false &&
+      b.status !== "cancelled" &&
+      b.checkOut >= todayUtc(),
+  );
+  const unlisted = bookings.filter(
+    (b) => b.listed === false && b.status !== "cancelled",
   );
   const past = bookings.filter(
-    (b) => b.status !== "cancelled" && b.checkOut < todayUtc(),
+    (b) =>
+      b.listed !== false &&
+      b.status !== "cancelled" &&
+      b.checkOut < todayUtc(),
   );
   const cancelled = bookings.filter((b) => b.status === "cancelled");
 
@@ -475,6 +543,7 @@ export default function HostPropertyBookings({
             <option value="confirmed">{t("hostConsole.bookings.confirmed")}</option>
             <option value="pending">{t("hostConsole.bookings.pending")}</option>
             <option value="cancelled">{t("hostConsole.bookings.cancelled")}</option>
+            <option value="unlisted">{t("hostConsole.bookings.unlisted")}</option>
           </select>
         </div>
       </div>
@@ -505,6 +574,24 @@ export default function HostPropertyBookings({
           </h3>
           <ul className="space-y-3">
             {upcoming.map((b) => (
+              <HostBookingRow
+                key={b._id}
+                booking={b}
+                propertyId={propertyId || b.propertyId}
+                onChanged={() => load({ silent: true })}
+              />
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {!loading && !error && unlisted.length > 0 && (
+        <div className="mb-6">
+          <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">
+            {t("hostConsole.bookings.unlistedSection")}
+          </h3>
+          <ul className="space-y-3 opacity-90">
+            {unlisted.map((b) => (
               <HostBookingRow
                 key={b._id}
                 booking={b}

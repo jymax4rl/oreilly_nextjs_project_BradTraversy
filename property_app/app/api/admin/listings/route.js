@@ -3,8 +3,9 @@ import Property from "@/models/Property";
 import User from "@/models/User";
 import { getSessionFromRequest } from "@/utils/authSessionRoute";
 import {
-  approvedListingQuery,
+  hiddenListingQuery,
   pendingModerationQueueQuery,
+  publicListingQuery,
 } from "@/utils/listingApproval";
 import { isOpsStaff } from "@/utils/opsAuth";
 import mongoose from "mongoose";
@@ -26,12 +27,14 @@ export const GET = async (request) => {
 
     const { searchParams } = new URL(request.url);
     const statusFilter = searchParams.get("status") || "pending";
-    const valid = ["pending", "approved", "rejected"];
+    const valid = ["pending", "approved", "rejected", "hidden"];
     const filter = valid.includes(statusFilter) ? statusFilter : "pending";
 
     let listingQuery;
     if (filter === "approved") {
-      listingQuery = approvedListingQuery();
+      listingQuery = publicListingQuery();
+    } else if (filter === "hidden") {
+      listingQuery = hiddenListingQuery();
     } else if (filter === "pending") {
       listingQuery = pendingModerationQueueQuery();
     } else {
@@ -40,12 +43,13 @@ export const GET = async (request) => {
 
     const pendingQueue = pendingModerationQueueQuery();
 
-    const [properties, pendingCount, approvedCount, rejectedCount] =
+    const [properties, pendingCount, approvedCount, rejectedCount, hiddenCount] =
       await Promise.all([
         Property.find(listingQuery).sort({ createdAt: -1 }).lean(),
         Property.countDocuments(pendingQueue),
-        Property.countDocuments(approvedListingQuery()),
+        Property.countDocuments(publicListingQuery()),
         Property.countDocuments({ status: "rejected" }),
+        Property.countDocuments(hiddenListingQuery()),
       ]);
 
     const ownerIds = [
@@ -70,6 +74,7 @@ export const GET = async (request) => {
     const withOwners = properties.map((p) => ({
       ...p,
       _id: p._id.toString(),
+      listed: p.listed !== false,
       ownerUser: p.owner ? ownerById[String(p.owner)] || null : null,
     }));
 
@@ -80,6 +85,7 @@ export const GET = async (request) => {
           pending: Number(pendingCount) || 0,
           approved: Number(approvedCount) || 0,
           rejected: Number(rejectedCount) || 0,
+          hidden: Number(hiddenCount) || 0,
         },
       },
       {

@@ -12,6 +12,7 @@ import {
   cancelBookingRecord,
   isValidObjectId,
   modifyBookingDates,
+  setBookingListed,
 } from "@/utils/bookings/mutateBooking";
 
 async function assertHostOwnsBooking(params, session) {
@@ -46,7 +47,8 @@ async function assertHostOwnsBooking(params, session) {
 
 /**
  * PATCH /api/properties/[id]/bookings/[bookingId]
- * Host modify dates. Body: { checkIn, checkOut }
+ * Host modify dates: { checkIn, checkOut }
+ * Host unlist/relist (hide from calendars, keep the record): { listed: false|true }
  */
 export async function PATCH(request, { params }) {
   try {
@@ -58,6 +60,29 @@ export async function PATCH(request, { params }) {
     }
 
     const body = await request.json().catch(() => ({}));
+
+    if (typeof body.listed === "boolean") {
+      const result = await setBookingListed({
+        bookingId: loaded.bookingId,
+        listed: body.listed,
+        actor: "host",
+        actorUserId: session.user.id,
+        property: loaded.property,
+      });
+
+      if (!result.ok) {
+        return Response.json(
+          { error: result.error, code: result.code },
+          { status: result.status || 400 },
+        );
+      }
+
+      return Response.json({
+        success: true,
+        booking: bookingWithPolicyFlags(result.booking, loaded.property, "host"),
+      });
+    }
+
     const result = await modifyBookingDates({
       bookingId: loaded.bookingId,
       actor: "host",

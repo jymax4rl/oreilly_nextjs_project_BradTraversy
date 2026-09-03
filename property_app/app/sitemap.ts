@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
-import { approvedListingQuery } from "@/utils/listingApproval";
+import { publicListingQuery } from "@/utils/listingApproval";
 import { ensurePropertySlug } from "@/utils/listings/propertySlug";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
 import { SECTION_IDS } from "@/lib/legal/content";
@@ -69,7 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     try {
       await connectToDatabase();
       const properties = (await (Property as any)
-        .find(approvedListingQuery())
+        .find(publicListingQuery())
         .select("_id updatedAt slug name location owner")
         .lean()) as Array<{
         _id: { toString(): string };

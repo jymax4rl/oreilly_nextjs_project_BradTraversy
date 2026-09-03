@@ -3,7 +3,7 @@ import Property from "@/models/Property";
 import User from "@/models/User";
 import { getSessionFromRequest } from "@/utils/authSessionRoute";
 import { sendListingDecisionHostEmail } from "@/utils/email/sendListingModerationEmails";
-import { isOpsStaff } from "@/utils/opsAuth";
+import { isOpsStaff, isSuperAdmin } from "@/utils/opsAuth";
 import mongoose from "mongoose";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +27,47 @@ export const PATCH = async (request, { params }) => {
     }
 
     const body = await request.json();
-    const { status, rejectionReason } = body;
+    const { status, rejectionReason, listed } = body;
+
+    if (typeof listed === "boolean") {
+      if (!isSuperAdmin(session.user.role)) {
+        return Response.json(
+          { error: "Only a superadmin can hide or show listings on the public site" },
+          { status: 403 },
+        );
+      }
+
+      const oid = new mongoose.Types.ObjectId(id);
+      const property = await Property.findById(oid).select("status listed").lean();
+      if (!property) {
+        return Response.json({ error: "Property not found" }, { status: 404 });
+      }
+
+      const $set = listed
+        ? { listed: true, unlistedAt: null, unlistedBy: null }
+        : {
+            listed: false,
+            unlistedAt: new Date(),
+            ...(mongoose.Types.ObjectId.isValid(String(session.user.id))
+              ? { unlistedBy: new mongoose.Types.ObjectId(session.user.id) }
+              : {}),
+          };
+
+      const result = await Property.updateOne({ _id: oid }, { $set });
+      if (result.matchedCount === 0) {
+        return Response.json({ error: "Property not found" }, { status: 404 });
+      }
+
+      return Response.json(
+        {
+          success: true,
+          message: listed ? "Listing shown on the public site" : "Listing hidden from the public site",
+          listed,
+          modifiedCount: result.modifiedCount,
+        },
+        { headers: { "Cache-Control": "no-store" } },
+      );
+    }
 
     if (!["approved", "rejected"].includes(status)) {
       return Response.json(

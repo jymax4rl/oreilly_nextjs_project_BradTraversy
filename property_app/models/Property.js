@@ -93,6 +93,13 @@ const PropertySchema = new mongoose.Schema(
     rejectionReason: { type: String, required: false },
     listingReviewedAt: { type: Date, required: false },
     listingReviewedBy: { type: Schema.Types.ObjectId, ref: "User", required: false },
+    /**
+     * When false, the listing stays in ops/host tools but is hidden from the
+     * public catalog, sitemap, and guest listing pages. Missing/true = listed.
+     */
+    listed: { type: Boolean, default: true, index: true },
+    unlistedAt: { type: Date, required: false },
+    unlistedBy: { type: Schema.Types.ObjectId, ref: "User", required: false },
   },
   {
     timestamps: true,

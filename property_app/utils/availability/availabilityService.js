@@ -56,6 +56,7 @@ export async function getConfirmedBookings(propertyId) {
   return Booking.find({
     propertyId: new mongoose.Types.ObjectId(propertyId),
     status: { $in: ["confirmed", "pending"] },
+    listed: { $ne: false },
   })
     .sort({ checkIn: 1 })
     .lean();

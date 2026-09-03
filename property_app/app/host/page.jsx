@@ -49,6 +49,7 @@ export default async function HostConsoleHomePage() {
         ? Booking.find({
             propertyId: { $in: propertyIds },
             status: "pending",
+            listed: { $ne: false },
           })
             .sort({ checkIn: 1 })
             .limit(6)
@@ -58,12 +59,14 @@ export default async function HostConsoleHomePage() {
         ? Booking.countDocuments({
             propertyId: { $in: propertyIds },
             status: "pending",
+            listed: { $ne: false },
           })
         : 0,
       propertyIds.length
         ? Booking.find({
             propertyId: { $in: propertyIds },
             status: { $in: ["pending", "confirmed"] },
+            listed: { $ne: false },
             checkIn: { $gte: today },
           })
             .sort({ checkIn: 1 })

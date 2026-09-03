@@ -62,6 +62,13 @@ const BookingSchema = new mongoose.Schema(
       index: true,
     },
     /**
+     * When false, the stay is hidden from calendars and does not block nights.
+     * The booking is kept (not cancelled). Missing/true = listed.
+     */
+    listed: { type: Boolean, default: true, index: true },
+    unlistedAt: { type: Date },
+    unlistedBy: { type: String },
+    /**
      * How payment is collected.
      * - manual: guest reserved without gateway; host arranges payment (status usually pending)
      * - gateway: paid via Flutterwave (or similar); status usually confirmed

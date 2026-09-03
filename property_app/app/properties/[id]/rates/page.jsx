@@ -8,6 +8,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { findPropertyByParam } from "@/utils/listings/propertySlug";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
+import { propertyImageUrl } from "@/utils/propertyImageUrl";
 
 export async function generateMetadata({ params }) {
   await connectToDatabase();
@@ -19,10 +20,6 @@ export async function generateMetadata({ params }) {
       : "Rates | Isisel",
     robots: { index: false, follow: false },
   };
-}
-
-function propertyImageSrc(filename) {
-  return `/properties/${filename || "default.jpg"}`;
 }
 
 export default async function PropertyRatesPage({ params }) {
@@ -68,7 +65,7 @@ export default async function PropertyRatesPage({ params }) {
         eyebrowKey="hostConsole.pricing"
         name={serialized.name}
         locationLabel={locationLabel}
-        imageSrc={propertyImageSrc(serialized.images?.[0])}
+        imageSrc={propertyImageUrl(serialized.images?.[0])}
       >
         <HostRatesForm
           propertyId={serialized._id}
