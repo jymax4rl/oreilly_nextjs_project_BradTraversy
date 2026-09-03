@@ -51,13 +51,21 @@ const nextConfig = {
   },
   async headers() {
     const iconCache = "public, max-age=86400, stale-while-revalidate=604800";
+    const iconSources = [
+      "/apple-touch-icon.png",
+      "/apple-touch-icon-precomposed.png",
+      "/apple-touch-icon-120x120.png",
+      "/apple-touch-icon-152x152.png",
+      "/apple-touch-icon-167x167.png",
+      "/apple-touch-icon-180x180.png",
+    ];
     return [
-      {
-        source: "/apple-touch-icon:path*",
+      ...iconSources.map((source) => ({
+        source,
         headers: [{ key: "Cache-Control", value: iconCache }],
-      },
+      })),
       {
-        source: "/icons/:path*",
+        source: "/icons/:file",
         headers: [{ key: "Cache-Control", value: iconCache }],
       },
       {
