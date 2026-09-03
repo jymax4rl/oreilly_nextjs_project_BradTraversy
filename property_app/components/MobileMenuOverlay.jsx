@@ -18,6 +18,7 @@ import {
   CalendarCheck,
   ChevronRight,
   X,
+  Clapperboard,
 } from "lucide-react";
 import { LuUserRound } from "react-icons/lu";
 import BrandLogo from "@/components/BrandLogo";
@@ -268,6 +269,17 @@ export default function MobileMenuOverlay({
                         aria-hidden
                       />
                       {t("nav.business")}
+                    </Link>
+                    <Link
+                      href="/influencers"
+                      onClick={close}
+                      className={rowClass("/influencers")}
+                    >
+                      <Clapperboard
+                        className="kama-menu-row-icon"
+                        aria-hidden
+                      />
+                      {t("nav.creators")}
                     </Link>
                 </nav>
               </section>

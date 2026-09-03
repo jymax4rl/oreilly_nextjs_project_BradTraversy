@@ -41,6 +41,7 @@ const Footer = ({ className = "" }) => {
             <div className="flex flex-col space-y-4">
               <h4 className="text-white font-medium mb-2">{t("footer.company")}</h4>
               <FooterLink href="/business">{t("footer.forBusiness")}</FooterLink>
+              <FooterLink href="/influencers">{t("footer.forCreators")}</FooterLink>
               <FooterLink href="/host/onboarding">{t("nav.becomeHost")}</FooterLink>
               <FooterLink href="/about">{t("footer.about")}</FooterLink>
               <FooterLink href="/careers">{t("footer.careers")}</FooterLink>

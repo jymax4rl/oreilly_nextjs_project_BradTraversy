@@ -21,12 +21,14 @@ import {
   LogOut,
   MessageSquare,
   CalendarCheck,
+  Clapperboard,
 } from "lucide-react";
 import LoginNavButton from "./LoginNavBtn";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { getUnreadMessageCount } from "@/utils/actions/messageActions";
 import { useMenuOverlay } from "@/contexts/MenuOverlayContext";
+import { useScrollNav } from "@/contexts/ScrollNavContext";
 import { isExploreMobileLayout } from "@/utils/exploreLayout";
 import { isFullscreenRoute } from "@/utils/fullscreenRoutes";
 import { getLoginUrl } from "@/lib/legal/loginUrl";
@@ -38,6 +40,7 @@ const navLinks = [
   { path: "/", labelKey: "nav.home", Icon: Home },
   { path: "/properties", labelKey: "nav.properties", Icon: Building2 },
   { path: "/business", labelKey: "nav.business", Icon: Building2 },
+  { path: "/influencers", labelKey: "nav.creators", Icon: Clapperboard },
 ];
 
 const profileItemClass = "kama-profile-item font-medium";
@@ -46,11 +49,13 @@ const Navbar = () => {
   const { data: session } = useSession();
   const { t } = useLanguage();
   const { isOpen, toggle, close } = useMenuOverlay();
+  const { navVisible } = useScrollNav();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const pathname = usePathname();
   const isHome = pathname === "/";
-  const isPhotoNav = isHome || pathname === "/business";
+  const isPhotoNav =
+    isHome || pathname === "/business" || pathname.startsWith("/influencers");
   const profileImage = session?.user?.image;
   const explore = isExploreMobileLayout(pathname);
 
@@ -121,6 +126,7 @@ const Navbar = () => {
   };
 
   const hostNavItem = getHostNavItem();
+  const showNav = navVisible || isOpen || isProfileOpen;
 
   if (isFullscreenRoute(pathname)) {
     return null;
@@ -130,7 +136,9 @@ const Navbar = () => {
     <div>
       {!explore && (
         <nav
-          className={`menu-container m-0 grid grid-cols-2 z-50 fixed top-0 w-screen h-[8vh] lg:hidden ${
+          className={`menu-container m-0 grid grid-cols-2 z-50 fixed top-0 w-screen h-[8vh] lg:hidden transition-transform duration-300 ease-out will-change-transform ${
+            showNav ? "translate-y-0" : "-translate-y-full"
+          } ${
             isPhotoNav ? "home-glass-nav" : "bg-[var(--kama-canvas)]/80 backdrop-blur-sm"
           }`}
         >
@@ -147,7 +155,9 @@ const Navbar = () => {
       )}
 
       <nav
-        className={`menu-container m-0 hidden lg:grid grid-cols-[20%_60%_20%] z-50 fixed top-0 w-screen h-[8vh] ${
+        className={`menu-container m-0 hidden lg:grid grid-cols-[20%_60%_20%] z-50 fixed top-0 w-screen h-[8vh] transition-transform duration-300 ease-out will-change-transform ${
+          showNav ? "translate-y-0" : "-translate-y-full"
+        } ${
           isPhotoNav
             ? "home-glass-nav home-glass-nav--desktop"
             : "bg-[var(--kama-canvas)]/80 backdrop-blur-sm"
@@ -161,7 +171,7 @@ const Navbar = () => {
         </div>
 
         {/* Desktop Navigation */}
-        <div className="flex space-x-8 p-2 items-center justify-center">
+        <div className="flex space-x-5 p-2 items-center justify-center xl:space-x-8">
           {navLinks.map((link, index) => (
             <Link
               key={index}

@@ -10,7 +10,10 @@ export default function MainShell({ children }) {
   const fullscreen = isFullscreenRoute(pathname);
   const isHome = pathname === "/";
   const isAudienceLanding =
-    pathname === "/business" || pathname.startsWith("/business/");
+    pathname === "/business" ||
+    pathname.startsWith("/business/") ||
+    pathname === "/influencers" ||
+    pathname.startsWith("/influencers/");
 
   return (
     <main

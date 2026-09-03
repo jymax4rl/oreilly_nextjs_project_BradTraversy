@@ -7,6 +7,7 @@ import {
   Building2,
   LayoutList,
   CreditCard,
+  Clapperboard,
 } from "lucide-react";
 import OpsShell from "@/components/ops/OpsShell";
 import OpsOverviewPanel from "@/components/ops/OpsOverviewPanel";
@@ -17,6 +18,12 @@ export const metadata = {
 };
 
 const TOOLS = [
+  {
+    href: "/ops/marketing/creators",
+    title: "Creator Leads",
+    description: "Influencer partnership requests from /influencers — separate from host CRM.",
+    Icon: Clapperboard,
+  },
   {
     href: "/ops/marketing/acquisition",
     title: "Host Acquisition",
