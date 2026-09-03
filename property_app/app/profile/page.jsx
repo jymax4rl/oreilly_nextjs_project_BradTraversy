@@ -9,8 +9,9 @@ import ProfileSections from "@/components/profile/ProfileSections";
 import { ArrowLeft, Shield, UserRound } from "lucide-react";
 
 export const metadata = {
-  title: "Profile | Kama Properties",
-  description: "Your Kama Properties account, bookings, and hosting status",
+  title: "Profile | Isisel",
+  description: "Your Isisel account, bookings, and hosting status",
+  robots: { index: false, follow: false },
 };
 
 function RoleBadge({ children, accent = false }) {

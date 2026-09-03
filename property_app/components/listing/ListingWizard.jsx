@@ -27,8 +27,24 @@ import {
   computeWeekendNightly,
   formatLocationLine,
 } from "@/utils/listingPricing";
-import { estimateCoordinates, softEstimateCoordinates, isAddressComplete } from "@/utils/address";
+import {
+  estimateCoordinates,
+  softEstimateCoordinates,
+  isAddressComplete,
+  coerceCoordinate,
+} from "@/utils/address";
 import { GOOGLE_MAPS_LOAD_TIMEOUT_MS } from "@/utils/googleMaps";
+import {
+  compressListingImages,
+  totalBytes,
+  MAX_LISTING_UPLOAD_BYTES,
+} from "@/utils/compressListingImage";
+import {
+  DEFAULT_CHECK_IN_TIME,
+  DEFAULT_CHECK_OUT_TIME,
+  formatClockTimeLabel,
+  normalizeClockTime,
+} from "@/utils/checkInOutTimes";
 import {
   IntroIllustration,
   PropertyTypeArt,
@@ -209,12 +225,15 @@ export default function ListingWizard() {
         zipcode: data.location.zipcode,
         country: data.location.country,
       });
+      const lat = coerceCoordinate(result.lat);
+      const lng = coerceCoordinate(result.lng);
+      if (lat == null || lng == null) return false;
       setData((prev) => ({
         ...prev,
         location: {
           ...prev.location,
-          lat: result.lat,
-          lng: result.lng,
+          lat,
+          lng,
         },
       }));
       setPinEstimated(Boolean(result.estimated));
@@ -248,12 +267,15 @@ export default function ListingWizard() {
           country: data.location.country,
         });
         if (cancelled) return;
+        const lat = coerceCoordinate(result.lat);
+        const lng = coerceCoordinate(result.lng);
+        if (lat == null || lng == null) return;
         setData((prev) => ({
           ...prev,
           location: {
             ...prev.location,
-            lat: result.lat,
-            lng: result.lng,
+            lat,
+            lng,
           },
         }));
         setPinEstimated(Boolean(result.estimated));
@@ -341,18 +363,21 @@ export default function ListingWizard() {
         country: parsed.country,
         countryCode: parsed.countryCode,
         placeId: parsed.placeId,
-        lat: parsed.lat,
-        lng: parsed.lng,
+        lat: coerceCoordinate(parsed.lat),
+        lng: coerceCoordinate(parsed.lng),
       },
     }));
     setPinEstimated(false);
   }, []);
 
   const handleMapPositionChange = useCallback(({ lat, lng }) => {
+    const nextLat = coerceCoordinate(lat);
+    const nextLng = coerceCoordinate(lng);
+    if (nextLat == null || nextLng == null) return;
     setPinEstimated(false);
     setData((p) => ({
       ...p,
-      location: { ...p.location, lat, lng },
+      location: { ...p.location, lat: nextLat, lng: nextLng },
     }));
   }, []);
 
@@ -361,6 +386,10 @@ export default function ListingWizard() {
     setError("");
 
     try {
+      if (!imageFiles.length) {
+        throw new Error("Add at least one photo before publishing.");
+      }
+
       const pin = await resolvePinWithBudget({
         street: data.location.street,
         city: data.location.city,
@@ -371,6 +400,24 @@ export default function ListingWizard() {
         lng: data.location.lng,
       });
 
+      // Compress photos so the request stays under Vercel’s ~4.5MB body limit.
+      const uploadImages = await compressListingImages(imageFiles);
+      let audioForUpload = null;
+      if (audioBlob && audioBlob.size > 0) {
+        const ext = audioBlob.type?.includes("wav") ? "wav" : "webm";
+        audioForUpload = new File([audioBlob], `tour.${ext}`, {
+          type: audioBlob.type || "audio/webm",
+        });
+      }
+
+      const mediaBytes =
+        totalBytes(uploadImages) + (audioForUpload?.size || 0);
+      if (mediaBytes > MAX_LISTING_UPLOAD_BYTES) {
+        throw new Error(
+          "Photos are still too large after compression. Use fewer or smaller images (under ~4MB total) and try again.",
+        );
+      }
+
       const formData = new FormData();
       formData.append("type", data.type);
       formData.append("name", data.name);
@@ -378,6 +425,14 @@ export default function ListingWizard() {
       formData.append("beds", String(data.beds));
       formData.append("baths", String(data.baths));
       formData.append("square_feet", String(data.square_feet));
+      formData.append(
+        "checkInTime",
+        normalizeClockTime(data.checkInTime, DEFAULT_CHECK_IN_TIME),
+      );
+      formData.append(
+        "checkOutTime",
+        normalizeClockTime(data.checkOutTime, DEFAULT_CHECK_OUT_TIME),
+      );
 
       const loc = {
         ...data.location,
@@ -429,10 +484,9 @@ export default function ListingWizard() {
       formData.append("seller_info.email", seller.email);
       formData.append("seller_info.phone", seller.phone);
 
-      imageFiles.forEach((file) => formData.append("images", file));
-      if (audioBlob) {
-        const ext = audioBlob.type?.includes("wav") ? "wav" : "webm";
-        formData.append("audio", audioBlob, `tour.${ext}`);
+      uploadImages.forEach((file) => formData.append("images", file));
+      if (audioForUpload) {
+        formData.append("audio", audioForUpload);
       }
 
       const res = await fetch("/api/properties", {
@@ -440,9 +494,27 @@ export default function ListingWizard() {
         body: formData,
       });
 
-      const payload = await res.json().catch(() => ({}));
+      const rawText = await res.text();
+      let payload = {};
+      try {
+        payload = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        payload = {};
+      }
+
       if (!res.ok) {
-        throw new Error(payload.error || "Failed to create listing");
+        const hint =
+          res.status === 413 || /Request Entity Too Large|payload/i.test(rawText)
+            ? "Upload is too large for the server. Use fewer or smaller photos."
+            : res.status === 401
+              ? "Your session expired. Sign in again and retry."
+              : res.status === 403
+                ? payload.error || "Only verified hosts can publish listings."
+                : payload.error ||
+                  (res.status >= 500
+                    ? "Server error while creating the listing. Try again with fewer photos."
+                    : `Failed to create listing (${res.status}).`);
+        throw new Error(hint);
       }
 
       if (payload.redirectUrl) {
@@ -502,7 +574,7 @@ export default function ListingWizard() {
             <div className="flex flex-1 flex-col justify-center">
               <IntroIllustration className="mx-auto mb-6 h-36 w-full max-w-xs" />
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-[var(--kama-accent)]">
-                Kama Properties
+                Isisel
               </p>
               <h1 className="mt-3 text-3xl font-bold tracking-tight text-[var(--kama-ink)] sm:text-4xl">
                 It&apos;s easy to list your place
@@ -759,8 +831,9 @@ export default function ListingWizard() {
                   </div>
                 ) : (
                   <GoogleMap
-                    lat={data.location.lat}
-                    lng={data.location.lng}
+                    lat={coerceCoordinate(data.location.lat)}
+                    lng={coerceCoordinate(data.location.lng)}
+                    zoom={15}
                     draggable
                     estimated={pinEstimated}
                     onPositionChange={handleMapPositionChange}
@@ -851,6 +924,57 @@ export default function ListingWizard() {
                     className="h-5 w-5 accent-[var(--kama-accent)]"
                   />
                 </label>
+                <div className="border-t border-[var(--kama-border)] pt-6">
+                  <p className="font-medium text-[var(--kama-ink)]">
+                    Check-in &amp; check-out times
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
+                    Clock times on arrival and departure day (not stay dates).
+                    Guests see these on your listing.
+                  </p>
+                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <label className="block" htmlFor="wiz-check-in-time">
+                      <span className="mb-1.5 block text-xs font-medium text-[var(--kama-ink-muted)]">
+                        Check-in
+                      </span>
+                      <input
+                        id="wiz-check-in-time"
+                        type="time"
+                        className={inputClass}
+                        value={data.checkInTime || DEFAULT_CHECK_IN_TIME}
+                        onChange={(e) =>
+                          setData((p) => ({
+                            ...p,
+                            checkInTime: normalizeClockTime(
+                              e.target.value,
+                              DEFAULT_CHECK_IN_TIME,
+                            ),
+                          }))
+                        }
+                      />
+                    </label>
+                    <label className="block" htmlFor="wiz-check-out-time">
+                      <span className="mb-1.5 block text-xs font-medium text-[var(--kama-ink-muted)]">
+                        Check-out
+                      </span>
+                      <input
+                        id="wiz-check-out-time"
+                        type="time"
+                        className={inputClass}
+                        value={data.checkOutTime || DEFAULT_CHECK_OUT_TIME}
+                        onChange={(e) =>
+                          setData((p) => ({
+                            ...p,
+                            checkOutTime: normalizeClockTime(
+                              e.target.value,
+                              DEFAULT_CHECK_OUT_TIME,
+                            ),
+                          }))
+                        }
+                      />
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -1161,6 +1285,18 @@ export default function ListingWizard() {
                   <strong>Guests:</strong> {data.listing.maxGuests} ·{" "}
                   <strong>Beds:</strong> {data.beds} · <strong>Baths:</strong>{" "}
                   {data.baths}
+                </p>
+                <p>
+                  <strong>Check-in:</strong>{" "}
+                  {formatClockTimeLabel(
+                    data.checkInTime,
+                    DEFAULT_CHECK_IN_TIME,
+                  )}{" "}
+                  · <strong>Check-out:</strong>{" "}
+                  {formatClockTimeLabel(
+                    data.checkOutTime,
+                    DEFAULT_CHECK_OUT_TIME,
+                  )}
                 </p>
                 <p>
                   <strong>Price:</strong> ${data.rates.nightly}/night

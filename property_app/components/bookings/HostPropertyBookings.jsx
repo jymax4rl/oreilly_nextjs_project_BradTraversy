@@ -6,13 +6,20 @@ import {
   CalendarCheck,
   Loader2,
   Mail,
+  MessageCircle,
   Pencil,
+  Phone,
+  RefreshCw,
   Search,
   Trash2,
   User,
 } from "lucide-react";
 import { countNights, formatGuestDate } from "@/utils/availability/validateStay";
 import { bookingMatchesSearch } from "@/utils/bookings/bookingRefSearch";
+import {
+  guestPhoneTelHref,
+  guestPhoneWhatsAppHref,
+} from "@/utils/bookings/paymentMode";
 
 function formatAmount(amount, currency) {
   if (amount == null || !currency) return null;
@@ -101,9 +108,14 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
       setMessage({ ok: true, text: "Dates updated" });
     });
 
-  const canResend = booking.actions?.resend?.allowed !== false && booking.status === "confirmed";
+  const canResend =
+    booking.actions?.resend?.allowed !== false &&
+    (booking.status === "confirmed" ||
+      (booking.status === "pending" && booking.paymentMode === "manual"));
   const canModify = booking.actions?.modify?.allowed;
   const canCancel = booking.actions?.cancel?.allowed;
+  const telHref = guestPhoneTelHref(booking.guestPhone);
+  const waHref = guestPhoneWhatsAppHref(booking.guestPhone);
 
   return (
     <li className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -112,8 +124,15 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
           <span
             className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${statusClass}`}
           >
-            {booking.status}
+            {booking.status === "pending" && booking.paymentMode === "manual"
+              ? "Awaiting payment"
+              : booking.status}
           </span>
+          {booking.paymentMode === "manual" && booking.status === "pending" && (
+            <p className="mt-1 text-[11px] text-amber-800">
+              Arrange payment with the guest (message, call, or WhatsApp)
+            </p>
+          )}
           <p className="mt-2 text-sm font-semibold text-slate-900">
             {formatGuestDate(booking.checkIn)} → {formatGuestDate(booking.checkOut)}
           </p>
@@ -154,6 +173,44 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
             </a>
           </p>
         )}
+        {booking.guestPhone && (
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="inline-flex items-center gap-2">
+              <Phone size={14} className="shrink-0 text-slate-400" aria-hidden />
+              {telHref ? (
+                <a
+                  href={telHref}
+                  className="font-medium text-[#1b5c57] hover:underline"
+                >
+                  {booking.guestPhone}
+                </a>
+              ) : (
+                <span className="font-medium text-slate-700">
+                  {booking.guestPhone}
+                </span>
+              )}
+            </span>
+            {waHref && (
+              <a
+                href={waHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-semibold text-[#1b5c57] hover:underline"
+              >
+                WhatsApp
+              </a>
+            )}
+          </p>
+        )}
+        <p className="mt-1">
+          <Link
+            href="/messages"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1b5c57] hover:underline"
+          >
+            <MessageCircle size={13} aria-hidden />
+            Open messages
+          </Link>
+        </p>
       </div>
 
       {booking.status !== "cancelled" && (
@@ -264,12 +321,12 @@ export default function HostPropertyBookings({
 }) {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
-  const [statusFilter, setStatusFilter] = useState(
-    mode === "all" ? "active" : "confirmed",
-  );
+  const [statusFilter, setStatusFilter] = useState("active");
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [updatedAt, setUpdatedAt] = useState(null);
 
   // Debounce search before hitting the API.
   useEffect(() => {
@@ -277,8 +334,10 @@ export default function HostPropertyBookings({
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (opts = {}) => {
+    const silent = opts.silent === true;
+    if (silent) setRefreshing(true);
+    else setLoading(true);
     setError("");
     try {
       const params = new URLSearchParams();
@@ -295,7 +354,7 @@ export default function HostPropertyBookings({
           ? `/api/host/reservations${qs ? `?${qs}` : ""}`
           : `/api/properties/${propertyId}/bookings${qs ? `?${qs}` : ""}`;
 
-      const res = await fetch(fetchUrl);
+      const res = await fetch(fetchUrl, { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load reservations");
       let list = data.bookings || [];
@@ -308,10 +367,12 @@ export default function HostPropertyBookings({
         list = list.filter((b) => bookingMatchesSearch(b, searchQuery));
       }
       setBookings(list);
+      setUpdatedAt(new Date());
     } catch (e) {
       setError(e.message || "Could not load reservations");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [propertyId, mode, statusFilter, searchQuery]);
 
@@ -339,6 +400,25 @@ export default function HostPropertyBookings({
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => load({ silent: true })}
+            disabled={loading || refreshing}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--kama-border-strong)] bg-white px-2.5 py-1.5 text-xs font-semibold text-[var(--kama-accent)] transition hover:bg-[var(--kama-accent-soft)] disabled:opacity-60"
+            aria-label="Refresh reservations"
+          >
+            <RefreshCw
+              size={14}
+              className={refreshing ? "animate-spin" : undefined}
+              aria-hidden
+            />
+            {refreshing ? "Refreshing…" : "Refresh"}
+          </button>
+          {updatedAt && !loading && (
+            <span className="hidden text-[11px] text-slate-400 sm:inline">
+              Updated {updatedAt.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
+            </span>
+          )}
           <label className="relative block min-w-[11rem] flex-1 sm:min-w-[16rem]">
             <span className="sr-only">Search by Ref # or guest name</span>
             <Search
@@ -398,7 +478,7 @@ export default function HostPropertyBookings({
                 key={b._id}
                 booking={b}
                 propertyId={propertyId || b.propertyId}
-                onChanged={load}
+                onChanged={() => load({ silent: true })}
               />
             ))}
           </ul>
@@ -416,7 +496,7 @@ export default function HostPropertyBookings({
                 key={b._id}
                 booking={b}
                 propertyId={propertyId || b.propertyId}
-                onChanged={load}
+                onChanged={() => load({ silent: true })}
               />
             ))}
           </ul>
@@ -434,7 +514,7 @@ export default function HostPropertyBookings({
                 key={b._id}
                 booking={b}
                 propertyId={propertyId || b.propertyId}
-                onChanged={load}
+                onChanged={() => load({ silent: true })}
               />
             ))}
           </ul>

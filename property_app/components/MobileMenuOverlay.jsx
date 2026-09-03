@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signIn, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
+import { getLoginUrl } from "@/lib/legal/loginUrl";
 import {
   Home,
   Building2,
@@ -20,8 +21,11 @@ import {
 } from "lucide-react";
 import { LuUserRound } from "react-icons/lu";
 import BrandLogo from "@/components/BrandLogo";
-import Currency from "@/components/Currency";
 import { BECOME_A_HOST_HREF } from "@/utils/hostPwaInstall";
+import Currency from "@/components/Currency";
+import { isOpsStaff } from "@/utils/opsAuth";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import LanguageToggle from "@/components/i18n/LanguageToggle";
 
 /**
  * Full-screen mobile navigation overlay.
@@ -34,9 +38,10 @@ export default function MobileMenuOverlay({
   unreadCount = 0,
 }) {
   const pathname = usePathname();
+  const { t } = useLanguage();
   const user = session?.user;
   const isHost = user?.hostStatus === "verified";
-  const isAdmin = user?.role === "admin";
+  const isAdmin = isOpsStaff(user?.role);
   const profileImage = user?.image;
 
   const isActive = (path) => {
@@ -66,6 +71,7 @@ export default function MobileMenuOverlay({
           <header className="kama-menu-header">
             <BrandLogo className="h-9 w-auto" href="/" />
             <div className="flex items-center gap-2">
+              <LanguageToggle />
               <div className="kama-menu-currency-chip">
                 <Currency variant="portal" align="end" />
               </div>
@@ -73,7 +79,7 @@ export default function MobileMenuOverlay({
                 type="button"
                 onClick={close}
                 className="kama-menu-close"
-                aria-label="Close menu"
+                aria-label={t("menu.close")}
               >
                 <X className="h-5 w-5" strokeWidth={1.75} aria-hidden />
               </button>
@@ -110,7 +116,7 @@ export default function MobileMenuOverlay({
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[0.95rem] font-semibold tracking-tight text-[#0c1a1a]">
-                      {user.name || "Your profile"}
+                      {user.name || t("menu.yourProfile")}
                     </p>
                     <p className="mt-0.5 truncate text-xs text-[#4a5c5b]">
                       {user.email}
@@ -124,34 +130,34 @@ export default function MobileMenuOverlay({
               ) : (
                 <div className="kama-menu-signin-block">
                   <p className="text-[0.95rem] font-semibold tracking-tight text-[#0c1a1a]">
-                    Welcome to Kama
+                    {t("menu.welcome")}
                   </p>
                   <p className="mt-1 text-sm leading-snug text-[#4a5c5b]">
-                    Sign in to save stays, message hosts, and manage bookings.
+                    {t("menu.signInHint")}
                   </p>
                   <button
                     type="button"
                     onClick={() => {
-                      signIn("google");
                       close();
+                      window.location.assign(getLoginUrl(pathname || "/"));
                     }}
                     className="kama-menu-cta mt-4"
                   >
                     <GoogleGlyph />
-                    Sign in with Google
+                    {t("menu.signInGoogle")}
                   </button>
                 </div>
               )}
 
               {/* Discover */}
               <section className="kama-menu-group" aria-labelledby="menu-discover">
-                <h2 id="menu-discover" className="kama-menu-section">
-                  Discover
-                </h2>
-                <nav className="flex flex-col gap-0.5" aria-label="Discover">
+                <p id="menu-discover" className="kama-menu-section">
+                  {t("menu.discover")}
+                </p>
+                <nav className="flex flex-col gap-0.5" aria-label={t("menu.discover")}>
                   <Link href="/" onClick={close} className={rowClass("/")}>
                     <Home className="kama-menu-row-icon" aria-hidden />
-                    Home
+                    {t("nav.home")}
                   </Link>
                   <Link
                     href="/properties"
@@ -159,7 +165,7 @@ export default function MobileMenuOverlay({
                     className={rowClass("/properties")}
                   >
                     <Building2 className="kama-menu-row-icon" aria-hidden />
-                    Properties
+                    {t("nav.properties")}
                   </Link>
                   <Link
                     href="/saved-properties"
@@ -167,7 +173,15 @@ export default function MobileMenuOverlay({
                     className={rowClass("/saved-properties")}
                   >
                     <Heart className="kama-menu-row-icon" aria-hidden />
-                    Saved
+                    {t("menu.saved")}
+                  </Link>
+                  <Link
+                    href="/policies"
+                    onClick={close}
+                    className={rowClass("/policies")}
+                  >
+                    <Shield className="kama-menu-row-icon" aria-hidden />
+                    {t("nav.policies")}
                   </Link>
                 </nav>
               </section>
@@ -175,10 +189,10 @@ export default function MobileMenuOverlay({
               {/* Travel — signed-in guests */}
               {user && (
                 <section className="kama-menu-group" aria-labelledby="menu-travel">
-                  <h2 id="menu-travel" className="kama-menu-section">
-                    Travel
-                  </h2>
-                  <nav className="flex flex-col gap-0.5" aria-label="Travel">
+                  <p id="menu-travel" className="kama-menu-section">
+                    {t("menu.travel")}
+                  </p>
+                  <nav className="flex flex-col gap-0.5" aria-label={t("menu.travel")}>
                     <Link
                       href="/my-bookings"
                       onClick={close}
@@ -188,7 +202,7 @@ export default function MobileMenuOverlay({
                         className="kama-menu-row-icon"
                         aria-hidden
                       />
-                      My bookings
+                      {t("menu.myBookings")}
                     </Link>
                     <Link
                       href="/messages"
@@ -199,7 +213,7 @@ export default function MobileMenuOverlay({
                         className="kama-menu-row-icon"
                         aria-hidden
                       />
-                      Messages
+                      {t("nav.messages")}
                       {unreadCount > 0 && (
                         <span className="kama-menu-badge">
                           {unreadCount > 9 ? "9+" : unreadCount}
@@ -210,60 +224,28 @@ export default function MobileMenuOverlay({
                 </section>
               )}
 
-              {/* Hosting — tools for verified hosts; Become a Host for everyone else */}
-              {isHost ? (
-                <section
-                  className="kama-menu-group"
-                  aria-labelledby="menu-hosting"
-                >
-                  <h2 id="menu-hosting" className="kama-menu-section">
-                    Hosting
-                  </h2>
-                  <nav className="flex flex-col gap-0.5" aria-label="Hosting">
-                    <Link
-                      href="/properties/my-listings"
-                      onClick={close}
-                      className={rowClass("/properties/my-listings")}
-                    >
-                      <LayoutList
-                        className="kama-menu-row-icon"
-                        aria-hidden
-                      />
-                      My listings
-                    </Link>
-                    <Link
-                      href="/host/reservations"
-                      onClick={close}
-                      className={rowClass("/host/reservations")}
-                    >
-                      <CalendarCheck
-                        className="kama-menu-row-icon"
-                        aria-hidden
-                      />
-                      Manage reservations
-                    </Link>
-                    <Link
-                      href="/properties/add"
-                      onClick={close}
-                      className={rowClass("/properties/add")}
-                    >
-                      <PlusCircle
-                        className="kama-menu-row-icon"
-                        aria-hidden
-                      />
-                      List property
-                    </Link>
-                  </nav>
-                </section>
-              ) : (
-                <section
-                  className="kama-menu-group"
-                  aria-labelledby="menu-hosting"
-                >
-                  <h2 id="menu-hosting" className="kama-menu-section">
-                    Hosting
-                  </h2>
-                  <nav className="flex flex-col gap-0.5" aria-label="Hosting">
+              {/* Hosting — visitors and guests apply; verified hosts get tools */}
+              <section
+                className="kama-menu-group"
+                aria-labelledby="menu-hosting"
+              >
+                <p id="menu-hosting" className="kama-menu-section">
+                  {t("menu.hosting")}
+                </p>
+                <nav className="flex flex-col gap-0.5" aria-label={t("menu.hosting")}>
+                    {isHost ? (
+                      <Link
+                        href="/host"
+                        onClick={close}
+                        className={`${rowClass("/host")} kama-menu-row--accent`}
+                      >
+                        <LayoutList
+                          className="kama-menu-row-icon"
+                          aria-hidden
+                        />
+                        {t("nav.hostConsole")}
+                      </Link>
+                    ) : (
                     <Link
                       href={BECOME_A_HOST_HREF}
                       onClick={close}
@@ -273,26 +255,37 @@ export default function MobileMenuOverlay({
                         className="kama-menu-row-icon"
                         aria-hidden
                       />
-                      Become a host
+                      {t("menu.becomeHost")}
                     </Link>
-                  </nav>
-                </section>
-              )}
+                    )}
+                    <Link
+                      href="/business"
+                      onClick={close}
+                      className={rowClass("/business")}
+                    >
+                      <Building2
+                        className="kama-menu-row-icon"
+                        aria-hidden
+                      />
+                      {t("nav.business")}
+                    </Link>
+                </nav>
+              </section>
 
-              {/* Admin */}
+              {/* Ops */}
               {isAdmin && (
                 <section className="kama-menu-group" aria-labelledby="menu-admin">
-                  <h2 id="menu-admin" className="kama-menu-section">
-                    Admin
-                  </h2>
-                  <nav className="flex flex-col gap-0.5" aria-label="Admin">
+                  <p id="menu-admin" className="kama-menu-section">
+                    {t("nav.operations")}
+                  </p>
+                  <nav className="flex flex-col gap-0.5" aria-label={t("nav.operations")}>
                     <Link
-                      href="/admin/hosts"
+                      href="/ops"
                       onClick={close}
-                      className={rowClass("/admin/hosts")}
+                      className={rowClass("/ops")}
                     >
                       <Shield className="kama-menu-row-icon" aria-hidden />
-                      Admin dashboard
+                      {t("menu.opsConsole")}
                     </Link>
                   </nav>
                 </section>
@@ -304,17 +297,25 @@ export default function MobileMenuOverlay({
                   className="kama-menu-group"
                   aria-labelledby="menu-account"
                 >
-                  <h2 id="menu-account" className="kama-menu-section">
-                    Account
-                  </h2>
-                  <nav className="flex flex-col gap-0.5" aria-label="Account">
+                  <p id="menu-account" className="kama-menu-section">
+                    {t("menu.account")}
+                  </p>
+                  <nav className="flex flex-col gap-0.5" aria-label={t("menu.account")}>
                     <Link
                       href="/settings"
                       onClick={close}
                       className={rowClass("/settings")}
                     >
                       <Settings className="kama-menu-row-icon" aria-hidden />
-                      Settings
+                      {t("nav.settings")}
+                    </Link>
+                    <Link
+                      href="/policies"
+                      onClick={close}
+                      className={rowClass("/policies")}
+                    >
+                      <Shield className="kama-menu-row-icon" aria-hidden />
+                      {t("nav.policies")}
                     </Link>
                     <button
                       type="button"
@@ -325,7 +326,7 @@ export default function MobileMenuOverlay({
                       className="kama-menu-signout"
                     >
                       <LogOut className="h-5 w-5 shrink-0" aria-hidden />
-                      Sign out
+                      {t("nav.signOut")}
                     </button>
                   </nav>
                 </section>

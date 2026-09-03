@@ -1,7 +1,7 @@
 import connectToDatabase from "@/config/database";
-import Property from "@/models/Property";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import HostPropertyBookings from "@/components/bookings/HostPropertyBookings";
+import HostShell from "@/components/host/HostShell";
 import {
   describeBookingPolicy,
   resolveBookingPolicy,
@@ -13,15 +13,17 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { propertyCardImageSrc } from "@/utils/cloudinary/propertyMediaUrls";
+import { findPropertyByParam } from "@/utils/listings/propertySlug";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 
 export async function generateMetadata({ params }) {
   await connectToDatabase();
   const { id } = await params;
-  const property = await Property.findById(id).select("name").lean();
+  const property = await findPropertyByParam(id, "name");
   return {
     title: property
-      ? `Reservations — ${property.name} | Kama Properties`
-      : "Reservations | Kama Properties",
+      ? `Reservations — ${property.name} | Isisel`
+      : "Reservations | Isisel",
     robots: { index: false, follow: false },
   };
 }
@@ -29,7 +31,7 @@ export async function generateMetadata({ params }) {
 export default async function PropertyReservationsPage({ params }) {
   await connectToDatabase();
   const { id } = await params;
-  const property = await Property.findById(id, "-internalNotes").lean();
+  const property = await findPropertyByParam(id, "-internalNotes");
 
   if (!property) {
     notFound();
@@ -49,7 +51,7 @@ export default async function PropertyReservationsPage({ params }) {
   const serialized = serializePropertyForClient(property);
 
   if (session.user.id !== serialized.owner) {
-    redirect(`/properties/${id}`);
+    redirect(propertyPublicPath(serialized));
   }
 
   const locationLabel = [
@@ -63,11 +65,11 @@ export default async function PropertyReservationsPage({ params }) {
   const policySummary = describeBookingPolicy(policy);
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 pt-14 font-sans text-slate-900 md:pt-20">
-      <div className="mx-auto max-w-2xl px-4 py-6 sm:py-8">
+    <HostShell>
+    <div className="mx-auto max-w-2xl">
         <Link
           href="/host/reservations"
-          className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-slate-900"
+          className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-[var(--kama-ink-muted)] transition hover:text-[var(--kama-ink)]"
         >
           <ArrowLeft size={18} aria-hidden />
           All reservations
@@ -121,7 +123,7 @@ export default async function PropertyReservationsPage({ params }) {
           mode="property"
           title="Reservations"
         />
-      </div>
     </div>
+    </HostShell>
   );
 }

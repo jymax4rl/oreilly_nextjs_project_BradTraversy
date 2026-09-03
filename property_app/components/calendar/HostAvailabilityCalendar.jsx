@@ -279,6 +279,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
     try {
       const res = await fetch(`/api/properties/${propertyId}/availability`, {
         method: "PUT",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           hostBlocks,
@@ -286,9 +287,21 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
           customDayRates,
         }),
       });
-      const data = await res.json();
+      let data = {};
+      const raw = await res.text();
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        throw new Error(
+          raw?.slice(0, 200) || `Save failed (HTTP ${res.status})`,
+        );
+      }
       if (!res.ok) {
-        const msg = data.details?.join?.(" ") || data.error || "Save failed";
+        const detailList = Array.isArray(data.details)
+          ? data.details.filter(Boolean)
+          : [];
+        const msg =
+          detailList.join(" ") || data.error || `Save failed (HTTP ${res.status})`;
         throw new Error(msg);
       }
       setHostBlocks(data.hostBlocks || []);

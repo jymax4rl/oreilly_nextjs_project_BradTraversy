@@ -1,6 +1,7 @@
+import { BRAND_NAME } from "@/utils/brand";
 import { DEFAULT_PRODUCTION_APP_URL, brandLogoUrl } from "@/utils/appUrl";
 
-const APP_NAME = "Kama Properties";
+const APP_NAME = BRAND_NAME;
 const APP_URL = DEFAULT_PRODUCTION_APP_URL;
 const DEFAULT_LOGO_URL = brandLogoUrl();
 
@@ -150,7 +151,7 @@ function bookingEmailLayout() {
                 <tr>
                   <td align="left" class="mobile-center">
                     <a href="{{{APP_URL}}}" style="text-decoration:none;display:inline-block;">
-                      <img src="{{{LOGO_URL}}}" alt="Kama Properties" width="180" height="40" border="0" style="display:block;width:180px;max-width:180px;height:auto;border:0;" />
+                      <img src="{{{LOGO_URL}}}" alt="Isisel" width="180" height="40" border="0" style="display:block;width:180px;max-width:180px;height:auto;border:0;" />
                     </a>
                   </td>
                   <td align="right" class="mobile-hide" style="font-size:13px;color:#6b7280;font-family:Arial,Helvetica,sans-serif;">
@@ -245,7 +246,7 @@ function bookingEmailLayout() {
                               <td align="center" style="width:40px;height:40px;background-color:#fef3c7;border-radius:10px;font-size:18px;line-height:40px;font-family:Arial,Helvetica,sans-serif;">&#128737;</td>
                             </tr>
                           </table>
-                          <p style="margin:10px 0 0;font-size:13px;font-weight:600;color:#374151;font-family:Arial,Helvetica,sans-serif;">Secure payments</p>
+                          <p style="margin:10px 0 0;font-size:13px;font-weight:600;color:#374151;font-family:Arial,Helvetica,sans-serif;">Trusted stays</p>
                         </td>
                       </tr>
                     </table>
@@ -308,7 +309,7 @@ export function renderHostBookingEmailHtml(variables) {
 
 export function guestTemplateMeta() {
   return {
-    name: "Kama — Booking confirmed (guest)",
+    name: "Isisel — Booking confirmed (guest)",
     alias: GUEST_TEMPLATE_ALIAS,
     subject: "Booking confirmed — {{{PROPERTY_NAME}}}",
     html: getGuestBookingTemplateHtml(),
@@ -318,7 +319,7 @@ export function guestTemplateMeta() {
 
 export function hostTemplateMeta() {
   return {
-    name: "Kama — New reservation (host)",
+    name: "Isisel — New reservation (host)",
     alias: HOST_TEMPLATE_ALIAS,
     subject: "New booking — {{{PROPERTY_NAME}}}",
     html: getHostBookingTemplateHtml(),

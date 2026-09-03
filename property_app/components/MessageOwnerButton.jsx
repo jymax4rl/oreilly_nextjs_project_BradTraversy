@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { getLoginUrl } from "@/lib/legal/loginUrl";
 
 export default function MessageOwnerButton({
   propertyId,
+  listingKey,
   ownerId,
   ownerName = "host",
   className = "",
@@ -13,7 +15,7 @@ export default function MessageOwnerButton({
 }) {
   const { data: session, status } = useSession();
   const label = `Message ${ownerName}`;
-  const messageHref = `/properties/${propertyId}/message`;
+  const messageHref = `/properties/${listingKey || propertyId}/message`;
 
   if (status === "loading") return null;
   if (session?.user?.id === ownerId) return null;
@@ -38,15 +40,9 @@ export default function MessageOwnerButton({
 
   if (!session) {
     return (
-      <button
-        type="button"
-        onClick={() =>
-          signIn("google", { callbackUrl: messageHref })
-        }
-        className={`${base} ${className}`}
-      >
+      <Link href={getLoginUrl(messageHref)} className={`${base} ${className}`}>
         {content}
-      </button>
+      </Link>
     );
   }
 

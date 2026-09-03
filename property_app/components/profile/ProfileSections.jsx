@@ -165,28 +165,16 @@ export default function ProfileSections({ profile }) {
             </div>
             <div className="space-y-0.5">
               <QuickLink
-                href="/properties/my-listings"
+                href="/host"
                 icon={LayoutList}
-                label="My listings"
-                description="Edit rates, photos, and availability"
-              />
-              <QuickLink
-                href="/host/reservations"
-                icon={CalendarCheck}
-                label="Manage reservations"
-                description="Guest stays across your properties"
-              />
-              <QuickLink
-                href="/host/listings"
-                icon={Building2}
-                label="Listing dashboard"
-                description="Status and approval overview"
+                label="Host console"
+                description="Reservations, calendar, listings, inbox"
               />
               <QuickLink
                 href="/properties/add"
                 icon={PlusCircle}
-                label="List a property"
-                description="Add another stay"
+                label="List a stay"
+                description="Add another listing"
               />
               <QuickLink
                 href="/host/install?next=/host/listings"
@@ -194,14 +182,6 @@ export default function ProfileSections({ profile }) {
                 label="Install Isisel app"
                 description="Home-screen shortcut for hosting"
               />
-              {!profile.hasCompletedHostOnboarding && (
-                <QuickLink
-                  href="/onboarding"
-                  icon={CheckCircle2}
-                  label="Finish host welcome"
-                  description="Short intro before listing tools"
-                />
-              )}
             </div>
           </>
         )}
@@ -246,23 +226,23 @@ export default function ProfileSections({ profile }) {
               href={BECOME_A_HOST_HREF}
               icon={PlusCircle}
               label="Become a host"
-              description="Apply to list properties on Kama"
+              description="Apply to list properties on Isisel"
             />
           </div>
         )}
       </SectionCard>
 
-      {/* Admin — server-gated */}
+      {/* Ops — server-gated */}
       {roles.admin && (
-        <SectionCard title="Admin" className="lg:col-span-2">
+        <SectionCard title="Operations" className="lg:col-span-2">
           <QuickLink
-            href="/admin/hosts"
+            href="/ops"
             icon={Shield}
-            label="Admin dashboard"
-            description="Review host applications and platform activity"
+            label="Ops console"
+            description="Hosts, listings, and platform activity"
           />
           <QuickLink
-            href="/admin/transactions"
+            href="/ops/transactions"
             icon={CalendarCheck}
             label="Transactions"
             description="Payment and booking activity"

@@ -206,7 +206,9 @@ export async function sendEmailsForBooking(
   }
 
   const booking = await Booking.findById(bookingId)
-    .select("emailStatus confirmationEmailsDispatchedAt guestEmail guestName")
+    .select(
+      "emailStatus confirmationEmailsDispatchedAt guestEmail guestName guestPhone paymentMode",
+    )
     .lean();
 
   if (!booking) {
@@ -289,6 +291,7 @@ export async function sendEmailsForBooking(
     guestId: guest?.guestId,
     guestName: firstNonEmpty(guest?.guestName, booking.guestName),
     guestEmail: firstNonEmpty(guest?.guestEmail, booking.guestEmail),
+    guestPhone: firstNonEmpty(guest?.guestPhone, booking.guestPhone),
   };
 
   if (!resolvedGuest.guestEmail) {
@@ -334,6 +337,11 @@ export async function sendEmailsForBooking(
     outcome = await sendBookingConfirmationEmails({
       guestEmail: resolvedGuest.guestEmail,
       guestName: resolvedGuest.guestName,
+      guestPhone: firstNonEmpty(
+        resolvedGuest.guestPhone,
+        body.guest_phone,
+        booking.guestPhone,
+      ),
       hostEmail: body.host_email,
       hostName: body.host_name,
       propertyName: body.property_name || "Property",
@@ -347,6 +355,7 @@ export async function sendEmailsForBooking(
       amount: body.amount,
       currency: body.currency,
       transactionId: body.transaction_id,
+      paymentMode: body.payment_mode || booking.paymentMode,
       // Force resend must not collide with Resend's 24h idempotency cache.
       idempotencySuffix: force ? `force-${Date.now()}` : undefined,
       // Manual resend from host/admin tools bypasses Settings opt-outs.
@@ -463,6 +472,7 @@ export async function attachBookingToTransaction(body, guestHint = {}) {
     guestId: guest.guestId,
     guestName: guest.guestName,
     guestEmail: guest.guestEmail,
+    guestPhone: body.guest_phone,
     checkIn: body.check_in,
     checkOut: body.check_out,
     transactionId: body.transaction_id,

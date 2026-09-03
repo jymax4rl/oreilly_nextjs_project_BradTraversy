@@ -4,29 +4,15 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import {
   loadGoogleMapsApi,
   hasGoogleMapsApiKey,
-  getGoogleMapsMapId,
   describeGoogleMapsError,
   GOOGLE_MAPS_LOAD_TIMEOUT_MS,
 } from "@/utils/googleMaps";
 
 const KAMA_TEAL = "#1B5C57";
 const KAMA_TEAL_SOFT = "#c5ddd9";
-
-/** Teal teardrop pin for AdvancedMarkerElement HTML content. */
-function createKamaPinElement() {
-  const wrap = document.createElement("div");
-  wrap.setAttribute("aria-hidden", "true");
-  wrap.style.cssText =
-    "width:36px;height:44px;transform:translateY(-4px);cursor:grab;filter:drop-shadow(0 2px 4px rgba(12,26,26,0.28));";
-  wrap.innerHTML = `
-    <svg width="36" height="44" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M18 42s14-12.4 14-24a14 14 0 10-28 0c0 11.6 14 24 14 24z" fill="${KAMA_TEAL}"/>
-      <circle cx="18" cy="16" r="5.5" fill="#fff"/>
-      <circle cx="18" cy="16" r="2.4" fill="${KAMA_TEAL}"/>
-    </svg>
-  `;
-  return wrap;
-}
+const DEFAULT_PIN_ZOOM = 15;
+const PIN_W = 36;
+const PIN_H = 44;
 
 function readLatLng(position) {
   if (!position) return null;
@@ -34,21 +20,18 @@ function readLatLng(position) {
     typeof position.lat === "function" ? position.lat() : Number(position.lat);
   const lng =
     typeof position.lng === "function" ? position.lng() : Number(position.lng);
-  if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
   return { lat, lng };
 }
 
-function classicTealIcon(google) {
-  return {
-    path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z",
-    fillColor: KAMA_TEAL,
-    fillOpacity: 1,
-    strokeColor: "#0c1a1a",
-    strokeWeight: 0.6,
-    strokeOpacity: 0.35,
-    scale: 1.65,
-    anchor: new google.maps.Point(12, 22),
-  };
+/** Coerce wizard / API coords to finite numbers; null if unusable. */
+function coerceFiniteCoord(value) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const n = Number(value);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
 }
 
 function scanContainerForMapsError(container) {
@@ -66,10 +49,188 @@ function positionsNearlyEqual(a, b, epsilon = 1e-7) {
   return Math.abs(a.lat - b.lat) < epsilon && Math.abs(a.lng - b.lng) < epsilon;
 }
 
+function createPinDom() {
+  const el = document.createElement("div");
+  el.setAttribute("role", "img");
+  el.setAttribute("aria-label", "Property location");
+  el.style.cssText = [
+    "position:absolute",
+    "width:" + PIN_W + "px",
+    "height:" + PIN_H + "px",
+    "margin:0",
+    "padding:0",
+    "transform:translate(-50%,-100%)",
+    "cursor:grab",
+    "z-index:1000",
+    "filter:drop-shadow(0 2px 4px rgba(12,26,26,0.35))",
+    "user-select:none",
+    "-webkit-user-select:none",
+    "touch-action:none",
+  ].join(";");
+  el.innerHTML = `
+    <svg width="${PIN_W}" height="${PIN_H}" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;pointer-events:none">
+      <path d="M18 42s14-12.4 14-24a14 14 0 10-28 0c0 11.6 14 24 14 24z" fill="${KAMA_TEAL}"/>
+      <circle cx="18" cy="16" r="5.5" fill="#fff"/>
+      <circle cx="18" cy="16" r="2.4" fill="${KAMA_TEAL}"/>
+    </svg>
+  `;
+  return el;
+}
+
+/**
+ * Geographic pin via OverlayView — DOM element positioned with
+ * fromLatLngToDivPixel. Survives environments where classic Marker /
+ * AdvancedMarker fail to paint (no Map ID, weekly channel, Docker).
+ *
+ * Not a fixed CSS center overlay: draw() repositions from lat/lng on every
+ * pan/zoom. Drag moves the lat/lng; map pan does not.
+ */
+function createKamaPinOverlay(google, { position, draggable, onDragStart, onDragEnd }) {
+  class KamaPinOverlay extends google.maps.OverlayView {
+    constructor(opts) {
+      super();
+      this.position_ = opts.position;
+      this.draggable_ = Boolean(opts.draggable);
+      this.onDragStart_ = opts.onDragStart;
+      this.onDragEnd_ = opts.onDragEnd;
+      this.div_ = null;
+      this.moveListener_ = null;
+      this.upListener_ = null;
+      this.mapWasDraggable_ = true;
+    }
+
+    onAdd() {
+      this.div_ = createPinDom();
+      this.div_.style.cursor = this.draggable_ ? "grab" : "default";
+
+      // Stop map clicks/drags from eating pin pointer events.
+      google.maps.OverlayView.preventMapHitsAndGesturesFrom(this.div_);
+
+      if (this.draggable_) {
+        this.div_.addEventListener("pointerdown", this.handlePointerDown_);
+      }
+
+      const panes = this.getPanes();
+      // floatPane sits above markers; always visible above tiles.
+      panes.floatPane.appendChild(this.div_);
+    }
+
+    draw() {
+      if (!this.div_) return;
+      const projection = this.getProjection();
+      if (!projection) return;
+      const point = projection.fromLatLngToDivPixel(this.position_);
+      if (!point) return;
+      this.div_.style.left = point.x + "px";
+      this.div_.style.top = point.y + "px";
+    }
+
+    onRemove() {
+      this.teardownDrag_();
+      if (this.div_?.parentNode) {
+        this.div_.parentNode.removeChild(this.div_);
+      }
+      this.div_ = null;
+    }
+
+    getPosition() {
+      return this.position_;
+    }
+
+    setPosition(latLng) {
+      this.position_ = latLng;
+      this.draw();
+    }
+
+    setDraggable(value) {
+      this.draggable_ = Boolean(value);
+      if (!this.div_) return;
+      this.div_.style.cursor = this.draggable_ ? "grab" : "default";
+      this.div_.removeEventListener("pointerdown", this.handlePointerDown_);
+      if (this.draggable_) {
+        this.div_.addEventListener("pointerdown", this.handlePointerDown_);
+      }
+    }
+
+    handlePointerDown_ = (e) => {
+      if (!this.draggable_ || e.button != null && e.button !== 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const map = this.getMap();
+      if (!map) return;
+
+      this.mapWasDraggable_ = map.get("draggable") !== false;
+      map.set("draggable", false);
+      if (this.div_) this.div_.style.cursor = "grabbing";
+      this.onDragStart_?.();
+
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startPos = this.getProjection()?.fromLatLngToDivPixel(this.position_);
+      if (!startPos) return;
+
+      const onMove = (ev) => {
+        const projection = this.getProjection();
+        if (!projection) return;
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        const next = projection.fromDivPixelToLatLng(
+          new google.maps.Point(startPos.x + dx, startPos.y + dy),
+        );
+        if (!next) return;
+        this.position_ = next;
+        this.draw();
+      };
+
+      const onUp = (ev) => {
+        this.teardownDrag_();
+        if (this.div_) this.div_.style.cursor = "grab";
+        if (map) map.set("draggable", this.mapWasDraggable_);
+        const next = readLatLng(this.position_);
+        this.onDragEnd_?.(next);
+        // Prevent the same pointerup from becoming a map click.
+        ev.preventDefault?.();
+        ev.stopPropagation?.();
+      };
+
+      this.moveListener_ = onMove;
+      this.upListener_ = onUp;
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp, { once: true });
+      window.addEventListener("pointercancel", onUp, { once: true });
+    };
+
+    teardownDrag_() {
+      if (this.moveListener_) {
+        window.removeEventListener("pointermove", this.moveListener_);
+        this.moveListener_ = null;
+      }
+      if (this.upListener_) {
+        window.removeEventListener("pointerup", this.upListener_);
+        window.removeEventListener("pointercancel", this.upListener_);
+        this.upListener_ = null;
+      }
+    }
+  }
+
+  const overlay = new KamaPinOverlay({
+    position,
+    draggable,
+    onDragStart,
+    onDragEnd,
+  });
+  return overlay;
+}
+
+/**
+ * Property map with a geographic OverlayView pin (lat/lng anchored).
+ * Never uses a fixed CSS center overlay. Works without Map ID in Docker.
+ */
 export default function GoogleMap({
   lat,
   lng,
-  zoom = 15,
+  zoom = DEFAULT_PIN_ZOOM,
   draggable = false,
   onPositionChange,
   className = "h-64 w-full rounded-2xl",
@@ -78,8 +239,7 @@ export default function GoogleMap({
 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
-  const markerRef = useRef(null);
-  const markerModeRef = useRef(null); // "advanced" | "classic"
+  const pinRef = useRef(null);
   const circleRef = useRef(null);
   const listenersRef = useRef([]);
   const googleRef = useRef(null);
@@ -87,6 +247,9 @@ export default function GoogleMap({
   const [errorInfo, setErrorInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mapReady, setMapReady] = useState(false);
+
+  const safeLat = coerceFiniteCoord(lat);
+  const safeLng = coerceFiniteCoord(lng);
 
   const stableOnPositionChange = useCallback(
     (pos) => {
@@ -109,129 +272,77 @@ export default function GoogleMap({
     listenersRef.current = [];
   }, []);
 
-  const clearMarker = useCallback(() => {
-    const marker = markerRef.current;
-    if (!marker) return;
+  const clearPin = useCallback(() => {
+    const pin = pinRef.current;
+    if (!pin) return;
     try {
-      if (markerModeRef.current === "advanced") {
-        marker.map = null;
-      } else if (typeof marker.setMap === "function") {
-        marker.setMap(null);
-      }
+      pin.setMap(null);
     } catch {
       /* ignore */
     }
-    markerRef.current = null;
-    markerModeRef.current = null;
+    pinRef.current = null;
   }, []);
 
-  const attachDragHandlers = useCallback(
-    (google, map, mode) => {
-      clearListeners();
-      if (!draggable || !markerRef.current || !map) return;
+  const centerMapOn = useCallback(
+    (map, center, nextZoom = zoom) => {
+      if (!map || !center) return;
+      map.setCenter(center);
+      if (typeof map.setZoom === "function" && nextZoom != null) {
+        map.setZoom(nextZoom);
+      }
+    },
+    [zoom],
+  );
 
-      if (mode === "advanced") {
-        const advanced = markerRef.current;
-        const dragStart = advanced.addListener("dragstart", () => {
+  const placePin = useCallback(
+    (google, map, center) => {
+      clearPin();
+      const latLng = new google.maps.LatLng(center.lat, center.lng);
+      const overlay = createKamaPinOverlay(google, {
+        position: latLng,
+        draggable,
+        onDragStart: () => {
           draggingRef.current = true;
-        });
-        const dragListener = advanced.addListener("dragend", () => {
+        },
+        onDragEnd: (next) => {
           draggingRef.current = false;
-          const next = readLatLng(advanced.position);
-          if (next) stableOnPositionChange(next);
-        });
+          if (next) {
+            map.panTo(next);
+            stableOnPositionChange(next);
+          }
+        },
+      });
+      overlay.setMap(map);
+      pinRef.current = overlay;
+
+      clearListeners();
+      if (draggable) {
         const clickListener = map.addListener("click", (e) => {
-          if (!e.latLng) return;
+          if (!e.latLng || draggingRef.current) return;
           const next = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-          advanced.position = next;
+          overlay.setPosition(e.latLng);
+          map.panTo(next);
           stableOnPositionChange(next);
         });
-        listenersRef.current.push(dragStart, dragListener, clickListener);
-        return;
-      }
-
-      const classic = markerRef.current;
-      const dragStart = classic.addListener("dragstart", () => {
-        draggingRef.current = true;
-      });
-      const dragListener = classic.addListener("dragend", () => {
-        draggingRef.current = false;
-        const next = readLatLng(classic.getPosition());
-        if (next) stableOnPositionChange(next);
-      });
-      const clickListener = map.addListener("click", (e) => {
-        const next = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-        classic.setPosition(next);
-        stableOnPositionChange(next);
-      });
-      listenersRef.current.push(dragStart, dragListener, clickListener);
-    },
-    [clearListeners, draggable, stableOnPositionChange],
-  );
-
-  const placeMarker = useCallback(
-    async (google, map, center) => {
-      clearMarker();
-
-      const mapId = getGoogleMapsMapId();
-      let usedAdvanced = false;
-
-      if (mapId) {
-        try {
-          const markerLib =
-            google.maps.marker ||
-            (await google.maps.importLibrary("marker").catch(() => null));
-          const AdvancedMarkerElement = markerLib?.AdvancedMarkerElement;
-          if (AdvancedMarkerElement) {
-            const advanced = new AdvancedMarkerElement({
-              map,
-              position: center,
-              title: "Property location",
-              gmpDraggable: draggable,
-              content: createKamaPinElement(),
-            });
-            markerRef.current = advanced;
-            markerModeRef.current = "advanced";
-            usedAdvanced = true;
-            attachDragHandlers(google, map, "advanced");
-          }
-        } catch {
-          usedAdvanced = false;
-        }
-      }
-
-      if (!usedAdvanced) {
-        const classic = new google.maps.Marker({
-          map,
-          position: center,
-          draggable,
-          animation: google.maps.Animation.DROP,
-          icon: classicTealIcon(google),
-          title: "Property location",
-        });
-        markerRef.current = classic;
-        markerModeRef.current = "classic";
-        attachDragHandlers(google, map, "classic");
+        listenersRef.current.push(clickListener);
       }
     },
-    [attachDragHandlers, clearMarker, draggable],
+    [clearListeners, clearPin, draggable, stableOnPositionChange],
   );
 
-  // Boot map once when coords become available.
+  // Boot map once when finite coords become available.
   useEffect(() => {
-    if (lat == null || lng == null || !containerRef.current) return;
+    if (safeLat == null || safeLng == null || !containerRef.current) return;
     if (!hasGoogleMapsApiKey()) {
       setErrorInfo(describeGoogleMapsError("Google Maps API key is not configured"));
       setLoading(false);
       return;
     }
 
-    // Already initialized — position sync handled below.
     if (mapRef.current) return;
 
     let cancelled = false;
     let errorScanTimer = null;
-    // Belt-and-suspenders: dismiss overlay even if loader promise never settles.
     const safetyMs = GOOGLE_MAPS_LOAD_TIMEOUT_MS + 2_000;
     const safetyTimer = window.setTimeout(() => {
       if (cancelled || mapRef.current) return;
@@ -260,29 +371,23 @@ export default function GoogleMap({
       if (typeof prevAuthFailure === "function") prevAuthFailure();
     };
 
-    const mapId = getGoogleMapsMapId();
-    const libs = mapId ? ["maps", "marker"] : ["maps"];
-
-    loadGoogleMapsApi(libs)
+    // No Map ID — OverlayView works on raster maps; classic Marker is unreliable here.
+    loadGoogleMapsApi(["maps"])
       .then(async (google) => {
         if (cancelled || !containerRef.current || mapRef.current) return;
 
         googleRef.current = google;
-        const center = { lat: Number(lat), lng: Number(lng) };
+        const center = { lat: safeLat, lng: safeLng };
 
-        const mapOptions = {
+        mapRef.current = new google.maps.Map(containerRef.current, {
           center,
           zoom,
           disableDefaultUI: true,
           zoomControl: true,
           gestureHandling: "greedy",
           clickableIcons: false,
-        };
-
-        if (mapId) {
-          mapOptions.mapId = mapId;
-        } else {
-          mapOptions.styles = [
+          // Explicitly omit mapId so we stay on raster tiles (OverlayView-friendly).
+          styles: [
             {
               featureType: "water",
               stylers: [{ color: KAMA_TEAL_SOFT }],
@@ -292,11 +397,11 @@ export default function GoogleMap({
               elementType: "labels",
               stylers: [{ visibility: "off" }],
             },
-          ];
-        }
+          ],
+        });
 
-        mapRef.current = new google.maps.Map(containerRef.current, mapOptions);
-        await placeMarker(google, mapRef.current, center);
+        centerMapOn(mapRef.current, center, zoom);
+        placePin(google, mapRef.current, center);
 
         if (approximate) {
           circleRef.current = new google.maps.Circle({
@@ -310,6 +415,20 @@ export default function GoogleMap({
             strokeWeight: 1,
           });
         }
+
+        // After tiles settle, re-assert center/zoom/pin (place-select race).
+        const idleOnce = mapRef.current.addListener("idle", () => {
+          google.maps.event.removeListener(idleOnce);
+          if (cancelled || !mapRef.current) return;
+          centerMapOn(mapRef.current, center, zoom);
+          if (pinRef.current) {
+            pinRef.current.setPosition(
+              new google.maps.LatLng(center.lat, center.lng),
+            );
+          } else {
+            placePin(google, mapRef.current, center);
+          }
+        });
 
         errorScanTimer = window.setTimeout(() => {
           if (cancelled) return;
@@ -341,64 +460,59 @@ export default function GoogleMap({
       if (errorScanTimer) window.clearTimeout(errorScanTimer);
       window.gm_authFailure = prevAuthFailure;
     };
-    // Intentionally boot when first coords arrive; updates sync in the next effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lat != null && lng != null]);
+  }, [safeLat != null && safeLng != null]);
 
-  // Sync pin / center when address coords change (skip while user is dragging).
+  // Sync geographic pin + center when address coords change.
   useEffect(() => {
-    if (!mapReady || !mapRef.current || lat == null || lng == null) return;
+    if (!mapReady || !mapRef.current || safeLat == null || safeLng == null) return;
     if (draggingRef.current) return;
 
-    const center = { lat: Number(lat), lng: Number(lng) };
-    const marker = markerRef.current;
+    const center = { lat: safeLat, lng: safeLng };
+    const google = googleRef.current;
+    const pin = pinRef.current;
 
-    if (markerModeRef.current === "advanced" && marker) {
-      const current = readLatLng(marker.position);
+    if (pin && google) {
+      const current = readLatLng(pin.getPosition());
       if (!positionsNearlyEqual(current, center)) {
-        marker.position = center;
-        mapRef.current.panTo(center);
+        pin.setPosition(new google.maps.LatLng(center.lat, center.lng));
+        centerMapOn(mapRef.current, center, zoom);
       }
-    } else if (markerModeRef.current === "classic" && marker) {
-      const current = readLatLng(marker.getPosition());
-      if (!positionsNearlyEqual(current, center)) {
-        marker.setPosition(center);
-        mapRef.current.panTo(center);
-      }
-    } else if (googleRef.current) {
-      placeMarker(googleRef.current, mapRef.current, center);
+    } else if (google) {
+      centerMapOn(mapRef.current, center, zoom);
+      placePin(google, mapRef.current, center);
     }
 
     if (circleRef.current) {
       circleRef.current.setCenter(center);
     }
-    // placeMarker is stable enough via refs; omit from deps to avoid remount loops
-    // when parent passes a new onPositionChange each render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lat, lng, mapReady]);
+  }, [safeLat, safeLng, mapReady, zoom]);
 
-  // Re-bind drag when the prop flips.
+  // Re-bind dragability when the prop flips.
   useEffect(() => {
-    if (!mapReady || !mapRef.current || !markerRef.current || !googleRef.current) {
-      return;
+    if (!mapReady || !pinRef.current) return;
+    if (typeof pinRef.current.setDraggable === "function") {
+      pinRef.current.setDraggable(draggable);
     }
-    if (markerModeRef.current === "advanced") {
-      markerRef.current.gmpDraggable = draggable;
-    } else if (typeof markerRef.current.setDraggable === "function") {
-      markerRef.current.setDraggable(draggable);
+    // Re-attach map click when enabling drag.
+    if (googleRef.current && mapRef.current) {
+      const center = readLatLng(pinRef.current.getPosition()) || {
+        lat: safeLat,
+        lng: safeLng,
+      };
+      if (center.lat != null && center.lng != null) {
+        placePin(googleRef.current, mapRef.current, center);
+      }
     }
-    attachDragHandlers(
-      googleRef.current,
-      mapRef.current,
-      markerModeRef.current,
-    );
-  }, [draggable, mapReady, attachDragHandlers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draggable, mapReady]);
 
-  // Drop map instance when coords disappear so the next address can boot cleanly.
+  // Drop map when coords disappear.
   useEffect(() => {
-    if (lat != null && lng != null) return;
+    if (safeLat != null && safeLng != null) return;
     clearListeners();
-    clearMarker();
+    clearPin();
     if (circleRef.current) {
       try {
         circleRef.current.setMap(null);
@@ -412,13 +526,13 @@ export default function GoogleMap({
     setMapReady(false);
     setLoading(true);
     setErrorInfo(null);
-  }, [lat, lng, clearListeners, clearMarker]);
+  }, [safeLat, safeLng, clearListeners, clearPin]);
 
   // Full teardown on unmount.
   useEffect(() => {
     return () => {
       clearListeners();
-      clearMarker();
+      clearPin();
       if (circleRef.current) {
         try {
           circleRef.current.setMap(null);
@@ -430,9 +544,9 @@ export default function GoogleMap({
       mapRef.current = null;
       googleRef.current = null;
     };
-  }, [clearListeners, clearMarker]);
+  }, [clearListeners, clearPin]);
 
-  if (lat == null || lng == null) {
+  if (safeLat == null || safeLng == null) {
     return (
       <div
         className={`flex flex-col items-center justify-center gap-2 bg-[var(--kama-field)] text-sm text-[var(--kama-ink-muted)] ${className}`}
@@ -478,7 +592,7 @@ export default function GoogleMap({
             : errorInfo.detail}
         </p>
         <p className="relative z-[1] font-mono text-[11px] text-[var(--kama-accent)]">
-          {Number(lat).toFixed(4)}, {Number(lng).toFixed(4)}
+          {safeLat.toFixed(4)}, {safeLng.toFixed(4)}
         </p>
       </div>
     );
@@ -501,8 +615,8 @@ export default function GoogleMap({
       ) : null}
       <div ref={containerRef} className="h-full w-full" />
       {estimated && !loading ? (
-        <p className="absolute bottom-2 left-2 right-2 rounded-lg bg-white/90 px-2 py-1 text-center text-[11px] text-[var(--kama-ink-muted)] shadow-sm backdrop-blur">
-          Approximate pin from your address — drag when map is available
+        <p className="absolute bottom-2 left-2 right-2 z-[3] rounded-lg bg-white/90 px-2 py-1 text-center text-[11px] text-[var(--kama-ink-muted)] shadow-sm backdrop-blur">
+          Approximate pin from your address — drag the pin when map is available
         </p>
       ) : null}
     </div>
@@ -532,4 +646,3 @@ function MapEmptyArt() {
     </svg>
   );
 }
-

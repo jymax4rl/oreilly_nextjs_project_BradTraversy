@@ -1,9 +1,10 @@
 import connectToDatabase from "@/config/database";
 import HostApplication from "@/models/HostApplication";
 import User from "@/models/User";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getSessionFromRequest } from "@/utils/authSessionRoute";
+import { isOpsStaff } from "@/utils/opsAuth";
 import mongoose from "mongoose";
+import { coerceStoredAddress } from "@/utils/address";
 
 export const PATCH = async (request, { params }) => {
   // Next.js 15/16: params is a Promise and must be awaited
@@ -11,9 +12,9 @@ export const PATCH = async (request, { params }) => {
 
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getSessionFromRequest(request);
 
-    if (!session?.user || session.user.role !== "admin") {
+    if (!session?.user || !isOpsStaff(session.user.role)) {
       return new Response("Unauthorized - Admin access required", {
         status: 403,
       });
@@ -33,38 +34,56 @@ export const PATCH = async (request, { params }) => {
       });
     }
 
-    const application = await HostApplication.findById(
-      new mongoose.Types.ObjectId(id),
-    );
+    const oid = new mongoose.Types.ObjectId(id);
+    const application = await HostApplication.findById(oid).lean();
 
     if (!application) {
       return new Response("Application not found", { status: 404 });
     }
 
-    // Update application
-    application.status = status;
-    application.reviewedAt = new Date();
-    application.reviewedBy = new mongoose.Types.ObjectId(session.user.id);
-    if (status === "rejected" && rejectionReason) {
-      application.rejectionReason = rejectionReason;
+    // Status-only $set: document.save() re-runs nested AddressSchema validation
+    // and Mongoose 9 pre-hooks, which is unnecessary for approve/reject.
+    const $set = {
+      status,
+      reviewedAt: new Date(),
+    };
+
+    if (mongoose.Types.ObjectId.isValid(String(session.user.id))) {
+      $set.reviewedBy = new mongoose.Types.ObjectId(session.user.id);
     }
-    await application.save();
 
-    // Update user role/hostStatus
-    const userId =
-      application.user instanceof mongoose.Types.ObjectId
-        ? application.user
-        : new mongoose.Types.ObjectId(application.user);
+    if (
+      status === "rejected" &&
+      typeof rejectionReason === "string" &&
+      rejectionReason.trim()
+    ) {
+      $set.rejectionReason = rejectionReason.trim().slice(0, 1000);
+    }
 
-    const user = await User.findById(userId);
+    const result = await HostApplication.updateOne({ _id: oid }, { $set });
+    if (result.matchedCount === 0) {
+      return new Response("Application not found", { status: 404 });
+    }
 
-    if (user) {
-      user.hostStatus = status === "approved" ? "verified" : "rejected";
-      user.role = status === "approved" ? "host" : "guest";
-      if (status === "approved" && application.address) {
-        user.hostAddress = application.address;
+    const userId = application.user;
+    if (userId && mongoose.Types.ObjectId.isValid(String(userId))) {
+      const userSet = {
+        hostStatus: status === "approved" ? "verified" : "rejected",
+        role: status === "approved" ? "host" : "guest",
+      };
+      const address = coerceStoredAddress(application.address);
+      if (status === "approved" && address) {
+        userSet.hostAddress = address;
       }
-      await user.save();
+      const userResult = await User.updateOne({ _id: userId }, { $set: userSet });
+      if (userResult.matchedCount === 0) {
+        console.warn(
+          "User not found for application:",
+          id,
+          "userId:",
+          application.user,
+        );
+      }
     } else {
       console.warn(
         "User not found for application:",

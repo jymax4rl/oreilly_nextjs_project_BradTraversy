@@ -24,26 +24,33 @@ import {
 } from "lucide-react";
 import LoginNavButton from "./LoginNavBtn";
 import { usePathname } from "next/navigation";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { getUnreadMessageCount } from "@/utils/actions/messageActions";
 import { useMenuOverlay } from "@/contexts/MenuOverlayContext";
 import { isExploreMobileLayout } from "@/utils/exploreLayout";
 import { isFullscreenRoute } from "@/utils/fullscreenRoutes";
+import { getLoginUrl } from "@/lib/legal/loginUrl";
+import { isOpsStaff } from "@/utils/opsAuth";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import LanguageToggle from "@/components/i18n/LanguageToggle";
 
 const navLinks = [
-  { path: "/", label: "Home", Icon: Home },
-  { path: "/properties", label: "Properties", Icon: Building2 },
+  { path: "/", labelKey: "nav.home", Icon: Home },
+  { path: "/properties", labelKey: "nav.properties", Icon: Building2 },
+  { path: "/business", labelKey: "nav.business", Icon: Building2 },
 ];
 
 const profileItemClass = "kama-profile-item font-medium";
 
 const Navbar = () => {
   const { data: session } = useSession();
+  const { t } = useLanguage();
   const { isOpen, toggle, close } = useMenuOverlay();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const isPhotoNav = isHome || pathname === "/business";
   const profileImage = session?.user?.image;
   const explore = isExploreMobileLayout(pathname);
 
@@ -108,9 +115,9 @@ const Navbar = () => {
 
   const getHostNavItem = () => {
     if (session?.user?.hostStatus === "verified") {
-      return { path: "/properties/add", label: "List Property" };
+      return { path: "/host", label: t("nav.hostConsole") };
     }
-    return { path: BECOME_A_HOST_HREF, label: "Become a Host" };
+    return { path: BECOME_A_HOST_HREF, label: t("nav.becomeHost") };
   };
 
   const hostNavItem = getHostNavItem();
@@ -124,13 +131,13 @@ const Navbar = () => {
       {!explore && (
         <nav
           className={`menu-container m-0 grid grid-cols-2 z-50 fixed top-0 w-screen h-[8vh] lg:hidden ${
-            isHome ? "home-glass-nav" : "bg-[var(--kama-canvas)]/80 backdrop-blur-sm"
+            isPhotoNav ? "home-glass-nav" : "bg-[var(--kama-canvas)]/80 backdrop-blur-sm"
           }`}
         >
           <div className="flex items-center ml-4 justify-start align-center">
             <BrandLogo
               className="h-10 w-24 cursor-pointer transition-all duration-300 hover:scale-105"
-              priority={isHome}
+              priority={isPhotoNav}
             />
           </div>
           <div className="flex w-full items-center justify-end pointer mr-4">
@@ -141,7 +148,7 @@ const Navbar = () => {
 
       <nav
         className={`menu-container m-0 hidden lg:grid grid-cols-[20%_60%_20%] z-50 fixed top-0 w-screen h-[8vh] ${
-          isHome
+          isPhotoNav
             ? "home-glass-nav home-glass-nav--desktop"
             : "bg-[var(--kama-canvas)]/80 backdrop-blur-sm"
         }`}
@@ -149,21 +156,21 @@ const Navbar = () => {
         <div className="flex items-center ml-4 lg:ml-22 justify-start align-center">
           <BrandLogo
             className="h-10 w-24 cursor-pointer transition-all duration-300 hover:scale-105 lg:h-12 lg:w-32"
-            priority={isHome}
+            priority={isPhotoNav}
           />
         </div>
 
         {/* Desktop Navigation */}
-        <div className="flex space-x-12 p-2 items-center justify-center">
+        <div className="flex space-x-8 p-2 items-center justify-center">
           {navLinks.map((link, index) => (
             <Link
               key={index}
               href={link.path}
               className={
-                isHome || !isActive(link.path) ? "p-2 text-black" : "p-2 text-white"
+                isPhotoNav || !isActive(link.path) ? "p-2 text-black" : "p-2 text-white"
               }
             >
-              <NavButton text={link.label} />
+              <NavButton text={t(link.labelKey)} />
             </Link>
           ))}
 
@@ -171,7 +178,7 @@ const Navbar = () => {
             <Link
               href={hostNavItem.path}
               className={
-                isHome || !isActive(hostNavItem.path)
+                isPhotoNav || !isActive(hostNavItem.path)
                   ? "p-2 text-black"
                   : "p-2 text-white"
               }
@@ -180,25 +187,49 @@ const Navbar = () => {
             </Link>
           )}
 
-          {session?.user?.role === "admin" && (
+          {isOpsStaff(session?.user?.role) && (
             <Link
-              href="/admin/hosts"
+              href="/ops"
               className={
-                isHome || !isActive("/admin/hosts")
+                isPhotoNav || !isActive("/ops")
                   ? "p-2 text-black"
                   : "p-2 text-white"
               }
             >
-              <NavButton text="Admin" />
+              <NavButton text={t("nav.ops")} />
             </Link>
           )}
         </div>
 
         {/* Right Section */}
         <div className="flex w-full gap-3 lg:gap-6 items-center justify-end pointer mr-4">
+          <LanguageToggle
+            className={
+              isPhotoNav
+                ? "hidden lg:inline-flex !border-[rgba(247,244,238,0.28)] !bg-transparent !shadow-none !backdrop-blur-none"
+                : "hidden lg:inline-flex"
+            }
+          />
           {!session && (
             <div className="hidden lg:block">
-              <LoginNavButton onClick={() => signIn("google")} />
+              {isPhotoNav ? (
+                <button
+                  type="button"
+                  className="home-nav-signin"
+                  onClick={() => {
+                    window.location.assign(getLoginUrl(pathname || "/"));
+                  }}
+                >
+                  {t("nav.signIn")}
+                </button>
+              ) : (
+                <LoginNavButton
+                  label={t("nav.signIn")}
+                  onClick={() => {
+                    window.location.assign(getLoginUrl(pathname || "/"));
+                  }}
+                />
+              )}
             </div>
           )}
 
@@ -223,7 +254,13 @@ const Navbar = () => {
                     }}
                   />
                 ) : (
-                  <LuUserRound className="cursor-pointer w-8 h-8 text-[#0c1a1a]/70 hover:text-[#1b5c57] transition-all duration-200" />
+                  <LuUserRound
+                    className={`cursor-pointer w-8 h-8 transition-all duration-200 ${
+                      isPhotoNav
+                        ? "text-[#f7f4ee]/90 hover:text-[#e8d7b5] drop-shadow"
+                        : "text-[#0c1a1a]/70 hover:text-[#1b5c57]"
+                    }`}
+                  />
                 )}
               </button>
 
@@ -255,7 +292,7 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <LuUserRound />
-                    <span>Profile</span>
+                    <span>{t("nav.profile")}</span>
                   </Link>
 
                   <Link
@@ -265,7 +302,7 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <Heart />
-                    <span>Saved Properties</span>
+                    <span>{t("nav.saved")}</span>
                   </Link>
 
                   <Link
@@ -275,7 +312,7 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <CalendarCheck />
-                    <span>My Bookings</span>
+                    <span>{t("nav.bookings")}</span>
                   </Link>
 
                   <Link
@@ -285,7 +322,7 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <MessageSquare />
-                    <span>Messages</span>
+                    <span>{t("nav.messages")}</span>
                     {unreadCount > 0 && (
                       <span className="ml-auto flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[#1b5c57] px-1 text-[10px] font-bold text-white">
                         {unreadCount > 9 ? "9+" : unreadCount}
@@ -300,42 +337,32 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <Settings />
-                    <span>Settings</span>
+                    <span>{t("nav.settings")}</span>
+                  </Link>
+
+                  <Link
+                    href="/policies"
+                    className={profileItemClass}
+                    role="menuitem"
+                    onClick={() => setIsProfileOpen(false)}
+                  >
+                    <Shield />
+                    <span>{t("nav.policies")}</span>
                   </Link>
                 </div>
 
                 <div className="my-2 h-px bg-[rgba(12,26,26,0.08)]" />
 
                 {session?.user?.hostStatus === "verified" && (
-                  <>
-                    <Link
-                      href="/properties/my-listings"
-                      className={profileItemClass}
-                      role="menuitem"
-                      onClick={() => setIsProfileOpen(false)}
-                    >
-                      <LayoutList />
-                      <span>My listings</span>
-                    </Link>
-                    <Link
-                      href="/host/reservations"
-                      className={profileItemClass}
-                      role="menuitem"
-                      onClick={() => setIsProfileOpen(false)}
-                    >
-                      <CalendarCheck />
-                      <span>Manage reservations</span>
-                    </Link>
-                    <Link
-                      href="/properties/add"
-                      className={profileItemClass}
-                      role="menuitem"
-                      onClick={() => setIsProfileOpen(false)}
-                    >
-                      <PlusCircle />
-                      <span>List Property</span>
-                    </Link>
-                  </>
+                  <Link
+                    href="/host"
+                    className={`${profileItemClass} !text-[#1b5c57]`}
+                    role="menuitem"
+                    onClick={() => setIsProfileOpen(false)}
+                  >
+                    <LayoutList />
+                    <span>{t("nav.hostConsole")}</span>
+                  </Link>
                 )}
 
                 {session?.user && session.user.hostStatus !== "verified" && (
@@ -346,19 +373,19 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <PlusCircle />
-                    <span>Become a Host</span>
+                    <span>{t("nav.becomeHost")}</span>
                   </Link>
                 )}
 
-                {session?.user?.role === "admin" && (
+                {isOpsStaff(session?.user?.role) && (
                   <Link
-                    href="/admin/hosts"
+                    href="/ops"
                     className={profileItemClass}
                     role="menuitem"
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <Shield />
-                    <span>Admin Dashboard</span>
+                    <span>{t("nav.operations")}</span>
                   </Link>
                 )}
 
@@ -374,7 +401,7 @@ const Navbar = () => {
                   role="menuitem"
                 >
                   <LogOut className="h-4 w-4 shrink-0" aria-hidden />
-                  <span className="font-medium">Sign out</span>
+                  <span className="font-medium">{t("nav.signOut")}</span>
                 </button>
               </div>
             </div>

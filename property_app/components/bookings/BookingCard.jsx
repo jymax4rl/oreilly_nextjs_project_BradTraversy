@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Calendar, MapPin, Pencil, Trash2 } from "lucide-react";
 import { formatGuestDate, countNights } from "@/utils/availability/validateStay";
 import { propertyCardImageSrc } from "@/utils/cloudinary/propertyMediaUrls";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 
 /**
  * Guest My Bookings card — modify/cancel when policy allows.
@@ -92,7 +93,7 @@ export default function BookingCard({ booking, onChanged }) {
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
       <Link
-        href={`/properties/${booking.propertyId}`}
+        href={propertyPublicPath(property || { _id: booking.propertyId })}
         className="flex gap-4 p-4 sm:p-5"
       >
         <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100 sm:h-28 sm:w-32">
@@ -109,7 +110,9 @@ export default function BookingCard({ booking, onChanged }) {
             <span
               className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${statusClass}`}
             >
-              {booking.status}
+              {booking.status === "pending" && booking.paymentMode === "manual"
+                ? "Awaiting payment"
+                : booking.status}
             </span>
             {booking.transactionId && (
               <span className="text-[10px] text-slate-400">
@@ -139,6 +142,14 @@ export default function BookingCard({ booking, onChanged }) {
           {booking.amount != null && booking.currency && (
             <p className="mt-2 text-sm font-semibold tabular-nums text-slate-900">
               {booking.currency} {Number(booking.amount).toLocaleString()}
+              {booking.paymentMode === "manual" && booking.status === "pending"
+                ? " · pay host"
+                : ""}
+            </p>
+          )}
+          {booking.paymentMode === "manual" && booking.status === "pending" && (
+            <p className="mt-2 text-[11px] leading-snug text-amber-800">
+              Payment is arranged with the host via messages, call, or WhatsApp.
             </p>
           )}
           {booking.policySummary && (

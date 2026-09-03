@@ -12,17 +12,19 @@ import {
 import { emptyAddress } from "@/utils/address";
 import HostAddressFields from "@/components/forms/HostAddressFields";
 import { isAddressComplete } from "@/utils/address";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 const inputClass =
-  "h-12 w-full rounded-xl border border-zinc-200 bg-white px-4 text-[15px] text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100";
+  "h-12 w-full rounded-xl border border-[var(--kama-border)] bg-white px-4 text-[15px] text-[var(--kama-ink)] outline-none transition placeholder:text-[var(--kama-ink-muted)] focus:border-[var(--kama-accent)] focus:ring-2 focus:ring-[var(--kama-accent-soft)]";
 
-const labelClass = "mb-1.5 block text-sm font-medium text-zinc-700";
+const labelClass =
+  "mb-1.5 block text-sm font-medium text-[var(--kama-ink)]";
 
 const steps = [
-  { id: "contact", label: "Contact", icon: Phone },
-  { id: "identity", label: "Identity", icon: IdCard },
-  { id: "address", label: "Address", icon: MapPin },
-  { id: "about", label: "About you", icon: UserRound },
+  { id: "contact", labelKey: "host.contact", icon: Phone },
+  { id: "identity", labelKey: "host.identity", icon: IdCard },
+  { id: "address", labelKey: "host.homeAddress", icon: MapPin },
+  { id: "about", labelKey: "host.about", icon: UserRound },
 ];
 
 export default function HostApplicationForm({
@@ -32,6 +34,7 @@ export default function HostApplicationForm({
   submitting,
   error,
 }) {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     phone: initialData?.phone || "",
     idType: initialData?.idType || "passport",
@@ -40,6 +43,8 @@ export default function HostApplicationForm({
     bio: initialData?.bio || "",
   });
 
+  const [formError, setFormError] = useState("");
+
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -47,8 +52,10 @@ export default function HostApplicationForm({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!isAddressComplete(formData.address)) {
+      setFormError(t("host.addressError"));
       return;
     }
+    setFormError("");
     onSubmit(formData);
   };
 
@@ -60,15 +67,15 @@ export default function HostApplicationForm({
           return (
             <div
               key={step.id}
-              className="flex items-center gap-2 rounded-xl border border-violet-100 bg-violet-50/60 px-3 py-2.5"
+              className="flex items-center gap-2 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-accent-soft)] px-3 py-2.5"
             >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-600 text-xs font-bold text-white">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--kama-accent)] text-xs font-bold text-white">
                 {index + 1}
               </span>
               <div className="min-w-0">
-                <Icon className="mb-0.5 h-3.5 w-3.5 text-violet-600" />
-                <p className="truncate text-xs font-semibold text-zinc-800">
-                  {step.label}
+                <Icon className="mb-0.5 h-3.5 w-3.5 text-[var(--kama-accent)]" />
+                <p className="truncate text-xs font-semibold text-[var(--kama-ink)]">
+                  {t(step.labelKey)}
                 </p>
               </div>
             </div>
@@ -76,31 +83,31 @@ export default function HostApplicationForm({
         })}
       </div>
 
-      {error ? (
+      {(error || formError) ? (
         <div
           className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
           role="alert"
         >
-          {error}
+          {error || formError}
         </div>
       ) : null}
 
       {/* Contact */}
-      <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+      <section className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] p-5 shadow-sm sm:p-6">
         <div className="mb-5 flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--kama-accent-soft)] text-[var(--kama-accent)]">
             <Phone className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="text-lg font-semibold text-zinc-900">Contact</h2>
-            <p className="text-sm text-zinc-500">
-              We&apos;ll use this to verify your application.
+            <h2 className="text-lg font-semibold text-[var(--kama-ink)]">{t("host.contact")}</h2>
+            <p className="text-sm text-[var(--kama-ink-muted)]">
+              {t("host.contactHint")}
             </p>
           </div>
         </div>
         <div>
           <label htmlFor="phone" className={labelClass}>
-            Phone number <span className="text-red-500">*</span>
+            {t("host.phone")} <span className="text-red-500">*</span>
           </label>
           <input
             id="phone"
@@ -116,22 +123,22 @@ export default function HostApplicationForm({
       </section>
 
       {/* Identity */}
-      <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+      <section className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] p-5 shadow-sm sm:p-6">
         <div className="mb-5 flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--kama-accent-soft)] text-[var(--kama-accent)]">
             <IdCard className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="text-lg font-semibold text-zinc-900">Identity</h2>
-            <p className="text-sm text-zinc-500">
-              Government ID helps keep guests and hosts safe.
+            <h2 className="text-lg font-semibold text-[var(--kama-ink)]">{t("host.identity")}</h2>
+            <p className="text-sm text-[var(--kama-ink-muted)]">
+              {t("host.identityHint")}
             </p>
           </div>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="idType" className={labelClass}>
-              ID type <span className="text-red-500">*</span>
+              {t("host.idType")} <span className="text-red-500">*</span>
             </label>
             <select
               id="idType"
@@ -140,14 +147,14 @@ export default function HostApplicationForm({
               onChange={handleChange}
               className={inputClass}
             >
-              <option value="passport">Passport</option>
-              <option value="national_id">National ID</option>
-              <option value="drivers_license">Driver&apos;s license</option>
+              <option value="passport">{t("host.passport")}</option>
+              <option value="national_id">{t("host.nationalId")}</option>
+              <option value="drivers_license">{t("host.driversLicense")}</option>
             </select>
           </div>
           <div>
             <label htmlFor="idNumber" className={labelClass}>
-              ID number <span className="text-red-500">*</span>
+              {t("host.idNumber")} <span className="text-red-500">*</span>
             </label>
             <input
               id="idNumber"
@@ -157,22 +164,22 @@ export default function HostApplicationForm({
               value={formData.idNumber}
               onChange={handleChange}
               className={inputClass}
-              placeholder="Document number"
+              placeholder={t("host.idNumberPh")}
             />
           </div>
         </div>
       </section>
 
       {/* Address */}
-      <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+      <section className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] p-5 shadow-sm sm:p-6">
         <div className="mb-5 flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--kama-accent-soft)] text-[var(--kama-accent)]">
             <MapPin className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="text-lg font-semibold text-zinc-900">Home address</h2>
-            <p className="text-sm text-zinc-500">
-              Your verified address is stored on your host profile.
+            <h2 className="text-lg font-semibold text-[var(--kama-ink)]">{t("host.homeAddress")}</h2>
+            <p className="text-sm text-[var(--kama-ink-muted)]">
+              {t("host.addressHint")}
             </p>
           </div>
         </div>
@@ -186,15 +193,15 @@ export default function HostApplicationForm({
       </section>
 
       {/* About */}
-      <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+      <section className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] p-5 shadow-sm sm:p-6">
         <div className="mb-5 flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--kama-accent-soft)] text-[var(--kama-accent)]">
             <UserRound className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="text-lg font-semibold text-zinc-900">About you</h2>
-            <p className="text-sm text-zinc-500">
-              Optional — tell guests why you&apos;d be a great host.
+            <h2 className="text-lg font-semibold text-[var(--kama-ink)]">{t("host.about")}</h2>
+            <p className="text-sm text-[var(--kama-ink-muted)]">
+              {t("host.aboutHint")}
             </p>
           </div>
         </div>
@@ -204,16 +211,15 @@ export default function HostApplicationForm({
           value={formData.bio}
           onChange={handleChange}
           className={`${inputClass} min-h-[120px] resize-y py-3`}
-          placeholder="Share your experience hosting or welcoming travelers…"
+          placeholder={t("host.bioPh")}
         />
       </section>
 
-      <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
+      <div className="rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-4 py-3 text-sm text-[var(--kama-ink-muted)]">
         <div className="flex gap-2">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" />
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[var(--kama-accent)]" />
           <p>
-            Your information is reviewed by our team. Approved hosts can list
-            properties and receive payouts across Africa.
+            {t("host.reviewNote")}
           </p>
         </div>
       </div>
@@ -221,13 +227,13 @@ export default function HostApplicationForm({
       <button
         type="submit"
         disabled={submitting || !isAddressComplete(formData.address)}
-        className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-[16px] font-semibold text-white shadow-lg shadow-violet-500/25 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[var(--kama-accent)] text-[16px] font-semibold text-white transition hover:bg-[var(--kama-accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {submitting
-          ? "Submitting…"
+          ? t("host.submitting")
           : isResubmission
-            ? "Resubmit application"
-            : "Submit application"}
+            ? t("host.resubmit")
+            : t("host.submit")}
         {!submitting ? <ChevronRight className="h-5 w-5" /> : null}
       </button>
     </form>

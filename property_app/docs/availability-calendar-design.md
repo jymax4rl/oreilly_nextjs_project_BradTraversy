@@ -1,6 +1,6 @@
 # Property availability & bookings — design (Phase 1)
 
-**Product:** Kama Properties / isisel.com  
+**Product:** Isisel / isisel.com  
 **Scope:** Schema + REST API (host blocks, list bookings)  
 **Date:** May 2026
 

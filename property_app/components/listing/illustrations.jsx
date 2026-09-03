@@ -1,4 +1,4 @@
-/** Hand-crafted SVG illustrations for the list-property wizard (Kama teal). */
+/** Hand-crafted SVG illustrations for the list-property wizard (Isisel teal). */
 
 const teal = "var(--kama-accent, #1B5C57)";
 const soft = "var(--kama-accent-soft, rgba(27,92,87,0.12))";

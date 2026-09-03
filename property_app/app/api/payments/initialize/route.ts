@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate unique transaction reference (idempotent)
-    const txRef = `KAMA-${bookingId}-${Date.now()}`;
+    const txRef = `ISISEL-${bookingId}-${Date.now()}`;
 
     const payload = {
       tx_ref: txRef,
@@ -45,9 +45,9 @@ export async function POST(req: NextRequest) {
         name: name,
       },
       customizations: {
-        title: "Kama Properties",
+        title: "Isisel",
         description: `Booking #${bookingId}`,
-        logo: `${process.env.NEXT_PUBLIC_APP_URL}/logo.svg`,
+        logo: `${process.env.NEXT_PUBLIC_APP_URL || "https://www.isisel.com"}/brand/kama-logo.svg`,
       },
       // Enable mobile money by default for African currencies
       payment_options: "card,mobilemoney,ussd",

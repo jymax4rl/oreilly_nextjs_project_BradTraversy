@@ -7,6 +7,7 @@ import BrandLogo from "@/components/BrandLogo";
 import Hamburger from "@/components/hamburger";
 import { useScrollNav } from "@/contexts/ScrollNavContext";
 import { useMenuOverlay } from "@/contexts/MenuOverlayContext";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 /** Listing detail or host tools: /properties/[id](/calendar|/rates|/message|/reservations). */
 function isPropertyScopedPath(pathname) {
@@ -27,6 +28,7 @@ export default function MobileTopChrome() {
   const searchParams = useSearchParams();
   const { navVisible } = useScrollNav();
   const { toggle, isOpen } = useMenuOverlay();
+  const { t } = useLanguage();
   const isHome = pathname === "/";
   const hideSearch = isHome || isPropertyScopedPath(pathname);
 
@@ -51,9 +53,11 @@ export default function MobileTopChrome() {
       className={`lg:hidden fixed left-0 right-0 top-0 z-50 transition-transform duration-300 ease-out will-change-transform ${
         navVisible ? "translate-y-0" : "-translate-y-full"
       } ${
-        isHome || isPropertyScopedPath(pathname)
-          ? "border-b border-[var(--kama-border)] bg-[color-mix(in_srgb,var(--kama-canvas)_78%,transparent)] shadow-none backdrop-blur-xl"
-          : "border-b border-[var(--kama-border)] bg-[var(--kama-surface)] shadow-sm"
+        isHome
+          ? "home-glass-nav"
+          : isPropertyScopedPath(pathname)
+            ? "border-b border-[var(--kama-border)] bg-[color-mix(in_srgb,var(--kama-canvas)_78%,transparent)] shadow-none backdrop-blur-xl"
+            : "border-b border-[var(--kama-border)] bg-[var(--kama-surface)] shadow-sm"
       }`}
     >
       <div className="pt-2 [padding-top:max(0.5rem,env(safe-area-inset-top))]">
@@ -79,11 +83,11 @@ export default function MobileTopChrome() {
                 name="location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="City, country, area…"
+                placeholder={t("search.locationShort")}
                 enterKeyHint="search"
                 autoComplete="street-address"
                 className="min-w-0 flex-1 bg-transparent text-sm font-medium text-[var(--kama-ink)] placeholder:text-[var(--kama-ink-muted)] focus:outline-none"
-                aria-label="Search by location"
+                aria-label={t("search.searchLocation")}
               />
             </form>
           )}

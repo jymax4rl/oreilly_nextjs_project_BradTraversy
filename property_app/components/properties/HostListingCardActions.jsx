@@ -8,12 +8,14 @@ import DeletePropertyControl from "./DeletePropertyControl";
 export default function HostListingCardActions({
   propertyId,
   propertyName,
+  listingHref,
   onDeleted,
 }) {
+  const viewHref = listingHref || `/properties/${propertyId}`;
   return (
     <div className="mt-3 flex flex-wrap gap-2 border-t border-[var(--kama-border)] pt-3">
       <Link
-        href={`/properties/${propertyId}`}
+        href={viewHref}
         className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--kama-border)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--kama-ink)] transition hover:bg-[var(--kama-field)]"
       >
         <Eye className="h-3.5 w-3.5" aria-hidden />

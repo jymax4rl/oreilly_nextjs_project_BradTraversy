@@ -1,0 +1,386 @@
+.ops-nav-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.ops-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.15rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid #ececec;
+  background: #fff;
+  font-size: 0.78rem;
+  font-weight: 550;
+  color: #3f3f3f;
+}
+
+.ops-pill--on {
+  background: #111;
+  border-color: #111;
+  color: #fafafa;
+}
+
+.acq-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .acq-kpis {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.acq-kpi {
+  text-align: left;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #ececec;
+  border-radius: 0.625rem;
+  background: #fff;
+  min-height: 4.25rem;
+}
+
+.acq-kpi:hover {
+  border-color: #d4d4d4;
+}
+
+.acq-kpi--on {
+  border-color: #0a0a0a;
+  box-shadow: inset 0 0 0 1px #0a0a0a;
+}
+
+.acq-kpi__label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b6b6b;
+}
+
+.acq-kpi__value {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #0a0a0a;
+  font-variant-numeric: tabular-nums;
+}
+
+.acq-today {
+  display: grid;
+  gap: 0.65rem;
+}
+
+@media (min-width: 900px) {
+  .acq-today {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .acq-today {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.acq-today-col h3 {
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b6b6b;
+  margin-bottom: 0.45rem;
+}
+
+.acq-today-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+}
+
+.acq-today-item:hover {
+  background: #fafafa;
+  border-color: #ececec;
+}
+
+.acq-board {
+  display: flex;
+  gap: 0.65rem;
+  overflow-x: auto;
+  padding-bottom: 0.75rem;
+  scroll-snap-type: x proximity;
+}
+
+.acq-col {
+  flex: 0 0 16.5rem;
+  scroll-snap-align: start;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid #ececec;
+  border-radius: 0.75rem;
+  min-height: 18rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.acq-col--over {
+  border-color: #1b5c57;
+  background: rgba(27, 92, 87, 0.04);
+}
+
+.acq-col__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.7rem 0.75rem 0.45rem;
+}
+
+.acq-col__title {
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: #0a0a0a;
+}
+
+.acq-col__count {
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  color: #6b6b6b;
+}
+
+.acq-col__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0 0.55rem 0.65rem;
+  min-height: 8rem;
+}
+
+.acq-card {
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: 0.6rem;
+  padding: 0.7rem 0.75rem;
+  cursor: pointer;
+}
+
+.acq-card:hover {
+  border-color: #d4d4d4;
+}
+
+.acq-card__name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #0a0a0a;
+}
+
+.acq-card__meta {
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  color: #6b6b6b;
+}
+
+.acq-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.65rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.acq-chip--high {
+  background: #f4e8e6;
+  color: #7a271a;
+}
+
+.acq-chip--medium {
+  background: #f3eee4;
+  color: #6b5420;
+}
+
+.acq-chip--low {
+  background: #eef2f1;
+  color: #3f5c58;
+}
+
+.acq-chip--overdue {
+  background: #f8e8e6;
+  color: #9b1c1c;
+}
+
+.acq-chip--today {
+  background: #f6ead8;
+  color: #9a3412;
+}
+
+.acq-chip--upcoming {
+  background: #e7f0ec;
+  color: #14532d;
+}
+
+.acq-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.acq-actions a,
+.acq-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2rem;
+  padding: 0 0.55rem;
+  border-radius: 0.45rem;
+  border: 1px solid #ececec;
+  background: #fff;
+  font-size: 0.7rem;
+  font-weight: 550;
+  color: #0a0a0a;
+}
+
+.acq-actions a:hover,
+.acq-actions button:hover {
+  background: #fafafa;
+}
+
+.acq-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(10, 10, 10, 0.32);
+}
+
+.acq-drawer {
+  position: fixed;
+  z-index: 61;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(100vw, 34rem);
+  background: #f6f6f4;
+  overflow: auto;
+  box-shadow: -18px 0 48px rgba(0, 0, 0, 0.12);
+}
+
+.acq-modal {
+  position: fixed;
+  z-index: 62;
+  inset: 0;
+  display: grid;
+  place-items: end center;
+  background: rgba(10, 10, 10, 0.32);
+  padding: 0;
+}
+
+@media (min-width: 768px) {
+  .acq-modal {
+    place-items: center;
+    padding: 1.5rem;
+  }
+}
+
+.acq-modal__panel {
+  width: min(100vw, 44rem);
+  max-height: 94dvh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 0.85rem 0.85rem 0 0;
+  padding: 1.15rem 1.15rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .acq-modal__panel {
+    border-radius: 0.85rem;
+  }
+}
+
+.acq-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #ececec;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.acq-table {
+  width: 100%;
+  min-width: 72rem;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.acq-table th {
+  text-align: left;
+  font-weight: 650;
+  color: #6b6b6b;
+  padding: 0.65rem 0.7rem;
+  border-bottom: 1px solid #ececec;
+  background: #fafafa;
+  white-space: nowrap;
+}
+
+.acq-table td {
+  padding: 0.6rem 0.7rem;
+  border-bottom: 1px solid #f1f1f1;
+  vertical-align: top;
+}
+
+.acq-table tr:hover td {
+  background: #fafafa;
+}
+
+.acq-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.acq-field span {
+  font-size: 0.68rem;
+  font-weight: 650;
+  color: #6b6b6b;
+}
+
+.acq-field input,
+.acq-field select,
+.acq-field textarea {
+  min-height: 2.35rem;
+  border: 1px solid #ececec;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.65rem;
+  background: #fff;
+  font-size: 0.8125rem;
+  color: #0a0a0a;
+}
+
+.acq-field textarea {
+  min-height: 5.5rem;
+  resize: vertical;
+}
+
+.acq-empty {
+  padding: 1.75rem 1rem;
+  text-align: center;
+  color: #6b6b6b;
+  font-size: 0.8125rem;
+}
+
+.ops-app-inner--wide {
+  max-width: none;
+}

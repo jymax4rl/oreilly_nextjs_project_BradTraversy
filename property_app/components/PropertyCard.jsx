@@ -3,13 +3,22 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { Bed, Bath, Ruler, MapPin, Heart } from "lucide-react";
-import { formatCurrency } from "../utils/currencyUtils";
+import { formatListingPrice } from "../utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { propertyCardImageUrl } from "@/utils/propertyImageUrl";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 import MobileMoneyBadge from "@/components/MobileMoneyBadge";
+import PropertyShareButton from "@/components/PropertyShareButton";
 import { useSession } from "next-auth/react";
+import { canUnlockPreviewListing } from "@/utils/listings/previewLockedHost";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
-const PropertyCard = ({ property, isSaved = false }) => {
+const PropertyCard = ({
+  property,
+  isSaved = false,
+  allowOpen = false,
+}) => {
+  const { t } = useLanguage();
   const { data: session } = useSession();
   const { currencyCode, rates } = useCurrency();
   const {
@@ -20,46 +29,48 @@ const PropertyCard = ({ property, isSaved = false }) => {
     baths,
     square_feet,
     rates: propertyRates,
+    listingPrice,
     images,
     is_featured,
     _id,
     host,
     seller_info,
+    previewLocked,
   } = property;
 
+  const locked =
+    Boolean(previewLocked) &&
+    !allowOpen &&
+    !canUnlockPreviewListing(session);
   const hostName = host?.name || seller_info?.name || null;
   const hostImage = host?.image || null;
 
-  // Initialize from prop (server knows if it's saved)
   const [isLiked, setIsLiked] = useState(isSaved);
   const [isLoading, setIsLoading] = useState(false);
 
   const mainImage = propertyCardImageUrl(images);
 
   const getDisplayPrice = (ratesObj) => {
-    if (!ratesObj) return { price: "N/A", label: "" };
-    const currentRate = rates[currencyCode];
-    const currentSymbol = currencyCode === "USD" ? "$" : currencyCode;
-
-    if (ratesObj.nightly) {
+    const nightly = ratesObj?.nightly || listingPrice;
+    if (nightly) {
       return {
-        price: formatCurrency(ratesObj.nightly, currentRate, currentSymbol),
-        label: "/ night",
+        price: formatListingPrice(nightly, rates, currencyCode),
+        label: t("listing.perNight"),
       };
     }
-    if (ratesObj.weekly) {
+    if (ratesObj?.weekly) {
       return {
-        price: formatCurrency(ratesObj.weekly, currentRate, currentSymbol),
-        label: "/ week",
+        price: formatListingPrice(ratesObj.weekly, rates, currencyCode),
+        label: t("listing.perWeek"),
       };
     }
-    if (ratesObj.monthly) {
+    if (ratesObj?.monthly) {
       return {
-        price: formatCurrency(ratesObj.monthly, currentRate, currentSymbol),
-        label: "/ month",
+        price: formatListingPrice(ratesObj.monthly, rates, currencyCode),
+        label: t("listing.perMonth"),
       };
     }
-    return { price: "Contact", label: "for rates" };
+    return { price: t("listing.contact"), label: t("listing.forRates") };
   };
 
   const displayRate = getDisplayPrice(propertyRates);
@@ -68,8 +79,9 @@ const PropertyCard = ({ property, isSaved = false }) => {
     e.preventDefault();
     e.stopPropagation();
 
+    if (locked) return;
+
     if (!session?.user) {
-      // Redirect to sign in if not logged in
       window.location.href = "/login";
       return;
     }
@@ -95,153 +107,182 @@ const PropertyCard = ({ property, isSaved = false }) => {
     }
   };
 
-  return (
-    <div className="group bg-[var(--kama-surface)] rounded-3xl overflow-hidden flex flex-col h-full border border-[var(--kama-border)] hover:border-[var(--kama-border-strong)] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative">
-      <Link href={`/properties/${_id}`}>
-        <div className="relative cursor-pointer h-72 overflow-hidden">
-          <Image
-            loading="eager"
-            src={mainImage}
-            alt={name}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out"
-          />
+  const listingHref = propertyPublicPath(property);
 
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80"></div>
+  const media = (
+    <div
+      className={`relative h-72 overflow-hidden ${locked ? "" : "cursor-pointer"}`}
+    >
+      <Image
+        loading="eager"
+        src={mainImage}
+        alt={name}
+        fill
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        className={`h-full w-full object-cover transition-transform duration-700 ease-out ${
+          locked ? "grayscale" : "transform group-hover:scale-110"
+        }`}
+      />
 
-          {/* Top Badges */}
-          <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-10 max-w-[85%]">
-            {is_featured && (
-              <span className="bg-black/70 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg border border-white/10 shadow-sm">
-                Featured
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80"></div>
+
+      <div className="absolute top-4 left-4 z-10 flex max-w-[85%] flex-wrap gap-2">
+        {is_featured && (
+          <span className="rounded-lg border border-white/10 bg-black/70 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm backdrop-blur-md">
+            Featured
+          </span>
+        )}
+        <span className="rounded-lg bg-white/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-900 shadow-sm backdrop-blur-md">
+          {type}
+        </span>
+        {!locked ? <MobileMoneyBadge currencyCode={currencyCode} /> : null}
+      </div>
+
+      <div className="absolute bottom-4 left-4 right-4 z-10 flex items-end justify-between">
+        <div className="text-white">
+          <p className="text-2xl font-bold tracking-tight shadow-sm filter drop-shadow-sm">
+            {displayRate.price}
+            <span className="ml-1 text-sm font-medium text-white/90">
+              {displayRate.label}
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const body = (
+    <div className="flex flex-grow flex-col p-6">
+      <div className="mb-4">
+        <p
+          className={`mb-2 line-clamp-1 text-xl font-bold leading-tight transition-colors ${
+            locked
+              ? "text-gray-500"
+              : "text-[var(--kama-ink)] group-hover:text-[var(--kama-accent)]"
+          }`}
+          title={name}
+        >
+          {name}
+        </p>
+        <div className="flex items-center text-sm font-medium text-gray-500">
+          <MapPin size={16} className="mr-1.5 text-gray-400" />
+          <p>
+            {location?.city}, {location?.country}
+          </p>
+        </div>
+        {hostName && !locked && (
+          <div className="mt-3 flex items-center gap-2">
+            {hostImage ? (
+              <Image
+                src={hostImage}
+                alt=""
+                width={28}
+                height={28}
+                className={`h-7 w-7 rounded-full object-cover ring-1 ring-[var(--kama-accent-soft)] ${
+                  locked ? "grayscale" : ""
+                }`}
+              />
+            ) : (
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--kama-accent-soft)] text-xs font-semibold text-[var(--kama-accent)]">
+                {hostName.charAt(0).toUpperCase()}
               </span>
             )}
-            <span className="bg-white/90 backdrop-blur-md text-gray-900 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shadow-sm">
-              {type}
+            <span className="truncate text-xs font-medium text-[var(--kama-ink-muted)]">
+              {t("listing.hostedBy", { name: hostName })}
             </span>
-            <MobileMoneyBadge currencyCode={currencyCode} />
+          </div>
+        )}
+      </div>
+
+      <div className="mt-auto border-t border-dashed border-gray-200 pt-4">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex flex-col items-center">
+            <span className="flex items-center font-bold text-gray-900">
+              <Bed
+                size={18}
+                className="mr-2 text-[var(--kama-accent)]"
+                strokeWidth={2.5}
+              />
+              {beds}
+            </span>
+            <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+              {t("listing.beds")}
+            </span>
           </div>
 
-          {/* Price Tag Overlay */}
-          <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end z-10">
-            <div className="text-white">
-              <p className="text-2xl font-bold tracking-tight shadow-sm filter drop-shadow-sm">
-                {displayRate.price}
-                <span className="text-sm font-medium text-white/90 ml-1">
-                  {displayRate.label}
-                </span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </Link>
+          <div className="h-8 w-px bg-gray-200"></div>
 
-      {/* Like Button */}
-      <button
-        onClick={handleLikeToggle}
-        disabled={isLoading}
-        className="absolute cursor-pointer top-4 right-4 z-20 p-2.5 rounded-full bg-white/20 backdrop-blur-md hover:bg-white transition-colors duration-200 group/heart focus:outline-none disabled:opacity-50"
-      >
-        <Heart
-          size={18}
-          className={`transition-colors duration-200 ${
-            isLiked
-              ? "fill-red-500 text-red-500"
-              : "text-white group-hover/heart:text-gray-900"
-          }`}
-        />
-      </button>
-
-      <Link href={`/properties/${_id}`}>
-        <div className="p-6 flex flex-col flex-grow">
-          <div className="mb-4">
-            <h3
-              className="text-xl font-bold text-[var(--kama-ink)] leading-tight mb-2 group-hover:text-[var(--kama-accent)] transition-colors line-clamp-1"
-              title={name}
-            >
-              {name}
-            </h3>
-            <div className="flex items-center text-gray-500 text-sm font-medium">
-              <MapPin size={16} className="text-gray-400 mr-1.5" />
-              <p>
-                {location?.city}, {location?.country}
-              </p>
-            </div>
-            {hostName && (
-              <div className="mt-3 flex items-center gap-2">
-                {hostImage ? (
-                  <Image
-                    src={hostImage}
-                    alt=""
-                    width={28}
-                    height={28}
-                    className="h-7 w-7 rounded-full object-cover ring-1 ring-[var(--kama-accent-soft)]"
-                  />
-                ) : (
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--kama-accent-soft)] text-xs font-semibold text-[var(--kama-accent)]">
-                    {hostName.charAt(0).toUpperCase()}
-                  </span>
-                )}
-                <span className="truncate text-xs font-medium text-[var(--kama-ink-muted)]">
-                  Hosted by {hostName}
-                </span>
-              </div>
-            )}
+          <div className="flex flex-col items-center">
+            <span className="flex items-center font-bold text-gray-900">
+              <Bath
+                size={18}
+                className="mr-2 text-[var(--kama-accent)]"
+                strokeWidth={2.5}
+              />
+              {baths}
+            </span>
+            <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+              {t("listing.baths")}
+            </span>
           </div>
 
-          <div className="mt-auto border-t border-dashed border-gray-200 pt-4">
-            <div className="flex justify-between items-center px-1">
-              <div className="flex flex-col items-center">
-                <span className="flex items-center text-gray-900 font-bold">
-                  <Bed
-                    size={18}
-                    className="mr-2 text-[var(--kama-accent)]"
-                    strokeWidth={2.5}
-                  />
-                  {beds}
-                </span>
-                <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mt-0.5">
-                  Beds
-                </span>
-              </div>
+          <div className="h-8 w-px bg-gray-200"></div>
 
-              <div className="w-px h-8 bg-gray-200"></div>
-
-              <div className="flex flex-col items-center">
-                <span className="flex items-center text-gray-900 font-bold">
-                  <Bath
-                    size={18}
-                    className="mr-2 text-[var(--kama-accent)]"
-                    strokeWidth={2.5}
-                  />
-                  {baths}
-                </span>
-                <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mt-0.5">
-                  Baths
-                </span>
-              </div>
-
-              <div className="w-px h-8 bg-gray-200"></div>
-
-              <div className="flex flex-col items-center">
-                <span className="flex items-center text-gray-900 font-bold">
-                  <Ruler
-                    size={18}
-                    className="mr-2 text-[var(--kama-accent)]"
-                    strokeWidth={2.5}
-                  />
-                  {square_feet?.toLocaleString()}
-                </span>
-                <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mt-0.5">
-                  Sq Ft
-                </span>
-              </div>
-            </div>
+          <div className="flex flex-col items-center">
+            <span className="flex items-center font-bold text-gray-900">
+              <Ruler
+                size={18}
+                className="mr-2 text-[var(--kama-accent)]"
+                strokeWidth={2.5}
+              />
+              {square_feet?.toLocaleString()}
+            </span>
+            <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+              {t("listing.sqft")}
+            </span>
           </div>
         </div>
-      </Link>
+      </div>
+    </div>
+  );
+
+  return (
+    <div
+      className={`relative flex h-full flex-col overflow-hidden rounded-3xl border bg-[var(--kama-surface)] transition-all duration-300 ${
+        locked
+          ? "cursor-not-allowed border-gray-200 grayscale"
+          : "group border-[var(--kama-border)] shadow-sm hover:-translate-y-1 hover:border-[var(--kama-border-strong)] hover:shadow-xl"
+      }`}
+      aria-disabled={locked || undefined}
+    >
+      {locked ? media : <Link href={listingHref}>{media}</Link>}
+
+      {!locked ? (
+        <>
+          <PropertyShareButton
+            property={property}
+            title={name}
+            variant="icon"
+            className="top-4 right-16"
+          />
+          <button
+            onClick={handleLikeToggle}
+            disabled={isLoading}
+            className="group/heart absolute top-4 right-4 z-20 cursor-pointer rounded-full bg-white/20 p-2.5 backdrop-blur-md transition-colors duration-200 hover:bg-white focus:outline-none disabled:opacity-50"
+          >
+            <Heart
+              size={18}
+              className={`transition-colors duration-200 ${
+                isLiked
+                  ? "fill-red-500 text-red-500"
+                  : "text-white group-hover/heart:text-gray-900"
+              }`}
+            />
+          </button>
+        </>
+      ) : null}
+
+      {locked ? body : <Link href={listingHref}>{body}</Link>}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { loadGoogleMapsApi } from "@/utils/googleMaps";
+import { loadGoogleMapsApi, importPlacesLibrary } from "@/utils/googleMaps";
 
 /** Fallback centers when Maps/Geocoding is unavailable (manual address path). */
 export const DEFAULT_MAP_CENTER = { lat: 6.5244, lng: 3.3792 }; // Lagos
@@ -71,6 +71,28 @@ function readLatLng(location) {
   };
 }
 
+function partsFromFormatted(formatted) {
+  return String(formatted || "")
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+/** When Places omits locality/country, infer from a typical "street, city, country" line. */
+function guessCityCountry(formatted) {
+  const parts = partsFromFormatted(formatted);
+  if (parts.length >= 3) {
+    return {
+      city: parts[parts.length - 2],
+      country: parts[parts.length - 1],
+    };
+  }
+  if (parts.length === 2) {
+    return { city: parts[0], country: parts[1] };
+  }
+  return { city: "", country: "" };
+}
+
 /**
  * Parse a Google Place into our address shape.
  * Supports Places API (New) Place after fetchFields, and legacy PlaceResult.
@@ -89,6 +111,7 @@ export function parseGooglePlace(place) {
       : place.displayName?.text) ||
     "";
   const placeId = place.id || place.place_id || "";
+  const guessed = guessCityCountry(formatted);
 
   if (!components.length) {
     if (!formatted && lat == null) return null;
@@ -96,10 +119,10 @@ export function parseGooglePlace(place) {
       formatted,
       streetLine1: formatted.split(",")[0]?.trim() || "",
       streetLine2: "",
-      city: "",
+      city: guessed.city,
       state: "",
       postalCode: "",
-      country: "",
+      country: guessed.country,
       countryCode: "",
       placeId,
       lat,
@@ -126,10 +149,10 @@ export function parseGooglePlace(place) {
     formatted: formatted || "",
     streetLine1: streetLine1 || formatted.split(",")[0]?.trim() || "",
     streetLine2: "",
-    city: componentLong(locality) || "",
+    city: componentLong(locality) || guessed.city,
     state: componentShort(state) || componentLong(state) || "",
     postalCode: componentLong(postalCode) || "",
-    country: componentLong(country) || "",
+    country: componentLong(country) || guessed.country,
     countryCode: componentShort(country) || "",
     placeId,
     lat,
@@ -204,6 +227,37 @@ export function normalizeAddressInput(input) {
   return normalized;
 }
 
+/** Plain object / string from a Mongo subdocument, legacy string, or POJO. */
+function toPlainAddressValue(value) {
+  if (value == null || typeof value === "string") return value;
+  if (typeof value.toObject === "function") {
+    return value.toObject({ getters: true, depopulate: true });
+  }
+  return value;
+}
+
+/**
+ * Coerce a Mongo-stored address (legacy string or partial object) into
+ * AddressSchema shape so Mongoose can save nested `address` / `hostAddress`.
+ */
+export function coerceStoredAddress(value) {
+  const plain = toPlainAddressValue(value);
+  const normalized = normalizeAddressInput(plain);
+  if (normalized) return normalized;
+
+  const fromLegacy = addressFromLegacy(plain);
+  if (!fromLegacy.streetLine1?.trim() && !fromLegacy.formatted?.trim()) {
+    return null;
+  }
+
+  return {
+    ...fromLegacy,
+    streetLine1: fromLegacy.streetLine1 || fromLegacy.formatted,
+    city: fromLegacy.city || "—",
+    country: fromLegacy.country || "—",
+  };
+}
+
 export function addressFromLegacy(value) {
   if (!value) return emptyAddress();
   if (typeof value === "object" && value.streetLine1) {
@@ -269,9 +323,7 @@ async function geocodeWithPlacesNew(query) {
 
   try {
     const google = await loadGoogleMapsApi(["places"]);
-    const placesLib =
-      google.maps.places ||
-      (await google.maps.importLibrary("places").catch(() => null));
+    const placesLib = await importPlacesLibrary(google);
     const AutocompleteSuggestion = placesLib?.AutocompleteSuggestion;
     if (!AutocompleteSuggestion?.fetchAutocompleteSuggestions) return null;
 

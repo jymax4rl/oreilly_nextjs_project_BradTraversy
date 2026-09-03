@@ -21,12 +21,13 @@ function getPaymentLabel(code, support) {
 export default function PaymentMethodBadge({
   currencyCode,
   compact = true,
+  manual = false,
 }) {
   const code = normalizeCurrencyCode(currencyCode);
   const support = getMobileMoneySupport(code);
   const isMobile = isMobileMoneyCurrency(code);
-  const label = getPaymentLabel(code, support);
-  const orange = support?.useOrangeBranding;
+  const label = manual ? "Pay host directly" : getPaymentLabel(code, support);
+  const orange = !manual && support?.useOrangeBranding;
 
   if (compact) {
     return (
@@ -35,7 +36,7 @@ export default function PaymentMethodBadge({
         role="status"
         aria-live="polite"
       >
-        {isMobile ? (
+        {manual || isMobile ? (
           <Smartphone
             size={12}
             className={
@@ -51,7 +52,9 @@ export default function PaymentMethodBadge({
           />
         )}
         <span className="truncate text-[var(--kama-ink)]">{label}</span>
-        <span className="shrink-0 opacity-60">{code}</span>
+        {!manual ? (
+          <span className="shrink-0 opacity-60">{code}</span>
+        ) : null}
       </span>
     );
   }
@@ -66,7 +69,7 @@ export default function PaymentMethodBadge({
         Payment
       </p>
       <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-semibold text-[var(--kama-ink)]">
-        {isMobile ? (
+        {manual || isMobile ? (
           <Smartphone
             size={16}
             className={
@@ -82,9 +85,15 @@ export default function PaymentMethodBadge({
           />
         )}
         <span>{label}</span>
-        <span className="font-normal text-[var(--kama-ink-muted)]">({code})</span>
+        {!manual ? (
+          <span className="font-normal text-[var(--kama-ink-muted)]">({code})</span>
+        ) : null}
       </p>
-      {support?.hint && isMobile ? (
+      {manual ? (
+        <p className="mt-1 text-xs leading-snug text-[var(--kama-ink-muted)]">
+          Arrange payment with the host after you reserve
+        </p>
+      ) : support?.hint && isMobile ? (
         <p className="mt-1 text-xs leading-snug text-[var(--kama-ink-muted)]">
           {support.hint}
         </p>

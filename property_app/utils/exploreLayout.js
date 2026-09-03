@@ -3,7 +3,11 @@
  */
 export function isExploreMobileLayout(pathname) {
   if (!pathname) return false;
-  if (pathname.startsWith("/admin") || pathname.startsWith("/host"))
+  if (
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/ops") ||
+    pathname.startsWith("/host")
+  )
     return false;
   // Fullscreen host flows — no bottom tab bar / currency chrome
   if (

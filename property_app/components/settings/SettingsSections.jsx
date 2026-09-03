@@ -81,7 +81,7 @@ export default function SettingsSections({ settings }) {
     <div className="mt-2">
       <Section
         title="Account & security"
-        description="Sign-in is Google OAuth only — no password is stored on Kama. Edit your public name and photo on Profile."
+        description="Sign-in is Google OAuth only — no password is stored on Isisel. Edit your public name and photo on Profile."
       >
         <dl className="space-y-4 text-sm">
           <div>
@@ -188,22 +188,10 @@ export default function SettingsSections({ settings }) {
               </div>
               <div className="space-y-0.5">
                 <DeepLink
-                  href="/host/listings"
+                  href="/host"
                   icon={Building2}
-                  label="Listing dashboard"
-                  description="Status and approval overview"
-                />
-                <DeepLink
-                  href="/properties/my-listings"
-                  icon={LayoutList}
-                  label="My listings"
-                  description="Rates, calendar, and availability"
-                />
-                <DeepLink
-                  href="/host/reservations"
-                  icon={CalendarCheck}
-                  label="Manage reservations"
-                  description="Guest stays across your properties"
+                  label="Host console"
+                  description="Reservations, calendar, listings, inbox"
                 />
                 <DeepLink
                   href="/host/install?next=/settings"
@@ -246,7 +234,7 @@ export default function SettingsSections({ settings }) {
               href={BECOME_A_HOST_HREF}
               icon={Building2}
               label="Become a host"
-              description="Apply to list properties on Kama"
+              description="Apply to list properties on Isisel"
             />
           )}
         </Section>
@@ -254,18 +242,24 @@ export default function SettingsSections({ settings }) {
 
       {isAdmin && (
         <Section
-          title="Admin"
-          description="Moderation tools live in the admin area — no extra alert prefs yet."
+          title="Operations"
+          description="Staff tools live in the ops console — no extra alert prefs yet."
         >
           <div className="space-y-0.5">
             <DeepLink
-              href="/admin/hosts"
+              href="/ops"
+              icon={Shield}
+              label="Ops console"
+              description="Hosts, listings, and transactions"
+            />
+            <DeepLink
+              href="/ops/hosts"
               icon={Shield}
               label="Host applications"
               description="Review and approve hosts"
             />
             <DeepLink
-              href="/admin/transactions"
+              href="/ops/transactions"
               icon={CalendarCheck}
               label="Transactions"
               description="Payment and booking activity"

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, LayoutGrid, Mic, X } from "lucide-react";
 
 import { propertyImageUrl, propertyAudioUrl } from "@/utils/propertyImageUrl";
+import PropertyShareButton from "@/components/PropertyShareButton";
 
 function imageSrc(filename) {
   return propertyImageUrl(filename);
@@ -262,6 +263,11 @@ export default function PropertyImageGallery({
             className="object-cover"
           />
         </button>
+        <PropertyShareButton
+          title={propertyName}
+          variant="icon"
+          className="left-3 top-3"
+        />
         <GalleryOpenButton count={slides.length} onClick={() => openAt(0)} />
         {audioSrc ? (
           <button
@@ -295,6 +301,11 @@ export default function PropertyImageGallery({
               className="object-cover transition duration-300 group-hover:scale-[1.01]"
             />
           </button>
+          <PropertyShareButton
+            title={propertyName}
+            variant="icon"
+            className="left-3 top-3"
+          />
           <GalleryOpenButton count={slides.length} onClick={() => openAt(0)} />
           {audioSrc ? (
             <button

@@ -2,7 +2,7 @@
 @import "./home-portal.css";
 
 /*
-  Kama Properties — global design tokens
+  Isisel — global design tokens
   Deep ocean teal system (not neon cyan / purple / terracotta-cream).
 */
 :root {
@@ -101,6 +101,25 @@ body:has(main#main-content) button[aria-label^="Currency"].fixed {
 [data-mobile-bottom-nav] svg {
   fill: none !important;
   background: transparent !important;
+}
+
+@keyframes kama-soft-zoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.05);
+  }
+}
+
+.kama-soft-zoom {
+  animation: kama-soft-zoom 14s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kama-soft-zoom {
+    animation: none;
+  }
 }
 
 @keyframes calendarFadeIn {

@@ -1,6 +1,7 @@
 import connectToDatabase from "@/config/database";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
+import { getSessionFromRequest } from "@/utils/authSessionRoute";
 import {
   getPropertyForApi,
   isPropertyOwner,
@@ -21,7 +22,9 @@ export async function GET(request, { params }) {
       return Response.json({ error: "Property not found" }, { status: 404 });
     }
 
-    const session = await getServerSession(authOptions);
+    const session =
+      (await getSessionFromRequest(request)) ||
+      (await getServerSession(authOptions));
     const isOwner = isPropertyOwner(property, session?.user?.id);
 
     const payload = await getAvailabilityPayload(id, { isOwner });
@@ -43,7 +46,9 @@ export async function PUT(request, { params }) {
     await connectToDatabase();
     const { id } = await params;
 
-    const session = await getServerSession(authOptions);
+    const session =
+      (await getSessionFromRequest(request)) ||
+      (await getServerSession(authOptions));
     const verified = assertVerifiedHost(session);
     if (!verified.ok) {
       return Response.json({ error: verified.message }, { status: verified.status });
@@ -60,7 +65,13 @@ export async function PUT(request, { params }) {
       );
     }
 
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+
     const result = await updatePropertyAvailability(id, property.owner, body);
 
     if (!result.ok) {
@@ -73,6 +84,12 @@ export async function PUT(request, { params }) {
     return Response.json(result.payload);
   } catch (error) {
     console.error("PUT availability:", error);
-    return Response.json({ error: "Failed to update availability" }, { status: 500 });
+    return Response.json(
+      {
+        error: "Failed to update availability",
+        details: process.env.NODE_ENV === "development" ? [error.message] : undefined,
+      },
+      { status: 500 },
+    );
   }
 }

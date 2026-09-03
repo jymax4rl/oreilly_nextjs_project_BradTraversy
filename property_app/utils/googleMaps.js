@@ -16,11 +16,14 @@ function getApiKey() {
 }
 
 /**
- * Cloud console Map ID (Map Management) required for Advanced Markers.
- * Leave empty to use classic `google.maps.Marker` (pin still shows).
+ * Cloud console Map ID (Map Management) — optional.
+ * GoogleMap uses OverlayView geographic pins (no Map ID required).
+ * Leave empty in Docker/MVP; set only if you intentionally use Advanced Markers elsewhere.
  * For local testing you may set `DEMO_MAP_ID` (Google docs sample id).
  */
 export function getGoogleMapsMapId() {
+  // Prefer NEXT_PUBLIC_ (inlined via next.config env). GOOGLE_MAPS_MAP_ID is
+  // a server/build alias — only available client-side if next.config maps it.
   return (
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ||
     process.env.GOOGLE_MAPS_MAP_ID ||
@@ -31,6 +34,47 @@ export function getGoogleMapsMapId() {
 /** True when a browser-exposed Maps/Places key is configured. */
 export function hasGoogleMapsApiKey() {
   return Boolean(getApiKey());
+}
+
+/**
+ * Places API (New) readiness — AutocompleteSuggestion must exist.
+ * `google.maps.places` alone is not enough: a legacy `libraries=places`
+ * bootstrap can attach that namespace without New classes.
+ */
+export function hasPlacesApiNew(google = typeof window !== "undefined" ? window.google : null) {
+  const places = google?.maps?.places;
+  return Boolean(
+    places?.AutocompleteSuggestion?.fetchAutocompleteSuggestions &&
+      places?.AutocompleteSessionToken,
+  );
+}
+
+/**
+ * Load Places API (New) via importLibrary. Never rely on legacy
+ * google.maps.places.Autocomplete / AutocompleteService.
+ * @returns {Promise<object>} places library module (AutocompleteSuggestion, …)
+ */
+export async function importPlacesLibrary(google) {
+  const g = google || (typeof window !== "undefined" ? window.google : null);
+  if (!g?.maps) {
+    throw new Error("Google Maps is not loaded");
+  }
+  if (hasPlacesApiNew(g)) {
+    return g.maps.places;
+  }
+  if (typeof g.maps.importLibrary !== "function") {
+    throw new Error("Google Maps importLibrary is unavailable");
+  }
+  const lib = await g.maps.importLibrary("places");
+  if (lib?.AutocompleteSuggestion?.fetchAutocompleteSuggestions) {
+    return lib;
+  }
+  if (hasPlacesApiNew(g)) {
+    return g.maps.places;
+  }
+  throw new Error(
+    "Places API (New) is unavailable — enable Places API (New) in Google Cloud",
+  );
 }
 
 /**
@@ -134,7 +178,7 @@ function clearWindowCallback(name) {
  * Never hangs forever: rejects after GOOGLE_MAPS_LOAD_TIMEOUT_MS so UI can soft-fail
  * to manual address entry.
  *
- * Preferred libraries for Kama: places (Places API New autocomplete), marker.
+ * Preferred libraries for Isisel: places (Places API New autocomplete), marker.
  * Callers should request only what they need — map display does not need places.
  */
 export function loadGoogleMapsApi(libraries = ["maps"]) {
@@ -153,7 +197,8 @@ export function loadGoogleMapsApi(libraries = ["maps"]) {
     const importTimeoutMs = 8_000;
     for (const lib of libs) {
       if (loadedLibraries.has(lib)) continue;
-      if (lib === "places" && google.maps?.places) {
+      // Places API (New): require AutocompleteSuggestion, not mere places namespace.
+      if (lib === "places" && hasPlacesApiNew(google)) {
         loadedLibraries.add(lib);
         continue;
       }
@@ -165,29 +210,35 @@ export function loadGoogleMapsApi(libraries = ["maps"]) {
         loadedLibraries.add(lib);
         continue;
       }
-      if (typeof google.maps.importLibrary === "function") {
-        await Promise.race([
-          google.maps.importLibrary(lib),
-          new Promise((_, reject) => {
-            setTimeout(
-              () =>
-                reject(
-                  new Error(
-                    `Google Maps library "${lib}" import timed out`,
-                  ),
-                ),
-              importTimeoutMs,
-            );
-          }),
-        ]);
-        loadedLibraries.add(lib);
+      if (typeof google.maps.importLibrary !== "function") {
+        if (lib === "places") {
+          throw new Error(
+            "Places API (New) requires google.maps.importLibrary",
+          );
+        }
+        continue;
       }
+      await Promise.race([
+        lib === "places"
+          ? importPlacesLibrary(google)
+          : google.maps.importLibrary(lib),
+        new Promise((_, reject) => {
+          setTimeout(
+            () =>
+              reject(
+                new Error(`Google Maps library "${lib}" import timed out`),
+              ),
+            importTimeoutMs,
+          );
+        }),
+      ]);
+      loadedLibraries.add(lib);
     }
     return google;
   };
 
   if (window.google?.maps) {
-    const needsPlaces = libs.includes("places") && !window.google.maps.places;
+    const needsPlaces = libs.includes("places") && !hasPlacesApiNew(window.google);
     const needsMarker = libs.includes("marker") && !window.google.maps.marker;
     const needsMaps =
       libs.includes("maps") && typeof window.google.maps.Map !== "function";
@@ -274,9 +325,10 @@ export function loadGoogleMapsApi(libraries = ["maps"]) {
         loading: "async",
         callback: callbackName,
       });
-      // Only request libraries the caller needs. Map pin display uses maps/marker;
-      // address search requests places separately (Places API New).
-      const bootLibs = libs.length > 0 ? libs : ["maps"];
+      // Never put `places` in the script URL — that attaches the legacy Places
+      // namespace without AutocompleteSuggestion (Places API New). Load places
+      // only via importLibrary after bootstrap. Map pin uses maps/marker.
+      const bootLibs = libs.filter((l) => l !== "places");
       if (bootLibs.length) {
         params.set("libraries", bootLibs.join(","));
       }
@@ -292,7 +344,12 @@ export function loadGoogleMapsApi(libraries = ["maps"]) {
       };
       document.head.appendChild(script);
     }).then((google) => {
-      libs.forEach((l) => loadedLibraries.add(l));
+      // Only mark libraries that the script URL actually boots. `places` is
+      // never in the URL (Places API New via importLibrary) — ensureLibraries
+      // must still run for it.
+      libs
+        .filter((l) => l !== "places")
+        .forEach((l) => loadedLibraries.add(l));
       return google;
     });
   }

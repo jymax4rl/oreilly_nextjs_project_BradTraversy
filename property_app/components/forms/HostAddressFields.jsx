@@ -1,6 +1,7 @@
 "use client";
 
 import GoogleAddressAutocomplete from "@/components/forms/GoogleAddressAutocomplete";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 const inputClass =
   "h-12 w-full rounded-xl border border-[var(--kama-border)] bg-[var(--kama-surface)] px-4 text-[15px] text-[var(--kama-ink)] outline-none transition placeholder:text-[var(--kama-ink-muted)] focus:border-[var(--kama-accent)] focus:ring-2 focus:ring-[var(--kama-accent)]/15";
@@ -8,6 +9,7 @@ const inputClass =
 const labelClass = "mb-1.5 block text-sm font-medium text-[var(--kama-ink)]";
 
 export default function HostAddressFields({ address, onChange, disabled = false }) {
+  const { t } = useLanguage();
   const setField = (name, value) => {
     onChange({ ...address, [name]: value });
   };
@@ -19,7 +21,7 @@ export default function HostAddressFields({ address, onChange, disabled = false 
   return (
     <div className="space-y-4">
       <div>
-        <label className={labelClass}>Search address</label>
+        <label className={labelClass}>{t("host.searchAddress")}</label>
         <GoogleAddressAutocomplete
           value={address.formatted || address.streetLine1}
           onChange={(value) =>
@@ -31,12 +33,13 @@ export default function HostAddressFields({ address, onChange, disabled = false 
           }
           onPlaceSelect={handlePlaceSelect}
           disabled={disabled}
+          placeholder={t("host.addressSearchPh")}
         />
       </div>
 
       <div>
         <label htmlFor="streetLine1" className={labelClass}>
-          Street address <span className="text-red-500">*</span>
+          {t("host.street")} <span className="text-red-500">*</span>
         </label>
         <input
           id="streetLine1"
@@ -46,14 +49,15 @@ export default function HostAddressFields({ address, onChange, disabled = false 
           disabled={disabled}
           value={address.streetLine1}
           onChange={(e) => setField("streetLine1", e.target.value)}
-          placeholder="House number and street"
+          placeholder={t("host.streetPh")}
           className={inputClass}
         />
       </div>
 
       <div>
         <label htmlFor="streetLine2" className={labelClass}>
-          Apartment, suite, etc. <span className="text-zinc-400">(optional)</span>
+          {t("host.apt")}{" "}
+          <span className="text-zinc-400">{t("host.optional")}</span>
         </label>
         <input
           id="streetLine2"
@@ -62,7 +66,7 @@ export default function HostAddressFields({ address, onChange, disabled = false 
           disabled={disabled}
           value={address.streetLine2}
           onChange={(e) => setField("streetLine2", e.target.value)}
-          placeholder="Apt 4B, Floor 2, etc."
+          placeholder={t("host.aptPh")}
           className={inputClass}
         />
       </div>
@@ -70,7 +74,7 @@ export default function HostAddressFields({ address, onChange, disabled = false 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="city" className={labelClass}>
-            City <span className="text-red-500">*</span>
+            {t("host.city")} <span className="text-red-500">*</span>
           </label>
           <input
             id="city"
@@ -86,7 +90,7 @@ export default function HostAddressFields({ address, onChange, disabled = false 
         </div>
         <div>
           <label htmlFor="state" className={labelClass}>
-            State / region
+            {t("host.state")}
           </label>
           <input
             id="state"
@@ -104,7 +108,7 @@ export default function HostAddressFields({ address, onChange, disabled = false 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="postalCode" className={labelClass}>
-            Postal code
+            {t("host.postal")}
           </label>
           <input
             id="postalCode"
@@ -119,7 +123,7 @@ export default function HostAddressFields({ address, onChange, disabled = false 
         </div>
         <div>
           <label htmlFor="country" className={labelClass}>
-            Country <span className="text-red-500">*</span>
+            {t("host.country")} <span className="text-red-500">*</span>
           </label>
           <input
             id="country"

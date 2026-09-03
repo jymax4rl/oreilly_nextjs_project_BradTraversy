@@ -48,10 +48,14 @@ export async function ensurePropertyAvailability(propertyId, hostIdHint) {
 
 export { validateCustomDayRates };
 
+/**
+ * Active stay holds that block the calendar: confirmed (paid) + pending
+ * (manual / awaiting host payment). Cancelled stays do not block.
+ */
 export async function getConfirmedBookings(propertyId) {
   return Booking.find({
     propertyId: new mongoose.Types.ObjectId(propertyId),
-    status: "confirmed",
+    status: { $in: ["confirmed", "pending"] },
   })
     .sort({ checkIn: 1 })
     .lean();
@@ -134,6 +138,10 @@ export function validateHostBlocks(hostBlocks, confirmedBookings) {
 
 /**
  * Atomically upsert availability settings (host blocks, defaults, custom rates).
+ *
+ * MongoDB rejects updates when the same path appears in both `$set` and
+ * `$setOnInsert` ("would create a conflict"). Only put defaults in
+ * `$setOnInsert` for fields that are NOT already in `$set`.
  */
 export async function upsertPropertyAvailability(
   propertyId,
@@ -142,23 +150,28 @@ export async function upsertPropertyAvailability(
 ) {
   const oid = new mongoose.Types.ObjectId(propertyId);
   const $set = {};
+  const $setOnInsert = { propertyId: oid };
 
   if (hostId) $set.hostId = hostId;
-  if (hostBlocks !== undefined) $set.hostBlocks = hostBlocks;
-  if (defaultAvailability !== undefined) $set.defaultAvailability = defaultAvailability;
-  if (customDayRates !== undefined) $set.customDayRates = customDayRates;
+  if (hostBlocks !== undefined) {
+    $set.hostBlocks = hostBlocks;
+  } else {
+    $setOnInsert.hostBlocks = [];
+  }
+  if (defaultAvailability !== undefined) {
+    $set.defaultAvailability = defaultAvailability;
+  } else {
+    $setOnInsert.defaultAvailability = "open";
+  }
+  if (customDayRates !== undefined) {
+    $set.customDayRates = customDayRates;
+  } else {
+    $setOnInsert.customDayRates = [];
+  }
 
   return PropertyAvailability.findOneAndUpdate(
     { propertyId: oid },
-    {
-      $set,
-      $setOnInsert: {
-        propertyId: oid,
-        defaultAvailability: defaultAvailability ?? "open",
-        hostBlocks: hostBlocks ?? [],
-        customDayRates: customDayRates ?? [],
-      },
-    },
+    { $set, $setOnInsert },
     { upsert: true, new: true, runValidators: true },
   );
 }

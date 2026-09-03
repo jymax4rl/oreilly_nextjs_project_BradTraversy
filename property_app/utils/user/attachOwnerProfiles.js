@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import User from "@/models/User";
+import { isPreviewLockedHost } from "@/utils/listings/previewLockedHost";
 
 /**
  * Attach public host identity (`host: { id, name, image }`) from User by Property.owner.
@@ -28,13 +29,17 @@ export async function attachOwnerProfiles(properties) {
   if (ownerIds.length) {
     try {
       const users = await User.find({ _id: { $in: ownerIds } })
-        .select("username image")
+        .select("username image email")
         .lean();
       for (const u of users) {
         byId.set(String(u._id), {
           id: String(u._id),
           name: u.username || null,
           image: u.image || null,
+          previewLocked: isPreviewLockedHost({
+            email: u.email,
+            name: u.username,
+          }),
         });
       }
     } catch (err) {
@@ -44,8 +49,18 @@ export async function attachOwnerProfiles(properties) {
 
   const enriched = list.map((p) => {
     const ownerKey = p?.owner != null ? String(p.owner) : "";
-    const host = byId.get(ownerKey) || null;
-    return { ...p, host };
+    const found = byId.get(ownerKey) || null;
+    const host = found
+      ? { id: found.id, name: found.name, image: found.image }
+      : null;
+    const previewLocked = Boolean(
+      found?.previewLocked ||
+        isPreviewLockedHost({
+          email: p?.seller_info?.email,
+          name: p?.seller_info?.name || found?.name,
+        }),
+    );
+    return { ...p, host, previewLocked };
   });
 
   return single ? enriched[0] : enriched;

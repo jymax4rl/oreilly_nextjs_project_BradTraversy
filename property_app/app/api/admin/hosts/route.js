@@ -2,13 +2,14 @@ import connectToDatabase from "@/config/database";
 import HostApplication from "@/models/HostApplication";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
+import { isOpsStaff } from "@/utils/opsAuth";
 
 export const GET = async (request) => {
   try {
     await connectToDatabase();
     const session = await getServerSession(authOptions);
 
-    if (!session?.user || session.user.role !== "admin") {
+    if (!session?.user || !isOpsStaff(session.user.role)) {
       return new Response("Unauthorized", { status: 403 });
     }
 
@@ -20,7 +21,10 @@ export const GET = async (request) => {
     const filter = validStatuses.includes(statusFilter) ? statusFilter : "pending";
 
     const applications = await HostApplication.find({ status: filter })
-      .populate("user", "email username image")
+      .populate(
+        "user",
+        "email username image role hostStatus banned bannedAt createdAt",
+      )
       .sort({ createdAt: -1 })
       .lean();
 

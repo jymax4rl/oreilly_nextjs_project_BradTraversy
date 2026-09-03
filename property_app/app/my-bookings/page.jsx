@@ -12,14 +12,16 @@ import {
 import { ArrowLeft, CalendarCheck } from "lucide-react";
 
 export const metadata = {
-  title: "My Bookings | Kama Properties",
-  description: "Your confirmed reservations on Kama Properties",
+  title: "My Bookings | Isisel",
+  description: "Your confirmed reservations on Isisel",
+  robots: { index: false, follow: false },
 };
 
 export default async function MyBookingsPage({ searchParams }) {
   const session = await getServerSession(authOptions);
   const params = await searchParams;
   const confirmedBanner = params?.confirmed === "1";
+  const reservedBanner = params?.reserved === "1";
 
   if (!session?.user) {
     return (
@@ -64,7 +66,7 @@ export default async function MyBookingsPage({ searchParams }) {
 
   const properties = propertyIds.length
     ? await Property.find({ _id: { $in: propertyIds } })
-        .select("name images location type bookingPolicy")
+        .select("name images location type bookingPolicy slug")
         .lean()
     : [];
 
@@ -84,6 +86,8 @@ export default async function MyBookingsPage({ searchParams }) {
       checkIn: b.checkIn,
       checkOut: b.checkOut,
       status: b.status,
+      paymentMode: b.paymentMode || null,
+      guestPhone: b.guestPhone || null,
       transactionId: b.transactionId,
       amount: b.amount,
       currency: b.currency,
@@ -107,6 +111,7 @@ export default async function MyBookingsPage({ searchParams }) {
       property: property
         ? {
             _id: String(property._id),
+            slug: property.slug || null,
             name: property.name,
             images: property.images,
             location: property.location,
@@ -150,6 +155,17 @@ export default async function MyBookingsPage({ searchParams }) {
           >
             Payment confirmed — your booking is listed below. A confirmation
             email is sent automatically when email is configured.
+          </div>
+        )}
+
+        {reservedBanner && (
+          <div
+            className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+            role="status"
+          >
+            Reservation requested — your dates are held. Message the host to
+            arrange payment. A confirmation email is sent when email is
+            configured.
           </div>
         )}
 

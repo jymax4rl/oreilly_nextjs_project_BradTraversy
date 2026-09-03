@@ -1,6 +1,6 @@
 import connectToDatabase from "@/config/database";
-import Property from "@/models/Property";
 import HostRatesForm from "@/components/rates/HostRatesForm";
+import HostShell from "@/components/host/HostShell";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,15 +8,17 @@ import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { ArrowLeft, MapPin } from "lucide-react";
+import { findPropertyByParam } from "@/utils/listings/propertySlug";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 
 export async function generateMetadata({ params }) {
   await connectToDatabase();
   const { id } = await params;
-  const property = await Property.findById(id).select("name").lean();
+  const property = await findPropertyByParam(id, "name");
   return {
     title: property
-      ? `Rates — ${property.name} | Kama Properties`
-      : "Rates | Kama Properties",
+      ? `Rates — ${property.name} | Isisel`
+      : "Rates | Isisel",
     robots: { index: false, follow: false },
   };
 }
@@ -28,7 +30,7 @@ function propertyImageSrc(filename) {
 export default async function PropertyRatesPage({ params }) {
   await connectToDatabase();
   const { id } = await params;
-  const property = await Property.findById(id, "-internalNotes").lean();
+  const property = await findPropertyByParam(id, "-internalNotes");
 
   if (!property) {
     notFound();
@@ -50,7 +52,7 @@ export default async function PropertyRatesPage({ params }) {
   const serialized = serializePropertyForClient(property);
 
   if (session.user.id !== serialized.owner) {
-    redirect(`/properties/${id}`);
+    redirect(propertyPublicPath(serialized));
   }
 
   const locationLabel = [
@@ -61,14 +63,14 @@ export default async function PropertyRatesPage({ params }) {
     .join(", ");
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 pt-14 font-sans text-slate-900 md:pt-20">
-      <div className="mx-auto max-w-2xl px-4 py-6 sm:py-8">
+    <HostShell>
+    <div className="mx-auto max-w-2xl">
         <Link
-          href="/properties/my-listings"
-          className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-slate-900"
+          href="/host/listings"
+          className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-[var(--kama-ink-muted)] transition hover:text-[var(--kama-ink)]"
         >
           <ArrowLeft size={18} aria-hidden />
-          My listings
+          Listings
         </Link>
 
         <div className="mb-6 flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -101,7 +103,7 @@ export default async function PropertyRatesPage({ params }) {
           propertyId={serialized._id}
           propertyName={serialized.name}
         />
-      </div>
     </div>
+    </HostShell>
   );
 }

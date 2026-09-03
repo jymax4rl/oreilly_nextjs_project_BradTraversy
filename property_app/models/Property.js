@@ -3,6 +3,19 @@ const { Schema, model, models } = mongoose;
 
 const PropertySchema = new mongoose.Schema(
   {
+    /**
+     * Public URL key under /properties/[slug]. Set once; not renamed with the
+     * title so indexed links stay stable. Sparse unique so legacy rows can
+     * exist until the first public read backfills them.
+     */
+    slug: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      maxlength: 96,
+      unique: true,
+      sparse: true,
+    },
     name: { type: String, required: false },
     owner: { type: String, required: false },
     is_featured: { type: Boolean, required: true, default: false },
@@ -33,6 +46,12 @@ const PropertySchema = new mongoose.Schema(
     beds: { type: Number, required: true },
     baths: { type: Number, required: true },
     square_feet: { type: Number, required: true },
+    /**
+     * Guest arrival / departure clock times on the stay dates (not calendar dates).
+     * Stored as "HH:mm" 24h local property time. Defaults match common booking platforms.
+     */
+    checkInTime: { type: String, default: "15:00", match: /^([01]\d|2[0-3]):[0-5]\d$/ },
+    checkOutTime: { type: String, default: "11:00", match: /^([01]\d|2[0-3]):[0-5]\d$/ },
     amenities: [{ type: String }],
     rates: {
       nightly: { type: Number },
@@ -60,6 +79,20 @@ const PropertySchema = new mongoose.Schema(
     },
     images: [{ type: Schema.Types.Mixed }],
     audio: { type: Schema.Types.Mixed, required: false },
+    /**
+     * Listing moderation. New submissions start as "pending".
+     * Legacy docs without status remain publicly visible (see listingApproval helpers).
+     */
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      required: false,
+    },
+    /** Set when a host submits a listing for review (distinguishes new pending from legacy). */
+    listingModerationRequestedAt: { type: Date, required: false },
+    rejectionReason: { type: String, required: false },
+    listingReviewedAt: { type: Date, required: false },
+    listingReviewedBy: { type: Schema.Types.ObjectId, ref: "User", required: false },
   },
   {
     timestamps: true,

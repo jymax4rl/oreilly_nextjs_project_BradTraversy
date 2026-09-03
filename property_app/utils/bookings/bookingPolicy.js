@@ -134,12 +134,16 @@ export function evaluateBookingPolicy(
   }
 
   if (action === "resend") {
-    if (booking.status !== "confirmed") {
+    const canResend =
+      booking.status === "confirmed" ||
+      (booking.status === "pending" && booking.paymentMode === "manual");
+    if (!canResend) {
       return {
         ...base,
         allowed: false,
         code: "not_confirmed",
-        reason: "Only confirmed bookings can resend confirmation emails",
+        reason:
+          "Only confirmed or pending (manual payment) bookings can resend emails",
       };
     }
     // Host / admin / guest ownership is enforced by the route — policy allows.

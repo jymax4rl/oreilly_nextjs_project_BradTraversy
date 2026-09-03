@@ -24,15 +24,45 @@ const UserSchema = new Schema(
     //role and host status
     role: {
       type: String,
-      enum: ["guest", "host", "admin"],
+      enum: ["guest", "host", "admin", "superadmin"],
       default: "guest",
+    },
+    /**
+     * bcrypt hash for ops Credentials sign-in only.
+     * Guests/hosts keep Google OAuth; this field stays unset for them.
+     */
+    passwordHash: {
+      type: String,
+      select: false,
+      default: undefined,
     },
     hostStatus: {
       type: String,
       enum: ["none", "onboarding", "verified", "rejected"],
       default: "none",
     },
-    /** Cinematic pre-listing welcome flow at /onboarding (hosts only). */
+    /**
+     * Ops-only account block. Banned users fail sign-in (Google + ops Credentials).
+     * Existing JWTs still expire naturally; ban is re-checked on token hydrate.
+     */
+    banned: {
+      type: Boolean,
+      default: false,
+    },
+    bannedAt: {
+      type: Date,
+      default: null,
+    },
+    bannedReason: {
+      type: String,
+      default: null,
+    },
+    bannedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    /** Host-application pitch seen (modal on /host/onboarding). */
     hasCompletedHostOnboarding: {
       type: Boolean,
       default: false,
@@ -52,6 +82,16 @@ const UserSchema = new Schema(
         /** Host: guest date changes and cancellations */
         hostBookingChanges: { type: Boolean, default: true },
       },
+    },
+    /** Last accepted Terms & Conditions version string (e.g. kama-terms-v1.0-…). */
+    termsVersion: {
+      type: String,
+      default: null,
+    },
+    /** When the user accepted the current (or last recorded) terms version. */
+    termsAcceptedAt: {
+      type: Date,
+      default: null,
     },
   },
   {

@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Become an Early-Bird Host — Isisel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --teal: #1b5c57;
+      --teal-deep: #0f3d3a;
+      --ink: #0c1a1a;
+      --muted: #4a5c5b;
+      --cream: #f7f4ee;
+      --paper: #fbfaf6;
+      --sand: #c4a574;
+      --line: rgba(27, 92, 87, 0.16);
+    }
+
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #e8eceb;
+      color: var(--ink);
+      font-family: Outfit, "Segoe UI", sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .sheet {
+      width: 210mm;
+      height: 297mm;
+      margin: 0 auto 12px;
+      overflow: hidden;
+      position: relative;
+      page-break-after: always;
+      break-after: page;
+      background: var(--paper);
+    }
+    .sheet:last-child { page-break-after: auto; margin-bottom: 0; }
+
+    .mark {
+      width: 42px;
+      height: 40px;
+      display: block;
+    }
+
+    /* ——— Cover ——— */
+    .cover {
+      background:
+        radial-gradient(1200px 500px at 110% -10%, rgba(196, 165, 116, 0.22), transparent 50%),
+        radial-gradient(900px 600px at -20% 110%, rgba(0, 200, 255, 0.12), transparent 46%),
+        linear-gradient(165deg, #123f3c 0%, var(--teal) 48%, var(--teal-deep) 100%);
+      color: #f7f4ee;
+      display: flex;
+      flex-direction: column;
+      padding: 16mm 18mm 16mm;
+    }
+    .cover-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 0.22em;
+      font-size: 9.5pt;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .cover-url {
+      font-size: 9pt;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      opacity: 0.78;
+    }
+    .cover-hero { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 18mm 0 10mm; }
+    .eyebrow {
+      display: inline-block;
+      font-size: 9pt;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--sand);
+      margin-bottom: 10mm;
+    }
+    .cover h1 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 42pt;
+      font-weight: 600;
+      line-height: 0.95;
+      margin: 0 0 8mm;
+      max-width: 160mm;
+    }
+    .cover h1 em { font-style: italic; color: #e8d7b5; }
+    .lede {
+      font-size: 14.5pt;
+      font-weight: 300;
+      line-height: 1.45;
+      max-width: 148mm;
+      opacity: 0.92;
+      margin: 0 0 8mm;
+    }
+    .cover-rule {
+      width: 28mm;
+      height: 2px;
+      background: var(--sand);
+      margin: 0 0 8mm;
+    }
+    .cover-body {
+      font-size: 11pt;
+      font-weight: 300;
+      line-height: 1.55;
+      max-width: 148mm;
+      opacity: 0.88;
+    }
+    .cover-body strong { font-weight: 600; color: #fff; }
+    .cover-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-top: 1px solid rgba(247, 244, 238, 0.18);
+      padding-top: 8mm;
+      font-size: 9pt;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+
+    /* ——— Inner pages ——— */
+    .inner { padding: 14mm 16mm 14mm; display: flex; flex-direction: column; }
+    .inner-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-bottom: 6mm;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 8mm;
+    }
+    .inner-head .brand-mini {
+      font-size: 8.5pt;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--teal);
+    }
+    .inner-head .folio {
+      font-size: 8.5pt;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    h2 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 26pt;
+      font-weight: 600;
+      line-height: 1.1;
+      margin: 0 0 3mm;
+      color: var(--ink);
+    }
+    .section-intro {
+      font-size: 11pt;
+      color: var(--muted);
+      line-height: 1.5;
+      max-width: 165mm;
+      margin: 0 0 8mm;
+    }
+    h3 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 15pt;
+      font-weight: 600;
+      margin: 0 0 2mm;
+      color: var(--teal);
+    }
+    p { margin: 0; }
+
+    .reasons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5mm;
+    }
+    .reason {
+      background: var(--cream);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 5.5mm 6mm 6mm;
+    }
+    .reason.wide { grid-column: 1 / -1; }
+    .num {
+      font-size: 8pt;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--sand);
+      margin-bottom: 2.5mm;
+    }
+    .reason p {
+      font-size: 10pt;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .reason p strong { color: var(--ink); font-weight: 600; }
+    .reason ul {
+      margin: 3mm 0 0;
+      padding: 0 0 0 4.5mm;
+      font-size: 10pt;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .reason li { margin-bottom: 1mm; }
+
+    .types {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2.5mm;
+      margin: 0 0 8mm;
+    }
+    .chip {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--teal);
+      font-size: 9pt;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      padding: 2.2mm 4.2mm;
+      border-radius: 999px;
+    }
+
+    .need-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 6mm;
+      flex: 1;
+    }
+    .panel {
+      background: var(--cream);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 6mm;
+    }
+    .panel h3 { margin-bottom: 4mm; }
+    .need-list {
+      columns: 2;
+      column-gap: 5mm;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .need-list li {
+      font-size: 10pt;
+      color: var(--ink);
+      padding: 1.6mm 0 1.6mm 5mm;
+      position: relative;
+      break-inside: avoid;
+      border-bottom: 1px solid rgba(27, 92, 87, 0.08);
+    }
+    .need-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 4.2mm;
+      width: 2.4mm;
+      height: 2.4mm;
+      border-radius: 50%;
+      background: var(--teal);
+    }
+    .photo-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .photo-list li {
+      font-size: 10.5pt;
+      padding: 2.4mm 0 2.4mm 7mm;
+      position: relative;
+      color: var(--ink);
+      border-bottom: 1px solid rgba(27, 92, 87, 0.1);
+    }
+    .photo-list li::before {
+      content: "";
+      width: 3.2mm;
+      height: 3.2mm;
+      border: 1.4px solid var(--teal);
+      position: absolute;
+      left: 0;
+      top: 3.4mm;
+    }
+    .photo-note {
+      margin-top: 5mm;
+      font-size: 10.5pt;
+      font-style: italic;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      color: var(--teal);
+    }
+    .range-note {
+      margin-top: 5mm;
+      font-size: 10pt;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3mm;
+      margin: 2mm 0 8mm;
+    }
+    .control {
+      padding: 5mm 6mm;
+      background: var(--teal);
+      color: #f7f4ee;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 16pt;
+      font-weight: 600;
+    }
+    .control:nth-child(5) { grid-column: 1 / -1; }
+
+    .close-copy {
+      font-size: 12pt;
+      line-height: 1.5;
+      color: var(--muted);
+      max-width: 170mm;
+      margin: 0 0 4mm;
+    }
+    .close-copy strong { color: var(--ink); }
+
+    .cta {
+      margin-top: auto;
+      background: var(--teal);
+      color: #f7f4ee;
+      padding: 8mm 8mm 7mm;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8mm;
+    }
+    .cta h2 {
+      color: #f7f4ee;
+      font-size: 22pt;
+      margin: 0 0 2mm;
+    }
+    .cta p {
+      font-size: 10.5pt;
+      opacity: 0.88;
+      font-weight: 300;
+    }
+    .cta-btn {
+      display: inline-block;
+      background: var(--sand);
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 9.5pt;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 4.5mm 7mm;
+      white-space: nowrap;
+    }
+    .legal {
+      margin-top: 4mm;
+      font-size: 7.5pt;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    @media print {
+      html, body { background: none; }
+      .sheet { margin: 0; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PAGE 1: COVER -->
+  <section class="sheet cover">
+    <div class="cover-top">
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 551 519" fill="none" aria-hidden="true">
+          <path d="M238.24 278C229.74 332.5 245.74 393.5 245.74 393.5C245.74 393.5 235.581 401.468 231.74 408.5C227.515 416.232 226.74 430.5 226.74 430.5V517H37.2395C37.2395 517 18.6308 518 6.2395 499C-6.15182 480 3.7395 459 3.7395 459L68.2395 331H205.24C209.74 354.5 229.74 379 229.74 379C229.74 379 219.74 347 226.24 278C232.74 209 274.24 172 274.24 172C274.24 172 246.74 223.5 238.24 278Z" fill="#00C8FF"/>
+          <path d="M324.24 430.5V517L501.24 519C501.24 519 521.662 516.854 531.74 509.5C540.983 502.755 546.329 497.066 549.24 486C551.678 476.73 548.425 467.5 546.74 463.5C545.054 459.5 536.74 442 536.74 442L480.24 331L329.24 330.5L333.24 325L338.74 316L472.74 314.5L420.74 216H356.74L357.24 205.5L356.74 199H414.74L333.74 48.5C333.74 48.5 309.24 1.53901e-05 274.24 0C239.24 -1.53901e-05 214.24 48.5 214.24 48.5L135.24 199H209.24C209.24 199 234.74 138.5 254.74 114C274.74 89.5 295.74 77 319.74 84C343.74 91 343.74 131 343.74 131C343.74 131 342.863 174.782 326.74 195C315.559 209.02 289.24 221.5 289.24 221.5C289.24 221.5 309.921 219.477 321.74 214C332.161 209.171 345.74 197 345.74 197C345.74 197 349.401 222.094 345.74 237.5C341.394 255.786 333.464 265.159 319.74 278C304.499 292.26 272.24 302.5 272.24 302.5C272.24 302.5 291.49 301.404 303.24 298C317.165 293.966 336.74 282 336.74 282C336.74 282 332.74 315.5 312.24 331C291.74 346.5 298.44 341.372 289.24 347.5C281.574 352.606 273.74 356.5 269.24 360C264.74 363.5 259.24 366.5 256.74 370C254.24 373.5 253.74 374 254.24 379C254.74 384 256.74 387 256.74 387C256.74 387 269.24 383.301 279.24 384C292.24 384.909 301.857 390 306.24 393.5C310.622 397 315.981 402.657 319.74 411C323.268 418.833 324.24 430.5 324.24 430.5Z" fill="#00C8FF"/>
+        </svg>
+        Isisel
+      </div>
+      <div class="cover-url">www.isisel.com</div>
+    </div>
+
+    <div class="cover-hero">
+      <div class="eyebrow">Invitation · Founding hosts</div>
+      <h1>Become an<br /><em>Early-Bird Host</em></h1>
+      <p class="lede">Put your property on the map from the beginning.</p>
+      <div class="cover-rule"></div>
+      <p class="cover-body">
+        Isisel is building a new way to discover and book stays across Africa.
+        We’re inviting a limited number of property owners, hosts and property managers
+        to join us as <strong>Early-Bird Hosts</strong> before the platform opens more widely.
+      </p>
+      <p class="cover-body" style="margin-top:5mm">
+        By joining early, you don’t just list your property —
+        <strong>you become part of the foundation of the platform.</strong>
+      </p>
+    </div>
+
+    <div class="cover-foot">
+      <span>African vacation rentals</span>
+      <span>Limited invitation</span>
+    </div>
+  </section>
+
+  <!-- PAGE 2: WHY -->
+  <section class="sheet inner">
+    <div class="inner-head">
+      <span class="brand-mini">Isisel</span>
+      <span class="folio">Why join early · 02</span>
+    </div>
+    <h2>Why join early?</h2>
+    <p class="section-intro">
+      Early hosts are not waiting for the marketplace to arrive. They are helping to build it —
+      with visibility, recognition, and a direct relationship with the platform.
+    </p>
+
+    <div class="reasons">
+      <article class="reason">
+        <div class="num">01 · Visibility</div>
+        <h3>Early visibility</h3>
+        <p>
+          Your property gets the opportunity to be among the <strong>first listings</strong> travelers
+          discover as Isisel grows. Being early means less competition for attention in your destination.
+        </p>
+      </article>
+      <article class="reason">
+        <div class="num">02 · Recognition</div>
+        <h3>Early-Bird recognition</h3>
+        <p>
+          Your property can receive an <strong>Early-Bird Host badge</strong>, helping distinguish you
+          from properties that join later. Show travelers that you were here from the beginning.
+        </p>
+      </article>
+      <article class="reason wide">
+        <div class="num">03 · Advantages</div>
+        <h3>Early-Bird advantages</h3>
+        <p>As an early host, you may receive preferential benefits as the platform develops, including:</p>
+        <ul>
+          <li>Early access to new host features</li>
+          <li>Priority consideration for promotional campaigns</li>
+          <li>Opportunities to participate in future platform initiatives</li>
+          <li>Early access to new markets and services</li>
+          <li>Special conditions reserved for founding hosts</li>
+        </ul>
+      </article>
+      <article class="reason">
+        <div class="num">04 · Promotion</div>
+        <h3>Help us promote your property</h3>
+        <p>As Isisel grows, selected properties may be featured through:</p>
+        <ul>
+          <li>Social media campaigns</li>
+          <li>Destination guides</li>
+          <li>Featured-property collections</li>
+          <li>Marketing campaigns &amp; editorial content</li>
+          <li>Partner promotions</li>
+        </ul>
+      </article>
+      <article class="reason">
+        <div class="num">05 · Partnership</div>
+        <h3>Direct relationship with the platform</h3>
+        <p>
+          Early hosts aren’t just users. <strong>You help shape Isisel.</strong>
+          Your feedback can influence future features, host tools, booking systems and services.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- PAGE 3: LIST + NEED -->
+  <section class="sheet inner">
+    <div class="inner-head">
+      <span class="brand-mini">Isisel</span>
+      <span class="folio">Getting started · 03</span>
+    </div>
+    <h2>What can you list?</h2>
+    <p class="section-intro">
+      Whether you manage an apartment, villa, house, hotel, guesthouse, lodge, cottage,
+      studio, resort or vacation home — you can apply to become an Early-Bird Host.
+    </p>
+    <div class="types">
+      <span class="chip">Apartment</span>
+      <span class="chip">Villa</span>
+      <span class="chip">House</span>
+      <span class="chip">Hotel</span>
+      <span class="chip">Guesthouse</span>
+      <span class="chip">Lodge</span>
+      <span class="chip">Cottage</span>
+      <span class="chip">Studio</span>
+      <span class="chip">Resort</span>
+      <span class="chip">Vacation home</span>
+    </div>
+    <p class="range-note" style="margin:-3mm 0 9mm">
+      Your property can be located anywhere in Africa where Isisel operates or plans to expand.
+    </p>
+
+    <h2>What do we need from you?</h2>
+    <p class="section-intro">Getting started is simple. Share a clear picture of the stay — then upload your best photographs.</p>
+
+    <div class="need-grid">
+      <div class="panel">
+        <h3>Property information</h3>
+        <ul class="need-list">
+          <li>Property name</li>
+          <li>Location</li>
+          <li>Property type</li>
+          <li>Number of bedrooms</li>
+          <li>Number of bathrooms</li>
+          <li>Maximum guests</li>
+          <li>Description</li>
+          <li>Amenities</li>
+          <li>House rules</li>
+          <li>Availability</li>
+          <li>Pricing</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Photos</h3>
+        <p class="range-note" style="margin:0 0 4mm">Upload your best photos of:</p>
+        <ul class="photo-list">
+          <li>Exterior</li>
+          <li>Living spaces</li>
+          <li>Bedrooms</li>
+          <li>Bathrooms</li>
+          <li>Kitchen</li>
+          <li>Outdoor areas</li>
+          <li>Special features</li>
+        </ul>
+        <p class="photo-note">Good photos = better first impressions.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 4: CONTROL + CTA -->
+  <section class="sheet inner">
+    <div class="inner-head">
+      <span class="brand-mini">Isisel</span>
+      <span class="folio">Your terms · 04</span>
+    </div>
+    <h2>You remain in control</h2>
+    <p class="section-intro">
+      Isisel provides the platform that connects your property with travelers looking for places to stay.
+      You decide the rest.
+    </p>
+    <div class="control-grid">
+      <div class="control">Your price.</div>
+      <div class="control">Your availability.</div>
+      <div class="control">Your house rules.</div>
+      <div class="control">Your property information.</div>
+      <div class="control">Your hosting conditions.</div>
+    </div>
+
+    <h2>Be there from the beginning</h2>
+    <p class="close-copy">
+      The biggest platforms started with their first hosts.
+      <strong>We are looking for the people who want to be part of that beginning.</strong>
+    </p>
+    <p class="close-copy" style="margin-bottom:8mm">
+      Join Isisel as an Early-Bird Host and position your property for the next generation of African travel.
+    </p>
+
+    <div class="cta">
+      <div>
+        <h2>List your property</h2>
+        <p>Become an Early-Bird Host today.</p>
+      </div>
+      <a class="cta-btn" href="https://www.isisel.com/host/onboarding">List my property</a>
+    </div>
+    <p class="legal">
+      Early-Bird benefits are subject to platform terms and may evolve as Isisel develops.
+      www.isisel.com
+    </p>
+  </section>
+
+</body>
+</html>

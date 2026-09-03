@@ -2,18 +2,13 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MapPin, Home, Search, ChevronDown, X, BedDouble, Bath } from "lucide-react";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import {
+  PROPERTY_TYPE_VALUES,
+  propertyTypeMessageKey,
+} from "@/lib/i18n/messages";
 
-const PROPERTY_TYPES = [
-  "All Properties",
-  "Apartment",
-  "Studio",
-  "Condo",
-  "House",
-  "Cabin or Cottage",
-  "Loft",
-  "Room",
-  "Other",
-];
+const PROPERTY_TYPES = PROPERTY_TYPE_VALUES;
 
 const MIN_COUNT_OPTIONS = [
   { value: "", label: "Any" },
@@ -24,6 +19,7 @@ const MIN_COUNT_OPTIONS = [
 ];
 
 const PropertySearch = () => {
+  const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -102,7 +98,7 @@ const PropertySearch = () => {
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="Enter Location (City, Country, Street...)"
+                placeholder={t("search.locationLong")}
                 className="w-full pl-12 pr-10 py-4 rounded-2xl bg-[var(--kama-field)] border border-[var(--kama-border)] text-[var(--kama-ink)] placeholder-[var(--kama-ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20 focus:border-[var(--kama-accent)] focus:bg-white transition-all duration-200 shadow-sm"
               />
               {location && (
@@ -126,7 +122,7 @@ const PropertySearch = () => {
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="cursor-pointer w-full pl-12 pr-4 py-4 text-left rounded-2xl bg-[var(--kama-field)] border border-[var(--kama-border)] text-[var(--kama-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20 focus:border-[var(--kama-accent)] focus:bg-white transition-all duration-200 shadow-sm flex items-center justify-between"
               >
-                <span className="block truncate">{propertyType}</span>
+                <span className="block truncate">{t(propertyTypeMessageKey(propertyType))}</span>
                 <ChevronDown
                   className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
                 />
@@ -143,7 +139,7 @@ const PropertySearch = () => {
                         }}
                         className={`px-4 py-3 cursor-pointer transition-colors text-sm flex items-center justify-between ${propertyType === type ? "bg-[var(--kama-accent-soft)] text-[var(--kama-accent)] font-medium" : "text-gray-700 hover:bg-gray-50"}`}
                       >
-                        {type}
+                        {t(propertyTypeMessageKey(type))}
                         {propertyType === type && (
                           <div className="w-2 h-2 rounded-full bg-[var(--kama-accent)]"></div>
                         )}
@@ -163,7 +159,7 @@ const PropertySearch = () => {
                 min={0}
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
-                placeholder="Min $/night"
+                placeholder={t("search.minNightPh")}
                 className="w-full py-4 px-4 rounded-2xl bg-[var(--kama-field)] border border-[var(--kama-border)] text-[var(--kama-ink)] placeholder-[var(--kama-ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20 focus:border-[var(--kama-accent)] focus:bg-white transition-all shadow-sm"
               />
               <input
@@ -171,7 +167,7 @@ const PropertySearch = () => {
                 min={0}
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
-                placeholder="Max $/night"
+                placeholder={t("search.maxNightPh")}
                 className="w-full py-4 px-4 rounded-2xl bg-[var(--kama-field)] border border-[var(--kama-border)] text-[var(--kama-ink)] placeholder-[var(--kama-ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20 focus:border-[var(--kama-accent)] focus:bg-white transition-all shadow-sm"
               />
             </div>
@@ -183,12 +179,12 @@ const PropertySearch = () => {
                 <select
                   value={minBeds}
                   onChange={(e) => setMinBeds(e.target.value)}
-                  aria-label="Minimum bedrooms"
+                  aria-label={t("search.minBeds")}
                   className="w-full appearance-none py-4 pl-10 pr-8 rounded-2xl bg-[var(--kama-field)] border border-[var(--kama-border)] text-[var(--kama-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20 focus:border-[var(--kama-accent)] focus:bg-white transition-all shadow-sm"
                 >
                   {MIN_COUNT_OPTIONS.map((opt) => (
                     <option key={`beds-${opt.value || "any"}`} value={opt.value}>
-                      {opt.value ? `${opt.label} beds` : "Beds: Any"}
+                      {opt.value ? t("search.bedsN", { n: opt.label.replace("+", "") }) : t("search.bedsAny")}
                     </option>
                   ))}
                 </select>
@@ -198,12 +194,12 @@ const PropertySearch = () => {
                 <select
                   value={minBaths}
                   onChange={(e) => setMinBaths(e.target.value)}
-                  aria-label="Minimum bathrooms"
+                  aria-label={t("search.minBaths")}
                   className="w-full appearance-none py-4 pl-10 pr-8 rounded-2xl bg-[var(--kama-field)] border border-[var(--kama-border)] text-[var(--kama-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20 focus:border-[var(--kama-accent)] focus:bg-white transition-all shadow-sm"
                 >
                   {MIN_COUNT_OPTIONS.map((opt) => (
                     <option key={`baths-${opt.value || "any"}`} value={opt.value}>
-                      {opt.value ? `${opt.label} baths` : "Baths: Any"}
+                      {opt.value ? t("search.bathsN", { n: opt.label.replace("+", "") }) : t("search.bathsAny")}
                     </option>
                   ))}
                 </select>
@@ -216,7 +212,7 @@ const PropertySearch = () => {
               className="kama-cta cursor-pointer w-full md:w-auto md:min-w-[160px] min-h-[52px] py-4 px-8 rounded-2xl font-bold shadow-lg shadow-[rgba(27,92,87,0.25)] hover:shadow-[rgba(27,92,87,0.35)] transform active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
             >
               <Search className="h-5 w-5" />
-              <span>Search</span>
+              <span>{t("search.search")}</span>
             </button>
           </div>
         </form>
@@ -224,7 +220,7 @@ const PropertySearch = () => {
         {/* Active Filters */}
         {hasActiveFilters && (
           <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-gray-600">
-            <span className="font-medium">Active filters:</span>
+            <span className="font-medium">{t("search.activeFilters")}</span>
             {location.trim() && (
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--kama-accent-soft)] text-[var(--kama-accent)] text-xs font-medium">
                 <MapPin className="h-3 w-3" /> {location}
@@ -232,22 +228,22 @@ const PropertySearch = () => {
             )}
             {propertyType !== "All Properties" && (
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--kama-accent-soft)] text-[var(--kama-accent)] text-xs font-medium">
-                <Home className="h-3 w-3" /> {propertyType}
+                <Home className="h-3 w-3" /> {t(propertyTypeMessageKey(propertyType))}
               </span>
             )}
             {(minPrice.trim() || maxPrice.trim()) && (
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--kama-accent-soft)] text-[var(--kama-accent)] text-xs font-medium">
-                ${minPrice || "0"} – ${maxPrice || "∞"} / night
+                ${minPrice || "0"} – ${maxPrice || "∞"} {t("search.perNight")}
               </span>
             )}
             {minBeds && (
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--kama-accent-soft)] text-[var(--kama-accent)] text-xs font-medium">
-                <BedDouble className="h-3 w-3" /> {minBeds}+ beds
+                <BedDouble className="h-3 w-3" /> {t("search.bedsN", { n: minBeds })}
               </span>
             )}
             {minBaths && (
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--kama-accent-soft)] text-[var(--kama-accent)] text-xs font-medium">
-                <Bath className="h-3 w-3" /> {minBaths}+ baths
+                <Bath className="h-3 w-3" /> {t("search.bathsN", { n: minBaths })}
               </span>
             )}
             <button
@@ -255,7 +251,7 @@ const PropertySearch = () => {
               onClick={clearSearch}
               className="text-red-500 hover:text-red-700 underline underline-offset-2 text-xs font-medium md:ml-auto"
             >
-              Clear all
+              {t("search.clear")}
             </button>
           </div>
         )}

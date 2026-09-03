@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { useCurrency } from "@/utils/CurrencyContext";
-import { formatCurrency } from "@/utils/currencyUtils";
+import { formatListingPrice, resolveFxRate } from "@/utils/currencyUtils";
 import {
   getFlutterwaveCountry,
   getFlutterwavePaymentOption,
@@ -27,8 +27,19 @@ import {
   normalizeRates,
 } from "@/utils/propertyRates";
 import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import DeletePropertyControl from "@/components/properties/DeletePropertyControl";
+import { getLoginUrl } from "@/lib/legal/loginUrl";
+import {
+  DEFAULT_CHECK_IN_TIME,
+  DEFAULT_CHECK_OUT_TIME,
+  formatClockTimeLabel,
+} from "@/utils/checkInOutTimes";
+import {
+  isValidGuestPhone,
+  isPaymentGatewayCheckoutEnabled,
+} from "@/utils/bookings/paymentMode";
+import GuestPhoneModal from "@/components/bookings/GuestPhoneModal";
 
 function RightColumn({ data }) {
   const { currencyCode, rates } = useCurrency();
@@ -42,10 +53,25 @@ function RightColumn({ data }) {
   const [paymentNotice, setPaymentNotice] = useState(null);
   const [unavailableRanges, setUnavailableRanges] = useState([]);
   const [customDayRates, setCustomDayRates] = useState([]);
+  const [guestPhone, setGuestPhone] = useState("");
+  const [phoneModalOpen, setPhoneModalOpen] = useState(false);
+  const [phoneModalError, setPhoneModalError] = useState(null);
+  const [pendingValidation, setPendingValidation] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const listingRates = normalizeRates(data.rates);
-  const paymentCurrency = normalizeCurrencyCode(currencyCode);
+  const fx = resolveFxRate(rates, currencyCode);
+  const paymentCurrency = normalizeCurrencyCode(fx.currencyCode);
   const isOwner = session?.user?.id === data.owner;
+  const gatewayCheckout = isPaymentGatewayCheckoutEnabled();
+  const checkInTimeLabel = formatClockTimeLabel(
+    data.checkInTime,
+    DEFAULT_CHECK_IN_TIME,
+  );
+  const checkOutTimeLabel = formatClockTimeLabel(
+    data.checkOutTime,
+    DEFAULT_CHECK_OUT_TIME,
+  );
 
   useEffect(() => {
     const el = cardRef.current;
@@ -88,16 +114,12 @@ function RightColumn({ data }) {
   const { cleaningFee, commission, total: totalUsd } =
     calculateBookingFees(basePriceUsd);
 
-  const numericalTotal = parseFloat(
-    (totalUsd * (rates[currencyCode] || 1)).toFixed(2),
-  );
-
-  const symbol = currencyCode === "USD" ? "$" : currencyCode;
+  const numericalTotal = parseFloat((totalUsd * fx.rate).toFixed(2));
 
   const priceDisplay = stayPricing
-    ? formatCurrency(stayPricing.base, rates[currencyCode], symbol)
+    ? formatListingPrice(stayPricing.base, rates, currencyCode)
     : primaryRate
-      ? formatCurrency(primaryRate.amount, rates[currencyCode], symbol)
+      ? formatListingPrice(primaryRate.amount, rates, currencyCode)
       : "—";
 
   const periodLabel = stayPricing
@@ -106,18 +128,18 @@ function RightColumn({ data }) {
 
   const config = {
     public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY,
-    tx_ref: `KAMA-${Date.now()}`,
+    tx_ref: `ISISEL-${Date.now()}`,
     amount: numericalTotal,
     currency: paymentCurrency,
     country: getFlutterwaveCountry(paymentCurrency),
     payment_options: getFlutterwavePaymentOption(paymentCurrency),
     customer: {
       email: session?.user?.email || "",
-      phone_number: "",
+      phone_number: guestPhone || "",
       name: session?.user?.name || "",
     },
     customizations: {
-      title: "Kama Properties",
+      title: "Isisel",
       description: `Reservation for ${data.name || "Property"}${
         checkIn && checkOut ? ` (${checkIn} – ${checkOut})` : ""
       }`,
@@ -139,6 +161,7 @@ function RightColumn({ data }) {
       : {}),
   };
 
+  // Hook must stay unconditional; gateway path is feature-flagged at click time.
   const handleFlutterPayment = useFlutterwave(config);
 
   const refreshAvailability = useCallback(async () => {
@@ -163,29 +186,33 @@ function RightColumn({ data }) {
     setDateError("");
   };
 
-  const handleReserve = async () => {
+  const validateReserveInputs = async () => {
     if (!session) {
-      signIn("google");
-      return;
+      window.location.assign(
+        getLoginUrl(
+          typeof window !== "undefined" ? window.location.pathname : "/",
+        ),
+      );
+      return null;
     }
 
-    if (isOwner) return;
+    if (isOwner) return null;
 
     if (!hasAnyRate(listingRates)) {
       setDateError("This listing has no rates configured yet.");
-      return;
+      return null;
     }
 
     if (!checkIn || !checkOut) {
       setDateError("Select check-in and check-out dates.");
-      return;
+      return null;
     }
 
     const ranges = await refreshAvailability();
     const validation = validateStayDates(checkIn, checkOut, ranges);
     if (!validation.ok) {
       setDateError(validation.error);
-      return;
+      return null;
     }
 
     const pricing = calculateStayTotal(
@@ -198,12 +225,69 @@ function RightColumn({ data }) {
       setDateError(
         "No rate is set for this stay length. Try different dates or contact the host.",
       );
-      return;
+      return null;
     }
 
     setDateError("");
     setPaymentNotice(null);
+    return validation;
+  };
 
+  const closePhoneModal = useCallback(() => {
+    if (submitting) return;
+    setPhoneModalOpen(false);
+    setPhoneModalError(null);
+    setPendingValidation(null);
+  }, [submitting]);
+
+  const requestManualReservation = async (validation, phone) => {
+    setSubmitting(true);
+    setPhoneModalError(null);
+    try {
+      const res = await fetch("/api/bookings/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          propertyId: data._id,
+          checkIn: validation.checkIn,
+          checkOut: validation.checkOut,
+          guestPhone: phone,
+          currency: paymentCurrency,
+          amount: numericalTotal,
+        }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setPhoneModalError(
+          payload.error || "Please try again or message the host.",
+        );
+        setPaymentNotice({
+          type: "error",
+          title: "Could not request reservation",
+          message: payload.error || "Please try again or message the host.",
+        });
+        return;
+      }
+      setPhoneModalOpen(false);
+      window.location.href = "/my-bookings?reserved=1";
+    } catch (err) {
+      console.error("Manual booking request failed:", err);
+      setPhoneModalError(
+        "Could not reach the server. Check your connection and try again.",
+      );
+      setPaymentNotice({
+        type: "error",
+        title: "Connection error",
+        message: "Could not reach the server. Check your connection and try again.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const startGatewayCheckout = (validation, phone) => {
+    setPhoneModalOpen(false);
+    setPendingValidation(null);
     handleFlutterPayment({
       callback: async (response) => {
         if (response.status === "successful") {
@@ -223,6 +307,7 @@ function RightColumn({ data }) {
                 nights: countNights(validation.checkIn, validation.checkOut),
                 amount: numericalTotal,
                 currency: paymentCurrency,
+                guest_phone: phone,
               }),
             });
             const payload = await res.json().catch(() => ({}));
@@ -261,6 +346,30 @@ function RightColumn({ data }) {
     });
   };
 
+  /** Prechecks (auth, dates, availability) then open phone modal — phone is not on the sidebar. */
+  const handleReserve = async () => {
+    const validation = await validateReserveInputs();
+    if (!validation) return;
+    setPendingValidation(validation);
+    setPhoneModalError(null);
+    setPhoneModalOpen(true);
+  };
+
+  const handlePhoneConfirm = async () => {
+    if (!pendingValidation) return;
+    if (!isValidGuestPhone(guestPhone)) {
+      setPhoneModalError("Enter a valid WhatsApp number so the host can reach you.");
+      return;
+    }
+
+    if (!gatewayCheckout) {
+      await requestManualReservation(pendingValidation, guestPhone);
+      return;
+    }
+
+    startGatewayCheckout(pendingValidation, guestPhone);
+  };
+
   return (
     <div className="relative min-w-0 overflow-visible">
       <div
@@ -270,7 +379,11 @@ function RightColumn({ data }) {
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Currency align="start" />
-          <PaymentMethodBadge currencyCode={paymentCurrency} compact />
+          <PaymentMethodBadge
+            currencyCode={paymentCurrency}
+            compact
+            manual={!gatewayCheckout}
+          />
         </div>
 
         <div className="flex min-w-0 items-end justify-between gap-3">
@@ -307,6 +420,11 @@ function RightColumn({ data }) {
               onValidationError={setDateError}
             />
 
+            <p className="text-center text-xs text-[var(--kama-ink-muted)]">
+              Check-in from {checkInTimeLabel} · Check-out by{" "}
+              {checkOutTimeLabel}
+            </p>
+
             {nights > 0 && (
               <p className="text-center text-sm font-medium text-[var(--kama-ink-muted)] animate-[calendarFadeIn_0.25s_ease-out]">
                 {nights} night{nights !== 1 ? "s" : ""}
@@ -342,10 +460,25 @@ function RightColumn({ data }) {
             <MobileMoneyReserveButton
               currencyCode={paymentCurrency}
               onClick={handleReserve}
+              disabled={submitting}
+              label={
+                gatewayCheckout
+                  ? "Reserve"
+                  : submitting
+                    ? "Requesting…"
+                    : "Request reservation"
+              }
+              hint={
+                gatewayCheckout
+                  ? undefined
+                  : "No online payment — arrange with the host after you reserve."
+              }
+              manual={!gatewayCheckout}
             />
 
             <MessageOwnerButton
               propertyId={data._id}
+              listingKey={data.slug || data._id}
               ownerId={data.owner}
               ownerName={data.seller_info?.name || "host"}
               variant="compact"
@@ -391,7 +524,9 @@ function RightColumn({ data }) {
         )}
 
         <p className="text-center text-[11px] text-[var(--kama-ink-muted)]">
-          You won&apos;t be charged until checkout
+          {gatewayCheckout
+            ? "You won't be charged until checkout"
+            : "Dates are held while you arrange payment with the host"}
         </p>
 
         <details className="group border-t border-[var(--kama-border)] pt-4 text-sm text-[var(--kama-ink-muted)]">
@@ -404,25 +539,25 @@ function RightColumn({ data }) {
             <div className="flex justify-between gap-3">
               <span>{stayPricing ? stayPricing.label : "Base"}</span>
               <span className="tabular-nums">
-                {formatCurrency(basePriceUsd, rates[currencyCode], symbol)}
+                {formatListingPrice(basePriceUsd, rates, currencyCode)}
               </span>
             </div>
             <div className="flex justify-between gap-3">
               <span>Cleaning (15%)</span>
               <span className="tabular-nums">
-                {formatCurrency(cleaningFee, rates[currencyCode], symbol)}
+                {formatListingPrice(cleaningFee, rates, currencyCode)}
               </span>
             </div>
             <div className="flex justify-between gap-3">
               <span>Service fee (7%)</span>
               <span className="tabular-nums">
-                {formatCurrency(commission, rates[currencyCode], symbol)}
+                {formatListingPrice(commission, rates, currencyCode)}
               </span>
             </div>
             <div className="flex justify-between gap-3 border-t border-[var(--kama-border)] pt-2.5 font-semibold text-[var(--kama-ink)]">
               <span>Total</span>
               <span className="tabular-nums">
-                {formatCurrency(totalUsd, rates[currencyCode], symbol)}
+                {formatListingPrice(totalUsd, rates, currencyCode)}
               </span>
             </div>
           </div>
@@ -436,8 +571,24 @@ function RightColumn({ data }) {
           onReserve={handleReserve}
           currencyCode={paymentCurrency}
           visible={!cardInView}
+          disabled={submitting}
+          label={gatewayCheckout ? "Reserve" : "Request"}
+          manual={!gatewayCheckout}
         />
       )}
+
+      <GuestPhoneModal
+        open={phoneModalOpen}
+        phone={guestPhone}
+        onPhoneChange={(value) => {
+          setGuestPhone(value);
+          if (phoneModalError) setPhoneModalError(null);
+        }}
+        onCancel={closePhoneModal}
+        onConfirm={handlePhoneConfirm}
+        submitting={submitting}
+        error={phoneModalError}
+      />
     </div>
   );
 }

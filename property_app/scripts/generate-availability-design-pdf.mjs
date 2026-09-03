@@ -114,7 +114,7 @@ async function main() {
     y -= 6;
   }
 
-  page.drawText("Kama Properties — Phase 1 Availability API", {
+  page.drawText("Isisel — Phase 1 Availability API", {
     x: MARGIN,
     y: 30,
     size: 8,

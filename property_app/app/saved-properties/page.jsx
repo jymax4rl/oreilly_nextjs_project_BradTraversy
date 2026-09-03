@@ -1,3 +1,4 @@
+import { isPubliclyVisibleListing } from "@/utils/listingApproval";
 import React from "react";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
@@ -10,8 +11,9 @@ import Link from "next/link";
 import { Heart, ArrowLeft } from "lucide-react";
 
 export const metadata = {
-  title: "Saved Properties | Kama Properties",
-  description: "Your saved favorite properties on Kama Properties",
+  title: "Saved Properties | Isisel",
+  description: "Your saved favorite properties on Isisel",
+  robots: { index: false, follow: false },
 };
 
 const SavedPropertiesPage = async () => {
@@ -46,7 +48,9 @@ const SavedPropertiesPage = async () => {
     .lean();
 
   const savedProperties = await attachOwnerProfiles(
-    (user?.bookmarks || []).map(serializePropertyForClient),
+    (user?.bookmarks || [])
+      .filter((p) => p && isPubliclyVisibleListing(p))
+      .map(serializePropertyForClient),
   );
 
   return (

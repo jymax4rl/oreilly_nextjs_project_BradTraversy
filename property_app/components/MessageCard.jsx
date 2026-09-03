@@ -2,12 +2,21 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { markMessageAsRead, deleteMessage } from "@/utils/actions/messageActions";
+import {
+  markMessageAsRead,
+  deleteMessage,
+  replyToMessage,
+} from "@/utils/actions/messageActions";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 
 export default function MessageCard({ message, currentUserId }) {
   const [isRead, setIsRead] = useState(message.read);
   const [isDeleted, setIsDeleted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showReply, setShowReply] = useState(false);
+  const [replyBody, setReplyBody] = useState("");
+  const [replyError, setReplyError] = useState("");
+  const [replySuccess, setReplySuccess] = useState("");
 
   const isSender = message.sender._id.toString() === currentUserId;
   const isRecipient = message.recipient._id.toString() === currentUserId;
@@ -33,6 +42,26 @@ export default function MessageCard({ message, currentUserId }) {
     setLoading(false);
   };
 
+  const handleReply = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setReplyError("");
+    setReplySuccess("");
+    const formData = new FormData();
+    formData.set("messageId", message._id);
+    formData.set("body", replyBody);
+    const result = await replyToMessage(formData);
+    if (result?.error) {
+      setReplyError(result.error);
+    } else {
+      setReplySuccess(result?.success || "Reply sent.");
+      setReplyBody("");
+      setShowReply(false);
+      if (isRecipient) setIsRead(true);
+    }
+    setLoading(false);
+  };
+
   if (isDeleted) return null;
 
   return (
@@ -44,7 +73,6 @@ export default function MessageCard({ message, currentUserId }) {
       }`}
     >
       <div className="flex items-start gap-3">
-        {/* Avatar */}
         <div className="shrink-0">
           {avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -60,12 +88,9 @@ export default function MessageCard({ message, currentUserId }) {
           )}
         </div>
 
-        {/* Content */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-gray-900">
-              {message.name}
-            </span>
+            <span className="font-semibold text-gray-900">{message.name}</span>
             {!isRead && isRecipient && (
               <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
             )}
@@ -83,7 +108,7 @@ export default function MessageCard({ message, currentUserId }) {
 
           {message.property && (
             <Link
-              href={`/properties/${message.property._id}`}
+              href={propertyPublicPath(message.property)}
               className="mt-1 inline-block text-xs text-blue-600 hover:underline"
             >
               Re: {message.property.name}
@@ -106,10 +131,59 @@ export default function MessageCard({ message, currentUserId }) {
         </div>
       </div>
 
-      {/* Actions */}
+      {replySuccess && (
+        <p className="mt-3 text-sm text-emerald-700">{replySuccess}</p>
+      )}
+      {replyError && (
+        <p className="mt-3 text-sm text-red-600">{replyError}</p>
+      )}
+
+      {showReply && (
+        <form onSubmit={handleReply} className="mt-4 space-y-2">
+          <textarea
+            value={replyBody}
+            onChange={(e) => setReplyBody(e.target.value)}
+            rows={3}
+            required
+            placeholder="Write your reply…"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-300"
+          />
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={loading || !replyBody.trim()}
+              className="rounded-xl bg-slate-900 px-4 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+            >
+              Send reply
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowReply(false)}
+              className="rounded-xl border border-gray-200 px-4 py-1.5 text-xs font-medium text-gray-600"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
       <div className="mt-4 flex gap-2 flex-wrap">
+        <button
+          type="button"
+          onClick={() => {
+            setShowReply((v) => !v);
+            setReplyError("");
+            setReplySuccess("");
+          }}
+          disabled={loading}
+          className="rounded-xl border border-gray-200 bg-white px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+        >
+          Reply
+        </button>
+
         {isRecipient && (
           <button
+            type="button"
             onClick={handleToggleRead}
             disabled={loading}
             className="rounded-xl border border-gray-200 bg-white px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
@@ -119,6 +193,7 @@ export default function MessageCard({ message, currentUserId }) {
         )}
 
         <button
+          type="button"
           onClick={handleDelete}
           disabled={loading}
           className="rounded-xl border border-red-200 bg-white px-4 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition disabled:opacity-50"

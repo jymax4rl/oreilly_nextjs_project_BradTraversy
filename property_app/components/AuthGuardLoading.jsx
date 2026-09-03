@@ -56,9 +56,9 @@ const AuthLoadingScreen = () => {
       </div>
 
       <div className="mt-12 space-y-3 text-center">
-        <h2 className="text-xl font-semibold text-gray-900 animate-pulse">
+        <p className="text-xl font-semibold text-gray-900 animate-pulse">
           Verifying Session
-        </h2>
+        </p>
         <p className="text-sm text-gray-500 max-w-xs mx-auto">
           Please wait while we securely log you in.
         </p>

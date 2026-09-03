@@ -8,10 +8,13 @@ import { redirect } from "next/navigation";
 import { Building2, PlusCircle, MapPin, BedDouble, Bath, Eye, Clock, CheckCircle, XCircle } from "lucide-react";
 import DeletePropertyControl from "@/components/properties/DeletePropertyControl";
 import PropertyListingThumbnail from "@/components/properties/PropertyListingThumbnail";
+import { isAwaitingListingModeration } from "@/utils/listingApproval";
+import { propertyPublicPath } from "@/utils/listings/propertyPath";
 
 export const metadata = {
-  title: "My Listings | Kama Properties",
-  description: "Manage your property listings on Kama Properties",
+  title: "My Listings | Isisel",
+  description: "Manage your property listings on Isisel",
+  robots: { index: false, follow: false },
 };
 
 const statusConfig = {
@@ -31,6 +34,12 @@ const statusConfig = {
     Icon: XCircle,
   },
 };
+
+function listingDisplayStatus(property) {
+  if (property.status === "rejected") return "rejected";
+  if (isAwaitingListingModeration(property)) return "pending";
+  return "approved";
+}
 
 export default async function HostListingsPage() {
   const session = await getServerSession(authOptions);
@@ -56,31 +65,33 @@ export default async function HostListingsPage() {
   }));
 
   const total = serialized.length;
-  const approved = serialized.filter((p) => p.status === "approved").length;
+  const approved = serialized.filter(
+    (p) => listingDisplayStatus(p) === "approved",
+  ).length;
   const pending = serialized.filter(
-    (p) => !p.status || p.status === "pending"
+    (p) => listingDisplayStatus(p) === "pending",
   ).length;
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-[7.75rem] pb-24 lg:pt-[10vh] lg:pb-12">
-      <div className="container mx-auto max-w-5xl px-4">
-
-        {/* Header */}
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Listings</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              {total} listing{total !== 1 ? "s" : ""} · {approved} approved · {pending} pending review
-            </p>
-          </div>
-          <Link
-            href="/properties/add"
-            className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 transition"
-          >
-            <PlusCircle className="h-4 w-4" />
-            Add New Listing
-          </Link>
+    <div>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-[var(--kama-ink)]">
+            Listings
+          </h1>
+          <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
+            {total} listing{total !== 1 ? "s" : ""} · {approved} live · {pending}{" "}
+            in review
+          </p>
         </div>
+        <Link
+          href="/properties/add"
+          className="inline-flex items-center gap-2 rounded-xl bg-[var(--kama-accent)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--kama-accent-hover)]"
+        >
+          <PlusCircle className="h-4 w-4" />
+          List a stay
+        </Link>
+      </div>
 
         {/* Empty state */}
         {serialized.length === 0 ? (
@@ -90,7 +101,7 @@ export default async function HostListingsPage() {
               No listings yet
             </h2>
             <p className="text-gray-500 max-w-sm mx-auto mb-6">
-              Start earning by listing your first property on Kama Properties.
+              Start earning by listing your first property on Isisel.
             </p>
             <Link
               href="/properties/add"
@@ -103,7 +114,7 @@ export default async function HostListingsPage() {
         ) : (
           <div className="space-y-4">
             {serialized.map((property) => {
-              const status = property.status || "pending";
+              const status = listingDisplayStatus(property);
               const cfg = statusConfig[status] || statusConfig.pending;
               const StatusIcon = cfg.Icon;
               const image = property.images?.[0];
@@ -167,7 +178,7 @@ export default async function HostListingsPage() {
 
                     <div className="mt-3 flex gap-2 flex-wrap">
                       <Link
-                        href={`/properties/${property._id}`}
+                        href={propertyPublicPath(property)}
                         className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
                       >
                         <Eye className="h-3.5 w-3.5" />
@@ -197,7 +208,6 @@ export default async function HostListingsPage() {
             })}
           </div>
         )}
-      </div>
     </div>
   );
 }

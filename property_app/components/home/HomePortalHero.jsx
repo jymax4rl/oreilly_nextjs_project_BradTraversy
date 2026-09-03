@@ -1,18 +1,16 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { ChevronDown } from "lucide-react";
-import LiquidPortalBackground from "./LiquidPortalBackground";
-import HomePortalSearch from "./HomePortalSearch";
+import HomeHeroBackdrop from "./HomeHeroBackdrop";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 /**
- * Brand-led hero: name is the primary signal (no oversized duplicate logo mark).
- * Search is the interaction; currency lives inside the search card.
+ * Photograph first. Brand sits quietly; a thin line asks you to continue.
+ * Search lives in the section below so the UI never fights the image.
  */
 export default function HomePortalHero() {
+  const { t } = useLanguage();
   const rootRef = useRef(null);
 
   useEffect(() => {
@@ -22,14 +20,14 @@ export default function HomePortalHero() {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         "[data-hero-fade]",
-        { opacity: 0, y: 16 },
+        { opacity: 0, y: 14 },
         {
           opacity: 1,
           y: 0,
-          duration: 0.85,
-          stagger: 0.09,
+          duration: 1,
+          stagger: 0.12,
           ease: "power3.out",
-          delay: 0.06,
+          delay: 0.12,
         },
       );
     }, rootRef);
@@ -40,43 +38,51 @@ export default function HomePortalHero() {
   return (
     <section
       ref={rootRef}
-      className="relative isolate flex min-h-[min(72dvh,680px)] flex-col items-center justify-center overflow-x-clip overflow-y-visible px-4 pb-10 pt-[4.75rem] sm:px-6 lg:min-h-[70dvh] lg:pb-12 lg:pt-28"
-      aria-labelledby="kama-hero-brand"
+      className="home-hero--photo relative isolate flex min-h-[100dvh] flex-col items-center justify-end overflow-hidden px-5 pb-10 pt-[5.5rem] sm:px-8 sm:pb-12 lg:pb-14"
+      aria-labelledby="isisel-hero-brand"
     >
-      <LiquidPortalBackground />
+      <HomeHeroBackdrop />
 
-      <div className="relative z-10 flex w-full max-w-3xl flex-col items-center text-center lg:max-w-5xl">
+      <p
+        className="home-hero-cities"
+        aria-label={t("home.westCapitals")}
+      >
+        {["Dakar", "Bamako", "Banjul", "Accra", "Abidjan", "Lomé"].map((city) => (
+          <span key={city}>{city}</span>
+        ))}
+      </p>
+
+      <div className="relative z-10 flex w-full max-w-xl flex-col items-center text-center">
         <h1
-          id="kama-hero-brand"
+          id="isisel-hero-brand"
           data-hero-fade
-          className="font-display max-w-[16ch] text-[clamp(2.65rem,9vw,4.75rem)] leading-[1.02] tracking-[-0.03em] text-[var(--portal-ink)]"
+          className="font-display text-[clamp(2.15rem,6.5vw,3.35rem)] leading-[1.04] tracking-[-0.03em]"
         >
-          Kama{" "}
-          <span className="whitespace-nowrap font-[450] text-[0.72em] tracking-[-0.02em] text-[var(--portal-ink)]">
-            Properties
-          </span>
+          Isisel
         </h1>
-
         <p
           data-hero-fade
-          className="mt-4 text-[10px] font-semibold uppercase tracking-[0.34em] text-[var(--portal-accent)] sm:mt-5 sm:text-[11px]"
+          className="home-hero-tagline mt-3 text-[10px] font-semibold uppercase tracking-[0.36em] sm:mt-3.5 sm:text-[11px]"
         >
-          African vacation rentals
+          {t("home.tagline")}
         </p>
 
-        <div data-hero-fade className="mt-12 w-full sm:mt-14">
-          <HomePortalSearch />
-        </div>
-
-        <div data-hero-fade className="mt-10 sm:mt-12">
-          <Link
-            href="#stays"
-            className="home-scroll-hint inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.26em] transition hover:text-[var(--portal-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--portal-accent)]"
-          >
-            Browse stays
-            <ChevronDown className="h-3.5 w-3.5 opacity-70" aria-hidden />
-          </Link>
-        </div>
+        <a
+          data-hero-fade
+          href="#search"
+          className="home-scroll-line mt-8 sm:mt-10"
+          aria-label={t("home.browseStays")}
+          onClick={(event) => {
+            const target = document.getElementById("search");
+            if (!target) return;
+            event.preventDefault();
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+        >
+          <span className="home-scroll-line__track" aria-hidden>
+            <span className="home-scroll-line__glide" />
+          </span>
+        </a>
       </div>
     </section>
   );

@@ -1,45 +1,47 @@
 "use client";
 
-import { useState, useEffect, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { needsHostWelcome } from "@/utils/hostWelcomeOnboarding";
 import { addressFromLegacy } from "@/utils/address";
 import HostApplicationForm from "@/components/host/HostApplicationForm";
-import BrandLogo from "@/components/BrandLogo";
+import HostPitchModal from "@/components/onboarding/HostPitchModal";
 import {
   HostPwaInstallCard,
   HostPwaInstallModal,
 } from "@/components/host/HostPwaInstallGuide";
 import usePwaInstall from "@/hooks/usePwaInstall";
 import { HOST_INSTALL_SEEN_KEY } from "@/utils/hostPwaInstall";
-
-function readInstallSeen() {
-  try {
-    return localStorage.getItem(HOST_INSTALL_SEEN_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
+import { getLoginUrl } from "@/lib/legal/loginUrl";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 export default function HostOnboardingPage() {
-  const { data: session, update } = useSession();
+  const { data: session, status, update } = useSession();
+  const { t } = useLanguage();
   const router = useRouter();
   const { ready, installed } = usePwaInstall();
   const [dismissedInstall, setDismissedInstall] = useState(false);
-  const installSeen = useSyncExternalStore(
-    () => () => {},
-    readInstallSeen,
-    () => true,
-  );
+  const [installSeen, setInstallSeen] = useState(true);
 
-  const isResubmission = session?.user?.hostStatus === "rejected";
+  const hostStatus = session?.user?.hostStatus;
+  const isResubmission = hostStatus === "rejected";
+  const isPendingHost = hostStatus === "onboarding";
+  const isVerifiedHost = hostStatus === "verified";
 
   const [initialData, setInitialData] = useState(null);
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [pitchOpen, setPitchOpen] = useState(true);
+
+  useEffect(() => {
+    try {
+      setInstallSeen(localStorage.getItem(HOST_INSTALL_SEEN_KEY) === "1");
+    } catch {
+      setInstallSeen(false);
+    }
+  }, []);
 
   const showInstallModal =
     ready &&
@@ -47,8 +49,27 @@ export default function HostOnboardingPage() {
     !installSeen &&
     !dismissedInstall &&
     Boolean(session?.user) &&
-    session.user.hostStatus !== "verified" &&
-    session.user.hostStatus !== "onboarding";
+    hostStatus !== "verified" &&
+    hostStatus !== "onboarding";
+
+  const closePitch = useCallback(() => {
+    setPitchOpen(false);
+  }, []);
+
+  const finishPitch = useCallback(() => {
+    setPitchOpen(false);
+    if (!session?.user) {
+      router.push(getLoginUrl("/host/onboarding"));
+      return;
+    }
+    if (hostStatus === "verified") {
+      router.push("/properties/add");
+      return;
+    }
+    if (hostStatus === "onboarding") {
+      router.push("/host/pending");
+    }
+  }, [router, session?.user, hostStatus]);
 
   useEffect(() => {
     if (!isResubmission) {
@@ -101,92 +122,117 @@ export default function HostOnboardingPage() {
     }
   };
 
-  if (!session) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-6">
-        <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-sm">
-          <BrandLogo
-            href={null}
-            className="mx-auto mb-6 h-10 w-auto"
-            linkClassName=""
-          />
-          <p className="mb-6 text-zinc-600">Sign in to apply to become a host.</p>
-          <Link
-            href="/login?callbackUrl=/host/onboarding"
-            className="inline-flex h-12 items-center justify-center rounded-full bg-zinc-900 px-8 text-sm font-semibold text-white transition hover:bg-zinc-800"
-          >
-            Log in or sign up
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (session.user.hostStatus === "verified") {
-    router.push(
-      needsHostWelcome(session.user) ? "/onboarding" : "/properties/add",
-    );
-    return null;
-  }
-
-  if (session.user.hostStatus === "onboarding") {
-    router.push("/host/pending");
-    return null;
-  }
-
   if (loadingExisting || (isResubmission && initialData === null)) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+      <div className="flex min-h-screen items-center justify-center bg-[var(--kama-canvas)]">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--kama-accent)] border-t-transparent" />
       </div>
     );
   }
 
+  const signedIn = Boolean(session?.user);
+  const showForm = signedIn && !isPendingHost && !isVerifiedHost;
+  const finishLabel = !signedIn
+    ? t("host.logInApply")
+    : isVerifiedHost
+      ? t("host.listProperty")
+      : isPendingHost
+        ? t("host.seeStatus")
+        : t("host.startApp");
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-violet-50/80 via-zinc-50 to-white">
+    <div className="min-h-screen bg-[var(--kama-canvas)]">
+      <HostPitchModal
+        open={pitchOpen}
+        signedIn={signedIn}
+        finishLabel={finishLabel}
+        onDismiss={closePitch}
+        onFinish={finishPitch}
+      />
+
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
         <div className="mb-8 text-center sm:text-left">
-          <BrandLogo
-            href="/"
-            className="mx-auto mb-6 h-11 w-auto sm:mx-0"
-            linkClassName="inline-flex"
-          />
-
           {isResubmission ? (
             <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-left">
               <p className="text-sm font-semibold text-red-800">
-                Your previous application needs updates
+                {t("host.rejectedTitle")}
               </p>
               <p className="mt-1 text-sm text-red-700">
-                Review your details below — especially your address — and
-                resubmit for another review.
+                {t("host.rejectedBody")}
               </p>
             </div>
           ) : null}
 
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-600">
-            Host application
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--kama-accent)]">
+            {t("host.application")}
           </p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
-            {isResubmission ? "Update your application" : "Become a host"}
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-[var(--kama-ink)] sm:text-4xl">
+            {isResubmission ? t("host.update") : t("host.become")}
           </h1>
-          <p className="mt-3 max-w-xl text-base leading-relaxed text-zinc-600">
-            List on Kama Properties and welcome travelers across Africa — with
-            Mobile Money–friendly payouts and a growing continental guest
-            network.
+          <p className="mt-3 max-w-xl text-base leading-relaxed text-[var(--kama-ink-muted)]">
+            {t("host.intro")}
           </p>
+          <button
+            type="button"
+            onClick={() => setPitchOpen(true)}
+            className="mt-3 text-sm font-semibold text-[var(--kama-accent)] hover:underline"
+          >
+            {t("host.whyHost")}
+          </button>
         </div>
 
-        <HostPwaInstallCard className="mb-6" />
+        {showForm ? <HostPwaInstallCard className="mb-6" /> : null}
 
-        <HostApplicationForm
-          key={isResubmission ? "resubmit" : "new"}
-          initialData={initialData || {}}
-          isResubmission={isResubmission}
-          onSubmit={handleSubmit}
-          submitting={submitting}
-          error={error}
-        />
+        {status === "loading" ? (
+          <div className="flex justify-center py-16">
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--kama-accent)] border-t-transparent" />
+          </div>
+        ) : showForm ? (
+          <HostApplicationForm
+            key={isResubmission ? "resubmit" : "new"}
+            initialData={initialData || {}}
+            isResubmission={isResubmission}
+            onSubmit={handleSubmit}
+            submitting={submitting}
+            error={error}
+          />
+        ) : isVerifiedHost ? (
+          <div className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] p-8 text-center shadow-sm">
+            <p className="mb-6 text-[var(--kama-ink-muted)]">
+              {t("host.alreadyHost")}
+            </p>
+            <Link
+              href="/properties/add"
+              className="kama-cta inline-flex h-12 items-center justify-center rounded-xl px-8 text-sm font-semibold"
+            >
+              {t("host.listProperty")}
+            </Link>
+          </div>
+        ) : isPendingHost ? (
+          <div className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] p-8 text-center shadow-sm">
+            <p className="mb-6 text-[var(--kama-ink-muted)]">
+              {t("host.pending")}
+            </p>
+            <Link
+              href="/host/pending"
+              className="kama-cta inline-flex h-12 items-center justify-center rounded-xl px-8 text-sm font-semibold"
+            >
+              {t("host.seeStatus")}
+            </Link>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] p-8 text-center shadow-sm">
+            <p className="mb-6 text-[var(--kama-ink-muted)]">
+              {t("host.signInToApply")}
+            </p>
+            <Link
+              href={getLoginUrl("/host/onboarding")}
+              className="kama-cta inline-flex h-12 items-center justify-center rounded-xl px-8 text-sm font-semibold"
+            >
+              {t("host.logInOrSignUp")}
+            </Link>
+          </div>
+        )}
       </div>
 
       <HostPwaInstallModal

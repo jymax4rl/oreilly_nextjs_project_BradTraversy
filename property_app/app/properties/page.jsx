@@ -4,6 +4,29 @@ import Property from "@/models/Property";
 import connectToDatabase from "@/config/database";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
+import { withApprovedListingFilter } from "@/utils/listingApproval";
+import { ensurePropertySlugs } from "@/utils/listings/propertySlug";
+import { redactPreviewLockedCatalogFields } from "@/utils/listings/previewLockedHost";
+
+export async function generateMetadata({ searchParams }) {
+  const params = (await searchParams) || {};
+  const location = String(params.location || "").trim();
+  if (location) {
+    return {
+      title: `Vacation rentals in ${location}`,
+      description: `Browse Isisel vacation rentals in ${location} — African stays with beds, baths, and nightly rates.`,
+      alternates: {
+        canonical: `/properties?location=${encodeURIComponent(location)}`,
+      },
+    };
+  }
+  return {
+    title: "Vacation rentals in Africa",
+    description:
+      "Browse Isisel stays across Senegal, Ghana, Egypt, Morocco, South Africa, and Tanzania.",
+    alternates: { canonical: "/properties" },
+  };
+}
 
 // Listings need a live DB - do not prerender at image-build time (no secrets in Docker build).
 export const dynamic = "force-dynamic";
@@ -137,9 +160,13 @@ const PropertiesPage = async ({
 
   try {
     await connectToDatabase();
-    const properties = await Property.find(mongoQuery).lean();
-    const serializedProperties = await attachOwnerProfiles(
-      properties.map(serializePropertyForClient),
+    const properties = await Property.find(
+      withApprovedListingFilter(mongoQuery),
+    ).lean();
+    const serializedProperties = redactPreviewLockedCatalogFields(
+      await attachOwnerProfiles(
+        (await ensurePropertySlugs(properties)).map(serializePropertyForClient),
+      ),
     );
 
     return renderPropertiesList({

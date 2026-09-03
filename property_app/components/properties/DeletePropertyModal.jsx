@@ -73,7 +73,7 @@ export default function DeletePropertyModal({
                 Delete this listing?
               </h2>
               <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
-                This permanently removes the property from Kama Properties. This
+                This permanently removes the property from Isisel. This
                 cannot be undone.
               </p>
             </div>

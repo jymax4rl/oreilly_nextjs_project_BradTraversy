@@ -1,14 +1,20 @@
 /**
- * Cinematic welcome at /onboarding — for verified hosts only (not guest applicants).
+ * Host-application pitch (modal on /host/onboarding).
+ * Public landing — visitors, guests, and hosts can open it anytime.
  */
-export function needsHostWelcome(user) {
-  if (!user) return false;
-  return (
-    user.hostStatus === "verified" && user.hasCompletedHostOnboarding !== true
-  );
+
+export const HOST_PITCH_LS_KEY = "isisel_host_pitch_v1";
+
+/** Pitch opens on every visit to /host/onboarding. */
+export function shouldShowHostPitch() {
+  return true;
 }
 
-export function canAccessHostWelcome(user) {
-  if (!user) return false;
-  return user.hostStatus === "verified";
+/** @deprecated Verified hosts are no longer gated through /onboarding. */
+export function needsHostWelcome() {
+  return false;
+}
+
+export function canAccessHostWelcome() {
+  return false;
 }

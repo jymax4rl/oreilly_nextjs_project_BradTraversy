@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>List your stay on Isisel — founding hosts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --teal: #1b5c57;
+      --teal-deep: #0f3d3a;
+      --ink: #121212;
+      --muted: #5a5854;
+      --cream: #f4f1ea;
+      --paper: #fbfaf6;
+      --sand: #c4a574;
+      --line: rgba(27, 92, 87, 0.14);
+    }
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; background: #ddd9d0; color: var(--ink);
+      font-family: Outfit, "Segoe UI", sans-serif;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .sheet {
+      width: 210mm; height: 297mm; margin: 0 auto 12px; overflow: hidden;
+      position: relative; page-break-after: always; break-after: page; background: var(--paper);
+    }
+    .sheet:last-child { page-break-after: auto; margin-bottom: 0; }
+    .mark { width: 36px; height: 34px; display: block; }
+    .cover {
+      color: #f7f4ee;
+      display: flex; flex-direction: column;
+      padding: 14mm 16mm 12mm;
+      background:
+        linear-gradient(180deg, rgba(8,16,16,0.28) 0%, rgba(8,16,16,0.2) 38%, rgba(8,16,16,0.88) 100%),
+        url("pdf-assets/host-cover.jpg") center 42% / cover no-repeat #123f3c;
+    }
+    .cover-top { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 10px; letter-spacing: 0.22em; font-size: 9.5pt; font-weight: 600; text-transform: uppercase; }
+    .cover-url { font-size: 9pt; opacity: 0.9; text-align: right; line-height: 1.45; }
+    .cover-url a { color: #e8d7b5; text-decoration: none; font-weight: 600; }
+    .cover-hero { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 0 8mm; }
+    .eyebrow { font-size: 8.5pt; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; color: var(--sand); margin-bottom: 6mm; }
+    .cover h1 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 38pt; font-weight: 600; line-height: 0.94; margin: 0 0 6mm; max-width: 170mm; }
+    .cover h1 em { font-style: italic; color: #e8d7b5; }
+    .lede { font-size: 13.5pt; font-weight: 300; line-height: 1.4; max-width: 158mm; opacity: 0.94; margin: 0 0 7mm; }
+    .cover-rule { width: 26mm; height: 2px; background: var(--sand); margin: 0 0 7mm; }
+    .cover-body { font-size: 11pt; font-weight: 300; line-height: 1.5; max-width: 155mm; opacity: 0.9; }
+    .cover-body strong { font-weight: 600; color: #fff; }
+    .wa-pill {
+      display: inline-block; margin-top: 7mm; background: var(--sand); color: var(--ink);
+      text-decoration: none; font-size: 10pt; font-weight: 700; letter-spacing: 0.08em;
+      padding: 3.6mm 6.5mm;
+    }
+    .inner { padding: 12mm 14mm; display: flex; flex-direction: column; }
+    .inner-head { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 5mm; border-bottom: 1px solid var(--line); margin-bottom: 6mm; }
+    .brand-mini { font-size: 8.5pt; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--teal); }
+    .folio { font-size: 8.5pt; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+    h2 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 24pt; font-weight: 600; line-height: 1.08; margin: 0 0 2.5mm; color: var(--ink); }
+    .section-intro { font-size: 10.5pt; color: var(--muted); line-height: 1.5; max-width: 172mm; margin: 0 0 6mm; }
+    h3 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 14pt; font-weight: 600; margin: 0 0 1.5mm; color: var(--teal); }
+    p { margin: 0; }
+    .gallery { display: grid; grid-template-columns: 1.35fr 1fr; gap: 3.5mm; height: 78mm; margin-bottom: 7mm; }
+    .gallery img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .gallery-side { display: grid; grid-template-rows: 1fr 1fr; gap: 3.5mm; }
+    .reasons { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+    .reason { background: var(--cream); border: 1px solid var(--line); padding: 5mm 5.5mm; }
+    .num { font-size: 7.5pt; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--sand); margin-bottom: 2mm; }
+    .reason p { font-size: 9.5pt; color: var(--muted); line-height: 1.42; }
+    .reason p strong { color: var(--ink); font-weight: 600; }
+    .cta { margin-top: auto; background: var(--teal); color: #f7f4ee; padding: 7mm 8mm; display: flex; justify-content: space-between; align-items: center; gap: 8mm; }
+    .cta h2 { color: #f7f4ee; font-size: 22pt; margin: 0 0 2mm; }
+    .cta p { font-size: 10.5pt; opacity: 0.9; font-weight: 300; }
+    .cta a { color: #e8d7b5; }
+    .cta-btn { display: inline-block; background: var(--sand); color: var(--ink); text-decoration: none; font-size: 9pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; padding: 4mm 6.5mm; }
+    .cta-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 3mm; }
+    .cta-wa { color: #e8d7b5; font-size: 10pt; font-weight: 600; text-decoration: none; }
+    .legal { margin-top: 3.5mm; font-size: 7.5pt; color: var(--muted); line-height: 1.4; }
+    .steps { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3.5mm; margin-bottom: 6mm; }
+    .step { border: 1px solid var(--line); padding: 5mm; background: #fff; }
+    .step p { font-size: 9.5pt; color: var(--muted); line-height: 1.42; }
+    .chips { display: flex; flex-wrap: wrap; gap: 2.2mm; margin: 0 0 7mm; }
+    .chip { border: 1px solid var(--line); background: #fff; color: var(--teal); font-size: 8.5pt; font-weight: 500; padding: 2mm 3.8mm; border-radius: 999px; }
+    .band { height: 62mm; overflow: hidden; margin: 0 0 7mm; }
+    .band img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    @media print { html, body { background: none; } .sheet { margin: 0; box-shadow: none; } }
+  </style>
+</head>
+<body>
+  <section class="sheet cover">
+    <div class="cover-top">
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 551 519" fill="none" aria-hidden="true">
+          <path d="M238.24 278C229.74 332.5 245.74 393.5 245.74 393.5C245.74 393.5 235.581 401.468 231.74 408.5C227.515 416.232 226.74 430.5 226.74 430.5V517H37.2395C37.2395 517 18.6308 518 6.2395 499C-6.15182 480 3.7395 459 3.7395 459L68.2395 331H205.24C209.74 354.5 229.74 379 229.74 379C229.74 379 219.74 347 226.24 278C232.74 209 274.24 172 274.24 172C274.24 172 246.74 223.5 238.24 278Z" fill="#E8D7B5"/>
+          <path d="M324.24 430.5V517L501.24 519C501.24 519 521.662 516.854 531.74 509.5C540.983 502.755 546.329 497.066 549.24 486C551.678 476.73 548.425 467.5 546.74 463.5C545.054 459.5 536.74 442 536.74 442L480.24 331L329.24 330.5L333.24 325L338.74 316L472.74 314.5L420.74 216H356.74L357.24 205.5L356.74 199H414.74L333.74 48.5C333.74 48.5 309.24 1.53901e-05 274.24 0C239.24 -1.53901e-05 214.24 48.5 214.24 48.5L135.24 199H209.24C209.24 199 234.74 138.5 254.74 114C274.74 89.5 295.74 77 319.74 84C343.74 91 343.74 131 343.74 131C343.74 131 342.863 174.782 326.74 195C315.559 209.02 289.24 221.5 289.24 221.5C289.24 221.5 309.921 219.477 321.74 214C332.161 209.171 345.74 197 345.74 197C345.74 197 349.401 222.094 345.74 237.5C341.394 255.786 333.464 265.159 319.74 278C304.499 292.26 272.24 302.5 272.24 302.5C272.24 302.5 291.49 301.404 303.24 298C317.165 293.966 336.74 282 336.74 282C336.74 282 332.74 315.5 312.24 331C291.74 346.5 298.44 341.372 289.24 347.5C281.574 352.606 273.74 356.5 269.24 360C264.74 363.5 259.24 366.5 256.74 370C254.24 373.5 253.74 374 254.24 379C254.74 384 256.74 387 256.74 387C256.74 387 269.24 383.301 279.24 384C292.24 384.909 301.857 390 306.24 393.5C310.622 397 315.981 402.657 319.74 411C323.268 418.833 324.24 430.5 324.24 430.5Z" fill="#E8D7B5"/>
+        </svg>
+        Isisel
+      </div>
+      <div class="cover-url">www.isisel.com<br /><a href="https://wa.me/33784672083">WhatsApp +33 7 84 67 20 83</a></div>
+    </div>
+    <div class="cover-hero">
+      <div class="eyebrow">Founding hosts · African vacation rentals</div>
+      <h1>Your stay belongs<br />on the map of<br /><em>Africa</em></h1>
+      <p class="lede">A marketplace built for African homes — villas, guesthouses, lodges, family houses — not leftover inventory on a global board.</p>
+      <div class="cover-rule"></div>
+      <p class="cover-body">
+        You set the rate. Guests request dates on <strong>www.isisel.com</strong>.
+        <strong>Founding hosts keep the night. We take none.</strong>
+      </p>
+      <a class="wa-pill" href="https://wa.me/33784672083">WhatsApp Jimmeh · +33 7 84 67 20 83</a>
+    </div>
+  </section>
+
+  <section class="sheet inner">
+    <div class="inner-head">
+      <span class="brand-mini">Isisel</span>
+      <span class="folio">The stay · 02</span>
+    </div>
+    <h2>Homes that look like the continent</h2>
+    <p class="section-intro">Travelers want the courtyard, the late swim, the terrace at golden hour. They should find you — not a listing buried under millions of unrelated stays.</p>
+    <div class="gallery">
+      <img src="pdf-assets/recent-3.jpg" alt="Villa pool and bougainvillea" />
+      <div class="gallery-side">
+        <img src="pdf-assets/recent-1.jpg" alt="Courtyard with bougainvillea" />
+        <img src="pdf-assets/recent-2.jpg" alt="Coastal street toward the sea" />
+      </div>
+    </div>
+    <div class="reasons">
+      <article class="reason">
+        <div class="num">01 · Economics</div>
+        <h3>You keep 100% of the night</h3>
+        <p>Founding hosts set the rate and keep it. <strong>No commission</strong> while the catalog is taking shape.</p>
+      </article>
+      <article class="reason">
+        <div class="num">02 · Control</div>
+        <h3>Requests, not missed calls</h3>
+        <p>Guests ask for dates on Isisel. You answer when you can. <strong>Nothing books itself</strong> behind your back.</p>
+      </article>
+      <article class="reason">
+        <div class="num">03 · Place</div>
+        <h3>Built for here</h3>
+        <p>Your listing sits with other African homes — Dakar to Nairobi — not as an afterthought on a global board.</p>
+      </article>
+      <article class="reason">
+        <div class="num">04 · Timing</div>
+        <h3>First catalog travelers see</h3>
+        <p>Early listings get the attention later properties will compete for. A direct line to the people building the platform.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="sheet inner">
+    <div class="inner-head">
+      <span class="brand-mini">Isisel</span>
+      <span class="folio">How to join · 03</span>
+    </div>
+    <div class="band">
+      <img src="pdf-assets/stay-cover.jpg" alt="Hillside stay with pool" />
+    </div>
+    <h2>What you can list</h2>
+    <p class="section-intro">If guests can stay the night, we want to hear from you.</p>
+    <div class="chips">
+      <span class="chip">Apartment</span>
+      <span class="chip">Villa</span>
+      <span class="chip">House</span>
+      <span class="chip">Guesthouse</span>
+      <span class="chip">Lodge</span>
+      <span class="chip">Cottage</span>
+      <span class="chip">Studio</span>
+      <span class="chip">Hotel</span>
+      <span class="chip">Resort</span>
+      <span class="chip">Family home</span>
+    </div>
+    <h2>Three steps</h2>
+    <div class="steps">
+      <article class="step">
+        <div class="num">01</div>
+        <h3>Apply</h3>
+        <p>Create an account and start host onboarding at www.isisel.com/host/onboarding.</p>
+      </article>
+      <article class="step">
+        <div class="num">02</div>
+        <h3>Describe the stay</h3>
+        <p>Location, rooms, guests, photographs, house rules, and the rate you want.</p>
+      </article>
+      <article class="step">
+        <div class="num">03</div>
+        <h3>Go live</h3>
+        <p>Our team reviews. When approved, travelers can request your dates.</p>
+      </article>
+    </div>
+    <div class="cta">
+      <div>
+        <h2>List the stay.</h2>
+        <p>A short application. Real people when you need them. WhatsApp Jimmeh at <a href="https://wa.me/33784672083">+33 7 84 67 20 83</a>.</p>
+      </div>
+      <div class="cta-actions">
+        <a class="cta-btn" href="https://www.isisel.com/host/onboarding">Become a host</a>
+        <a class="cta-wa" href="https://wa.me/33784672083">WhatsApp +33 7 84 67 20 83</a>
+      </div>
+    </div>
+    <p class="legal">
+      Founding-host commission terms are offered at Isisel’s discretion for early listings and may change for hosts who join later.
+      Listing is subject to application review. Isisel · www.isisel.com · WhatsApp +33 7 84 67 20 83 · Jimmeh · jimmeh@isisel.com
+    </p>
+  </section>
+</body>
+</html>

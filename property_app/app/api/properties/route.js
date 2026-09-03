@@ -14,8 +14,19 @@ import { authOptions } from "@/utils/authOptions";
 import { computeListingPrice } from "@/utils/listingPricing";
 import { uploadPropertyImages } from "@/utils/uploadPropertyImages";
 import { softEstimateCoordinates, coerceCoordinate } from "@/utils/address";
+import {
+  DEFAULT_CHECK_IN_TIME,
+  DEFAULT_CHECK_OUT_TIME,
+  normalizeClockTime,
+} from "@/utils/checkInOutTimes";
+import { sendListingSubmittedAdminEmail } from "@/utils/email/sendListingModerationEmails";
+import { after } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { allocateUniqueSlug, listingSlugBase } from "@/utils/listings/propertySlug";
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 function num(value) {
   const n = Number(value);
@@ -26,7 +37,19 @@ function str(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function asUploadFile(entry, index) {
+  if (!entry || typeof entry !== "object" || !("arrayBuffer" in entry)) {
+    return null;
+  }
+  const size = Number(entry.size) || 0;
+  if (size <= 0) return null;
+  const name =
+    (entry.name && String(entry.name).trim()) || `photo_${index + 1}.jpg`;
+  return { file: entry, name, size };
+}
+
 export const POST = async (request) => {
+  let createdPropertyId = null;
   try {
     await connectToDatabase();
 
@@ -42,11 +65,39 @@ export const POST = async (request) => {
       );
     }
 
-    const formData = await request.formData();
+    if (!session.user.id) {
+      return Response.json(
+        { error: "Session is missing a user id. Sign out and sign in again." },
+        { status: 401 },
+      );
+    }
+
+    let formData;
+    try {
+      formData = await request.formData();
+    } catch (parseError) {
+      console.error("Listing formData parse failed:", parseError);
+      return Response.json(
+        {
+          error:
+            "Could not read the upload (often too large). Use fewer or smaller photos and try again.",
+        },
+        { status: 413 },
+      );
+    }
+
     const amenities = formData.getAll("amenities");
     const imageFiles = formData
       .getAll("images")
-      .filter((image) => image?.name && image.size > 0);
+      .map((image, index) => asUploadFile(image, index))
+      .filter(Boolean)
+      .map((entry) => {
+        // Ensure File-like objects always expose a usable name for Cloudinary.
+        if (entry.file instanceof File && entry.file.name) return entry.file;
+        return new File([entry.file], entry.name, {
+          type: entry.file.type || "image/jpeg",
+        });
+      });
 
     const type = str(formData.get("type"));
     const name = str(formData.get("name"));
@@ -145,6 +196,14 @@ export const POST = async (request) => {
       beds,
       baths,
       square_feet: num(formData.get("square_feet")) || 500,
+      checkInTime: normalizeClockTime(
+        formData.get("checkInTime"),
+        DEFAULT_CHECK_IN_TIME,
+      ),
+      checkOutTime: normalizeClockTime(
+        formData.get("checkOutTime"),
+        DEFAULT_CHECK_OUT_TIME,
+      ),
       amenities,
       rates,
       listingPrice: computeListingPrice(rates),
@@ -155,46 +214,62 @@ export const POST = async (request) => {
         phone: str(formData.get("seller_info.phone")),
       },
       owner: hostId,
+      status: "pending",
+      listingModerationRequestedAt: new Date(),
+      slug: await allocateUniqueSlug(
+        listingSlugBase({ name, location: { city, country } }),
+      ),
     };
 
     const newProperty = new Property(propertyData);
     await newProperty.save();
+    createdPropertyId = newProperty._id.toString();
 
-    const propertyId = newProperty._id.toString();
+    const propertyId = createdPropertyId;
     let images = [];
 
-    if (isCloudinaryConfigured()) {
-      const imageEntries = [];
-      for (const image of imageFiles) {
-        const byteData = await image.arrayBuffer();
-        const buffer = Buffer.from(byteData);
-        const entry = await uploadPropertyImage({
-          buffer,
-          filename: image.name,
-          hostId,
-          propertyId,
+    try {
+      if (isCloudinaryConfigured()) {
+        const imageEntries = [];
+        for (const image of imageFiles) {
+          const byteData = await image.arrayBuffer();
+          const buffer = Buffer.from(byteData);
+          const entry = await uploadPropertyImage({
+            buffer,
+            filename: image.name || `photo_${imageEntries.length + 1}.jpg`,
+            hostId,
+            propertyId,
+          });
+          imageEntries.push(entry);
+        }
+        images = imageEntries;
+
+        await Property.findByIdAndUpdate(propertyId, {
+          $set: {
+            images: imageEntries,
+            cloudinaryFolder: propertyFolder(hostId, propertyId),
+            cloudinaryImagesFolder: propertyImagesFolder(hostId, propertyId),
+            cloudinaryMigrationStatus: "completed",
+          },
         });
-        imageEntries.push(entry);
-      }
-      images = imageEntries;
 
-      await Property.findByIdAndUpdate(propertyId, {
-        $set: {
-          images: imageEntries,
-          cloudinaryFolder: propertyFolder(hostId, propertyId),
-          cloudinaryImagesFolder: propertyImagesFolder(hostId, propertyId),
-          cloudinaryMigrationStatus: "completed",
-        },
-      });
-
-      await User.findByIdAndUpdate(hostId, {
-        $set: { cloudinaryRootFolder: hostRootFolder(hostId) },
-      }).catch(() => {});
-    } else {
-      images = await uploadPropertyImages(imageFiles);
-      if (images.length > 0) {
-        await Property.findByIdAndUpdate(propertyId, { $set: { images } });
+        await User.findByIdAndUpdate(hostId, {
+          $set: { cloudinaryRootFolder: hostRootFolder(hostId) },
+        }).catch(() => {});
+      } else {
+        images = await uploadPropertyImages(imageFiles);
+        if (images.length > 0) {
+          await Property.findByIdAndUpdate(propertyId, { $set: { images } });
+        }
       }
+    } catch (uploadError) {
+      console.error("Listing image upload failed:", uploadError);
+      await Property.findByIdAndDelete(propertyId).catch(() => {});
+      createdPropertyId = null;
+      const detail =
+        uploadError?.message ||
+        "Image upload failed. Check Cloudinary credentials and try again.";
+      return Response.json({ error: detail }, { status: 500 });
     }
 
     newProperty.images = images;
@@ -238,13 +313,40 @@ export const POST = async (request) => {
       console.error("Availability init warning:", availabilityError);
     }
 
+    // Notify admins after the response (Vercel/Next keep the isolate alive via after()).
+    // Plain fire-and-forget often never finishes once the handler returns.
+    const notifyPayload = {
+      propertyId: newProperty._id.toString(),
+      propertyName: newProperty.name,
+      hostName: session.user.name || propertyData.seller_info?.name,
+      hostEmail: session.user.email || propertyData.seller_info?.email,
+    };
+    after(async () => {
+      try {
+        const outcome = await sendListingSubmittedAdminEmail(notifyPayload);
+        if (!outcome?.sent) {
+          console.warn("Listing admin notify incomplete:", {
+            propertyId: notifyPayload.propertyId,
+            reason: outcome?.reason || "unknown",
+            attempted: outcome?.attempted,
+          });
+        }
+      } catch (err) {
+        console.error("Listing admin notify warning:", err?.message || err);
+      }
+    });
+
     return Response.json({
       success: true,
       id: newProperty._id.toString(),
-      redirectUrl: `/properties/${newProperty._id}`,
+      status: "pending",
+      redirectUrl: `/host/listings`,
     });
   } catch (error) {
     console.error("Failed to add property", error);
+    if (createdPropertyId) {
+      await Property.findByIdAndDelete(createdPropertyId).catch(() => {});
+    }
     const message =
       error?.message || "Failed to add property. Please try again.";
     return Response.json({ error: message }, { status: 500 });

@@ -1,4 +1,4 @@
-# Docker readiness contract — Kama Properties (`property_app`)
+# Docker readiness contract — Isisel (`property_app`)
 
 Prepared for containerisation.
 
@@ -27,11 +27,14 @@ npm run docker:release
 # Optional public build-args after --
 npm run docker:release -- -- --build-arg NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud
 
+# MVP local tag (also tags kama-properties:mvp). Maps key is picked up from .env.local.
+npm run docker:release -- --tag mvp
+
 # Bump to the next release, then build (updates VERSION + package.json)
 npm run docker:bump -- 1.2.0
 
-# Run the minor line (or exact)
-docker run --rm -p 3000:3000 --env-file .env.local kama-properties:1.1
+# Run the minor line (or exact / mvp). Runtime env_file is for server secrets only.
+docker run --rm -p 3000:3000 --env-file .env.local -e NEXTAUTH_URL=http://localhost:3000 kama-properties:mvp
 # or: docker compose up
 # then: curl http://localhost:3000/api/health
 ```
@@ -77,8 +80,17 @@ node scripts/docker-release.mjs --push ghcr.io/your-org
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Recommended | No | Image URL resolution |
 | `NEXT_PUBLIC_CURRENCY_EXCHANGE_RATE_API` | Optional | Treat as semi-public | Currency rates (client) |
 | `NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY` | Yes if payments | No (public key) | Checkout UI |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` or `GOOGLE_MAPS_API_KEY` | Recommended (address search) | Treat as restricted public key | Listing wizard address autocomplete + map pin (`next.config.mjs` maps `GOOGLE_MAPS_API_KEY` → `NEXT_PUBLIC_*` at **build**) |
+| `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` / `GOOGLE_MAPS_MAP_ID` | Optional | No | Advanced Markers; classic pin works without it |
 
 **Docker note:** rebuild the image when public env values change.
+
+**Google Maps / Places (Docker MVP):** `NEXT_PUBLIC_*` and `next.config` `env` mapping are inlined at **`next build`**. Passing the key only via `docker run --env-file .env.local` does **not** put it in the browser bundle. Dockerfile + `docker-compose` accept `GOOGLE_MAPS_API_KEY` / `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` as **build-args**. `npm run docker:release` (and `--tag mvp`) loads them from `.env.local` without printing values.
+
+- **Missing key at build:** wizard shows a soft-fail that names the build-arg requirement; manual street/city/country still works.
+- **Key present:** address search uses **Places API (New)** via `google.maps.importLibrary("places")` (AutocompleteSuggestion). Do not enable/rely on legacy Places Autocomplete. Also enable **Maps JavaScript API**, and allow HTTP referrer `http://localhost:3000/*` (plus production domains).
+
+Rebuild command (from `property_app/`): `npm run docker:release -- --tag mvp` then recreate the `kama-localhost-3000` container from `kama-properties:mvp`.
 
 ### Server-only (never use `NEXT_PUBLIC_`)
 
@@ -92,7 +104,7 @@ node scripts/docker-release.mjs --push ghcr.io/your-org
 | `CLOUDINARY_URL` *or* `CLOUDINARY_CLOUD_NAME` + `CLOUDINARY_API_KEY` + `CLOUDINARY_API_SECRET` | Yes for media upload | **Yes** (secret) | Uploads / signatures |
 | `FLUTTERWAVE_SECRET_KEY` | Yes if payments | **Yes** | Verify / initialize |
 | `FLUTTERWAVE_WEBHOOK_SECRET` | Yes if webhooks | **Yes** | Webhook auth |
-| `EMAIL_FROM` | Yes for email | No | Resend from-address |
+| `EMAIL_FROM` | Optional | No | Defaults to `Isisel <contact@isisel.com>` |
 | `EMAIL_REPLY_TO` | Optional | No | Reply-To |
 | `RESEND_API_KEY` / `RESEND_BOOKING_API_KEY` / `RESEND_ADMIN_API_KEY` | Yes for email | **Yes** | Resend |
 | `RESEND_TEMPLATE_*` / `RESEND_TEMPLATES_READY` | Optional | No | Template IDs |

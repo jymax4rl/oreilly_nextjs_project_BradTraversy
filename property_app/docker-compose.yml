@@ -1,4 +1,4 @@
-# Kama Properties — local / self-hosted run
+# Isisel — local / self-hosted run
 # Image tags follow VERSION (e.g. 1.1.0 → kama-properties:1.1.0 and :1.1).
 #
 #   npm run docker:release          # build + tag from VERSION
@@ -20,6 +20,11 @@ services:
         NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:-}
         NEXT_PUBLIC_CURRENCY_EXCHANGE_RATE_API: ${NEXT_PUBLIC_CURRENCY_EXCHANGE_RATE_API:-}
         NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY: ${NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY:-}
+        # Maps key must be present at build (inlined into client). Prefer .env / .env.local via compose.
+        NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:-}
+        GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+        NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID: ${NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID:-}
+        GOOGLE_MAPS_MAP_ID: ${GOOGLE_MAPS_MAP_ID:-}
     ports:
       - "${PORT:-3000}:3000"
     env_file:

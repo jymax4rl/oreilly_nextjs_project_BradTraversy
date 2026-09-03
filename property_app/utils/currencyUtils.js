@@ -32,23 +32,14 @@ export const fetchExchangeRates = async () => {
     const currencyApi = "https://open.er-api.com/v6/latest/USD";
     const res = await fetch(currencyApi);
     const data = await res.json();
+    const liveRates =
+      data && typeof data.rates === "object" && data.rates ? data.rates : {};
     if (!apiKey) {
       console.warn("API Key is missing! Using open fallback API.");
-      // Ensure we add the USD: 1 base, as open-er-api might exclude it
-      return { ...data.rates, USD: 1 };
+      return { ...liveRates, USD: 1 };
     }
 
-    // 2. PRIMARY: If key exists, use CurrencyFreaks
-    // const res = await fetch(
-    //   `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiKey}`
-    // );
-
-    // 3. Handle specific API errors (e.g., if key is invalid/expired)
-    // if (!res.ok) {
-    //   throw new Error(`CurrencyFreaks API Error: ${res.status}`);
-    // }
-
-    return { ...data.rates, USD: 1 };
+    return { ...liveRates, USD: 1 };
   } catch (error) {
     // 4. ULTIMATE FALLBACK: If Primary API crashes or key is invalid
     console.error("Primary API failed, trying fallback...", error);
@@ -59,15 +50,45 @@ export const fetchExchangeRates = async () => {
       const fallbackData = await fallbackRes.json();
       return { ...fallbackData.rates, USD: 1 };
     } catch (e) {
-      return null; // Both failed
+      return { USD: 1 };
     }
   }
 };
 
+export function currencySymbol(code) {
+  const normalized = String(code || "USD").trim().toUpperCase();
+  return normalized === "USD" ? "$" : normalized;
+}
+
+/**
+ * Listing rates are USD. Convert only when a live FX rate exists.
+ * Missing/invalid rates stay on USD so SSR and crawlers never render "NaN".
+ */
+export function resolveFxRate(rates, currencyCode) {
+  const code = String(currencyCode || "USD").trim().toUpperCase() || "USD";
+  if (code === "USD") {
+    return { currencyCode: "USD", rate: 1, symbol: "$" };
+  }
+  const raw = rates?.[code];
+  const rate = typeof raw === "number" ? raw : Number(raw);
+  if (Number.isFinite(rate) && rate > 0) {
+    return { currencyCode: code, rate, symbol: currencySymbol(code) };
+  }
+  return { currencyCode: "USD", rate: 1, symbol: "$" };
+}
+
+export function formatListingPrice(amount, rates, currencyCode) {
+  const fx = resolveFxRate(rates, currencyCode);
+  return formatCurrency(amount, fx.rate, fx.symbol);
+}
+
 // 6. Format currency with fallback
 export const formatCurrency = (amount, rate, symbol) => {
-  if (!amount) return "N/A";
-  const converted = amount * rate;
+  const n = typeof amount === "number" ? amount : Number(amount);
+  if (!Number.isFinite(n) || n <= 0) return "N/A";
+  const fx = Number.isFinite(Number(rate)) && Number(rate) > 0 ? Number(rate) : 1;
+  const converted = n * fx;
+  if (!Number.isFinite(converted)) return "N/A";
   const safeSymbol = symbol || "$";
 
   return `${safeSymbol} ${converted.toLocaleString(undefined, {

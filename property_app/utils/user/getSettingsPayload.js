@@ -22,7 +22,7 @@ export async function getSettingsPayload(sessionUser) {
   const role = user.role || "guest";
   const hostStatus = user.hostStatus || "none";
   const isVerifiedHost = hostStatus === "verified" || role === "host";
-  const isAdmin = role === "admin";
+  const isAdmin = role === "admin" || role === "superadmin";
 
   return {
     id: String(user._id),

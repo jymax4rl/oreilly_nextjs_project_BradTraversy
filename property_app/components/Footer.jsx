@@ -1,9 +1,12 @@
-import DeployCheckBadge from "@/components/DeployCheckBadge";
-import Link from "next/link"; // Or 'react-router-dom'
-import { FaInstagram, FaTwitter, FaLinkedin, FaFacebook } from "react-icons/fa"; // Optional icons
+"use client";
+
+import Link from "next/link";
+import { FaInstagram, FaTwitter, FaLinkedin, FaFacebook } from "react-icons/fa";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 const Footer = ({ className = "" }) => {
   const currentYear = new Date().getFullYear();
+  const { t } = useLanguage();
   return (
     <footer
       className={`bg-zinc-950 text-zinc-400 relative pt-24 pb-12 overflow-hidden font-sans ${className}`}
@@ -13,18 +16,22 @@ const Footer = ({ className = "" }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-24">
           {/* Left: Call to Action */}
           <div className="space-y-6">
-            <h3 className="text-3xl md:text-5xl font-semibold text-white tracking-tight">
-              Ready to find your <br />
-              <span className="text-[var(--kama-accent,#1b5c57)]">dream stay?</span>
-            </h3>
+            <p className="text-3xl md:text-5xl font-semibold text-white tracking-tight">
+              {t("footer.ready")} <br />
+              <span className="text-[var(--kama-accent,#1b5c57)]">
+                {t("footer.dreamStay")}
+              </span>
+            </p>
             <p className="max-w-md text-lg text-zinc-500">
-              Join thousands of satisfied clients who found their perfect home
-              with Kama Properties. Let&apos;s start the conversation.
+              {t("footer.blurb")}
             </p>
             <div className="flex gap-4 pt-4">
-              <button className="bg-white text-black px-8 py-3 rounded-full font-medium hover:bg-zinc-200 transition-colors">
-                Get Started
-              </button>
+              <Link
+                href="/properties"
+                className="bg-white text-black px-8 py-3 rounded-full font-medium hover:bg-zinc-200 transition-colors"
+              >
+                {t("footer.getStarted")}
+              </Link>
             </div>
           </div>
 
@@ -32,28 +39,36 @@ const Footer = ({ className = "" }) => {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8 lg:gap-12">
             {/* Column 1 */}
             <div className="flex flex-col space-y-4">
-              <h4 className="text-white font-medium mb-2">Company</h4>
-              <FooterLink href="/about">About</FooterLink>
-              <FooterLink href="/careers">Careers</FooterLink>
-              <FooterLink href="/press">Press</FooterLink>
-              <FooterLink href="/contact">Contact</FooterLink>
+              <h4 className="text-white font-medium mb-2">{t("footer.company")}</h4>
+              <FooterLink href="/business">{t("footer.forBusiness")}</FooterLink>
+              <FooterLink href="/host/onboarding">{t("nav.becomeHost")}</FooterLink>
+              <FooterLink href="/about">{t("footer.about")}</FooterLink>
+              <FooterLink href="/careers">{t("footer.careers")}</FooterLink>
+              <FooterLink href="/press">{t("footer.press")}</FooterLink>
+              <a
+                href="mailto:contact@isisel.com"
+                className="hover:text-white hover:translate-x-1 transition-all duration-300 ease-in-out"
+              >
+                {t("footer.contact")}
+              </a>
             </div>
 
             {/* Column 2 */}
             <div className="flex flex-col space-y-4">
-              <h4 className="text-white font-medium mb-2">Resources</h4>
-              <FooterLink href="/blog">Blog</FooterLink>
-              <FooterLink href="/guides">Guides</FooterLink>
-              <FooterLink href="/help">Help Center</FooterLink>
-              <FooterLink href="/partners">Partners</FooterLink>
+              <h4 className="text-white font-medium mb-2">{t("footer.resources")}</h4>
+              <FooterLink href="/blog">{t("footer.blog")}</FooterLink>
+              <FooterLink href="/guides">{t("footer.guides")}</FooterLink>
+              <FooterLink href="/help">{t("footer.help")}</FooterLink>
+              <FooterLink href="/partners">{t("footer.partners")}</FooterLink>
             </div>
 
             {/* Column 3 */}
             <div className="flex flex-col space-y-4">
-              <h4 className="text-white font-medium mb-2">Legal</h4>
-              <FooterLink href="/terms">Terms</FooterLink>
-              <FooterLink href="/privacy">Privacy</FooterLink>
-              <FooterLink href="/cookies">Cookies</FooterLink>
+              <h4 className="text-white font-medium mb-2">{t("footer.legal")}</h4>
+              <FooterLink href="/policies">{t("footer.policies")}</FooterLink>
+              <FooterLink href="/policies/terms">{t("footer.terms")}</FooterLink>
+              <FooterLink href="/policies/privacy">{t("footer.privacy")}</FooterLink>
+              <FooterLink href="/policies/cookies">{t("footer.cookies")}</FooterLink>
             </div>
           </div>
         </div>
@@ -80,19 +95,23 @@ const Footer = ({ className = "" }) => {
               <FaFacebook />
             </a>
           </div>
-          <div className="flex flex-col items-end gap-2 md:flex-row md:items-center md:gap-3">
-            <DeployCheckBadge surface="dark" />
-            <p className="text-sm hover:text-white transition-colors cursor-pointer ">
-            © {currentYear} Kama Properties Inc.
+          <p className="text-sm hover:text-white transition-colors">
+            © {currentYear} Isisel
+            {" · "}
+            <a
+              href="mailto:contact@isisel.com"
+              className="underline underline-offset-2 hover:text-white"
+            >
+              contact@isisel.com
+            </a>
           </p>
-          </div>
         </div>
 
         {/* Giant Footer Title (Modern Trend) */}
         <div className="mt-20 border-t border-zinc-900 pt-8 text-center">
-          <h1 className="text-[12vw] cursor-pointer leading-none font-bold text-zinc-900 select-none tracking-tighter hover:text-zinc-800 transition-colors duration-500">
-            KAMA PROPERTIES
-          </h1>
+          <p className="text-[12vw] cursor-pointer leading-none font-bold text-zinc-900 select-none tracking-tighter hover:text-zinc-800 transition-colors duration-500">
+            ISISEL
+          </p>
         </div>
       </div>
     </footer>
