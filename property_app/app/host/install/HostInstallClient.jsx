@@ -21,7 +21,7 @@ export default function HostInstallClient() {
     next.startsWith("/") && !next.startsWith("//") ? next : "/host/onboarding";
 
   return (
-    <section className="min-h-[calc(100dvh-6rem)] bg-[var(--kama-canvas)] px-4 py-10">
+    <section className="min-h-screen bg-[var(--kama-canvas)] px-4 py-10">
       <div className="mx-auto flex w-full max-w-md flex-col gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--kama-accent)]">

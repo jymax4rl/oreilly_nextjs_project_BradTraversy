@@ -1,27 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-function isStandaloneDisplay() {
+const SERVER_PLATFORM = Object.freeze({
+  isIOS: false,
+  isAndroid: false,
+  isSafari: false,
+  isChromium: false,
+});
+
+function readStandalone() {
   if (typeof window === "undefined") return false;
-  if (window.matchMedia("(display-mode: standalone)").matches) return true;
-  if (window.matchMedia("(display-mode: fullscreen)").matches) return true;
-  if (typeof navigator !== "undefined" && navigator.standalone === true) {
-    return true;
+  try {
+    if (window.matchMedia("(display-mode: standalone)").matches) return true;
+    if (window.matchMedia("(display-mode: fullscreen)").matches) return true;
+  } catch {
+    /* older WebViews */
   }
-  return false;
+  return typeof navigator !== "undefined" && navigator.standalone === true;
 }
 
-function detectPlatform() {
-  if (typeof navigator === "undefined") {
-    return {
-      isIOS: false,
-      isAndroid: false,
-      isSafari: false,
-      isChromium: false,
-    };
-  }
-
+function readPlatform() {
+  if (typeof navigator === "undefined") return SERVER_PLATFORM;
   const ua = navigator.userAgent || "";
   const isIOS =
     /iPad|iPhone|iPod/.test(ua) ||
@@ -32,52 +32,59 @@ function detectPlatform() {
     /Safari/i.test(ua) &&
     !/CriOS|FxiOS|OPiOS|EdgiOS|Chrome|Chromium/i.test(ua);
   const isChromium = /Chrome|Chromium|Edg|SamsungBrowser/i.test(ua) && !isIOS;
-
-  return { isIOS, isAndroid, isSafari, isChromium };
+  return Object.freeze({ isIOS, isAndroid, isSafari, isChromium });
 }
 
-const SERVER_PLATFORM = {
-  isIOS: false,
-  isAndroid: false,
-  isSafari: false,
-  isChromium: false,
-};
-
-function subscribeStandalone(onStoreChange) {
+function subscribeStandalone(onChange) {
   if (typeof window === "undefined") return () => {};
-  const mq = window.matchMedia("(display-mode: standalone)");
-  const onInstalled = () => onStoreChange();
-  mq.addEventListener?.("change", onStoreChange);
+
+  const onInstalled = () => onChange();
+  let mq;
+  try {
+    mq = window.matchMedia("(display-mode: standalone)");
+  } catch {
+    mq = null;
+  }
+
+  if (mq) {
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", onChange);
+    } else if (typeof mq.addListener === "function") {
+      mq.addListener(onChange);
+    }
+  }
   window.addEventListener("appinstalled", onInstalled);
+
   return () => {
-    mq.removeEventListener?.("change", onStoreChange);
+    if (mq) {
+      if (typeof mq.removeEventListener === "function") {
+        mq.removeEventListener("change", onChange);
+      } else if (typeof mq.removeListener === "function") {
+        mq.removeListener(onChange);
+      }
+    }
     window.removeEventListener("appinstalled", onInstalled);
   };
 }
 
 /**
  * Hybrid PWA install: Chromium one-tap when available; iOS needs manual A2HS.
+ * Platform/installed are set after mount so iOS Safari never hydration-loops.
  */
 export default function usePwaInstall() {
-  const platform = useSyncExternalStore(
-    () => () => {},
-    detectPlatform,
-    () => SERVER_PLATFORM,
-  );
-  const installed = useSyncExternalStore(
-    subscribeStandalone,
-    isStandaloneDisplay,
-    () => false,
-  );
-  const ready = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-
+  const [ready, setReady] = useState(false);
+  const [platform, setPlatform] = useState(SERVER_PLATFORM);
+  const [installed, setInstalled] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [installError, setInstallError] = useState("");
   const [acceptedInstall, setAcceptedInstall] = useState(false);
+
+  useEffect(() => {
+    setPlatform(readPlatform());
+    setInstalled(readStandalone());
+    setReady(true);
+    return subscribeStandalone(() => setInstalled(readStandalone()));
+  }, []);
 
   useEffect(() => {
     const onBip = (e) => {
