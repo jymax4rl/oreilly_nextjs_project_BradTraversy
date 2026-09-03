@@ -19,7 +19,9 @@ function isImmersivePath(pathname) {
   return (
     pathname === "/" ||
     pathname === "/business" ||
-    pathname.startsWith("/influencers")
+    pathname.startsWith("/influencers") ||
+    pathname.startsWith("/investors") ||
+    pathname.startsWith("/about")
   );
 }
 

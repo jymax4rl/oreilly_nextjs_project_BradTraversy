@@ -19,6 +19,8 @@ import {
   ChevronRight,
   X,
   Clapperboard,
+  Landmark,
+  Info,
 } from "lucide-react";
 import { LuUserRound } from "react-icons/lu";
 import BrandLogo from "@/components/BrandLogo";
@@ -280,6 +282,28 @@ export default function MobileMenuOverlay({
                         aria-hidden
                       />
                       {t("nav.creators")}
+                    </Link>
+                    <Link
+                      href="/investors"
+                      onClick={close}
+                      className={rowClass("/investors")}
+                    >
+                      <Landmark
+                        className="kama-menu-row-icon"
+                        aria-hidden
+                      />
+                      {t("nav.investors")}
+                    </Link>
+                    <Link
+                      href="/about"
+                      onClick={close}
+                      className={rowClass("/about")}
+                    >
+                      <Info
+                        className="kama-menu-row-icon"
+                        aria-hidden
+                      />
+                      {t("footer.about")}
                     </Link>
                 </nav>
               </section>

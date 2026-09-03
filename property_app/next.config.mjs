@@ -42,6 +42,15 @@ const nextConfig = {
     ],
   },
   turbopack: {},
+  async redirects() {
+    return [
+      {
+        source: "/insvestors",
+        destination: "/investors",
+        permanent: true,
+      },
+    ];
+  },
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,

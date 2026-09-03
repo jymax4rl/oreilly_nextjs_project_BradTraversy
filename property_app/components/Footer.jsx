@@ -42,6 +42,7 @@ const Footer = ({ className = "" }) => {
               <h4 className="text-white font-medium mb-2">{t("footer.company")}</h4>
               <FooterLink href="/business">{t("footer.forBusiness")}</FooterLink>
               <FooterLink href="/influencers">{t("footer.forCreators")}</FooterLink>
+              <FooterLink href="/investors">{t("footer.forInvestors")}</FooterLink>
               <FooterLink href="/host/onboarding">{t("nav.becomeHost")}</FooterLink>
               <FooterLink href="/about">{t("footer.about")}</FooterLink>
               <FooterLink href="/careers">{t("footer.careers")}</FooterLink>

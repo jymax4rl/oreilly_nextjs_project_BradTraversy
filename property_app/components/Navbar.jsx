@@ -22,6 +22,7 @@ import {
   MessageSquare,
   CalendarCheck,
   Clapperboard,
+  Landmark,
 } from "lucide-react";
 import LoginNavButton from "./LoginNavBtn";
 import { usePathname } from "next/navigation";
@@ -41,6 +42,7 @@ const navLinks = [
   { path: "/properties", labelKey: "nav.properties", Icon: Building2 },
   { path: "/business", labelKey: "nav.business", Icon: Building2 },
   { path: "/influencers", labelKey: "nav.creators", Icon: Clapperboard },
+  { path: "/investors", labelKey: "nav.investors", Icon: Landmark },
 ];
 
 const profileItemClass = "kama-profile-item font-medium";
@@ -55,7 +57,11 @@ const Navbar = () => {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const isPhotoNav =
-    isHome || pathname === "/business" || pathname.startsWith("/influencers");
+    isHome ||
+    pathname === "/business" ||
+    pathname.startsWith("/influencers") ||
+    pathname.startsWith("/investors") ||
+    pathname.startsWith("/about");
   const profileImage = session?.user?.image;
   const explore = isExploreMobileLayout(pathname);
 

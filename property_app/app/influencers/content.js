@@ -199,6 +199,10 @@ export const creatorPage = {
         label: "For hospitality businesses",
       },
       {
+        href: "/investors",
+        label: "For investors",
+      },
+      {
         href: "/host/onboarding",
         label: "Become a host",
       },

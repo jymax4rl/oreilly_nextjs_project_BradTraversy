@@ -8,6 +8,7 @@ import {
   LayoutList,
   CreditCard,
   Clapperboard,
+  Landmark,
 } from "lucide-react";
 import OpsShell from "@/components/ops/OpsShell";
 import OpsOverviewPanel from "@/components/ops/OpsOverviewPanel";
@@ -23,6 +24,12 @@ const TOOLS = [
     title: "Creator Leads",
     description: "Influencer partnership requests from /influencers — separate from host CRM.",
     Icon: Clapperboard,
+  },
+  {
+    href: "/ops/marketing/investors",
+    title: "Investor Proposals",
+    description: "Inbound investment proposals from /investors — emailed to contact@isisel.com.",
+    Icon: Landmark,
   },
   {
     href: "/ops/marketing/acquisition",

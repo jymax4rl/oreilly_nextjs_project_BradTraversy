@@ -9,6 +9,7 @@ const ITEMS = [
   { href: "/ops/marketing/acquisition", label: "Host Acquisition", exact: true },
   { href: "/ops/marketing/acquisition/copilot", label: "Sales Copilot" },
   { href: "/ops/marketing/creators", label: "Creator Leads", exact: true },
+  { href: "/ops/marketing/investors", label: "Investor Proposals", exact: true },
 ];
 
 export default function OpsMarketingSubnav() {
