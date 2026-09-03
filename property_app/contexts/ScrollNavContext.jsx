@@ -8,15 +8,31 @@ import {
   useRef,
   useState,
 } from "react";
+import { usePathname } from "next/navigation";
 
 const ScrollNavContext = createContext({
   navVisible: true,
+  bottomChromeVisible: true,
 });
 
+function isImmersivePath(pathname) {
+  return (
+    pathname === "/" ||
+    pathname === "/business" ||
+    pathname.startsWith("/influencers")
+  );
+}
+
 export function ScrollNavProvider({ children }) {
+  const pathname = usePathname() || "";
+  const immersive = isImmersivePath(pathname);
   const [navVisible, setNavVisible] = useState(true);
+  const [bottomChromeVisible, setBottomChromeVisible] = useState(!immersive);
   const lastY = useRef(0);
   const frame = useRef(0);
+  const immersiveRef = useRef(immersive);
+
+  immersiveRef.current = immersive;
 
   const onScroll = useCallback(() => {
     if (frame.current) return;
@@ -26,16 +42,41 @@ export function ScrollNavProvider({ children }) {
       const delta = y - lastY.current;
       const threshold = 8;
 
+      if (immersiveRef.current) {
+        setBottomChromeVisible(y > 56);
+        lastY.current = y;
+        return;
+      }
+
       if (y < 32) {
         setNavVisible(true);
+        setBottomChromeVisible(true);
       } else if (delta > threshold) {
         setNavVisible(false);
+        setBottomChromeVisible(false);
       } else if (delta < -threshold) {
         setNavVisible(true);
+        setBottomChromeVisible(true);
       }
       lastY.current = y;
     });
   }, []);
+
+  useEffect(() => {
+    lastY.current = window.scrollY || 0;
+    if (isImmersivePath(pathname)) {
+      setNavVisible(true);
+      setBottomChromeVisible((window.scrollY || 0) > 56);
+      document.documentElement.classList.add("kama-photo-hero");
+    } else {
+      setNavVisible(true);
+      setBottomChromeVisible(true);
+      document.documentElement.classList.remove("kama-photo-hero");
+    }
+    return () => {
+      document.documentElement.classList.remove("kama-photo-hero");
+    };
+  }, [pathname]);
 
   useEffect(() => {
     lastY.current = window.scrollY || 0;
@@ -47,7 +88,7 @@ export function ScrollNavProvider({ children }) {
   }, [onScroll]);
 
   return (
-    <ScrollNavContext.Provider value={{ navVisible }}>
+    <ScrollNavContext.Provider value={{ navVisible, bottomChromeVisible }}>
       {children}
     </ScrollNavContext.Provider>
   );

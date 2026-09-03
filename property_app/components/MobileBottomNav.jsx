@@ -23,7 +23,7 @@ import { useLanguage } from "@/components/i18n/LanguageProvider";
  */
 export default function MobileBottomNav() {
   const pathname = usePathname() || "";
-  const { navVisible } = useScrollNav();
+  const { bottomChromeVisible } = useScrollNav();
   const { toggle } = useMenuOverlay();
   const { data: session } = useSession();
   const { t } = useLanguage();
@@ -42,10 +42,11 @@ export default function MobileBottomNav() {
   return (
     <nav
       className={`lg:hidden fixed bottom-0 left-0 right-0 z-[70] isolate border-t border-[var(--kama-border)] bg-[var(--kama-surface)] transition-transform duration-300 ease-out will-change-transform ${
-        navVisible ? "translate-y-0" : "translate-y-full"
+        bottomChromeVisible ? "translate-y-0" : "translate-y-full pointer-events-none"
       }`}
       style={{ paddingBottom: "max(0.35rem, env(safe-area-inset-bottom))" }}
       aria-label="Primary mobile navigation"
+      aria-hidden={!bottomChromeVisible}
       data-mobile-bottom-nav
     >
       <div className="relative z-10 mx-auto flex max-w-lg items-stretch justify-around px-1 pt-0.5">

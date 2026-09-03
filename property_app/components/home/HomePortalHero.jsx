@@ -38,7 +38,7 @@ export default function HomePortalHero() {
   return (
     <section
       ref={rootRef}
-      className="home-hero--photo relative isolate flex min-h-[100dvh] flex-col items-center justify-end overflow-hidden px-5 pb-10 pt-[5.5rem] sm:px-8 sm:pb-12 lg:pb-14"
+      className="home-hero--photo relative isolate flex flex-col items-center justify-end overflow-hidden px-5 pt-[5.5rem] sm:px-8 sm:pb-12 lg:pb-14"
       aria-labelledby="isisel-hero-brand"
     >
       <HomeHeroBackdrop />

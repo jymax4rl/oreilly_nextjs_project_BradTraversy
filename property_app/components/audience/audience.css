@@ -69,13 +69,23 @@
 .audience-hero {
   position: relative;
   isolation: isolate;
-  min-height: min(100dvh, 52rem);
+  min-height: 100svh;
+  min-height: 100dvh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 5.5rem 0 2.25rem;
+  padding: 5.5rem 0 max(1.5rem, calc(env(safe-area-inset-bottom, 0px) + 1rem));
   overflow: hidden;
   background: #1a2428;
+}
+
+@media (min-width: 1024px) {
+  .audience-hero {
+    height: auto;
+    min-height: min(100dvh, 52rem);
+    padding: 5.5rem 0 2.25rem;
+  }
 }
 
 .audience-hero__media {
@@ -603,6 +613,14 @@
   background: rgba(250, 252, 251, 0.94);
   border-top: 1px solid var(--kama-border);
   backdrop-filter: blur(10px);
+  transform: translateY(110%);
+  transition: transform 0.32s ease-out;
+  pointer-events: none;
+}
+
+.audience-sticky.is-on {
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .audience-sticky a {

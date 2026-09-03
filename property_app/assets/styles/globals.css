@@ -48,11 +48,19 @@
 
 html {
   scroll-behavior: smooth;
+  min-height: 100%;
+  min-height: -webkit-fill-available;
+}
+
+html.kama-photo-hero,
+html.kama-photo-hero body {
+  background: #1a2428;
 }
 
 body {
   margin: 0;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
   overflow-x: hidden;
   background: var(--kama-canvas);
   color: var(--kama-ink);

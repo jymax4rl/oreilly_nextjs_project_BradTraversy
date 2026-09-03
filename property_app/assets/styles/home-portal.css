@@ -45,6 +45,25 @@
   object-position: 50% 42%;
 }
 
+.home-hero--photo {
+  min-height: 100svh;
+  min-height: 100dvh;
+  height: 100dvh;
+}
+
+@media (max-width: 1023px) {
+  .home-hero--photo {
+    padding-bottom: max(1.75rem, calc(env(safe-area-inset-bottom, 0px) + 1.15rem));
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-hero--photo {
+    height: auto;
+    min-height: 100dvh;
+  }
+}
+
 .home-hero-scrim {
   position: absolute;
   inset: 0;

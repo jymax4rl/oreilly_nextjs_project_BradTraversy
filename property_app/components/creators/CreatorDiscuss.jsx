@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { creatorPage } from "@/app/influencers/content";
+import { useScrollNav } from "@/contexts/ScrollNavContext";
 
 const DiscussCtx = createContext(null);
 
@@ -29,6 +30,7 @@ function track(event, extra = {}) {
 export function CreatorDiscussProvider({ children }) {
   const [open, setOpen] = useState(false);
   const [sticky, setSticky] = useState(false);
+  const { bottomChromeVisible } = useScrollNav();
 
   useEffect(() => {
     track("page_visit");
@@ -73,7 +75,9 @@ export function CreatorDiscussProvider({ children }) {
       {children}
       <CreatorDiscussModal open={open} onClose={close} track={track} />
       {sticky && !open ? (
-        <div className="creator-sticky">
+        <div
+          className={`creator-sticky${bottomChromeVisible ? " is-on" : ""}`}
+        >
           <button
             type="button"
             className="creator-btn creator-btn--light"

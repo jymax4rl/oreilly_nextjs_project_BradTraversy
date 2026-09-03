@@ -11,7 +11,7 @@ export default function manifest() {
     scope: "/",
     display: "standalone",
     orientation: "portrait-primary",
-    background_color: "#fafcfb",
+    background_color: "#1a2428",
     theme_color: "#1b5c57",
     categories: ["travel", "lifestyle", "business"],
     icons: [

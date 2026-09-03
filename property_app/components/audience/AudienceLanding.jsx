@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Fraunces, Outfit } from "next/font/google";
 import AudienceJsonLd from "./AudienceJsonLd";
+import AudienceStickyCta from "./AudienceStickyCta";
 import "./audience.css";
 
 const fraunces = Fraunces({
@@ -391,9 +392,7 @@ export default function AudienceLanding({ seo, page }) {
       </div>
 
       {p.sticky ? (
-        <div className="audience-sticky">
-          <Btn href={p.sticky.href} label={p.sticky.label} variant="accent" />
-        </div>
+        <AudienceStickyCta href={p.sticky.href} label={p.sticky.label} />
       ) : null}
     </div>
   );

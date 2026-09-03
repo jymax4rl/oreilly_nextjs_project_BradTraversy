@@ -22,7 +22,7 @@ export default function MainShell({ children }) {
         fullscreen
           ? "flex-grow m-0 min-h-dvh overflow-x-hidden p-0 lg:pt-0"
           : isHome
-            ? "flex-grow m-0 overflow-x-hidden p-0 pt-0 pb-[var(--kama-chrome-clearance)] lg:pb-0"
+            ? "flex-grow m-0 overflow-x-hidden p-0 pt-0 pb-0"
             : isAudienceLanding
               ? "flex-grow m-0 overflow-x-hidden p-0 pt-0 pb-0"
               : explore

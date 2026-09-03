@@ -37,7 +37,7 @@ export const metadata = {
   appleWebApp: {
     capable: true,
     title: "Isisel",
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
   },
   formatDetection: {
     telephone: false,
@@ -115,7 +115,7 @@ async function MainLayout({ children }) {
             <LanguageProvider initialLang={lang}>
               <StyledComponentsRegistry>
                 <html lang={lang}>
-                  <body className="flex flex-col min-h-screen">
+                  <body className="flex flex-col min-h-dvh">
                     <SiteJsonLd />
                     <ChunkErrorRecovery />
                     <PwaRegister />
