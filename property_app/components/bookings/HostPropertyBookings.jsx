@@ -20,6 +20,7 @@ import {
   guestPhoneTelHref,
   guestPhoneWhatsAppHref,
 } from "@/utils/bookings/paymentMode";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 function formatAmount(amount, currency) {
   if (amount == null || !currency) return null;
@@ -30,6 +31,7 @@ function formatAmount(amount, currency) {
 }
 
 function HostBookingRow({ booking, propertyId, onChanged }) {
+  const { t } = useLanguage();
   const nights = countNights(booking.checkIn, booking.checkOut);
   const amountLabel = formatAmount(booking.amount, booking.currency);
   const statusClass =
@@ -54,7 +56,7 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
       await fn();
       onChanged?.();
     } catch (e) {
-      setMessage({ ok: false, text: e.message || "Request failed" });
+      setMessage({ ok: false, text: e.message || t("hostConsole.bookings.requestFailed") });
     } finally {
       setBusy(null);
     }
@@ -66,19 +68,26 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
         method: "POST",
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Could not resend");
+      if (!res.ok) throw new Error(data.error || t("hostConsole.bookings.couldNotResend"));
       const g = data.emails?.guestStatus;
       const h = data.emails?.hostStatus;
       setMessage({
         ok: g === "sent" || h === "sent",
-        text: data.emails?.configError || `Guest: ${g || "—"}; Host: ${h || "—"}`,
+        text: data.emails?.configError || t("hostConsole.bookings.guestEmailHost", {
+          guest: g || "—",
+          host: h || "—",
+        }),
       });
     });
 
   const handleCancel = () => {
     if (
       !window.confirm(
-        `Cancel reservation for ${booking.guestName || "guest"} (${booking.checkIn} → ${booking.checkOut})?`,
+        t("hostConsole.bookings.cancelConfirm", {
+          name: booking.guestName || t("hostConsole.guest"),
+          checkIn: booking.checkIn,
+          checkOut: booking.checkOut,
+        }),
       )
     ) {
       return;
@@ -87,11 +96,11 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
       const res = await fetch(`/api/properties/${pid}/bookings/${booking._id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: "Cancelled by host" }),
+        body: JSON.stringify({ reason: t("hostConsole.bookings.cancelReason") }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Could not cancel");
-      setMessage({ ok: true, text: "Reservation cancelled" });
+      if (!res.ok) throw new Error(data.error || t("hostConsole.bookings.couldNotCancel"));
+      setMessage({ ok: true, text: t("hostConsole.bookings.reservationCancelled") });
     });
   };
 
@@ -103,9 +112,9 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
         body: JSON.stringify({ checkIn, checkOut }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Could not update dates");
+      if (!res.ok) throw new Error(data.error || t("hostConsole.bookings.couldNotUpdateDates"));
       setEditing(false);
-      setMessage({ ok: true, text: "Dates updated" });
+      setMessage({ ok: true, text: t("hostConsole.bookings.datesUpdated") });
     });
 
   const canResend =
@@ -125,19 +134,30 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
             className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${statusClass}`}
           >
             {booking.status === "pending" && booking.paymentMode === "manual"
-              ? "Awaiting payment"
-              : booking.status}
+              ? t("hostConsole.bookings.awaitingPayment")
+              : booking.status === "confirmed"
+                ? t("hostConsole.bookings.confirmed")
+                : booking.status === "cancelled"
+                  ? t("hostConsole.bookings.cancelled")
+                  : booking.status === "pending"
+                    ? t("hostConsole.bookings.pending")
+                    : booking.status}
           </span>
           {booking.paymentMode === "manual" && booking.status === "pending" && (
             <p className="mt-1 text-[11px] text-amber-800">
-              Arrange payment with the guest (message, call, or WhatsApp)
+              {t("hostConsole.bookings.arrangePayment")}
             </p>
           )}
           <p className="mt-2 text-sm font-semibold text-slate-900">
             {formatGuestDate(booking.checkIn)} → {formatGuestDate(booking.checkOut)}
           </p>
           <p className="text-xs text-slate-500">
-            {nights} night{nights !== 1 ? "s" : ""}
+            {t(
+              nights === 1
+                ? "hostConsole.bookings.nightOne"
+                : "hostConsole.bookings.nightOther",
+              { n: nights },
+            )}
             {amountLabel ? ` · ${amountLabel}` : ""}
           </p>
           {booking.propertyName && (
@@ -160,7 +180,7 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
       <div className="mt-3 flex flex-col gap-1 border-t border-slate-100 pt-3 text-sm text-slate-600">
         <p className="flex items-center gap-2">
           <User size={14} className="shrink-0 text-slate-400" aria-hidden />
-          {booking.guestName || "Guest"}
+          {booking.guestName || t("hostConsole.guest")}
         </p>
         {booking.guestEmail && (
           <p className="flex items-center gap-2">
@@ -208,7 +228,7 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1b5c57] hover:underline"
           >
             <MessageCircle size={13} aria-hidden />
-            Open messages
+            {t("hostConsole.bookings.openMessages")}
           </Link>
         </p>
       </div>
@@ -223,7 +243,7 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
             >
               <Mail size={13} aria-hidden />
-              {busy === "resend" ? "Sending…" : "Resend confirmation"}
+              {busy === "resend" ? t("hostConsole.bookings.sending") : t("hostConsole.bookings.resend")}
             </button>
           )}
           {canModify && (
@@ -238,7 +258,7 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
             >
               <Pencil size={13} aria-hidden />
-              Modify dates
+              {t("hostConsole.bookings.modifyDates")}
             </button>
           )}
           {canCancel && (
@@ -249,7 +269,7 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
               className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
             >
               <Trash2 size={13} aria-hidden />
-              {busy === "cancel" ? "Cancelling…" : "Cancel"}
+              {busy === "cancel" ? t("hostConsole.bookings.cancelling") : t("hostConsole.bookings.cancel")}
             </button>
           )}
         </div>
@@ -259,7 +279,7 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
         <div className="mt-3 space-y-2 rounded-lg bg-slate-50 p-3">
           <div className="flex flex-wrap gap-3">
             <label className="text-xs font-medium text-slate-600">
-              Check-in
+              {t("hostConsole.bookings.checkIn")}
               <input
                 type="date"
                 value={checkIn}
@@ -268,7 +288,7 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
               />
             </label>
             <label className="text-xs font-medium text-slate-600">
-              Check-out
+              {t("hostConsole.bookings.checkOut")}
               <input
                 type="date"
                 value={checkOut}
@@ -284,14 +304,14 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
               onClick={handleSaveDates}
               className="rounded-lg bg-[#1b5c57] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#164a46] disabled:opacity-60"
             >
-              {busy === "modify" ? "Saving…" : "Save dates"}
+              {busy === "modify" ? t("hostConsole.bookings.saving") : t("hostConsole.bookings.saveDates")}
             </button>
             <button
               type="button"
               onClick={() => setEditing(false)}
               className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100"
             >
-              Cancel
+              {t("hostConsole.bookings.cancel")}
             </button>
           </div>
         </div>
@@ -317,8 +337,8 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
 export default function HostPropertyBookings({
   propertyId,
   mode = "property",
-  title = "Reservations",
 }) {
+  const { t, lang } = useLanguage();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -330,8 +350,8 @@ export default function HostPropertyBookings({
 
   // Debounce search before hitting the API.
   useEffect(() => {
-    const t = setTimeout(() => setSearchQuery(searchInput.trim()), 300);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setSearchQuery(searchInput.trim()), 300);
+    return () => clearTimeout(timer);
   }, [searchInput]);
 
   const load = useCallback(async (opts = {}) => {
@@ -356,7 +376,7 @@ export default function HostPropertyBookings({
 
       const res = await fetch(fetchUrl, { cache: "no-store" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to load reservations");
+      if (!res.ok) throw new Error(data.error || t("hostConsole.bookings.loadFailed"));
       let list = data.bookings || [];
       if (mode === "property" && statusFilter === "active") {
         list = list.filter((b) =>
@@ -369,12 +389,12 @@ export default function HostPropertyBookings({
       setBookings(list);
       setUpdatedAt(new Date());
     } catch (e) {
-      setError(e.message || "Could not load reservations");
+      setError(e.message || t("hostConsole.bookings.couldNotLoad"));
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [propertyId, mode, statusFilter, searchQuery]);
+  }, [propertyId, mode, statusFilter, searchQuery, t]);
 
   useEffect(() => {
     load();
@@ -392,7 +412,11 @@ export default function HostPropertyBookings({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <CalendarCheck className="h-5 w-5 text-[#1b5c57]" aria-hidden />
-          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+          <h2 className="text-lg font-semibold text-slate-900">
+            {mode === "all"
+              ? t("hostConsole.allReservationsTitle")
+              : t("hostConsole.bookings.title")}
+          </h2>
           {!loading && (
             <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
               {bookings.length}
@@ -405,22 +429,29 @@ export default function HostPropertyBookings({
             onClick={() => load({ silent: true })}
             disabled={loading || refreshing}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--kama-border-strong)] bg-white px-2.5 py-1.5 text-xs font-semibold text-[var(--kama-accent)] transition hover:bg-[var(--kama-accent-soft)] disabled:opacity-60"
-            aria-label="Refresh reservations"
+            aria-label={t("hostConsole.bookings.refreshAria")}
           >
             <RefreshCw
               size={14}
               className={refreshing ? "animate-spin" : undefined}
               aria-hidden
             />
-            {refreshing ? "Refreshing…" : "Refresh"}
+            {refreshing
+              ? t("hostConsole.bookings.refreshing")
+              : t("hostConsole.bookings.refresh")}
           </button>
           {updatedAt && !loading && (
             <span className="hidden text-[11px] text-slate-400 sm:inline">
-              Updated {updatedAt.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
+              {t("hostConsole.bookings.updated", {
+                time: updatedAt.toLocaleTimeString(
+                  lang === "fr" ? "fr-FR" : "en-US",
+                  { hour: "numeric", minute: "2-digit" },
+                ),
+              })}
             </span>
           )}
           <label className="relative block min-w-[11rem] flex-1 sm:min-w-[16rem]">
-            <span className="sr-only">Search by Ref # or guest name</span>
+            <span className="sr-only">{t("hostConsole.bookings.searchAria")}</span>
             <Search
               size={14}
               className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
@@ -430,7 +461,7 @@ export default function HostPropertyBookings({
               type="search"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search by Ref # or guest name"
+              placeholder={t("hostConsole.bookings.searchPh")}
               className="w-full rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-2.5 text-xs font-medium text-slate-700 placeholder:text-slate-400"
             />
           </label>
@@ -438,12 +469,12 @@ export default function HostPropertyBookings({
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700"
-            aria-label="Filter by status"
+            aria-label={t("hostConsole.bookings.filterStatus")}
           >
-            <option value="active">Active</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="pending">Pending</option>
-            <option value="cancelled">Cancelled</option>
+            <option value="active">{t("hostConsole.bookings.active")}</option>
+            <option value="confirmed">{t("hostConsole.bookings.confirmed")}</option>
+            <option value="pending">{t("hostConsole.bookings.pending")}</option>
+            <option value="cancelled">{t("hostConsole.bookings.cancelled")}</option>
           </select>
         </div>
       </div>
@@ -451,7 +482,7 @@ export default function HostPropertyBookings({
       {loading && (
         <p className="flex items-center gap-2 text-sm text-slate-500">
           <Loader2 size={16} className="animate-spin" aria-hidden />
-          Loading reservations…
+          {t("hostConsole.bookings.loading")}
         </p>
       )}
 
@@ -462,15 +493,15 @@ export default function HostPropertyBookings({
       {!loading && !error && bookings.length === 0 && (
         <p className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
           {searchQuery
-            ? `No reservations match “${searchQuery}”.`
-            : "No reservations in this view yet."}
+            ? t("hostConsole.bookings.noneMatch", { query: searchQuery })
+            : t("hostConsole.bookings.none")}
         </p>
       )}
 
       {!loading && !error && upcoming.length > 0 && (
         <div className="mb-6">
           <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">
-            Upcoming &amp; in progress
+            {t("hostConsole.bookings.upcoming")}
           </h3>
           <ul className="space-y-3">
             {upcoming.map((b) => (
@@ -488,7 +519,7 @@ export default function HostPropertyBookings({
       {!loading && !error && past.length > 0 && (
         <div className="mb-6">
           <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">
-            Past
+            {t("hostConsole.bookings.past")}
           </h3>
           <ul className="space-y-3 opacity-90">
             {past.map((b) => (
@@ -506,7 +537,7 @@ export default function HostPropertyBookings({
       {!loading && !error && cancelled.length > 0 && (
         <div>
           <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">
-            Cancelled
+            {t("hostConsole.bookings.cancelled")}
           </h3>
           <ul className="space-y-3 opacity-75">
             {cancelled.map((b) => (

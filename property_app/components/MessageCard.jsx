@@ -8,8 +8,10 @@ import {
   replyToMessage,
 } from "@/utils/actions/messageActions";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 export default function MessageCard({ message, currentUserId }) {
+  const { t, lang } = useLanguage();
   const [isRead, setIsRead] = useState(message.read);
   const [isDeleted, setIsDeleted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,7 +37,7 @@ export default function MessageCard({ message, currentUserId }) {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Delete this message?")) return;
+    if (!window.confirm(t("hostConsole.msg.deleteConfirm"))) return;
     setLoading(true);
     const result = await deleteMessage(message._id);
     if (result?.success) setIsDeleted(true);
@@ -54,7 +56,7 @@ export default function MessageCard({ message, currentUserId }) {
     if (result?.error) {
       setReplyError(result.error);
     } else {
-      setReplySuccess(result?.success || "Reply sent.");
+      setReplySuccess(result?.success || t("hostConsole.msg.replySent"));
       setReplyBody("");
       setShowReply(false);
       if (isRecipient) setIsRead(true);
@@ -96,7 +98,7 @@ export default function MessageCard({ message, currentUserId }) {
             )}
             {isSender && (
               <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
-                Sent
+                {t("hostConsole.msg.sentBadge")}
               </span>
             )}
           </div>
@@ -111,7 +113,7 @@ export default function MessageCard({ message, currentUserId }) {
               href={propertyPublicPath(message.property)}
               className="mt-1 inline-block text-xs text-blue-600 hover:underline"
             >
-              Re: {message.property.name}
+              {t("hostConsole.msg.re", { name: message.property.name })}
             </Link>
           )}
 
@@ -120,13 +122,16 @@ export default function MessageCard({ message, currentUserId }) {
           </p>
 
           <p className="mt-2 text-xs text-gray-400">
-            {new Date(message.createdAt).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {new Date(message.createdAt).toLocaleDateString(
+              lang === "fr" ? "fr-FR" : "en-US",
+              {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              },
+            )}
           </p>
         </div>
       </div>
@@ -145,7 +150,7 @@ export default function MessageCard({ message, currentUserId }) {
             onChange={(e) => setReplyBody(e.target.value)}
             rows={3}
             required
-            placeholder="Write your reply…"
+            placeholder={t("hostConsole.msg.replyPh")}
             className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-300"
           />
           <div className="flex gap-2">
@@ -154,14 +159,14 @@ export default function MessageCard({ message, currentUserId }) {
               disabled={loading || !replyBody.trim()}
               className="rounded-xl bg-slate-900 px-4 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
             >
-              Send reply
+              {t("hostConsole.msg.sendReply")}
             </button>
             <button
               type="button"
               onClick={() => setShowReply(false)}
               className="rounded-xl border border-gray-200 px-4 py-1.5 text-xs font-medium text-gray-600"
             >
-              Cancel
+              {t("hostConsole.msg.cancel")}
             </button>
           </div>
         </form>
@@ -178,7 +183,7 @@ export default function MessageCard({ message, currentUserId }) {
           disabled={loading}
           className="rounded-xl border border-gray-200 bg-white px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
         >
-          Reply
+          {t("hostConsole.msg.reply")}
         </button>
 
         {isRecipient && (
@@ -188,7 +193,7 @@ export default function MessageCard({ message, currentUserId }) {
             disabled={loading}
             className="rounded-xl border border-gray-200 bg-white px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
           >
-            {isRead ? "Mark Unread" : "Mark Read"}
+            {isRead ? t("hostConsole.msg.markUnread") : t("hostConsole.msg.markRead")}
           </button>
         )}
 
@@ -198,7 +203,7 @@ export default function MessageCard({ message, currentUserId }) {
           disabled={loading}
           className="rounded-xl border border-red-200 bg-white px-4 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition disabled:opacity-50"
         >
-          Delete
+          {t("hostConsole.msg.delete")}
         </button>
       </div>
     </div>
