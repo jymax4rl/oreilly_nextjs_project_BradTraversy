@@ -107,8 +107,7 @@ const Navbar = () => {
   const isActive = (path) => pathname === path;
 
   const getHostNavItem = () => {
-    if (!session?.user) return null;
-    if (session.user.hostStatus === "verified") {
+    if (session?.user?.hostStatus === "verified") {
       return { path: "/properties/add", label: "List Property" };
     }
     return { path: BECOME_A_HOST_HREF, label: "Become a Host" };

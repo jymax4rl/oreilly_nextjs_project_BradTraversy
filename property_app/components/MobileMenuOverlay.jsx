@@ -210,8 +210,8 @@ export default function MobileMenuOverlay({
                 </section>
               )}
 
-              {/* Hosting — hosts only; become-a-host for others signed in */}
-              {user && (
+              {/* Hosting — tools for verified hosts; Become a Host for everyone else */}
+              {isHost ? (
                 <section
                   className="kama-menu-group"
                   aria-labelledby="menu-hosting"
@@ -220,55 +220,61 @@ export default function MobileMenuOverlay({
                     Hosting
                   </h2>
                   <nav className="flex flex-col gap-0.5" aria-label="Hosting">
-                    {isHost ? (
-                      <>
-                        <Link
-                          href="/properties/my-listings"
-                          onClick={close}
-                          className={rowClass("/properties/my-listings")}
-                        >
-                          <LayoutList
-                            className="kama-menu-row-icon"
-                            aria-hidden
-                          />
-                          My listings
-                        </Link>
-                        <Link
-                          href="/host/reservations"
-                          onClick={close}
-                          className={rowClass("/host/reservations")}
-                        >
-                          <CalendarCheck
-                            className="kama-menu-row-icon"
-                            aria-hidden
-                          />
-                          Manage reservations
-                        </Link>
-                        <Link
-                          href="/properties/add"
-                          onClick={close}
-                          className={rowClass("/properties/add")}
-                        >
-                          <PlusCircle
-                            className="kama-menu-row-icon"
-                            aria-hidden
-                          />
-                          List property
-                        </Link>
-                      </>
-                    ) : (
-                      <Link
-                        href={BECOME_A_HOST_HREF}
-                        onClick={close}
-                        className={`${rowClass("/host/install")} kama-menu-row--accent`}
-                      >
-                        <PlusCircle
-                          className="kama-menu-row-icon"
-                          aria-hidden
-                        />
-                        Become a host
-                      </Link>
-                    )}
+                    <Link
+                      href="/properties/my-listings"
+                      onClick={close}
+                      className={rowClass("/properties/my-listings")}
+                    >
+                      <LayoutList
+                        className="kama-menu-row-icon"
+                        aria-hidden
+                      />
+                      My listings
+                    </Link>
+                    <Link
+                      href="/host/reservations"
+                      onClick={close}
+                      className={rowClass("/host/reservations")}
+                    >
+                      <CalendarCheck
+                        className="kama-menu-row-icon"
+                        aria-hidden
+                      />
+                      Manage reservations
+                    </Link>
+                    <Link
+                      href="/properties/add"
+                      onClick={close}
+                      className={rowClass("/properties/add")}
+                    >
+                      <PlusCircle
+                        className="kama-menu-row-icon"
+                        aria-hidden
+                      />
+                      List property
+                    </Link>
+                  </nav>
+                </section>
+              ) : (
+                <section
+                  className="kama-menu-group"
+                  aria-labelledby="menu-hosting"
+                >
+                  <h2 id="menu-hosting" className="kama-menu-section">
+                    Hosting
+                  </h2>
+                  <nav className="flex flex-col gap-0.5" aria-label="Hosting">
+                    <Link
+                      href={BECOME_A_HOST_HREF}
+                      onClick={close}
+                      className={`${rowClass("/host/install")} kama-menu-row--accent`}
+                    >
+                      <PlusCircle
+                        className="kama-menu-row-icon"
+                        aria-hidden
+                      />
+                      Become a host
+                    </Link>
                   </nav>
                 </section>
               )}

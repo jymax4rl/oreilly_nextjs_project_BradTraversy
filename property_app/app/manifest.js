@@ -3,6 +3,8 @@ export default function manifest() {
   return {
     name: "Isisel",
     short_name: "Isisel",
+    id: "/",
+    lang: "en",
     description:
       "African vacation rentals — manage listings, reservations, and hosting from your home screen.",
     start_url: "/?source=pwa",

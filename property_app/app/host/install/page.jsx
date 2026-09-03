@@ -2,9 +2,14 @@ import { Suspense } from "react";
 import HostInstallClient from "./HostInstallClient";
 
 export const metadata = {
-  title: "Install Isisel",
+  title: { absolute: "Isisel" },
   description:
     "Add Isisel to your home screen so hosting feels like a native app.",
+  appleWebApp: {
+    capable: true,
+    title: "Isisel",
+    statusBarStyle: "default",
+  },
 };
 
 export default function HostInstallPage() {
