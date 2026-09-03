@@ -1,7 +1,7 @@
 /** @type {import('next').MetadataRoute.Manifest} */
 export default function manifest() {
   return {
-    name: "Isisel | Kama Properties",
+    name: "Isisel",
     short_name: "Isisel",
     description:
       "African vacation rentals — manage listings, reservations, and hosting from your home screen.",
@@ -26,7 +26,7 @@ export default function manifest() {
         purpose: "any",
       },
       {
-        src: "/icons/icon-512.png",
+        src: "/icons/icon-512-maskable.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",

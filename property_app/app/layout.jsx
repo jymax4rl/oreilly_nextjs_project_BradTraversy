@@ -20,8 +20,8 @@ export const metadata = {
     process.env.NEXT_PUBLIC_SITE_URL || "https://www.isisel.com",
   ),
   title: {
-    default: "Kama Properties | African Vacation Rentals",
-    template: "%s | Kama Properties",
+    default: "Isisel | African Vacation Rentals",
+    template: "%s | Isisel",
   },
   description: "Kama Properties made for Africans by Africans...",
   keywords: "Rent in Senegal, Rent in Mali, Rent in Ghana...",
@@ -40,12 +40,29 @@ export const metadata = {
       { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
       {
-        url: "/icons/apple-touch-icon.png",
+        url: "/apple-touch-icon-180x180.png",
         sizes: "180x180",
         type: "image/png",
       },
+      {
+        url: "/apple-touch-icon-167x167.png",
+        sizes: "167x167",
+        type: "image/png",
+      },
+      {
+        url: "/apple-touch-icon-152x152.png",
+        sizes: "152x152",
+        type: "image/png",
+      },
+      {
+        url: "/apple-touch-icon-120x120.png",
+        sizes: "120x120",
+        type: "image/png",
+      },
     ],
+    shortcut: [{ url: "/icons/icon-192.png", type: "image/png" }],
   },
   openGraph: {
     type: "website",
