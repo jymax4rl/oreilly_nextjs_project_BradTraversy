@@ -63,7 +63,7 @@ export default function HostOnboardingPage() {
       if (!res.ok) throw new Error(text || "Submission failed");
 
       await update();
-      router.push("/host/pending");
+      router.push("/host/install?next=/host/pending");
     } catch (err) {
       setError(err.message);
     } finally {

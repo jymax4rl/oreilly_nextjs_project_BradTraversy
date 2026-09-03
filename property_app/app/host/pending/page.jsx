@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { HostPwaInstallCard } from "@/components/host/HostPwaInstallGuide";
 
 export default function HostPendingPage() {
   const { data: session } = useSession();
@@ -113,12 +114,23 @@ export default function HostPendingPage() {
           reviewing your details. You&apos;ll be notified once your host account is
           verified.
         </p>
+
+        <HostPwaInstallCard className="mb-6" />
+
         <Link
-          href="/"
-          className="inline-block bg-gray-900 text-white px-6 py-2 rounded hover:bg-gray-800 transition"
+          href="/host/install?next=/host/pending"
+          className="mb-3 inline-block text-sm font-medium text-[var(--kama-accent)] underline-offset-2 hover:underline"
         >
-          Back to Home
+          Open full install guide
         </Link>
+        <div>
+          <Link
+            href="/"
+            className="inline-block bg-gray-900 text-white px-6 py-2 rounded hover:bg-gray-800 transition"
+          >
+            Back to Home
+          </Link>
+        </div>
       </div>
     </section>
   );

@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import gsap from "gsap";
@@ -363,6 +364,13 @@ export default function HostWelcomeOnboardingPage() {
           >
             {submitting ? "Saving…" : "Continue"}
           </button>
+
+          <Link
+            href="/host/install?next=/properties/add"
+            className="mt-4 block max-w-[320px] text-center text-sm font-medium text-white/75 underline-offset-2 transition hover:text-white hover:underline"
+          >
+            Install Isisel on your home screen first
+          </Link>
         </div>
       </div>
     </div>

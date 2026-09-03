@@ -7,6 +7,7 @@ import {
   LayoutList,
   MessageSquare,
   Shield,
+  Smartphone,
   UserRound,
   Wallet,
 } from "lucide-react";
@@ -203,17 +204,31 @@ export default function SettingsSections({ settings }) {
                   label="Manage reservations"
                   description="Guest stays across your properties"
                 />
+                <DeepLink
+                  href="/host/install?next=/settings"
+                  icon={Smartphone}
+                  label="Install Isisel app"
+                  description="Add to home screen for faster hosting"
+                />
               </div>
             </>
           )}
 
           {isPendingHost && (
-            <DeepLink
-              href="/host/pending"
-              icon={Building2}
-              label="Application status"
-              description="Your host application is under review"
-            />
+            <>
+              <DeepLink
+                href="/host/pending"
+                icon={Building2}
+                label="Application status"
+                description="Your host application is under review"
+              />
+              <DeepLink
+                href="/host/install?next=/host/pending"
+                icon={Smartphone}
+                label="Install Isisel app"
+                description="Add to home screen while you wait"
+              />
+            </>
           )}
 
           {isRejectedHost && (
