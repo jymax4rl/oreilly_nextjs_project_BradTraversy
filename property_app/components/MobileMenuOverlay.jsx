@@ -18,8 +18,6 @@ import {
   CalendarCheck,
   ChevronRight,
   X,
-  Clapperboard,
-  Landmark,
   Info,
 } from "lucide-react";
 import { LuUserRound } from "react-icons/lu";
@@ -261,39 +259,6 @@ export default function MobileMenuOverlay({
                       {t("menu.becomeHost")}
                     </Link>
                     )}
-                    <Link
-                      href="/business"
-                      onClick={close}
-                      className={rowClass("/business")}
-                    >
-                      <Building2
-                        className="kama-menu-row-icon"
-                        aria-hidden
-                      />
-                      {t("nav.business")}
-                    </Link>
-                    <Link
-                      href="/influencers"
-                      onClick={close}
-                      className={rowClass("/influencers")}
-                    >
-                      <Clapperboard
-                        className="kama-menu-row-icon"
-                        aria-hidden
-                      />
-                      {t("nav.creators")}
-                    </Link>
-                    <Link
-                      href="/investors"
-                      onClick={close}
-                      className={rowClass("/investors")}
-                    >
-                      <Landmark
-                        className="kama-menu-row-icon"
-                        aria-hidden
-                      />
-                      {t("nav.investors")}
-                    </Link>
                     <Link
                       href="/about"
                       onClick={close}
