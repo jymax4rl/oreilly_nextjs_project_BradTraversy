@@ -47,12 +47,7 @@ const Footer = ({ className = "" }) => {
               <FooterLink href="/about">{t("footer.about")}</FooterLink>
               <FooterLink href="/careers">{t("footer.careers")}</FooterLink>
               <FooterLink href="/press">{t("footer.press")}</FooterLink>
-              <a
-                href="mailto:contact@isisel.com"
-                className="hover:text-white hover:translate-x-1 transition-all duration-300 ease-in-out"
-              >
-                {t("footer.contact")}
-              </a>
+              <FooterLink href="/contact">{t("footer.contact")}</FooterLink>
             </div>
 
             {/* Column 2 */}

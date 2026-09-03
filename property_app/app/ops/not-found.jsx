@@ -5,6 +5,6 @@ export const metadata = {
   robots: { index: false, follow: true },
 };
 
-export default function NotFound() {
+export default function OpsNotFound() {
   return <MissingPage />;
 }

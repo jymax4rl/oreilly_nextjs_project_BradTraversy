@@ -119,9 +119,9 @@ export default function AboutLanding({ seo, page }) {
         <div className="creator-wrap">
           <h2>{page.contact.h2}</h2>
           <p className="creator-lead">{page.contact.body}</p>
-          <a className="creator-btn creator-btn--light" href={page.contact.emailHref}>
+          <Link className="creator-btn creator-btn--light" href={page.contact.emailHref}>
             {page.contact.email}
-          </a>
+          </Link>
         </div>
       </section>
 

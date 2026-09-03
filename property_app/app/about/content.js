@@ -97,9 +97,9 @@ export const aboutPage = {
   contact: {
     id: "contact",
     h2: "Talk to us",
-    body: `The public inbox is ${BRAND_EMAIL}. We read mail about stays, hosting, press, and partnerships.`,
-    email: BRAND_EMAIL,
-    emailHref: `mailto:${BRAND_EMAIL}`,
+    body: `Write through the contact form — messages arrive at ${BRAND_EMAIL}. We read mail about stays, hosting, press, and partnerships.`,
+    email: "Write to us",
+    emailHref: "/contact",
   },
 
   faq: {

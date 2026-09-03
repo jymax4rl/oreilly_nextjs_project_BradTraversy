@@ -19,6 +19,7 @@ import {
   ChevronRight,
   X,
   Info,
+  Mail,
 } from "lucide-react";
 import { LuUserRound } from "react-icons/lu";
 import BrandLogo from "@/components/BrandLogo";
@@ -269,6 +270,17 @@ export default function MobileMenuOverlay({
                         aria-hidden
                       />
                       {t("footer.about")}
+                    </Link>
+                    <Link
+                      href="/contact"
+                      onClick={close}
+                      className={rowClass("/contact")}
+                    >
+                      <Mail
+                        className="kama-menu-row-icon"
+                        aria-hidden
+                      />
+                      {t("footer.contact")}
                     </Link>
                 </nav>
               </section>
