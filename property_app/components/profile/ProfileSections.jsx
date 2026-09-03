@@ -10,7 +10,9 @@ import {
   CheckCircle2,
   XCircle,
   ArrowRight,
+  Smartphone,
 } from "lucide-react";
+import { BECOME_A_HOST_HREF } from "@/utils/hostPwaInstall";
 
 const HOST_STATUS_UI = {
   none: {
@@ -186,6 +188,12 @@ export default function ProfileSections({ profile }) {
                 label="List a property"
                 description="Add another stay"
               />
+              <QuickLink
+                href="/host/install?next=/host/listings"
+                icon={Smartphone}
+                label="Install Isisel app"
+                description="Home-screen shortcut for hosting"
+              />
               {!profile.hasCompletedHostOnboarding && (
                 <QuickLink
                   href="/onboarding"
@@ -205,6 +213,12 @@ export default function ProfileSections({ profile }) {
               icon={Clock}
               label="Application status"
               description="Check review progress"
+            />
+            <QuickLink
+              href="/host/install?next=/host/pending"
+              icon={Smartphone}
+              label="Install Isisel app"
+              description="Add to home screen for host tools"
             />
           </div>
         )}
@@ -229,7 +243,7 @@ export default function ProfileSections({ profile }) {
         {hostStatus === "none" && (
           <div className="space-y-0.5">
             <QuickLink
-              href="/host/onboarding"
+              href={BECOME_A_HOST_HREF}
               icon={PlusCircle}
               label="Become a host"
               description="Apply to list properties on Kama"

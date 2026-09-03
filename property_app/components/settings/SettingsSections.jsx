@@ -7,12 +7,14 @@ import {
   LayoutList,
   MessageSquare,
   Shield,
+  Smartphone,
   UserRound,
   Wallet,
 } from "lucide-react";
 import NotificationToggles from "@/components/settings/NotificationToggles";
 import CurrencyPreference from "@/components/settings/CurrencyPreference";
 import SignOutButton from "@/components/settings/SignOutButton";
+import { BECOME_A_HOST_HREF } from "@/utils/hostPwaInstall";
 
 function Section({ title, description, children }) {
   return (
@@ -203,17 +205,31 @@ export default function SettingsSections({ settings }) {
                   label="Manage reservations"
                   description="Guest stays across your properties"
                 />
+                <DeepLink
+                  href="/host/install?next=/settings"
+                  icon={Smartphone}
+                  label="Install Isisel app"
+                  description="Add to home screen for faster hosting"
+                />
               </div>
             </>
           )}
 
           {isPendingHost && (
-            <DeepLink
-              href="/host/pending"
-              icon={Building2}
-              label="Application status"
-              description="Your host application is under review"
-            />
+            <>
+              <DeepLink
+                href="/host/pending"
+                icon={Building2}
+                label="Application status"
+                description="Your host application is under review"
+              />
+              <DeepLink
+                href="/host/install?next=/host/pending"
+                icon={Smartphone}
+                label="Install Isisel app"
+                description="Add to home screen while you wait"
+              />
+            </>
           )}
 
           {isRejectedHost && (
@@ -227,7 +243,7 @@ export default function SettingsSections({ settings }) {
 
           {showBecomeHost && (
             <DeepLink
-              href="/host/onboarding"
+              href={BECOME_A_HOST_HREF}
               icon={Building2}
               label="Become a host"
               description="Apply to list properties on Kama"

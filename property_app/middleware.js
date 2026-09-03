@@ -32,10 +32,14 @@ export async function middleware(req) {
 
   if (pathname === "/properties/add") {
     if (!token) {
-      return NextResponse.redirect(signInUrl(req, "/properties/add"));
+      return NextResponse.redirect(
+        signInUrl(req, `${pathname}${req.nextUrl.search || ""}`),
+      );
     }
     if (token.hostStatus !== "verified") {
-      return NextResponse.redirect(new URL("/host/onboarding", req.url));
+      return NextResponse.redirect(
+        new URL("/host/install?next=/host/onboarding", req.url),
+      );
     }
     if (needsWelcome(token)) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
@@ -44,8 +48,15 @@ export async function middleware(req) {
   }
 
   if (pathname.startsWith("/host")) {
+    // Install guide is public so “Become a Host” can land here before sign-in
+    // (Android one-tap / iOS Add to Home Screen).
+    if (pathname === "/host/install") {
+      return NextResponse.next();
+    }
     if (!token) {
-      return NextResponse.redirect(signInUrl(req, pathname));
+      return NextResponse.redirect(
+        signInUrl(req, `${pathname}${req.nextUrl.search || ""}`),
+      );
     }
     if (pathname === "/host/onboarding" && token.hostStatus === "verified") {
       if (needsWelcome(token)) {
