@@ -22,16 +22,28 @@ function configureCloudinary() {
 
 async function uploadToCloudinary(buffer, filename) {
   configureCloudinary();
+
+  const skipAi = process.env.CLOUDINARY_SKIP_AI_ENHANCE === "true";
+  const eager = skipAi
+    ? undefined
+    : [
+        { effect: "gen_restore" },
+        { effect: "enhance" },
+        { quality: "auto:best", fetch_format: "auto" },
+      ];
+
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
         folder: "kama-properties/listings",
         public_id: filename.replace(/\.[^.]+$/, ""),
         resource_type: "image",
+        ...(eager ? { eager, eager_async: false } : {}),
       },
       (error, result) => {
         if (error) reject(error);
-        else resolve(result.secure_url);
+        // Prefer eagerly-enhanced URL when available.
+        else resolve(result.eager?.[0]?.secure_url || result.secure_url);
       },
     );
     stream.end(buffer);
