@@ -13,6 +13,7 @@ import {
   propertyImageAbsoluteUrl,
 } from "@/utils/email/propertyImageUrl";
 import { formatPropertyMeta } from "@/utils/email/propertyMeta";
+import { resolveHostContact } from "@/utils/email/resolveHostContact";
 
 /**
  * Prefer first non-empty string among candidates (webhook vs client race).
@@ -69,14 +70,12 @@ export async function enrichStayMetaFromProperty(body) {
     if (!property) return body;
 
     body.property_name = firstNonEmpty(body.property_name, property.name);
-    body.host_name = firstNonEmpty(
-      body.host_name,
-      property.seller_info?.name,
-    );
-    body.host_email = firstNonEmpty(
-      body.host_email,
-      property.seller_info?.email,
-    );
+    const host = await resolveHostContact(property, {
+      host_email: body.host_email,
+      host_name: body.host_name,
+    });
+    body.host_name = firstNonEmpty(body.host_name, host.hostName);
+    body.host_email = firstNonEmpty(body.host_email, host.hostEmail);
     if (!body.host_id && property.owner) {
       body.host_id = String(property.owner);
     }
@@ -355,6 +354,7 @@ export async function sendEmailsForBooking(
       amount: body.amount,
       currency: body.currency,
       transactionId: body.transaction_id,
+      bookingId: String(bookingId),
       paymentMode: body.payment_mode || booking.paymentMode,
       // Force resend must not collide with Resend's 24h idempotency cache.
       idempotencySuffix: force ? `force-${Date.now()}` : undefined,
@@ -408,6 +408,11 @@ export async function sendEmailsForBooking(
     hostStatus = results?.host?.sent ? "sent" : "failed";
   }
 
+  const lastError = firstNonEmpty(
+    results?.guest?.error,
+    results?.host?.error,
+    outcome?.error,
+  );
   const update = {
     $set: {
       "emailStatus.confirmedGuest": guestStatus,
@@ -417,6 +422,7 @@ export async function sendEmailsForBooking(
 
   // Release claim when anything failed so finalize/webhook/resend can retry.
   if (guestStatus === "failed" || hostStatus === "failed") {
+    if (lastError) update.$set["emailStatus.lastError"] = String(lastError).slice(0, 500);
     update.$unset = { confirmationEmailsDispatchedAt: 1 };
     console.error("[booking email] Send incomplete — claim released for retry", {
       bookingId: String(bookingId),
@@ -426,6 +432,7 @@ export async function sendEmailsForBooking(
       hostError: results?.host?.error,
     });
   } else {
+    update.$unset = { "emailStatus.lastError": 1 };
     console.info("[booking email] Auto-send complete", {
       bookingId: String(bookingId),
       guestStatus,

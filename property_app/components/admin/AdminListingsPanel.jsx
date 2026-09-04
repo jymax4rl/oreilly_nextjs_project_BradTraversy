@@ -11,6 +11,7 @@ import OpsUserProfileModal from "@/components/admin/OpsUserProfileModal";
 import OpsListingsMap, {
   pinsFromProperties,
 } from "@/components/maps/OpsListingsMap";
+import OpsNewReservationsDropdown from "@/components/ops/OpsNewReservationsDropdown";
 
 const SEARCH_DEBOUNCE_MS = 280;
 const UNKNOWN_COUNTRY = "Unknown";
@@ -316,7 +317,8 @@ export default function AdminListingsPanel() {
         </p>
       </header>
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
         {["pending", "approved", "hidden", "rejected"].map((statusFilter) => (
           <button
             key={statusFilter}
@@ -331,6 +333,8 @@ export default function AdminListingsPanel() {
             {statusFilter} ({counts[statusFilter] ?? 0})
           </button>
         ))}
+        </div>
+        <OpsNewReservationsDropdown />
       </div>
 
       <div className="mb-4">
@@ -509,6 +513,22 @@ export default function AdminListingsPanel() {
                               Hidden from web
                             </span>
                           ) : null}
+                        </p>
+                        <p className="mt-2">
+                          <Link
+                            href={`/ops/reservations?propertyId=${encodeURIComponent(id)}`}
+                            className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-200"
+                          >
+                            {Number(property.reservationCount) || 0}{" "}
+                            {Number(property.reservationCount) === 1
+                              ? "reservation"
+                              : "reservations"}
+                            {Number(property.pendingReservationCount) > 0 ? (
+                              <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800">
+                                {property.pendingReservationCount} new
+                              </span>
+                            ) : null}
+                          </Link>
                         </p>
                         {property.status === "rejected" &&
                           property.rejectionReason && (

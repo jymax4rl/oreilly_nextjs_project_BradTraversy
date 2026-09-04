@@ -2,6 +2,8 @@ import { Resend } from "resend";
 import {
   GUEST_TEMPLATE_ALIAS,
   HOST_TEMPLATE_ALIAS,
+  GUEST_TEMPLATE_VARIABLES,
+  HOST_TEMPLATE_VARIABLES,
   bookingDetailRowHtml,
   renderGuestBookingEmailHtml,
   renderHostBookingEmailHtml,
@@ -467,9 +469,66 @@ function resolveTemplateId(kind) {
   return process.env.RESEND_TEMPLATE_HOST_ID || HOST_TEMPLATE_ALIAS;
 }
 
+function describeResendError(error) {
+  if (!error) return "Unknown Resend error";
+  if (typeof error === "string") return error;
+  return (
+    error.message ||
+    error.name ||
+    (typeof error.statusCode === "number" ? `HTTP ${error.statusCode}` : null) ||
+    String(error)
+  );
+}
+
+/** Resend tags: ASCII letters, numbers, underscore, dash. */
+function sanitizeResendTags(tags) {
+  if (!Array.isArray(tags)) return [];
+  return tags
+    .map((tag) => {
+      const name = String(tag?.name || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g, "_")
+        .slice(0, 256);
+      const value = String(tag?.value ?? "")
+        .replace(/[^a-zA-Z0-9_-]/g, "_")
+        .slice(0, 256);
+      if (!name || !value) return null;
+      return { name, value };
+    })
+    .filter(Boolean);
+}
+
 /**
- * @returns {Promise<{ sent: boolean, id?: string, error?: string, mode?: string }>}
+ * Resend templates reject html/text/react on the same payload, unknown keys,
+ * and string values over 2000 chars (BOOKING_DETAILS_HTML often exceeds that).
  */
+function sanitizeTemplateVariables(kind, vars) {
+  const spec =
+    kind === "host" ? HOST_TEMPLATE_VARIABLES : GUEST_TEMPLATE_VARIABLES;
+  const out = {};
+  for (const { key, fallbackValue } of spec) {
+    if (!/^[a-zA-Z0-9_]{1,50}$/.test(key)) continue;
+    const raw = vars?.[key];
+    let value = raw == null || raw === "" ? fallbackValue : raw;
+    if (typeof value === "number" && Number.isFinite(value)) {
+      out[key] = value;
+      continue;
+    }
+    const str = String(value ?? "");
+    if (str.length > 2000) continue;
+    out[key] = str;
+  }
+  return out;
+}
+
+function canUseDashboardTemplate(vars) {
+  const htmlKeys = ["BOOKING_DETAILS_HTML", "RESERVATION_REFERENCE_HTML"];
+  for (const key of htmlKeys) {
+    if (vars?.[key] && String(vars[key]).length > 2000) return false;
+  }
+  return true;
+}
+
 async function sendViaResend({
   to,
   subject,
@@ -477,6 +536,7 @@ async function sendViaResend({
   text,
   templateId,
   templateVariables,
+  templateKind,
   idempotencyKey,
   tags = [],
 }) {
@@ -494,13 +554,18 @@ async function sendViaResend({
     from,
     to: [to],
     subject,
-    tags,
   };
 
-  if (templateId && templateVariables) {
-    payload.template = { id: templateId, variables: templateVariables };
-    // Plain text still helps mobile clients / search when templates omit the ref.
-    if (text) payload.text = text;
+  const cleanTags = sanitizeResendTags(tags);
+  if (cleanTags.length) payload.tags = cleanTags;
+
+  const usingTemplate = Boolean(templateId && templateVariables);
+  if (usingTemplate) {
+    // Template payloads must not include html, text, or react.
+    payload.template = {
+      id: templateId,
+      variables: sanitizeTemplateVariables(templateKind || "guest", templateVariables),
+    };
   } else {
     payload.html = html;
     if (text) payload.text = text;
@@ -511,35 +576,43 @@ async function sendViaResend({
     payload.replyTo = replyTo;
   }
 
-  // Resend SDK: idempotencyKey is a 2nd options arg (Idempotency-Key header), not body.
-  const { data, error } = await resend.emails.send(
-    payload,
-    idempotencyKey ? { idempotencyKey } : {},
-  );
+  try {
+    const { data, error } = await resend.emails.send(
+      payload,
+      idempotencyKey ? { idempotencyKey } : {},
+    );
 
-  if (error) {
-    console.error("[booking email] Resend send error:", {
+    if (error) {
+      console.error("[booking email] Resend send error:", {
+        to,
+        mode: usingTemplate ? "template" : "html",
+        templateId: templateId || null,
+        message: describeResendError(error),
+        name: error.name,
+        statusCode: error.statusCode,
+      });
+      return { sent: false, error: describeResendError(error) };
+    }
+
+    console.info("[booking email] Sent", {
       to,
-      mode: templateId ? "template" : "html",
-      templateId: templateId || null,
-      message: error.message || String(error),
-      name: error.name,
-      statusCode: error.statusCode,
+      mode: usingTemplate ? "template" : "html",
+      id: data?.id,
     });
-    return { sent: false, error: error.message || String(error) };
+
+    return {
+      sent: true,
+      id: data?.id,
+      mode: usingTemplate ? "template" : "html",
+    };
+  } catch (err) {
+    console.error("[booking email] Resend send threw:", {
+      to,
+      mode: usingTemplate ? "template" : "html",
+      message: err?.message || String(err),
+    });
+    return { sent: false, error: err?.message || String(err) };
   }
-
-  console.info("[booking email] Sent", {
-    to,
-    mode: templateId ? "template" : "html",
-    id: data?.id,
-  });
-
-  return {
-    sent: true,
-    id: data?.id,
-    mode: templateId ? "template" : "html",
-  };
 }
 
 /**
@@ -568,6 +641,7 @@ export async function sendBookingConfirmationEmails(payload) {
     amount,
     currency,
     transactionId,
+    bookingId,
     paymentMode,
     /** Appended to Resend idempotency keys so force-resend is not cached. */
     idempotencySuffix,
@@ -603,14 +677,19 @@ export async function sendBookingConfirmationEmails(payload) {
     };
   }
 
-  const txKey = transactionId
-    ? String(transactionId)
-    : `${checkIn}-${checkOut}`;
+  const displayRef =
+    transactionId ||
+    (bookingId ? String(bookingId).slice(-8).toUpperCase() : undefined);
+  const txKey = bookingId
+    ? String(bookingId)
+    : displayRef
+      ? String(displayRef)
+      : `${checkIn}-${checkOut}`;
   const idemSuffix = idempotencySuffix ? `/${idempotencySuffix}` : "";
   const baseTags = [
     { name: "category", value: "booking" },
-    ...(transactionId
-      ? [{ name: "transaction_id", value: String(transactionId) }]
+    ...(displayRef
+      ? [{ name: "transaction_id", value: String(displayRef) }]
       : []),
   ];
 
@@ -630,12 +709,12 @@ export async function sendBookingConfirmationEmails(payload) {
     nights,
     amount,
     currency,
-    transactionId,
+    transactionId: displayRef,
     paymentMode,
     guestPhone,
   };
 
-  const reservationReference = formatReservationReference(transactionId);
+  const reservationReference = formatReservationReference(displayRef);
   const refSubjectSuffix = reservationReference
     ? ` (${reservationReference})`
     : "";
@@ -683,16 +762,16 @@ export async function sendBookingConfirmationEmails(payload) {
 
   const guestTemplateId = resolveTemplateId("guest");
   const hostTemplateId = resolveTemplateId("host");
-  // Only use Resend templates when an explicit ID is set (aliases often 404).
-  // Dashboard templates must include {{{RESERVATION_REFERENCE}}} (and ideally
-  // {{{RESERVATION_REFERENCE_HTML}}}) — HTML fallback always shows the ref banner.
-  const useGuestTemplate = Boolean(process.env.RESEND_TEMPLATE_GUEST_ID);
-  const useHostTemplate = Boolean(process.env.RESEND_TEMPLATE_HOST_ID);
-  if (
-    process.env.RESEND_TEMPLATES_READY === "true" &&
-    !useGuestTemplate &&
-    !useHostTemplate
-  ) {
+  const templatesReady = process.env.RESEND_TEMPLATES_READY === "true";
+  const useGuestTemplate =
+    templatesReady &&
+    Boolean(process.env.RESEND_TEMPLATE_GUEST_ID) &&
+    canUseDashboardTemplate(guestVars);
+  const useHostTemplate =
+    templatesReady &&
+    Boolean(process.env.RESEND_TEMPLATE_HOST_ID) &&
+    canUseDashboardTemplate(hostVars);
+  if (templatesReady && !useGuestTemplate && !useHostTemplate) {
     console.warn(
       "[booking email] RESEND_TEMPLATES_READY=true but no RESEND_TEMPLATE_*_ID — using HTML",
     );
@@ -704,6 +783,7 @@ export async function sendBookingConfirmationEmails(payload) {
       subject: subjectGuest,
       templateId: useGuestTemplate ? guestTemplateId : undefined,
       templateVariables: useGuestTemplate ? guestVars : undefined,
+      templateKind: "guest",
       html: renderGuestBookingEmailHtml(guestVars),
       text: guestText,
       idempotencyKey: `booking-confirm/${txKey}/guest${idemSuffix}`,
@@ -734,6 +814,7 @@ export async function sendBookingConfirmationEmails(payload) {
       subject: subjectHost,
       templateId: useHostTemplate ? hostTemplateId : undefined,
       templateVariables: useHostTemplate ? hostVars : undefined,
+      templateKind: "host",
       html: renderHostBookingEmailHtml(hostVars),
       text: hostText,
       idempotencyKey: `booking-confirm/${txKey}/host${idemSuffix}`,
@@ -777,6 +858,7 @@ async function sendGuestHostLifecyclePair({
   idempotencyPrefix,
   idempotencySuffix,
   transactionId,
+  bookingId,
   categoryTag,
   prefsMeta = {},
 }) {
@@ -800,9 +882,11 @@ async function sendGuestHostLifecyclePair({
     return { enabled: true, error: "No recipient emails", results };
   }
 
-  const txKey = transactionId
-    ? String(transactionId)
-    : idempotencyPrefix;
+  const txKey = bookingId
+    ? String(bookingId)
+    : transactionId
+      ? String(transactionId)
+      : idempotencyPrefix;
   const idemSuffix = idempotencySuffix ? `/${idempotencySuffix}` : "";
   const baseTags = [
     { name: "category", value: categoryTag || "booking" },
@@ -811,8 +895,15 @@ async function sendGuestHostLifecyclePair({
       : []),
   ];
 
-  const useGuestTemplate = Boolean(process.env.RESEND_TEMPLATE_GUEST_ID);
-  const useHostTemplate = Boolean(process.env.RESEND_TEMPLATE_HOST_ID);
+  const templatesReady = process.env.RESEND_TEMPLATES_READY === "true";
+  const useGuestTemplate =
+    templatesReady &&
+    Boolean(process.env.RESEND_TEMPLATE_GUEST_ID) &&
+    canUseDashboardTemplate(guestVars);
+  const useHostTemplate =
+    templatesReady &&
+    Boolean(process.env.RESEND_TEMPLATE_HOST_ID) &&
+    canUseDashboardTemplate(hostVars);
   const guestTemplateId = resolveTemplateId("guest");
   const hostTemplateId = resolveTemplateId("host");
 
@@ -822,6 +913,7 @@ async function sendGuestHostLifecyclePair({
       subject: subjectGuest,
       templateId: useGuestTemplate ? guestTemplateId : undefined,
       templateVariables: useGuestTemplate ? guestVars : undefined,
+      templateKind: "guest",
       html: renderGuestBookingEmailHtml(guestVars),
       text: guestText,
       idempotencyKey: `${idempotencyPrefix}/${txKey}/guest${idemSuffix}`,
@@ -845,6 +937,7 @@ async function sendGuestHostLifecyclePair({
       subject: subjectHost,
       templateId: useHostTemplate ? hostTemplateId : undefined,
       templateVariables: useHostTemplate ? hostVars : undefined,
+      templateKind: "host",
       html: renderHostBookingEmailHtml(hostVars),
       text: hostText,
       idempotencyKey: `${idempotencyPrefix}/${txKey}/host${idemSuffix}`,
@@ -995,6 +1088,7 @@ export async function sendBookingModifiedEmails(payload) {
     idempotencyPrefix: "booking-modified",
     idempotencySuffix,
     transactionId,
+    bookingId: gated.bookingId,
     categoryTag: "booking-modified",
     prefsMeta: gated._notificationPrefs || {},
   });
@@ -1130,6 +1224,7 @@ export async function sendBookingCancelledEmails(payload) {
     idempotencyPrefix: "booking-cancelled",
     idempotencySuffix,
     transactionId,
+    bookingId: gated.bookingId,
     categoryTag: "booking-cancelled",
     prefsMeta: gated._notificationPrefs || {},
   });

@@ -8,6 +8,7 @@ import {
   Users,
   Building2,
   LayoutList,
+  CalendarCheck,
   CreditCard,
   Megaphone,
   LogOut,
@@ -19,6 +20,7 @@ const NAV = [
   { href: "/ops/users", label: "Users", Icon: Users },
   { href: "/ops/hosts", label: "Hosts", Icon: Building2 },
   { href: "/ops/listings", label: "Listings", Icon: LayoutList },
+  { href: "/ops/reservations", label: "Reservations", Icon: CalendarCheck },
   { href: "/ops/transactions", label: "Payments", Icon: CreditCard },
   { href: "/ops/marketing", label: "Marketing", Icon: Megaphone },
 ];

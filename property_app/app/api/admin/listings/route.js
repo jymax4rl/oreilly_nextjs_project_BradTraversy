@@ -1,6 +1,7 @@
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
 import User from "@/models/User";
+import Booking from "@/models/Booking";
 import { getSessionFromRequest } from "@/utils/authSessionRoute";
 import {
   hiddenListingQuery,
@@ -71,12 +72,51 @@ export const GET = async (request) => {
       owners.map((u) => [u._id.toString(), u]),
     );
 
-    const withOwners = properties.map((p) => ({
-      ...p,
-      _id: p._id.toString(),
-      listed: p.listed !== false,
-      ownerUser: p.owner ? ownerById[String(p.owner)] || null : null,
-    }));
+    const propertyObjectIds = properties
+      .map((p) => p._id)
+      .filter(Boolean);
+
+    const reservationCounts =
+      propertyObjectIds.length > 0
+        ? await Booking.aggregate([
+            {
+              $match: {
+                propertyId: { $in: propertyObjectIds },
+                status: { $in: ["pending", "confirmed"] },
+              },
+            },
+            {
+              $group: {
+                _id: "$propertyId",
+                total: { $sum: 1 },
+                pending: {
+                  $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
+                },
+              },
+            },
+          ])
+        : [];
+    const reservationByProperty = Object.fromEntries(
+      reservationCounts.map((row) => [
+        String(row._id),
+        { total: row.total || 0, pending: row.pending || 0 },
+      ]),
+    );
+
+    const withOwners = properties.map((p) => {
+      const counts = reservationByProperty[String(p._id)] || {
+        total: 0,
+        pending: 0,
+      };
+      return {
+        ...p,
+        _id: p._id.toString(),
+        listed: p.listed !== false,
+        ownerUser: p.owner ? ownerById[String(p.owner)] || null : null,
+        reservationCount: counts.total,
+        pendingReservationCount: counts.pending,
+      };
+    });
 
     return Response.json(
       {

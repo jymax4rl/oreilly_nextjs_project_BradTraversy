@@ -12,6 +12,7 @@ import {
   normalizeGuestPhone,
 } from "@/utils/bookings/paymentMode";
 import { sendEmailsForBooking } from "@/utils/bookings/finalizePaidTransaction";
+import { resolveHostContact } from "@/utils/email/resolveHostContact";
 import {
   calculateBookingFees,
   calculateStayTotal,
@@ -141,6 +142,7 @@ export async function createManualBookingRequest({
     },
   });
 
+  const host = await resolveHostContact(property);
   const plain = booking.toObject();
 
   // Fire-and-forget style: emails should not fail the reservation.
@@ -152,8 +154,8 @@ export async function createManualBookingRequest({
         property_id: propertyId,
         property_name: property.name,
         host_id: property.owner,
-        host_name: property.seller_info?.name || "",
-        host_email: property.seller_info?.email || "",
+        host_name: host.hostName || "",
+        host_email: host.hostEmail || "",
         check_in: validation.checkIn,
         check_out: validation.checkOut,
         nights,

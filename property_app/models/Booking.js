@@ -24,6 +24,7 @@ const EmailStatusSchema = new mongoose.Schema(
     modifiedHost: { type: String, enum: EMAIL_DISPATCH_STATUS },
     cancelledGuest: { type: String, enum: EMAIL_DISPATCH_STATUS },
     cancelledHost: { type: String, enum: EMAIL_DISPATCH_STATUS },
+    lastError: { type: String, maxlength: 500 },
   },
   { _id: false },
 );

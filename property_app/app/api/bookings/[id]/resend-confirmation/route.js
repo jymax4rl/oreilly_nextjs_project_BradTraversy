@@ -12,6 +12,7 @@ import {
 import { countNights } from "@/utils/availability/validateStay";
 import { isPropertyOwner } from "@/utils/availability/propertyAccess";
 import { evaluateBookingPolicy } from "@/utils/bookings/bookingPolicy";
+import { resolveHostContact } from "@/utils/email/resolveHostContact";
 
 /**
  * POST /api/bookings/[id]/resend-confirmation
@@ -77,12 +78,17 @@ export async function POST(_request, { params }) {
       guestPhone: booking.guestPhone,
     };
 
+    const host = await resolveHostContact(property, {
+      host_email: tx?.host_email,
+      host_name: tx?.host_name,
+    });
+
     const body = {
       transaction_id: booking.transactionId,
       property_id: booking.propertyId,
       property_name: booking.propertyName || property?.name || tx?.property_name,
-      host_email: tx?.host_email || property?.seller_info?.email,
-      host_name: tx?.host_name || property?.seller_info?.name,
+      host_email: host.hostEmail,
+      host_name: host.hostName,
       check_in: booking.checkIn,
       check_out: booking.checkOut,
       amount: booking.amount ?? tx?.amount,
