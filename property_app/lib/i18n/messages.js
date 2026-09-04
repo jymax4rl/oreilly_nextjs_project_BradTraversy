@@ -191,6 +191,7 @@ export const messages = {
       terms: "Terms",
       privacy: "Privacy",
       cookies: "Cookies",
+      ip: "Intellectual property",
     },
     host: {
       application: "Host application",
@@ -854,6 +855,7 @@ export const messages = {
       terms: "Conditions",
       privacy: "Confidentialité",
       cookies: "Cookies",
+      ip: "Propriété intellectuelle",
     },
     host: {
       application: "Candidature hôte",

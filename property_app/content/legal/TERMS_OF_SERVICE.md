@@ -2,7 +2,7 @@
 
 > **Template for product use — not formal legal advice.**  
 > Have qualified counsel review before treating as binding counsel-approved terms.  
-> **Version:** `kama-terms-v1.0-2026-08-31` · **Last updated:** 31 August 2026
+> **Version:** `kama-terms-v1.1-2026-09-04` · **Last updated:** 4 September 2026
 
 ## 1. Agreement
 
@@ -24,9 +24,9 @@ Guests and hosts must honor confirmed arrangements, communicate in good faith, a
 
 Hosts must keep listings and availability accurate. See **HOST_TERMS.md**.
 
-## 6. Content & IP
+## 6. Intellectual property
 
-You retain rights in content you upload and grant Isisel a license to host and display it on the service. Isisel brand, software, and design remain our property.
+The Isisel service, brand, software, design, and compilations of data are owned by Isisel and its licensors. You receive only a limited licence to use the marketplace as intended. You retain rights in content you lawfully upload and grant Isisel a licence to host and display it. Third-party marks remain their owners’. Full platform policy: **/policies/intellectual-property** and `INTELLECTUAL_PROPERTY.md`.
 
 ## 7. Disclaimer & liability
 

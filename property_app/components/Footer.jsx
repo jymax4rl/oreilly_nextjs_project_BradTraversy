@@ -66,6 +66,9 @@ const Footer = ({ className = "" }) => {
               <FooterLink href="/policies/terms">{t("footer.terms")}</FooterLink>
               <FooterLink href="/policies/privacy">{t("footer.privacy")}</FooterLink>
               <FooterLink href="/policies/cookies">{t("footer.cookies")}</FooterLink>
+              <FooterLink href="/policies/intellectual-property">
+                {t("footer.ip")}
+              </FooterLink>
             </div>
           </div>
         </div>
