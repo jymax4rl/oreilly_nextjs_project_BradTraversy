@@ -21,7 +21,7 @@
   --kama-glass: rgba(255, 255, 255, 0.82);
   --kama-focus-ring: 0 0 0 3px rgba(27, 92, 87, 0.18);
   --kama-danger: #b42318;
-  --kama-nav-height-mobile: 4.25rem;
+  --kama-nav-height-mobile: 5.35rem;
   --kama-chrome-clearance: calc(
     var(--kama-nav-height-mobile) + env(safe-area-inset-bottom, 0px)
   );

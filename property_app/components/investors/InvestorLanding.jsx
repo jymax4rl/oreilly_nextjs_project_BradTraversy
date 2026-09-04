@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Fraunces, Outfit } from "next/font/google";
 import AudienceJsonLd from "@/components/audience/AudienceJsonLd";
+import HospitalitySystemsStrip from "@/components/audience/HospitalitySystemsStrip";
 import {
   InvestorDiscussProvider,
   InvestorDiscussButton,
@@ -93,6 +94,8 @@ export default function InvestorLanding({ seo, page }) {
             </p>
           </div>
         </header>
+
+        <HospitalitySystemsStrip />
 
         <section className="creator-section" id={page.opportunity.id}>
           <div className="creator-wrap">

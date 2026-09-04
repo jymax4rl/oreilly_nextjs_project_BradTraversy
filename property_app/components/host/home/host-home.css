@@ -1,0 +1,35 @@
+.host-pulse-ring {
+  --ring-arc: 158.65;
+  animation: host-pulse-draw 0.95s cubic-bezier(0.33, 0.05, 0.18, 1) both;
+}
+
+.host-pulse-count {
+  animation: host-pulse-pop 0.7s cubic-bezier(0.33, 0.05, 0.18, 1) both;
+}
+
+@keyframes host-pulse-draw {
+  from {
+    stroke-dashoffset: var(--ring-arc);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes host-pulse-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .host-pulse-ring,
+  .host-pulse-count {
+    animation: none;
+  }
+}

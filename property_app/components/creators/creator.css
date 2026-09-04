@@ -711,3 +711,48 @@
   font-size: 0.98rem;
   line-height: 1.45;
 }
+
+.creator-systems__rail {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 800px) {
+  .creator-systems__rail {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.creator-systems__brand {
+  display: flex;
+  min-height: 6.75rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 1.15rem 0.85rem 1rem;
+  border: 1px solid var(--c-line);
+  border-radius: 1.15rem;
+  background: rgba(246, 241, 232, 0.04);
+  color: var(--c-ink);
+  font-family: var(--font-sans);
+}
+
+.creator-systems__brand svg {
+  display: block;
+  width: 100%;
+  max-width: 9.75rem;
+  height: 2.15rem;
+}
+
+.creator-systems__caption {
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}

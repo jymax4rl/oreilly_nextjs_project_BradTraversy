@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
@@ -46,6 +46,7 @@ function overflowState(el) {
 
 export default function HostNav() {
   const pathname = usePathname() || "";
+  const router = useRouter();
   const { data: session } = useSession();
   const { t, lang } = useLanguage();
   const [unread, setUnread] = useState(0);
@@ -180,6 +181,14 @@ export default function HostNav() {
                       href={item.href}
                       ref={(el) => {
                         itemRefs.current[index] = el;
+                      }}
+                      onClick={() => {
+                        if (item.href === "/host" && pathname === "/host") {
+                          window.dispatchEvent(
+                            new Event("kama-host-home-replay"),
+                          );
+                          router.refresh();
+                        }
                       }}
                       className={`relative z-[1] flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[13px] font-semibold tracking-tight transition-colors sm:px-4 ${
                         active

@@ -7,15 +7,25 @@ import Booking from "@/models/Booking";
 import Message from "@/models/Message";
 import { isAwaitingListingModeration } from "@/utils/listingApproval";
 import { getLoginUrl } from "@/lib/legal/loginUrl";
-import HostHomeView from "@/components/host/HostHomeView";
+import { addDaysYmd, localTodayYmd } from "@/utils/host/reservationsCalendar";
+import HostHomeView from "@/components/host/home/HostHomeView";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Home",
   robots: { index: false, follow: false },
 };
 
-function todayIso() {
-  return new Date().toISOString().slice(0, 10);
+function serializeStay(booking) {
+  return {
+    id: String(booking._id),
+    propertyName: booking.propertyName || "",
+    guestName: booking.guestName || "",
+    checkIn: booking.checkIn,
+    checkOut: booking.checkOut,
+    status: booking.status,
+  };
 }
 
 export default async function HostConsoleHomePage() {
@@ -35,78 +45,52 @@ export default async function HostConsoleHomePage() {
   await connectToDatabase();
 
   const ownerId = session.user.id;
+  const today = localTodayYmd();
+  const from = addDaysYmd(today, -2);
+  const to = addDaysYmd(today, 14);
+
   const properties = await Property.find({ owner: ownerId })
-    .select("name status images location listingModerationRequestedAt")
+    .select("name status listingModerationRequestedAt")
     .sort({ updatedAt: -1 })
     .lean();
 
   const propertyIds = properties.map((p) => p._id);
-  const today = todayIso();
 
-  const [pendingBookings, pendingCount, upcomingStays, unread] =
-    await Promise.all([
-      propertyIds.length
-        ? Booking.find({
-            propertyId: { $in: propertyIds },
-            status: "pending",
-            listed: { $ne: false },
-          })
-            .sort({ checkIn: 1 })
-            .limit(6)
-            .lean()
-        : [],
-      propertyIds.length
-        ? Booking.countDocuments({
-            propertyId: { $in: propertyIds },
-            status: "pending",
-            listed: { $ne: false },
-          })
-        : 0,
-      propertyIds.length
-        ? Booking.find({
-            propertyId: { $in: propertyIds },
-            status: { $in: ["pending", "confirmed"] },
-            listed: { $ne: false },
-            checkIn: { $gte: today },
-          })
-            .sort({ checkIn: 1 })
-            .limit(6)
-            .lean()
-        : [],
-      Message.countDocuments({
-        recipient: ownerId,
-        read: false,
-      }),
-    ]);
+  const [bookings, unread] = await Promise.all([
+    propertyIds.length
+      ? Booking.find({
+          propertyId: { $in: propertyIds },
+          listed: { $ne: false },
+          $or: [
+            { status: "pending" },
+            {
+              status: "confirmed",
+              checkIn: { $lte: to },
+              checkOut: { $gte: from },
+            },
+          ],
+        })
+          .select("propertyName guestName checkIn checkOut status listed")
+          .sort({ checkIn: 1 })
+          .limit(400)
+          .lean()
+      : [],
+    Message.countDocuments({
+      recipient: ownerId,
+      read: false,
+    }),
+  ]);
 
-  const listingsPending = properties.filter((p) =>
+  const awaiting = properties.filter((p) =>
     isAwaitingListingModeration(p),
   ).length;
 
-  const stats = {
-    listings: properties.length,
-    awaiting: listingsPending,
-    requests: pendingCount,
-    unread,
-  };
-
   return (
     <HostHomeView
-      stats={stats}
-      pendingBookings={pendingBookings.map((b) => ({
-        id: String(b._id),
-        propertyName: b.propertyName,
-        guestName: b.guestName,
-        checkIn: b.checkIn,
-        checkOut: b.checkOut,
-      }))}
-      upcomingStays={upcomingStays.map((b) => ({
-        id: String(b._id),
-        propertyName: b.propertyName,
-        guestName: b.guestName,
-        checkIn: b.checkIn,
-        status: b.status,
-      }))}
+      listings={properties.length}
+      unread={unread}
+      awaiting={awaiting}
+      stays={bookings.map(serializeStay)}
     />
   );
 }

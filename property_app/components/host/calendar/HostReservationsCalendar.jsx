@@ -6,7 +6,7 @@ import {
   CalendarRange,
   ChevronLeft,
   ChevronRight,
-  GripVertical,
+  MoveVertical,
   Search,
   SlidersHorizontal,
   X,
@@ -66,6 +66,7 @@ function isWeekend(ymd) {
   return day === 0 || day === 6;
 }
 
+/** Vertical row-move is only for future stays on the all-listings calendar. */
 function stayDraggable(booking, { today, propertyFilter, propertyCount }) {
   if (propertyFilter) return false;
   if (propertyCount < 2) return false;
@@ -249,6 +250,7 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
           id: d.booking._id,
           checkIn: next.checkIn,
           checkOut: next.checkOut,
+          edge: d.edge,
         });
         return;
       }
@@ -463,22 +465,18 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
     setTo(span > 180 ? addDaysYmd(start, 179) : end);
   };
 
+  const applyPreset = (range, nextView) => {
+    setView(nextView);
+    setFrom(range.from);
+    setTo(range.to);
+    setCustomFrom(range.from);
+    setCustomTo(range.to);
+  };
+
   const todayLeft = days.indexOf(today);
 
   return (
     <div className="rc" style={{ "--rc-day": `${dayPx}px`, "--rc-days": days.length }}>
-      <header className="rc-pagehead">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--kama-accent)]">
-          {t("hostConsole.badge")}
-        </p>
-        <h1 className="mt-1 text-xl font-semibold tracking-tight text-[var(--kama-ink)] sm:text-2xl">
-          {t("hostConsole.calendar")}
-        </h1>
-        <p className="rc-pagehead__blurb mt-2 text-sm text-[var(--kama-ink-muted)]">
-          {t("hostConsole.calendarBlurb")}
-        </p>
-      </header>
-
       <div className="rc-toolbar">
         <div className="rc-chrome">
           <div className="rc-search">
@@ -586,65 +584,6 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
             </>
           ) : null}
         </div>
-
-        <div className="rc-toolbar__row rc-presets rc-toolbar__extras">
-          <button type="button" className="rc-btn rc-btn--ghost" onClick={goToday}>
-            {t("hostConsole.resCal.presets.today")}
-          </button>
-          <button
-            type="button"
-            className="rc-btn rc-btn--ghost"
-            onClick={() => {
-              const r = weekPreset();
-              setView("week");
-              setFrom(r.from);
-              setTo(r.to);
-            }}
-          >
-            {t("hostConsole.resCal.presets.week")}
-          </button>
-          <button
-            type="button"
-            className="rc-btn rc-btn--ghost"
-            onClick={() => {
-              const r = monthPreset("this");
-              setView("month");
-              setFrom(r.from);
-              setTo(r.to);
-            }}
-          >
-            {t("hostConsole.resCal.presets.month")}
-          </button>
-          <button
-            type="button"
-            className="rc-btn rc-btn--ghost"
-            onClick={() => {
-              const r = monthPreset("next");
-              setView("month");
-              setFrom(r.from);
-              setTo(r.to);
-            }}
-          >
-            {t("hostConsole.resCal.presets.nextMonth")}
-          </button>
-          <div className="rc-dates">
-            <input
-              type="date"
-              value={customFrom || from}
-              onChange={(e) => setCustomFrom(e.target.value)}
-              aria-label={t("hostConsole.resCal.from")}
-            />
-            <input
-              type="date"
-              value={customTo || to}
-              onChange={(e) => setCustomTo(e.target.value)}
-              aria-label={t("hostConsole.resCal.to")}
-            />
-            <button type="button" className="rc-btn" onClick={applyCustom}>
-              {t("hostConsole.resCal.applyRange")}
-            </button>
-          </div>
-        </div>
       </div>
 
       {error ? <p className="rc-err">{error}</p> : null}
@@ -719,13 +658,6 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
                           {[property.city, property.country].filter(Boolean).join(", ")}
                         </p>
                       )}
-                      <Link
-                        href={`/properties/${property.id}/calendar`}
-                        className="rc-prop__meta rc-prop__avail mt-0.5 inline-flex items-center gap-1"
-                      >
-                        <CalendarRange className="h-3 w-3" aria-hidden />
-                        {t("hostConsole.availabilityCalendar")}
-                      </Link>
                     </div>
                   </div>
                   <div
@@ -784,7 +716,7 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
                             data-on={selectedId === booking._id ? "true" : "false"}
                             data-hit={hits.has(booking._id) ? "true" : "false"}
                             data-dragging={draggingId === booking._id ? "true" : "false"}
-                            data-resizing={preview ? "true" : "false"}
+                            data-resizing={preview?.edge || (preview ? "true" : "false")}
                             data-draggable={draggable ? "true" : "false"}
                             aria-label={
                               draggable
@@ -883,9 +815,13 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
                               />
                             ) : null}
                             <span className="rc-bar__face">
-                              {draggable ? (
-                                <span className="rc-bar__grip" aria-hidden>
-                                  <GripVertical className="h-3.5 w-3.5" />
+                              {!propertyId && properties.length >= 2 && tone !== "cancelled" && tone !== "past" && tone !== "completed" ? (
+                                <span
+                                  className="rc-bar__grip"
+                                  aria-hidden
+                                  data-locked={draggable ? "false" : "true"}
+                                >
+                                  <MoveVertical className="h-4 w-4" strokeWidth={2.2} />
                                 </span>
                               ) : null}
                               <GuestAvatar
@@ -941,6 +877,29 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
               </button>
             </div>
             <div className="rc-filters__body">
+              <div className="rc-filters__presets">
+                <button
+                  type="button"
+                  className="rc-btn rc-btn--ghost"
+                  onClick={() => applyPreset(weekPreset(), "week")}
+                >
+                  {t("hostConsole.resCal.presets.week")}
+                </button>
+                <button
+                  type="button"
+                  className="rc-btn rc-btn--ghost"
+                  onClick={() => applyPreset(monthPreset("this"), "month")}
+                >
+                  {t("hostConsole.resCal.presets.month")}
+                </button>
+                <button
+                  type="button"
+                  className="rc-btn rc-btn--ghost"
+                  onClick={() => applyPreset(monthPreset("next"), "month")}
+                >
+                  {t("hostConsole.resCal.presets.nextMonth")}
+                </button>
+              </div>
               <label>
                 {t("hostConsole.resCal.property")}
                 <select

@@ -1,0 +1,22 @@
+---
+description: Pause snapshot 2026-09 — influencer focus, production vs git, deploy cwd
+alwaysApply: true
+---
+
+# Pause and resume (2026-09-04)
+
+Read `property_app/docs/HANDOFF.md` before changing code.
+
+## Focus
+
+Owner is making money with **influencers** for a few months. Default work is `/influencers`, creator lead APIs, and `/ops/marketing/creators`. Do not start host-calendar, PWA, or marketplace refactors unless asked.
+
+## Production vs Git
+
+Live site **https://www.isisel.com** is Vercel project **`kemika02`**, usually updated with `npx vercel --prod --yes` from the **Git root** (`oreilly_nextjs_project_BradTraversy/`), not from `property_app/`.
+
+`master` is **behind** production. Do not assume GitHub `master` is what guests see. Uncommitted local files on `feature/pwa-floating-tabbar` were part of recent CLI deploys — commit/push before walking away or switching machines.
+
+## New work
+
+New functionality goes on a **new branch** after the current branch is committed and pushed. Do not pile influencer work onto `feature/pwa-floating-tabbar`.

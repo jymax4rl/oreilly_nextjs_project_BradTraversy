@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Fraunces, Outfit } from "next/font/google";
 import AudienceJsonLd from "@/components/audience/AudienceJsonLd";
+import HospitalitySystemsStrip from "@/components/audience/HospitalitySystemsStrip";
 import "@/components/creators/creator.css";
 
 const fraunces = Fraunces({
@@ -82,6 +83,8 @@ export default function AboutLanding({ seo, page }) {
           <p>{page.story.body}</p>
         </div>
       </section>
+
+      <HospitalitySystemsStrip />
 
       <section className="creator-section" id={page.work.id}>
         <div className="creator-wrap">

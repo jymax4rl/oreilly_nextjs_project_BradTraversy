@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 /**
+ * Cached mongoose connect for Next.js serverless.
+ * Atlas Free (M0) pauses after 30 days with zero connections — `/api/health/db`
+ * is cron-pinged daily so idle months do not freeze the live site.
+ *
  * @returns {Promise<boolean>} true when mongoose is ready for queries.
  * Safe for Docker/CI builds with no MONGODB_URI (avoids find() buffer timeouts).
  */

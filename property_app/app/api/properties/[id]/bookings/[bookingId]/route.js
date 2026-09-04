@@ -15,6 +15,14 @@ import {
   setBookingListed,
 } from "@/utils/bookings/mutateBooking";
 import { moveBookingToProperty } from "@/utils/bookings/moveBookingProperty";
+import { revalidatePath } from "next/cache";
+
+function revalidateHostOps() {
+  // Host Home rings, stay calendar, and reservations list all read this booking.
+  revalidatePath("/host");
+  revalidatePath("/host/calendar");
+  revalidatePath("/host/reservations");
+}
 
 async function assertHostOwnsBooking(params, session) {
   const verified = assertVerifiedHost(session);
@@ -90,6 +98,7 @@ export async function PATCH(request, { params }) {
       }
 
       const destProperty = await getPropertyForApi(result.destProperty.id);
+      revalidateHostOps();
       return Response.json({
         success: true,
         moved: true,
@@ -120,6 +129,7 @@ export async function PATCH(request, { params }) {
         );
       }
 
+      revalidateHostOps();
       return Response.json({
         success: true,
         booking: bookingWithPolicyFlags(result.booking, loaded.property, "host"),
@@ -141,6 +151,7 @@ export async function PATCH(request, { params }) {
       );
     }
 
+    revalidateHostOps();
     return Response.json({
       success: true,
       booking: bookingWithPolicyFlags(result.booking, loaded.property, "host"),
@@ -182,6 +193,7 @@ export async function DELETE(request, { params }) {
       );
     }
 
+    revalidateHostOps();
     return Response.json({
       success: true,
       booking: bookingWithPolicyFlags(result.booking, loaded.property, "host"),
