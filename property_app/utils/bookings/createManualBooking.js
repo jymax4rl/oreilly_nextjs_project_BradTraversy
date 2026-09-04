@@ -34,6 +34,8 @@ export async function createManualBookingRequest({
   checkOut,
   currency,
   amountHint,
+  createdByHost = false,
+  status,
 }) {
   if (!propertyId || !guestId || !checkIn || !checkOut) {
     return {
@@ -61,11 +63,19 @@ export async function createManualBookingRequest({
     return { ok: false, status: 404, error: "Property not found" };
   }
 
-  if (String(property.owner) === String(guestId)) {
+  if (String(property.owner) === String(guestId) && !createdByHost) {
     return {
       ok: false,
       status: 403,
       error: "You cannot reserve your own listing",
+    };
+  }
+
+  if (createdByHost && String(property.owner) === String(guestId)) {
+    return {
+      ok: false,
+      status: 400,
+      error: "Use a guest WhatsApp or email — you cannot book this stay as yourself",
     };
   }
 
@@ -117,6 +127,9 @@ export async function createManualBookingRequest({
       : totalUsd;
   const currencyCode = (currency || "USD").toUpperCase();
 
+  const bookingStatus =
+    createdByHost && status === "confirmed" ? "confirmed" : "pending";
+
   const booking = await Booking.create({
     propertyId: new mongoose.Types.ObjectId(propertyId),
     guestId: String(guestId),
@@ -125,7 +138,7 @@ export async function createManualBookingRequest({
     guestPhone: phone,
     checkIn: validation.checkIn,
     checkOut: validation.checkOut,
-    status: "pending",
+    status: bookingStatus,
     paymentMode: PAYMENT_MODE_MANUAL,
     amount,
     currency: currencyCode,

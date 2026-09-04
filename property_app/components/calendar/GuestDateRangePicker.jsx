@@ -25,9 +25,10 @@ export default function GuestDateRangePicker({
   onChange,
   onValidationError,
   disabled = false,
+  embedded = false,
 }) {
   const now = new Date();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(embedded);
   const [activeField, setActiveField] = useState("checkIn");
   const [viewYear, setViewYear] = useState(now.getUTCFullYear());
   const [viewMonth, setViewMonth] = useState(now.getUTCMonth());
@@ -53,8 +54,8 @@ export default function GuestDateRangePicker({
   }, [propertyId]);
 
   useEffect(() => {
-    if (open) loadAvailability();
-  }, [open, loadAvailability]);
+    if (embedded || open) loadAvailability();
+  }, [embedded, open, loadAvailability]);
 
   useEffect(() => {
     const onDocClick = (e) => {
@@ -62,11 +63,11 @@ export default function GuestDateRangePicker({
         setOpen(false);
       }
     };
-    if (open) {
+    if (open && !embedded) {
       document.addEventListener("mousedown", onDocClick);
       return () => document.removeEventListener("mousedown", onDocClick);
     }
-  }, [open]);
+  }, [open, embedded]);
 
   const monthCells = useMemo(
     () => buildMonthGrid(viewYear, viewMonth),
@@ -134,7 +135,7 @@ export default function GuestDateRangePicker({
 
     onChange({ checkIn: norm.startDate, checkOut: nextCheckOut });
     onValidationError?.("");
-    setOpen(false);
+    if (!embedded) setOpen(false);
   };
 
   const clearDates = (e) => {
@@ -202,8 +203,12 @@ export default function GuestDateRangePicker({
 
       {open && (
         <div
-          className="absolute left-0 right-0 z-[80] mt-2 overflow-hidden rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] shadow-[0_20px_48px_rgba(12,26,26,0.14)] animate-[calendarFadeIn_0.25s_ease-out] sm:left-auto sm:right-0 sm:w-[min(100%,20rem)]"
-          role="dialog"
+          className={
+            embedded
+              ? "mt-3 overflow-hidden rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)]"
+              : "absolute left-0 right-0 z-[80] mt-2 overflow-hidden rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] shadow-[0_20px_48px_rgba(12,26,26,0.14)] animate-[calendarFadeIn_0.25s_ease-out] sm:left-auto sm:right-0 sm:w-[min(100%,20rem)]"
+          }
+          role={embedded ? "group" : "dialog"}
           aria-label="Choose dates"
         >
           <div className="flex items-center justify-between border-b border-[var(--kama-border)] px-3 py-2.5">
@@ -212,14 +217,20 @@ export default function GuestDateRangePicker({
                 ? "Select check-out"
                 : "Select check-in"}
             </p>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="rounded-full p-1 text-[var(--kama-ink-muted)] hover:bg-[var(--kama-field)]"
-              aria-label="Close"
-            >
-              <X size={16} />
-            </button>
+            {embedded ? (
+              <span className="text-[10px] font-medium text-[var(--kama-ink-muted)]">
+                Unavailable nights are blocked
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-full p-1 text-[var(--kama-ink-muted)] hover:bg-[var(--kama-field)]"
+                aria-label="Close"
+              >
+                <X size={16} />
+              </button>
+            )}
           </div>
 
           <div className="flex items-center justify-between px-2 py-2">

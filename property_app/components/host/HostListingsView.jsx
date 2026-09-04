@@ -11,9 +11,12 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  CalendarPlus,
 } from "lucide-react";
+import { useState } from "react";
 import DeletePropertyControl from "@/components/properties/DeletePropertyControl";
 import PropertyListingThumbnail from "@/components/properties/PropertyListingThumbnail";
+import HostCreateReservationModal from "@/components/host/HostCreateReservationModal";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { propertyTypeMessageKey } from "@/lib/i18n/messages";
 import { propertyImageUrl } from "@/utils/propertyImageUrl";
@@ -44,6 +47,7 @@ export default function HostListingsView({
   pending,
 }) {
   const { t } = useLanguage();
+  const [createFor, setCreateFor] = useState(null);
   const summaryKey =
     total === 1
       ? "hostConsole.listingsSummaryOne"
@@ -184,6 +188,16 @@ export default function HostListingsView({
                       <Eye className="h-3.5 w-3.5" />
                       {t("hostConsole.viewListing")}
                     </Link>
+                    {status !== "rejected" ? (
+                      <button
+                        type="button"
+                        onClick={() => setCreateFor(property)}
+                        className="inline-flex items-center gap-1 rounded-lg bg-[var(--kama-accent)] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[var(--kama-accent-hover)]"
+                      >
+                        <CalendarPlus className="h-3.5 w-3.5" />
+                        {t("hostConsole.createReservation.button")}
+                      </button>
+                    ) : null}
                     <Link
                       href={`/properties/${property._id}/rates`}
                       className="inline-flex items-center gap-1 rounded-lg border border-[#1b5c57]/30 px-3 py-1.5 text-xs font-medium text-[#1b5c57] transition hover:bg-[#ecfdf5]"
@@ -208,6 +222,12 @@ export default function HostListingsView({
           })}
         </div>
       )}
+
+      <HostCreateReservationModal
+        open={Boolean(createFor)}
+        property={createFor}
+        onClose={() => setCreateFor(null)}
+      />
     </div>
   );
 }
