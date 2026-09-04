@@ -14,6 +14,7 @@ import {
   modifyBookingDates,
   setBookingListed,
 } from "@/utils/bookings/mutateBooking";
+import { moveBookingToProperty } from "@/utils/bookings/moveBookingProperty";
 
 async function assertHostOwnsBooking(params, session) {
   const verified = assertVerifiedHost(session);
@@ -49,6 +50,7 @@ async function assertHostOwnsBooking(params, session) {
  * PATCH /api/properties/[id]/bookings/[bookingId]
  * Host modify dates: { checkIn, checkOut }
  * Host unlist/relist (hide from calendars, keep the record): { listed: false|true }
+ * Host move to another owned listing (same dates): { targetPropertyId }
  */
 export async function PATCH(request, { params }) {
   try {
@@ -60,8 +62,49 @@ export async function PATCH(request, { params }) {
     }
 
     const body = await request.json().catch(() => ({}));
+    const wantsMove = Boolean(body.targetPropertyId);
+    const wantsListed = typeof body.listed === "boolean";
+    const wantsDates = Boolean(body.checkIn || body.checkOut);
+    if ([wantsMove, wantsListed, wantsDates].filter(Boolean).length > 1) {
+      return Response.json(
+        { error: "Send only one change at a time (move, dates, or unlist)." },
+        { status: 400 },
+      );
+    }
 
-    if (typeof body.listed === "boolean") {
+    if (wantsMove) {
+      const result = await moveBookingToProperty({
+        bookingId: loaded.bookingId,
+        targetPropertyId: body.targetPropertyId,
+        actor: "host",
+        actorUserId: session.user.id,
+        expectedVersion: body.version,
+        sourceProperty: loaded.property,
+      });
+
+      if (!result.ok) {
+        return Response.json(
+          { error: result.error, code: result.code },
+          { status: result.status || 400 },
+        );
+      }
+
+      const destProperty = await getPropertyForApi(result.destProperty.id);
+      return Response.json({
+        success: true,
+        moved: true,
+        booking: bookingWithPolicyFlags(
+          result.booking,
+          destProperty || loaded.property,
+          "host",
+        ),
+        sourceProperty: result.sourceProperty,
+        destProperty: result.destProperty,
+        emails: result.emails || null,
+      });
+    }
+
+    if (wantsListed) {
       const result = await setBookingListed({
         bookingId: loaded.bookingId,
         listed: body.listed,

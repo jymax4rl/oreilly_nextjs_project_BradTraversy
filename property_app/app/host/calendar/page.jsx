@@ -33,7 +33,7 @@ export default async function HostCalendarHubPage() {
 
   await connectToDatabase();
   const properties = await Property.find({ owner: session.user.id })
-    .select("name location")
+    .select("name location images")
     .sort({ name: 1 })
     .lean();
 
@@ -61,6 +61,7 @@ export default async function HostCalendarHubPage() {
         name: p.name,
         city: p.location?.city,
         country: p.location?.country,
+        image: p.images?.[0] || null,
         futureCount: countById.get(String(p._id)) || 0,
       }))}
     />

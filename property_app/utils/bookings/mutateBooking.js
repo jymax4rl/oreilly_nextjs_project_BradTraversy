@@ -269,6 +269,10 @@ export function bookingWithPolicyFlags(booking, property, actor = "guest") {
   return {
     _id: plain._id?.toString?.() ?? String(plain._id),
     propertyId: plain.propertyId?.toString?.() ?? String(plain.propertyId),
+    previousPropertyId: plain.previousPropertyId
+      ? String(plain.previousPropertyId)
+      : null,
+    previousPropertyName: plain.previousPropertyName || null,
     checkIn: plain.checkIn,
     checkOut: plain.checkOut,
     status: plain.status,
@@ -283,6 +287,7 @@ export function bookingWithPolicyFlags(booking, property, actor = "guest") {
     propertyName: plain.propertyName,
     amount: plain.amount,
     currency: plain.currency,
+    version: plain.version || 0,
     modificationCount: plain.modificationCount || 0,
     cancelledAt: plain.cancelledAt,
     modifiedAt: plain.modifiedAt,

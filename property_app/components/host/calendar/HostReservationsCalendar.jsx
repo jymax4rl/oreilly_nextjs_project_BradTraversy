@@ -6,8 +6,10 @@ import {
   CalendarRange,
   ChevronLeft,
   ChevronRight,
+  GripVertical,
   Search,
   SlidersHorizontal,
+  X,
 } from "lucide-react";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { bookingMatchesSearch } from "@/utils/bookings/bookingRefSearch";
@@ -15,6 +17,7 @@ import {
   assignLanes,
   barGeometry,
   displayStatus,
+  pillStatus,
   eachDayInclusive,
   firstName,
   formatDayHead,
@@ -24,25 +27,82 @@ import {
   rangeForView,
   shiftRange,
   weekPreset,
-  countNights,
   addDaysYmd,
+  countNights,
 } from "@/utils/host/reservationsCalendar";
 import GuestAvatar from "./GuestAvatar";
 import ReservationDrawer from "./ReservationDrawer";
+import MoveStayConfirm from "./MoveStayConfirm";
+import { propertyImageUrl } from "@/utils/propertyImageUrl";
 import "./reservations-calendar.css";
 
 const DAY_PX = 56;
-const LANE_H = 38;
-const ROW_PAD = 10;
+const LANE_H = 44;
+const ROW_PAD = 12;
+const DRAG_PX = 10;
+const PILL_TONES = [
+  "upcoming",
+  "current",
+  "modified",
+  "pending",
+  "past",
+  "cancelled",
+];
+
+function useDayPx() {
+  const [px, setPx] = useState(DAY_PX);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const apply = () => setPx(mq.matches ? 44 : DAY_PX);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+  return px;
+}
 
 function isWeekend(ymd) {
   const day = new Date(`${ymd}T00:00:00.000Z`).getUTCDay();
   return day === 0 || day === 6;
 }
 
+function stayDraggable(booking, { today, propertyFilter, propertyCount }) {
+  if (propertyFilter) return false;
+  if (propertyCount < 2) return false;
+  if (!booking || booking.listed === false) return false;
+  if (booking.status === "cancelled") return false;
+  if (displayStatus(booking, today) === "completed") return false;
+  if (booking.actions?.modify?.allowed === false) return false;
+  if (booking.checkIn < today) return false;
+  return true;
+}
+
+function stayResizable(booking, today) {
+  if (!booking || booking.listed === false) return false;
+  if (booking.status === "cancelled") return false;
+  if (displayStatus(booking, today) === "completed") return false;
+  if (booking.actions?.modify?.allowed === false) return false;
+  return true;
+}
+
+function clampResize({ edge, origIn, origOut, deltaDays, today }) {
+  if (edge === "start") {
+    let checkIn = addDaysYmd(origIn, deltaDays);
+    const latest = addDaysYmd(origOut, -1);
+    if (checkIn > latest) checkIn = latest;
+    if (origIn >= today && checkIn < today) checkIn = today;
+    return { checkIn, checkOut: origOut };
+  }
+  let checkOut = addDaysYmd(origOut, deltaDays);
+  const earliest = addDaysYmd(origIn, 1);
+  if (checkOut < earliest) checkOut = earliest;
+  return { checkIn: origIn, checkOut };
+}
+
 export default function HostReservationsCalendar({ initialProperties = [] }) {
   const { t, lang } = useLanguage();
   const today = localTodayYmd();
+  const dayPx = useDayPx();
   const [view, setView] = useState("timeline");
   const [from, setFrom] = useState(() => rangeForView("timeline", today).from);
   const [to, setTo] = useState(() => rangeForView("timeline", today).to);
@@ -57,17 +117,33 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
+  const [draggingId, setDraggingId] = useState("");
+  const [dragOverId, setDragOverId] = useState("");
+  const [pendingMove, setPendingMove] = useState(null);
+  const [moveBusy, setMoveBusy] = useState(false);
+  const [moveError, setMoveError] = useState("");
+  const [resizePreview, setResizePreview] = useState(null);
+  const [resizeError, setResizeError] = useState("");
   const scrollRef = useRef(null);
   const barRefs = useRef(new Map());
   const centeredToday = useRef(false);
   const pendingToday = useRef(false);
-  const filtersRef = useRef(null);
+  const dragRef = useRef(null);
+  const dragOverRef = useRef("");
+  const suppressClickRef = useRef(false);
+  const propertiesRef = useRef(initialProperties);
+  const todayRef = useRef(today);
+  const dayPxRef = useRef(dayPx);
+  const saveResizeRef = useRef(async () => {});
+  const mobileRangeOnce = useRef(false);
 
   const days = useMemo(() => eachDayInclusive(from, to), [from, to]);
   const locale = lang === "fr" ? "fr" : "en";
+  const filterCount = Number(Boolean(propertyId)) + Number(status !== "all");
+  const showLegend = !loading && properties.length > 0;
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     setError("");
     try {
       const params = new URLSearchParams({
@@ -87,13 +163,22 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
     } catch (e) {
       setError(e.message || t("hostConsole.resCal.loadFailed"));
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [from, to, t]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (mobileRangeOnce.current) return;
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(max-width: 767px)").matches) return;
+    mobileRangeOnce.current = true;
+    setFrom(addDaysYmd(today, -1));
+    setTo(addDaysYmd(today, 12));
+  }, [today]);
 
   const filtered = useMemo(() => {
     return bookings.filter((b) => {
@@ -134,16 +219,191 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
     });
   }, [properties, propertyId, byProperty]);
 
+  propertiesRef.current = properties;
+  todayRef.current = today;
+  dayPxRef.current = dayPx;
+
   const selected = bookings.find((b) => b._id === selectedId) || null;
+
+  useEffect(() => {
+    const onMove = (e) => {
+      const d = dragRef.current;
+      if (!d) return;
+      if (d.type === "resize") {
+        const dist = Math.abs(e.clientX - d.x);
+        if (!d.active && dist < 3) return;
+        d.active = true;
+        suppressClickRef.current = true;
+        const deltaDays = Math.round((e.clientX - d.x) / dayPxRef.current);
+        const next = clampResize({
+          edge: d.edge,
+          origIn: d.origIn,
+          origOut: d.origOut,
+          deltaDays,
+          today: todayRef.current,
+        });
+        if (d.previewIn === next.checkIn && d.previewOut === next.checkOut) return;
+        d.previewIn = next.checkIn;
+        d.previewOut = next.checkOut;
+        setResizePreview({
+          id: d.booking._id,
+          checkIn: next.checkIn,
+          checkOut: next.checkOut,
+        });
+        return;
+      }
+      const dist = Math.hypot(e.clientX - d.x, e.clientY - d.y);
+      if (!d.active && dist < DRAG_PX) return;
+      if (!d.active) {
+        d.active = true;
+        suppressClickRef.current = true;
+        setDraggingId(d.booking._id);
+      }
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const row = el?.closest?.("[data-property-id]");
+      const over = row?.getAttribute("data-property-id") || "";
+      if (dragOverRef.current !== over) {
+        dragOverRef.current = over;
+        setDragOverId(over);
+      }
+    };
+    const onUp = () => {
+      const d = dragRef.current;
+      if (!d) return;
+      const over = dragOverRef.current;
+      const wasActive = d.active;
+      const booking = d.booking;
+      dragRef.current = null;
+      dragOverRef.current = "";
+      setDraggingId("");
+      setDragOverId("");
+      if (d.type === "resize") {
+        const changed =
+          wasActive &&
+          (d.previewIn !== d.origIn || d.previewOut !== d.origOut);
+        if (changed) {
+          void saveResizeRef.current(booking, d.previewIn, d.previewOut);
+        } else {
+          setResizePreview(null);
+        }
+      } else {
+        setResizePreview(null);
+        if (wasActive && over && over !== String(booking.propertyId)) {
+          const list = propertiesRef.current || [];
+          const dest = list.find((p) => p.id === over);
+          const source = list.find((p) => p.id === String(booking.propertyId));
+          if (dest) {
+            setSelectedId(null);
+            setMoveError("");
+            setPendingMove({ booking, from: source, to: dest });
+          }
+        }
+      }
+      if (wasActive) {
+        window.setTimeout(() => {
+          suppressClickRef.current = false;
+        }, 0);
+      }
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
+  }, []);
+
+  const confirmPendingMove = async () => {
+    if (!pendingMove?.booking || !pendingMove?.to) return;
+    setMoveBusy(true);
+    setMoveError("");
+    try {
+      const booking = pendingMove.booking;
+      const res = await fetch(
+        `/api/properties/${booking.propertyId}/bookings/${booking._id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            targetPropertyId: pendingMove.to.id,
+            version: booking.version,
+          }),
+        },
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || t("hostConsole.resCal.couldNotMove"));
+      }
+      setPendingMove(null);
+      setSelectedId(booking._id);
+      await load({ silent: true });
+    } catch (e) {
+      setMoveError(e.message || t("hostConsole.resCal.couldNotMove"));
+    } finally {
+      setMoveBusy(false);
+    }
+  };
+
+  saveResizeRef.current = async (booking, checkIn, checkOut) => {
+    const id = booking._id;
+    const revertIn = booking.checkIn;
+    const revertOut = booking.checkOut;
+    setResizeError("");
+    setBookings((prev) =>
+      prev.map((b) => (b._id === id ? { ...b, checkIn, checkOut } : b)),
+    );
+    setResizePreview(null);
+    try {
+      const res = await fetch(
+        `/api/properties/${booking.propertyId}/bookings/${id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ checkIn, checkOut }),
+        },
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(
+          data.error || t("hostConsole.bookings.couldNotUpdateDates"),
+        );
+      }
+      const saved = data.booking;
+      if (saved) {
+        setBookings((prev) =>
+          prev.map((b) => {
+            if (b._id !== id) return b;
+            return {
+              ...b,
+              ...saved,
+              _id: id,
+              propertyId: saved.propertyId
+                ? String(saved.propertyId)
+                : b.propertyId,
+            };
+          }),
+        );
+      }
+    } catch (e) {
+      setBookings((prev) =>
+        prev.map((b) =>
+          b._id === id ? { ...b, checkIn: revertIn, checkOut: revertOut } : b,
+        ),
+      );
+      setResizeError(e.message || t("hostConsole.bookings.couldNotUpdateDates"));
+    }
+  };
 
   const scrollToToday = useCallback(() => {
     const node = scrollRef.current;
     if (!node || !days.length) return;
     const idx = days.indexOf(today);
     if (idx < 0) return;
-    const left = Math.max(0, idx * DAY_PX - node.clientWidth * 0.35);
+    const left = Math.max(0, idx * dayPx - node.clientWidth * 0.35);
     node.scrollTo({ left, behavior: "smooth" });
-  }, [days, today]);
+  }, [days, today, dayPx]);
 
   useEffect(() => {
     if (loading || centeredToday.current) return;
@@ -159,11 +419,16 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
 
   useEffect(() => {
     if (!filtersOpen) return undefined;
-    const onDoc = (e) => {
-      if (!filtersRef.current?.contains(e.target)) setFiltersOpen(false);
+    const onKey = (e) => {
+      if (e.key === "Escape") setFiltersOpen(false);
     };
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
   }, [filtersOpen]);
 
   useEffect(() => {
@@ -201,28 +466,22 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
   const todayLeft = days.indexOf(today);
 
   return (
-    <div className="rc" style={{ "--rc-day": `${DAY_PX}px`, "--rc-days": days.length }}>
-      <header className="mb-5 max-w-2xl">
+    <div className="rc" style={{ "--rc-day": `${dayPx}px`, "--rc-days": days.length }}>
+      <header className="rc-pagehead">
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--kama-accent)]">
           {t("hostConsole.badge")}
         </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--kama-ink)]">
-          {t("hostConsole.resCal.title")}
+        <h1 className="mt-1 text-xl font-semibold tracking-tight text-[var(--kama-ink)] sm:text-2xl">
+          {t("hostConsole.calendar")}
         </h1>
-        <p className="mt-2 text-sm text-[var(--kama-ink-muted)]">
-          {t("hostConsole.resCal.blurb")}{" "}
-          <Link
-            href="/host/calendar"
-            className="font-semibold text-[var(--kama-accent)] hover:underline"
-          >
-            {t("hostConsole.calendar")}
-          </Link>
+        <p className="rc-pagehead__blurb mt-2 text-sm text-[var(--kama-ink-muted)]">
+          {t("hostConsole.calendarBlurb")}
         </p>
       </header>
 
       <div className="rc-toolbar">
-        <div className="rc-toolbar__row">
-          <label className="rc-search">
+        <div className="rc-chrome">
+          <div className="rc-search">
             <Search className="h-4 w-4 shrink-0 text-[var(--kama-ink-muted)]" aria-hidden />
             <input
               value={q}
@@ -230,92 +489,105 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
               placeholder={t("hostConsole.resCal.searchPh")}
               aria-label={t("hostConsole.resCal.searchPh")}
             />
-          </label>
-          <div className="rc-pop" ref={filtersRef}>
+            {q ? (
+              <button
+                type="button"
+                className="rc-search__clear"
+                aria-label={t("hostConsole.resCal.close")}
+                onClick={() => setQ("")}
+              >
+                <X className="h-3.5 w-3.5" aria-hidden />
+              </button>
+            ) : null}
             <button
               type="button"
-              className="rc-btn"
+              className="rc-search__filter"
+              data-on={filterCount > 0 ? "true" : "false"}
               aria-expanded={filtersOpen}
+              aria-haspopup="dialog"
+              aria-label={t("hostConsole.resCal.filters")}
               onClick={() => setFiltersOpen((v) => !v)}
             >
               <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
-              {t("hostConsole.resCal.filters")}
+              {filterCount > 0 ? <span className="rc-search__badge">{filterCount}</span> : null}
             </button>
-            {filtersOpen ? (
-              <div className="rc-pop__panel">
-                <label>
-                  {t("hostConsole.resCal.property")}
-                  <select
-                    value={propertyId}
-                    onChange={(e) => setPropertyId(e.target.value)}
-                  >
-                    <option value="">{t("hostConsole.resCal.allProperties")}</option>
-                    {properties.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  {t("hostConsole.resCal.statusLabel")}
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                  >
-                    <option value="all">{t("hostConsole.resCal.status.all")}</option>
-                    <option value="confirmed">{t("hostConsole.resCal.status.confirmed")}</option>
-                    <option value="pending">{t("hostConsole.resCal.status.pending")}</option>
-                    <option value="cancelled">{t("hostConsole.resCal.status.cancelled")}</option>
-                    <option value="completed">{t("hostConsole.resCal.status.completed")}</option>
-                    <option value="unlisted">{t("hostConsole.resCal.status.unlisted")}</option>
-                  </select>
-                </label>
-              </div>
-            ) : null}
           </div>
-        </div>
 
-        <div className="rc-toolbar__row">
-          <button type="button" className="rc-btn" onClick={() => {
-            const next = shiftRange(from, to, view, -1);
-            setFrom(next.from);
-            setTo(next.to);
-          }}>
-            <ChevronLeft className="h-4 w-4" aria-hidden />
-            <span className="hidden sm:inline">{t("hostConsole.resCal.prev")}</span>
-          </button>
-          <button type="button" className="rc-btn rc-btn--accent" onClick={goToday}>
-            {t("hostConsole.resCal.today")}
-          </button>
-          <button type="button" className="rc-btn" onClick={() => {
-            const next = shiftRange(from, to, view, 1);
-            setFrom(next.from);
-            setTo(next.to);
-          }}>
-            <span className="hidden sm:inline">{t("hostConsole.resCal.next")}</span>
-            <ChevronRight className="h-4 w-4" aria-hidden />
-          </button>
-          <p className="rc-range">{formatRangeLabel(from, to, locale)}</p>
-          <div className="rc-seg" role="group" aria-label={t("hostConsole.resCal.view")}>
-            {[
-              ["timeline", t("hostConsole.resCal.views.timeline")],
-              ["week", t("hostConsole.resCal.views.week")],
-              ["month", t("hostConsole.resCal.views.month")],
-            ].map(([id, label]) => (
+          <div className="rc-chrome__rule" aria-hidden />
+
+          <div className="rc-chrono">
+            <button
+              type="button"
+              className="rc-chrono__step"
+              aria-label={t("hostConsole.resCal.prev")}
+              onClick={() => {
+                const next = shiftRange(from, to, view, -1);
+                setFrom(next.from);
+                setTo(next.to);
+              }}
+            >
+              <ChevronLeft className="h-4 w-4" aria-hidden />
+            </button>
+            <div className="rc-chrono__mid">
+              <p className="rc-range">
+                <CalendarRange className="rc-range__ico" aria-hidden />
+                {formatRangeLabel(from, to, locale)}
+              </p>
               <button
-                key={id}
                 type="button"
-                aria-pressed={view === id}
-                onClick={() => goView(id)}
+                className="rc-chrono__today"
+                onClick={goToday}
+                aria-label={t("hostConsole.resCal.today")}
               >
-                {label}
+                {t("hostConsole.resCal.todayMark")}
               </button>
-            ))}
+            </div>
+            <button
+              type="button"
+              className="rc-chrono__step"
+              aria-label={t("hostConsole.resCal.next")}
+              onClick={() => {
+                const next = shiftRange(from, to, view, 1);
+                setFrom(next.from);
+                setTo(next.to);
+              }}
+            >
+              <ChevronRight className="h-4 w-4" aria-hidden />
+            </button>
+            <div className="rc-seg rc-hide-sm" role="group" aria-label={t("hostConsole.resCal.view")}>
+              {[
+                ["timeline", t("hostConsole.resCal.views.timeline")],
+                ["week", t("hostConsole.resCal.views.week")],
+                ["month", t("hostConsole.resCal.views.month")],
+              ].map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={view === id}
+                  onClick={() => goView(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {showLegend ? (
+            <>
+              <div className="rc-chrome__rule" aria-hidden />
+              <ul className="rc-legend" aria-label={t("hostConsole.resCal.legend")}>
+                {PILL_TONES.map((tone) => (
+                  <li key={tone}>
+                    <i data-status={tone} aria-hidden />
+                    {t(`hostConsole.resCal.pill.${tone}`)}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
         </div>
 
-        <div className="rc-toolbar__row rc-presets">
+        <div className="rc-toolbar__row rc-presets rc-toolbar__extras">
           <button type="button" className="rc-btn rc-btn--ghost" onClick={goToday}>
             {t("hostConsole.resCal.presets.today")}
           </button>
@@ -378,6 +650,10 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
       {error ? <p className="rc-err">{error}</p> : null}
       {loading ? <div className="rc-skel" aria-hidden /> : null}
 
+      {propertyId && properties.length > 1 ? (
+        <p className="rc-drag-note">{t("hostConsole.resCal.allPropertiesToDrag")}</p>
+      ) : null}
+
       {!loading && properties.length === 0 ? (
         <div className="rounded-xl border border-[var(--kama-border)] bg-[var(--kama-surface)] px-6 py-14 text-center">
           <p className="text-[var(--kama-ink-muted)]">{t("hostConsole.calendarEmpty")}</p>
@@ -419,19 +695,33 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
                 <div
                   key={property.id}
                   className="rc-row"
+                  data-property-id={property.id}
+                  data-drop={dragOverId === property.id ? "true" : "false"}
                   style={{ minHeight: `${ROW_PAD * 2 + lanes * LANE_H}px` }}
                 >
                   <div className="rc-prop">
+                    {property.image ? (
+                      <img
+                        className="rc-prop__img"
+                        src={propertyImageUrl(property.image)}
+                        alt=""
+                      />
+                    ) : null}
                     <div className="min-w-0">
-                      <p className="rc-prop__name">{property.name}</p>
+                      <Link
+                        href={`/properties/${property.id}/calendar`}
+                        className="rc-prop__name"
+                      >
+                        {property.name}
+                      </Link>
                       {(property.city || property.country) && (
-                        <p className="rc-prop__meta">
+                        <p className="rc-prop__meta rc-prop__loc">
                           {[property.city, property.country].filter(Boolean).join(", ")}
                         </p>
                       )}
                       <Link
                         href={`/properties/${property.id}/calendar`}
-                        className="rc-prop__meta mt-0.5 inline-flex items-center gap-1 text-[var(--kama-accent)]"
+                        className="rc-prop__meta rc-prop__avail mt-0.5 inline-flex items-center gap-1"
                       >
                         <CalendarRange className="h-3 w-3" aria-hidden />
                         {t("hostConsole.availabilityCalendar")}
@@ -455,25 +745,54 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
                       <div
                         className="rc-today"
                         data-label={t("hostConsole.resCal.todayMark")}
-                        style={{ left: todayLeft * DAY_PX + DAY_PX / 2 }}
+                        style={{ left: todayLeft * dayPx + dayPx / 2 }}
                       />
                     ) : null}
                     {placed.length === 0 ? (
                       <p className="rc-empty">{t("hostConsole.resCal.noReservations")}</p>
                     ) : (
                       placed.map((booking) => {
-                        const geo = barGeometry(booking, days, DAY_PX);
+                        const preview =
+                          resizePreview?.id === booking._id ? resizePreview : null;
+                        const shown = preview
+                          ? {
+                              ...booking,
+                              checkIn: preview.checkIn,
+                              checkOut: preview.checkOut,
+                            }
+                          : booking;
+                        const geo = barGeometry(shown, days, dayPx);
                         if (!geo) return null;
-                        const vis = displayStatus(booking, today);
-                        const nights = countNights(booking.checkIn, booking.checkOut);
+                        const tone = pillStatus(shown, today);
+                        const draggable = stayDraggable(booking, {
+                          today,
+                          propertyFilter: propertyId,
+                          propertyCount: properties.length,
+                        });
+                        const resizable = stayResizable(booking, today);
+                        const resizeStart = resizable && booking.checkIn >= today;
+                        const resizeEnd = resizable && booking.checkOut > today;
+                        const guestLabel =
+                          firstName(booking.guestName) || t("hostConsole.guest");
                         return (
-                          <button
+                          <div
                             key={booking._id}
-                            type="button"
+                            role="button"
+                            tabIndex={0}
                             className="rc-bar"
-                            data-status={vis}
+                            data-status={tone}
                             data-on={selectedId === booking._id ? "true" : "false"}
                             data-hit={hits.has(booking._id) ? "true" : "false"}
+                            data-dragging={draggingId === booking._id ? "true" : "false"}
+                            data-resizing={preview ? "true" : "false"}
+                            data-draggable={draggable ? "true" : "false"}
+                            aria-label={
+                              draggable
+                                ? t("hostConsole.resCal.dragAria", {
+                                    guest: guestLabel,
+                                  })
+                                : guestLabel
+                            }
                             ref={(el) => {
                               if (el) barRefs.current.set(booking._id, el);
                               else barRefs.current.delete(booking._id);
@@ -482,28 +801,109 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
                               left: geo.left + 4,
                               width: Math.max(48, geo.width - 8),
                               top: ROW_PAD + booking.lane * LANE_H,
+                              cursor: draggable ? "grab" : "pointer",
                             }}
-                            onClick={() => setSelectedId(booking._id)}
+                            onPointerDown={(e) => {
+                              if (e.target.closest(".rc-bar__edge")) return;
+                              if (!draggable || e.button !== 0) return;
+                              e.currentTarget.setPointerCapture?.(e.pointerId);
+                              dragRef.current = {
+                                type: "move",
+                                booking,
+                                x: e.clientX,
+                                y: e.clientY,
+                                active: false,
+                              };
+                            }}
+                            onDragStart={(e) => e.preventDefault()}
+                            onClick={() => {
+                              if (suppressClickRef.current) return;
+                              setSelectedId(booking._id);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key !== "Enter" && e.key !== " ") return;
+                              e.preventDefault();
+                              if (!suppressClickRef.current) {
+                                setSelectedId(booking._id);
+                              }
+                            }}
                           >
-                            <GuestAvatar
-                              name={booking.guestName}
-                              src={booking.guestImage}
-                            />
+                            {resizeStart ? (
+                              <span
+                                className="rc-bar__edge rc-bar__edge--start"
+                                aria-label={t("hostConsole.resCal.resizeAriaStart", {
+                                  guest: guestLabel,
+                                })}
+                                onPointerDown={(e) => {
+                                  e.stopPropagation();
+                                  if (e.button !== 0) return;
+                                  e.preventDefault();
+                                  e.currentTarget.setPointerCapture?.(e.pointerId);
+                                  dragRef.current = {
+                                    type: "resize",
+                                    edge: "start",
+                                    booking,
+                                    x: e.clientX,
+                                    origIn: booking.checkIn,
+                                    origOut: booking.checkOut,
+                                    previewIn: booking.checkIn,
+                                    previewOut: booking.checkOut,
+                                    active: false,
+                                  };
+                                  setResizeError("");
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            ) : null}
+                            {resizeEnd ? (
+                              <span
+                                className="rc-bar__edge rc-bar__edge--end"
+                                aria-label={t("hostConsole.resCal.resizeAriaEnd", {
+                                  guest: guestLabel,
+                                })}
+                                onPointerDown={(e) => {
+                                  e.stopPropagation();
+                                  if (e.button !== 0) return;
+                                  e.preventDefault();
+                                  e.currentTarget.setPointerCapture?.(e.pointerId);
+                                  dragRef.current = {
+                                    type: "resize",
+                                    edge: "end",
+                                    booking,
+                                    x: e.clientX,
+                                    origIn: booking.checkIn,
+                                    origOut: booking.checkOut,
+                                    previewIn: booking.checkIn,
+                                    previewOut: booking.checkOut,
+                                    active: false,
+                                  };
+                                  setResizeError("");
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            ) : null}
+                            <span className="rc-bar__face">
+                              {draggable ? (
+                                <span className="rc-bar__grip" aria-hidden>
+                                  <GripVertical className="h-3.5 w-3.5" />
+                                </span>
+                              ) : null}
+                              <GuestAvatar
+                                name={booking.guestName}
+                                src={booking.guestImage}
+                              />
+                            </span>
                             <span className="rc-bar__meta">
                               <span className="rc-bar__name">
-                                {firstName(booking.guestName) || t("hostConsole.guest")}
+                                {guestLabel}
                               </span>
                               <span className="rc-bar__sub">
-                                <span className="rc-dot" data-status={vis} />
-                                {t(
-                                  nights === 1
-                                    ? "hostConsole.bookings.nightOne"
-                                    : "hostConsole.bookings.nightOther",
-                                  { n: nights },
-                                )}
+                                <span className="rc-bar__chip" data-status={tone}>
+                                  {t(`hostConsole.resCal.pill.${tone}`)}
+                                </span>
                               </span>
                             </span>
-                          </button>
+                          </div>
                         );
                       })
                     )}
@@ -515,11 +915,127 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
         </div>
       ) : null}
 
+      {filtersOpen ? (
+        <>
+          <button
+            type="button"
+            className="rc-scrim rc-filters-scrim"
+            aria-label={t("hostConsole.resCal.close")}
+            onClick={() => setFiltersOpen(false)}
+          />
+          <div
+            className="rc-filters"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="rc-filters-title"
+          >
+            <div className="rc-filters__top">
+              <p id="rc-filters-title">{t("hostConsole.resCal.filters")}</p>
+              <button
+                type="button"
+                className="rc-btn rc-btn--ghost"
+                aria-label={t("hostConsole.resCal.close")}
+                onClick={() => setFiltersOpen(false)}
+              >
+                <X className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+            <div className="rc-filters__body">
+              <label>
+                {t("hostConsole.resCal.property")}
+                <select
+                  value={propertyId}
+                  onChange={(e) => setPropertyId(e.target.value)}
+                >
+                  <option value="">{t("hostConsole.resCal.allProperties")}</option>
+                  {properties.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                {t("hostConsole.resCal.statusLabel")}
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <option value="all">{t("hostConsole.resCal.status.all")}</option>
+                  <option value="confirmed">{t("hostConsole.resCal.status.confirmed")}</option>
+                  <option value="pending">{t("hostConsole.resCal.status.pending")}</option>
+                  <option value="cancelled">{t("hostConsole.resCal.status.cancelled")}</option>
+                  <option value="completed">{t("hostConsole.resCal.status.completed")}</option>
+                  <option value="unlisted">{t("hostConsole.resCal.status.unlisted")}</option>
+                </select>
+              </label>
+              <label>
+                {t("hostConsole.resCal.from")}
+                <input
+                  type="date"
+                  value={customFrom || from}
+                  onChange={(e) => setCustomFrom(e.target.value)}
+                />
+              </label>
+              <label>
+                {t("hostConsole.resCal.to")}
+                <input
+                  type="date"
+                  value={customTo || to}
+                  onChange={(e) => setCustomTo(e.target.value)}
+                />
+              </label>
+              <button
+                type="button"
+                className="rc-btn rc-btn--accent rc-filters__done"
+                onClick={() => {
+                  applyCustom();
+                  setFiltersOpen(false);
+                }}
+              >
+                {t("hostConsole.resCal.filtersDone")}
+              </button>
+            </div>
+          </div>
+        </>
+      ) : null}
+
+      {resizePreview ? (
+        <p className="rc-drop-hint">
+          {t("hostConsole.resCal.resizeHint", {
+            checkIn: resizePreview.checkIn,
+            checkOut: resizePreview.checkOut,
+            n: countNights(resizePreview.checkIn, resizePreview.checkOut),
+          })}
+        </p>
+      ) : draggingId ? (
+        <p className="rc-drop-hint">{t("hostConsole.resCal.dropToMove")}</p>
+      ) : resizeError ? (
+        <p className="rc-drop-hint rc-drop-hint--err">{resizeError}</p>
+      ) : null}
+
       {selected ? (
         <ReservationDrawer
           booking={selected}
+          properties={properties}
           onClose={() => setSelectedId(null)}
-          onChanged={load}
+          onChanged={() => load({ silent: true })}
+        />
+      ) : null}
+
+      {pendingMove ? (
+        <MoveStayConfirm
+          booking={pendingMove.booking}
+          fromProperty={pendingMove.from}
+          toProperty={pendingMove.to}
+          busy={moveBusy}
+          error={moveError}
+          onConfirm={confirmPendingMove}
+          onCancel={() => {
+            if (moveBusy) return;
+            setPendingMove(null);
+            setMoveError("");
+          }}
         />
       ) : null}
     </div>

@@ -90,6 +90,25 @@ export function displayStatus(booking, todayYmd) {
   return booking.status === "confirmed" ? "confirmed" : booking.status;
 }
 
+export function isStayModified(booking) {
+  return (
+    (Number(booking.modificationCount) || 0) > 0 ||
+    Boolean(booking.previousCheckIn) ||
+    Boolean(booking.previousPropertyId)
+  );
+}
+
+/** Color + chip on the stay pill. More specific than filter status. */
+export function pillStatus(booking, todayYmd) {
+  if (booking.status === "cancelled") return "cancelled";
+  if (booking.listed === false) return "unlisted";
+  if (booking.status === "pending") return "pending";
+  if (booking.checkOut <= todayYmd) return "past";
+  if (booking.checkIn <= todayYmd) return "current";
+  if (isStayModified(booking)) return "modified";
+  return "upcoming";
+}
+
 export function firstName(full) {
   const name = String(full || "").trim();
   if (!name) return "";
@@ -153,17 +172,32 @@ export function barGeometry(booking, days, dayPx) {
 }
 
 export function formatRangeLabel(from, to, locale = "en") {
-  const fmt = (ymd) => {
-    const t = parseDateOnly(ymd);
-    if (t == null) return ymd;
-    return new Date(t).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      timeZone: "UTC",
-    });
+  const loc = locale === "fr" ? "fr-FR" : "en-US";
+  const start = parseDateOnly(from);
+  const end = parseDateOnly(to);
+  if (start == null || end == null) return `${from} – ${to}`;
+  const a = new Date(start);
+  const b = new Date(end);
+  const sameYear = a.getUTCFullYear() === b.getUTCFullYear();
+  const sameMonth = sameYear && a.getUTCMonth() === b.getUTCMonth();
+  const showYear = !sameYear || a.getUTCFullYear() !== new Date().getFullYear();
+
+  if (sameMonth) {
+    const month = a.toLocaleDateString(loc, { month: "short", timeZone: "UTC" });
+    const d1 = a.toLocaleDateString(loc, { day: "numeric", timeZone: "UTC" });
+    const d2 = b.toLocaleDateString(loc, { day: "numeric", timeZone: "UTC" });
+    const year = showYear ? ` ${a.getUTCFullYear()}` : "";
+    if (locale === "fr") return `${d1} – ${d2} ${month}${year}`;
+    return `${month} ${d1} – ${d2}${year}`;
+  }
+
+  const opts = {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+    ...(showYear ? { year: "numeric" } : {}),
   };
-  return `${fmt(from)} — ${fmt(to)}`;
+  return `${a.toLocaleDateString(loc, opts)} – ${b.toLocaleDateString(loc, opts)}`;
 }
 
 export function formatDayHead(ymd, locale = "en") {

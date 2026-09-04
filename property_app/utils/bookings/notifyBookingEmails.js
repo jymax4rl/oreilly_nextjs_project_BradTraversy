@@ -76,12 +76,19 @@ function statusFromResult(result, hasEmail, sameAsOther) {
 
 /**
  * After dates change — email guest + host. Never throws to callers.
+ * `previousPropertyName` means the stay was moved to a different listing.
  */
-export async function notifyBookingModified(booking, property, { actor } = {}) {
+export async function notifyBookingModified(
+  booking,
+  property,
+  { actor, previousPropertyName } = {},
+) {
   try {
     const payload = await buildLifecyclePayload(booking, property);
     payload.previousCheckIn = booking.previousCheckIn;
     payload.previousCheckOut = booking.previousCheckOut;
+    payload.previousPropertyName =
+      previousPropertyName || booking.previousPropertyName || null;
     payload.changedBy = actor || "guest";
     payload.idempotencySuffix = `mod-${booking.modificationCount || 1}-${Date.now()}`;
 

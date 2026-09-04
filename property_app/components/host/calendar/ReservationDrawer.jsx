@@ -30,6 +30,7 @@ function formatAmount(amount, currency) {
 
 export default function ReservationDrawer({
   booking,
+  properties = [],
   onClose,
   onChanged,
 }) {
@@ -43,6 +44,8 @@ export default function ReservationDrawer({
   const [editing, setEditing] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [confirmUnlist, setConfirmUnlist] = useState(false);
+  const [confirmMove, setConfirmMove] = useState(false);
+  const [moveTo, setMoveTo] = useState("");
   const [checkIn, setCheckIn] = useState(booking.checkIn);
   const [checkOut, setCheckOut] = useState(booking.checkOut);
   const [message, setMessage] = useState(null);
@@ -56,8 +59,10 @@ export default function ReservationDrawer({
     setEditing(false);
     setConfirmCancel(false);
     setConfirmUnlist(false);
+    setConfirmMove(false);
+    setMoveTo("");
     setMessage(null);
-  }, [booking._id, booking.checkIn, booking.checkOut, booking.listed]);
+  }, [booking._id, booking.checkIn, booking.checkOut, booking.listed, booking.propertyId]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -137,6 +142,44 @@ export default function ReservationDrawer({
       setEditing(false);
       setMessage({ ok: true, text: t("hostConsole.bookings.datesUpdated") });
     });
+
+  const moveTargets = properties.filter(
+    (p) => p.id && p.id !== String(booking.propertyId),
+  );
+  const canMove =
+    Boolean(booking.actions?.modify?.allowed) &&
+    booking.listed !== false &&
+    booking.status !== "cancelled" &&
+    booking.checkIn >= today &&
+    moveTargets.length > 0;
+
+  const handleMove = () => {
+    if (!moveTo) return;
+    run("move", async () => {
+      const res = await fetch(`/api/properties/${pid}/bookings/${booking._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetPropertyId: moveTo,
+          version: booking.version,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || t("hostConsole.resCal.couldNotMove"));
+      }
+      const destName =
+        data.destProperty?.name ||
+        moveTargets.find((p) => p.id === moveTo)?.name ||
+        "";
+      setConfirmMove(false);
+      setMoveTo("");
+      setMessage({
+        ok: true,
+        text: t("hostConsole.resCal.moved", { name: destName }),
+      });
+    });
+  };
 
   const statusLabel =
     status === "unlisted"
@@ -357,6 +400,58 @@ export default function ReservationDrawer({
                       : booking.listed === false
                         ? t("hostConsole.resCal.relist")
                         : t("hostConsole.resCal.unlist")}
+                </button>
+              )
+            ) : null}
+            {canMove ? (
+              confirmMove ? (
+                <div className="rc-confirm">
+                  <p>{t("hostConsole.resCal.moveHint")}</p>
+                  <label className="mt-2 block text-xs font-semibold uppercase tracking-wide text-[var(--kama-ink-muted)]">
+                    {t("hostConsole.resCal.moveTo")}
+                    <select
+                      className="mt-1 w-full rounded-lg border border-[var(--kama-border)] bg-[var(--kama-surface)] px-2 py-2 text-sm font-medium text-[var(--kama-ink)]"
+                      value={moveTo}
+                      onChange={(e) => setMoveTo(e.target.value)}
+                    >
+                      <option value="">{t("hostConsole.resCal.chooseListing")}</option>
+                      {moveTargets.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      type="button"
+                      className="rc-btn rc-btn--accent"
+                      disabled={busy === "move" || !moveTo}
+                      onClick={handleMove}
+                    >
+                      {busy === "move"
+                        ? t("hostConsole.resCal.moving")
+                        : t("hostConsole.resCal.confirmMove")}
+                    </button>
+                    <button
+                      type="button"
+                      className="rc-btn"
+                      onClick={() => {
+                        setConfirmMove(false);
+                        setMoveTo("");
+                      }}
+                    >
+                      {t("hostConsole.cal.cancel")}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="rc-btn"
+                  onClick={() => setConfirmMove(true)}
+                >
+                  {t("hostConsole.resCal.move")}
                 </button>
               )
             ) : null}

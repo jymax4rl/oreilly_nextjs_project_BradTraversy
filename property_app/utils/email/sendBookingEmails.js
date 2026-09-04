@@ -889,6 +889,7 @@ export async function sendBookingModifiedEmails(payload) {
     transactionId,
     previousCheckIn,
     previousCheckOut,
+    previousPropertyName,
     changedBy,
     idempotencySuffix,
   } = gated;
@@ -914,14 +915,24 @@ export async function sendBookingModifiedEmails(payload) {
     transactionId,
   };
 
+  const movedListing =
+    previousPropertyName &&
+    propertyName &&
+    String(previousPropertyName) !== String(propertyName);
   const byLabel = changedBy === "host" ? "your host" : "you";
   const guestVars = buildGuestTemplateVariables({
     guestName,
     ...shared,
-    previewText: `Your stay dates at ${propertyName || "the property"} were updated.`,
-    heroTitle: "Your reservation was updated",
-    heroSubtitle: `Hi ${guestName || "there"}, the dates for ${propertyName || "your stay"} were changed by ${byLabel}. Please review the new stay below.`,
-    statusBadge: "Updated",
+    previewText: movedListing
+      ? `Your stay was moved to ${propertyName}.`
+      : `Your stay dates at ${propertyName || "the property"} were updated.`,
+    heroTitle: movedListing
+      ? "Your stay was moved"
+      : "Your reservation was updated",
+    heroSubtitle: movedListing
+      ? `Hi ${guestName || "there"}, ${byLabel} moved your reservation from ${previousPropertyName} to ${propertyName}. Your dates are unchanged.`
+      : `Hi ${guestName || "there"}, the dates for ${propertyName || "your stay"} were changed by ${byLabel}. Please review the new stay below.`,
+    statusBadge: movedListing ? "Moved" : "Updated",
     statusBadgeBg: "#eff6ff",
     statusBadgeColor: "#1d4ed8",
     secondaryNote:
@@ -933,10 +944,16 @@ export async function sendBookingModifiedEmails(payload) {
     guestName,
     guestEmail,
     ...shared,
-    previewText: `Reservation dates updated for ${propertyName || "your listing"}.`,
-    heroTitle: "Reservation dates updated",
-    heroSubtitle: `Hi ${hostName || "Host"}, stay dates for ${propertyName || "your property"} were updated (${changedBy === "guest" ? "by the guest" : "by you"}).`,
-    statusBadge: "Updated",
+    previewText: movedListing
+      ? `Stay moved to ${propertyName || "your listing"}.`
+      : `Reservation dates updated for ${propertyName || "your listing"}.`,
+    heroTitle: movedListing
+      ? "Reservation moved to another listing"
+      : "Reservation dates updated",
+    heroSubtitle: movedListing
+      ? `Hi ${hostName || "Host"}, you moved this stay from ${previousPropertyName} to ${propertyName || "your property"}. Dates are unchanged.`
+      : `Hi ${hostName || "Host"}, stay dates for ${propertyName || "your property"} were updated (${changedBy === "guest" ? "by the guest" : "by you"}).`,
+    statusBadge: movedListing ? "Moved" : "Updated",
     statusBadgeBg: "#eff6ff",
     statusBadgeColor: "#1d4ed8",
   });

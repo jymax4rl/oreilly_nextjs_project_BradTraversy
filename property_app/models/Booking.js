@@ -84,6 +84,12 @@ const BookingSchema = new mongoose.Schema(
       unique: true,
     },
     propertyName: { type: String },
+    /** Last listing this stay was moved from (host property-to-property move). */
+    previousPropertyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Property",
+    },
+    previousPropertyName: { type: String },
     amount: { type: Number },
     currency: { type: String },
     version: { type: Number, default: 0 },
