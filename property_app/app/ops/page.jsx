@@ -11,6 +11,7 @@ import {
   Landmark,
   Award,
   BarChart3,
+  MessageSquare,
 } from "lucide-react";
 import OpsShell from "@/components/ops/OpsShell";
 import OpsOverviewPanel from "@/components/ops/OpsOverviewPanel";
@@ -63,6 +64,12 @@ const TOOLS = [
     title: "Users",
     description: "Every account on the marketplace.",
     Icon: Users,
+  },
+  {
+    href: "/ops/messages",
+    title: "Messages",
+    description: "In-app notes ops sent to hosts and guests, plus replies.",
+    Icon: MessageSquare,
   },
   {
     href: "/ops/hosts",
