@@ -1,35 +1,25 @@
+import mongoose from "mongoose";
 import User from "@/models/User";
 import MarketingSend from "@/models/MarketingSend";
 import { requireOpsApi } from "@/utils/ops/requireOpsApi";
 import { broadcastAudienceQuery } from "@/utils/ops/broadcastAudience";
+import { getMarketingTemplate } from "@/utils/marketing/templates";
 import {
-  getMarketingTemplate,
-  resolveMarketingVars,
-} from "@/utils/marketing/templates";
-import { sendMarketingOutreachEmail } from "@/utils/marketing/sendMarketingEmail";
-import { resolveUserEmailLocale } from "@/utils/user/resolveUserLocale";
+  BATCH_MAX,
+  EMAIL_RE,
+  HOURLY_CAP,
+  deliverTemplateToRecipient,
+  hourlySentCount,
+  recipientBlockReason,
+  serializeRecipient,
+  templateAlreadySent,
+} from "@/utils/ops/sendTemplateEmail";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const HOURLY_CAP = 25;
-const BATCH_MAX = 25;
-
-function firstNameFromUsername(name) {
-  const text = String(name || "").trim();
-  if (!text) return "";
-  return text.split(/\s+/)[0].slice(0, 40);
-}
-
-function serializeUser(user) {
-  return {
-    id: String(user._id),
-    name: firstNameFromUsername(user.username) || user.username || "",
-    email: String(user.email || "").trim().toLowerCase(),
-    locale: resolveUserEmailLocale(user),
-  };
-}
+const USER_SELECT =
+  "username email role hostStatus banned isTrainingGuest preferences.language hostAddress.countryCode hostAddress.country";
 
 function localeCounts(users) {
   let fr = 0;
@@ -41,20 +31,11 @@ function localeCounts(users) {
   return { fr, en };
 }
 
-async function hourlySentCount(session) {
-  const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
-  const senderMatch = [];
-  const senderId = String(session.user.id || "");
-  const senderEmail = session.user.email || "";
-  if (senderId) senderMatch.push({ "sentBy.id": senderId });
-  if (senderEmail) senderMatch.push({ "sentBy.email": senderEmail });
-  if (!senderMatch.length) return 0;
-  return MarketingSend.countDocuments({
-    createdAt: { $gte: hourAgo },
-    status: "sent",
-    isTest: { $ne: true },
-    $or: senderMatch,
-  });
+function opsActor(session) {
+  return {
+    id: String(session.user.id || ""),
+    email: session.user.email || null,
+  };
 }
 
 async function loadEligible({ audience, templateId, force, excludeEmail }) {
@@ -62,13 +43,13 @@ async function loadEligible({ audience, templateId, force, excludeEmail }) {
   if (!query) return { error: "Choose who should receive this letter." };
 
   const users = await User.find(query)
-    .select("username email preferences.language hostAddress.countryCode hostAddress.country")
+    .select(USER_SELECT)
     .sort({ createdAt: -1 })
     .limit(500)
     .lean();
 
   const withEmail = users
-    .map(serializeUser)
+    .map(serializeRecipient)
     .filter((u) => EMAIL_RE.test(u.email) && u.email !== excludeEmail);
 
   const emails = withEmail.map((u) => u.email);
@@ -98,8 +79,24 @@ async function loadEligible({ audience, templateId, force, excludeEmail }) {
   };
 }
 
+async function loadOneUser(userId, excludeEmail) {
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return { error: "Choose a person from the list.", status: 400 };
+  }
+  const user = await User.findById(userId).select(USER_SELECT).lean();
+  if (!user) {
+    return { error: "No account found for that person.", status: 404 };
+  }
+  const blocked = recipientBlockReason(user, { excludeEmail });
+  if (blocked) {
+    return { error: blocked, status: 400 };
+  }
+  return { user, recipient: serializeRecipient(user) };
+}
+
 /**
  * GET /api/ops/messages/broadcast?audience=&templateId=
+ * GET /api/ops/messages/broadcast?userId=&templateId=
  */
 export async function GET(request) {
   try {
@@ -107,27 +104,45 @@ export async function GET(request) {
     if (gate.error) return gate.error;
 
     const { searchParams } = new URL(request.url);
-    const audience = String(searchParams.get("audience") || "guests").trim();
     const templateId = String(searchParams.get("templateId") || "become_a_host").trim();
     if (!getMarketingTemplate(templateId)) {
       return Response.json({ error: "Unknown template." }, { status: 400 });
     }
 
+    const excludeEmail = String(gate.session.user.email || "")
+      .trim()
+      .toLowerCase();
+    const used = await hourlySentCount(gate.session);
+    const remaining = Math.max(0, HOURLY_CAP - used);
+    const userId = String(searchParams.get("userId") || "").trim();
+
+    if (userId) {
+      const one = await loadOneUser(userId, excludeEmail);
+      if (one.error) {
+        return Response.json({ error: one.error }, { status: one.status || 400 });
+      }
+      const prior = await templateAlreadySent(one.recipient.email, templateId);
+      return Response.json({
+        recipient: one.recipient,
+        alreadySent: Boolean(prior),
+        alreadySentAt: prior?.createdAt || null,
+        hourlyCap: HOURLY_CAP,
+        hourlyRemaining: remaining,
+      });
+    }
+
+    const audience = String(searchParams.get("audience") || "guests").trim();
     const force = searchParams.get("force") === "1";
     const preview = await loadEligible({
       audience,
       templateId,
       force,
-      excludeEmail: String(gate.session.user.email || "")
-        .trim()
-        .toLowerCase(),
+      excludeEmail,
     });
     if (preview.error) {
       return Response.json({ error: preview.error }, { status: 400 });
     }
 
-    const used = await hourlySentCount(gate.session);
-    const remaining = Math.max(0, HOURLY_CAP - used);
     const languages = localeCounts(preview.eligible);
     const nextBatch = preview.eligible.slice(0, Math.min(BATCH_MAX, remaining));
     const nextLanguages = localeCounts(nextBatch);
@@ -153,7 +168,7 @@ export async function GET(request) {
 
 /**
  * POST /api/ops/messages/broadcast
- * Body: { templateId, audience, force?, attachPdf? }
+ * Body: { templateId, audience?, userId?, force?, attachPdf? }
  */
 export async function POST(request) {
   try {
@@ -163,6 +178,7 @@ export async function POST(request) {
     const body = await request.json().catch(() => ({}));
     const templateId = String(body?.templateId || "").trim();
     const audience = String(body?.audience || "").trim();
+    const userId = String(body?.userId || "").trim();
     const force = Boolean(body?.force);
     const attachPdf = Boolean(body?.attachPdf);
     const template = getMarketingTemplate(templateId);
@@ -170,6 +186,9 @@ export async function POST(request) {
       return Response.json({ error: "Choose a template." }, { status: 400 });
     }
 
+    const excludeEmail = String(gate.session.user.email || "")
+      .trim()
+      .toLowerCase();
     const used = await hourlySentCount(gate.session);
     const remaining = Math.max(0, HOURLY_CAP - used);
     if (remaining <= 0) {
@@ -181,58 +200,68 @@ export async function POST(request) {
       );
     }
 
+    const sentBy = opsActor(gate.session);
+
+    if (userId) {
+      const one = await loadOneUser(userId, excludeEmail);
+      if (one.error) {
+        return Response.json({ error: one.error }, { status: one.status || 400 });
+      }
+      if (!force) {
+        const prior = await templateAlreadySent(one.recipient.email, templateId);
+        if (prior) {
+          return Response.json(
+            {
+              error: "This template was already sent to that address.",
+              code: "already_sent",
+            },
+            { status: 409 },
+          );
+        }
+      }
+      const result = await deliverTemplateToRecipient({
+        recipient: one.recipient,
+        templateId,
+        attachPdf,
+        sentBy,
+      });
+      if (!result.ok) {
+        return Response.json(
+          { error: result.error || "Send failed", result },
+          { status: 502 },
+        );
+      }
+      return Response.json({
+        ok: true,
+        sent: 1,
+        failed: 0,
+        sentFr: result.locale === "fr" ? 1 : 0,
+        sentEn: result.locale === "en" ? 1 : 0,
+        hourlyRemaining: Math.max(0, remaining - 1),
+        result,
+      });
+    }
+
     const preview = await loadEligible({
       audience,
       templateId,
       force,
-      excludeEmail: String(gate.session.user.email || "")
-        .trim()
-        .toLowerCase(),
+      excludeEmail,
     });
     if (preview.error) {
       return Response.json({ error: preview.error }, { status: 400 });
     }
 
     const batch = preview.eligible.slice(0, Math.min(BATCH_MAX, remaining));
-    const sentBy = {
-      id: String(gate.session.user.id || ""),
-      email: gate.session.user.email || null,
-    };
-
     const results = [];
     for (const recipient of batch) {
-      const locale = recipient.locale === "fr" ? "fr" : "en";
-      const vars = resolveMarketingVars({ firstName: recipient.name });
-      const result = await sendMarketingOutreachEmail({
+      const result = await deliverTemplateToRecipient({
+        recipient,
         templateId,
-        name: recipient.name,
-        email: recipient.email,
         attachPdf,
-        locale,
-        vars,
-      });
-      const log = await MarketingSend.create({
-        recipientName: recipient.name || "—",
-        recipientEmail: recipient.email,
-        templateId,
-        locale,
-        isTest: false,
-        subject: result.subject || template.label,
-        status: result.ok ? "sent" : "failed",
-        channel: "resend",
-        resendId: result.resendId || null,
-        error: result.ok ? null : result.error || "Send failed",
-        attachment: result.attachment || null,
         sentBy,
       });
-      results.push({
-        email: recipient.email,
-        name: recipient.name,
-        locale,
-        ok: Boolean(result.ok),
-        error: result.ok ? null : result.error || "Send failed",
-        id: String(log._id),
-      });
+      results.push(result);
     }
 
     const sent = results.filter((r) => r.ok).length;
@@ -252,6 +281,6 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error("POST /api/ops/messages/broadcast:", error);
-    return Response.json({ error: "Failed to send bulk emails." }, { status: 500 });
+    return Response.json({ error: "Failed to send emails." }, { status: 500 });
   }
 }
