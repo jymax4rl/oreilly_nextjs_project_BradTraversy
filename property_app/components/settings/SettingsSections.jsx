@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   ArrowRight,
@@ -16,6 +18,7 @@ import CurrencyPreference from "@/components/settings/CurrencyPreference";
 import SignOutButton from "@/components/settings/SignOutButton";
 import HostPushPrompt from "@/components/host/HostPushPrompt";
 import { BECOME_A_HOST_HREF } from "@/utils/hostPwaInstall";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 function Section({ title, description, children }) {
   return (
@@ -65,6 +68,7 @@ function DeepLink({ href, icon: Icon, label, description }) {
  * Role-adaptive Settings body. Only notification keys relevant to the user are shown.
  */
 export default function SettingsSections({ settings }) {
+  const { t } = useLanguage();
   const { roles, hostStatus, preferences, auth, email } = settings;
   const isVerifiedHost = hostStatus === "verified" || roles.host;
   const isPendingHost = hostStatus === "onboarding";
@@ -202,8 +206,8 @@ export default function SettingsSections({ settings }) {
                 <DeepLink
                   href="/host/install?next=/settings"
                   icon={Smartphone}
-                  label="Install Isisel app"
-                  description="Add to home screen for faster hosting"
+                  label={t("pwa.navLabel")}
+                  description={t("pwa.navHintSettings")}
                 />
               </div>
             </>
@@ -220,8 +224,8 @@ export default function SettingsSections({ settings }) {
               <DeepLink
                 href="/host/install?next=/host/pending"
                 icon={Smartphone}
-                label="Install Isisel app"
-                description="Add to home screen while you wait"
+                label={t("pwa.navLabel")}
+                description={t("pwa.navHintWait")}
               />
             </>
           )}

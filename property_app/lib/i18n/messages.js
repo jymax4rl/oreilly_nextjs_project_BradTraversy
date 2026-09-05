@@ -730,6 +730,72 @@ export const messages = {
       signInBody: "Sign in to view your reservations.",
       signIn: "Sign in",
     },
+    pwa: {
+      useLikeApp: "Use Isisel like an app",
+      hostsFaster:
+        "Hosts manage listings faster from the home screen — no App Store needed.",
+      close: "Close",
+      closeDialog: "Close dialog",
+      alreadyTitle: "You're already in app mode",
+      alreadyBody:
+        "Isisel is running from your home screen. You can close this.",
+      continue: "Continue",
+      oneTapBody:
+        "One tap installs Isisel on this device. You'll get a home-screen icon and a full-screen host experience.",
+      installApp: "Install app",
+      opening: "Opening…",
+      confirmHint:
+        "Your browser will ask you to confirm — that's the only authorization step.",
+      safariFirst:
+        "On iPhone, open this site in Safari first. Chrome and Brave on iOS can't add a true home-screen app.",
+      stepOf: "Step {current} of {total}",
+      appleNoOneTap:
+        "Apple doesn't allow a one-tap install — follow these quick steps.",
+      lookFor: "Look for: {label}",
+      back: "Back",
+      next: "Next",
+      done: "Done",
+      chromeHint:
+        "Your browser may show an Install icon in the address bar shortly. You can also use the browser menu → Install app / Add to Home screen.",
+      genericHint:
+        "Use your browser’s Install or Add to Home Screen option to put Isisel on your device.",
+      menuStep: "Open the browser menu (⋮ or Share).",
+      chooseStep: "Choose Install app or Add to Home screen.",
+      confirmStep: "Confirm — then open Isisel from your home screen.",
+      gotIt: "Got it",
+      cardTitle: "Host tip: install Isisel",
+      cardOneTap: "Add Isisel to your home screen in one tap while you wait.",
+      cardIos:
+        "Add Isisel to your home screen (Share → Add to Home Screen) so hosting feels like an app.",
+      cardGeneric: "Add Isisel to your home screen for a faster host experience.",
+      showMeHow: "Show me how",
+      ios1Title: "Open the Share menu",
+      ios1Body:
+        "In Safari, tap the Share button at the bottom of the screen (square with an upward arrow).",
+      ios2Title: "Add to Home Screen",
+      ios2Body: "Scroll the sheet and tap “Add to Home Screen”.",
+      ios2Highlight: "Add to Home Screen",
+      ios3Title: "Confirm",
+      ios3Body:
+        "Tap Add in the top-right. Isisel appears on your home screen like a native app.",
+      errUnavailable: "Install is not available in this browser yet.",
+      errDialog: "Could not open the install dialog.",
+      pageKicker: "Become a host · Step 1",
+      pageTitle: "Install Isisel first",
+      pageLede:
+        "Hosts use Isisel from the home screen — like an app — so listings and reservations are one tap away.",
+      continueApply: "Continue to application",
+      continuePending: "Continue to application status",
+      continueList: "Continue to list a property",
+      laterHint:
+        "You can install now or continue and do it later from Profile → Install Isisel app.",
+      navLabel: "Install Isisel app",
+      navHintHost: "Home-screen shortcut for hosting",
+      navHintPending: "Add to home screen for host tools",
+      navHintSettings: "Add to home screen for faster hosting",
+      navHintWait: "Add to home screen while you wait",
+      openGuide: "Open full install guide",
+    },
   },
   fr: {
     language: "Langue",
@@ -1479,6 +1545,78 @@ export const messages = {
       signInTitle: "Connexion requise",
       signInBody: "Connectez-vous pour voir vos réservations.",
       signIn: "Connexion",
+    },
+    pwa: {
+      useLikeApp: "Utilisez Isisel comme une application",
+      hostsFaster:
+        "Les hôtes gèrent leurs annonces plus vite depuis l’écran d’accueil — sans passer par l’App Store.",
+      close: "Fermer",
+      closeDialog: "Fermer la fenêtre",
+      alreadyTitle: "Vous êtes déjà en mode application",
+      alreadyBody:
+        "Isisel s’ouvre depuis votre écran d’accueil. Vous pouvez fermer ceci.",
+      continue: "Continuer",
+      oneTapBody:
+        "Un tap suffit pour installer Isisel sur cet appareil. Vous aurez une icône sur l’écran d’accueil et une expérience hôte en plein écran.",
+      installApp: "Installer l’application",
+      opening: "Ouverture…",
+      confirmHint:
+        "Votre navigateur vous demandera de confirmer — c’est la seule étape d’autorisation.",
+      safariFirst:
+        "Sur iPhone, ouvrez d’abord ce site dans Safari. Chrome et Brave sur iOS ne peuvent pas ajouter une vraie application à l’écran d’accueil.",
+      stepOf: "Étape {current} sur {total}",
+      appleNoOneTap:
+        "Apple n’autorise pas l’installation en un tap — suivez ces étapes rapides.",
+      lookFor: "Cherchez : {label}",
+      back: "Retour",
+      next: "Suivant",
+      done: "Terminé",
+      chromeHint:
+        "Votre navigateur peut afficher une icône Installer dans la barre d’adresse. Vous pouvez aussi ouvrir le menu → Installer l’application / Ajouter à l’écran d’accueil.",
+      genericHint:
+        "Utilisez l’option Installer ou Ajouter à l’écran d’accueil de votre navigateur pour mettre Isisel sur votre appareil.",
+      menuStep: "Ouvrez le menu du navigateur (⋮ ou Partager).",
+      chooseStep:
+        "Choisissez Installer l’application ou Ajouter à l’écran d’accueil.",
+      confirmStep:
+        "Confirmez — puis ouvrez Isisel depuis votre écran d’accueil.",
+      gotIt: "Compris",
+      cardTitle: "Conseil hôte : installez Isisel",
+      cardOneTap:
+        "Ajoutez Isisel à votre écran d’accueil en un tap pendant que vous attendez.",
+      cardIos:
+        "Ajoutez Isisel à l’écran d’accueil (Partager → Sur l’écran d’accueil) pour héberger comme dans une application.",
+      cardGeneric:
+        "Ajoutez Isisel à l’écran d’accueil pour une expérience hôte plus rapide.",
+      showMeHow: "Montrez-moi comment",
+      ios1Title: "Ouvrez le menu Partager",
+      ios1Body:
+        "Dans Safari, touchez le bouton Partager en bas de l’écran (carré avec une flèche vers le haut).",
+      ios2Title: "Sur l’écran d’accueil",
+      ios2Body:
+        "Faites défiler le menu, puis touchez « Sur l’écran d’accueil ».",
+      ios2Highlight: "Sur l’écran d’accueil",
+      ios3Title: "Confirmez",
+      ios3Body:
+        "Touchez Ajouter en haut à droite. Isisel apparaît sur votre écran d’accueil comme une application.",
+      errUnavailable:
+        "L’installation n’est pas encore disponible dans ce navigateur.",
+      errDialog: "Impossible d’ouvrir la fenêtre d’installation.",
+      pageKicker: "Devenir hôte · Étape 1",
+      pageTitle: "Installez d’abord Isisel",
+      pageLede:
+        "Les hôtes utilisent Isisel depuis l’écran d’accueil — comme une application — pour que les annonces et les réservations soient à un tap.",
+      continueApply: "Continuer vers la candidature",
+      continuePending: "Continuer vers le statut de candidature",
+      continueList: "Continuer pour publier un logement",
+      laterHint:
+        "Vous pouvez installer maintenant, ou continuer et le faire plus tard depuis Profil → Installer l’application Isisel.",
+      navLabel: "Installer l’application Isisel",
+      navHintHost: "Raccourci écran d’accueil pour l’hébergement",
+      navHintPending: "Ajoutez à l’écran d’accueil pour les outils hôte",
+      navHintSettings: "Ajoutez à l’écran d’accueil pour héberger plus vite",
+      navHintWait: "Ajoutez à l’écran d’accueil pendant l’attente",
+      openGuide: "Ouvrir le guide d’installation",
     },
   },
 };

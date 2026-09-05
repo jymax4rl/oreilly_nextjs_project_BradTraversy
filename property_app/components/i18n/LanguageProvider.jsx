@@ -60,8 +60,13 @@ export function LanguageProvider({ initialLang = "en", children }) {
 
   useEffect(() => {
     if (hasExplicitChoice()) return;
-    const hasCookie = /(?:^|; )kama-lang=(en|fr)(?:;|$)/.test(document.cookie);
-    if (hasCookie) return;
+    const match = document.cookie.match(/(?:^|; )kama-lang=(en|fr)(?:;|$)/);
+    const cookieLang = match?.[1];
+    if (cookieLang) {
+      setLangState((prev) => (prev === cookieLang ? prev : cookieLang));
+      document.documentElement.lang = cookieLang;
+      return;
+    }
     setLang(detectClientLang(), { explicit: false });
   }, [setLang]);
 
