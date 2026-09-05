@@ -1,5 +1,6 @@
 import Message from "@/models/Message";
 import User from "@/models/User";
+import "@/models/Property";
 import { requireOpsApi } from "@/utils/ops/requireOpsApi";
 import { OPS_ROLES } from "@/utils/opsAuth";
 import mongoose from "mongoose";
