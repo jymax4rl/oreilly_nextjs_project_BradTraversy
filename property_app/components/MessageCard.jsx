@@ -108,13 +108,17 @@ export default function MessageCard({ message, currentUserId }) {
             {message.phone && ` · ${message.phone}`}
           </p>
 
-          {message.property && (
+          {message.property ? (
             <Link
               href={propertyPublicPath(message.property)}
               className="mt-1 inline-block text-xs text-blue-600 hover:underline"
             >
               {t("hostConsole.msg.re", { name: message.property.name })}
             </Link>
+          ) : (
+            <p className="mt-1 text-xs text-gray-500">
+              {t("hostConsole.msg.accountThread")}
+            </p>
           )}
 
           <p className="mt-2 text-sm text-gray-700 leading-relaxed">

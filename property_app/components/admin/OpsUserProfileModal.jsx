@@ -132,7 +132,6 @@ export default function OpsUserProfileModal({
 
   const messageContext = payload?.messageContext;
   const canMessage =
-    Boolean(messageContext?.propertyId) &&
     Boolean(userId) &&
     Boolean(session?.user?.id) &&
     String(session.user.id) !== String(userId);
