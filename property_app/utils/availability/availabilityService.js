@@ -12,6 +12,8 @@ import {
   normalizeCustomDayRates,
   validateCustomDayRates,
 } from "@/utils/availability/customDayRates";
+import { resolveCommissionForProperty } from "@/utils/foundingHost/resolveCommission";
+import { PLATFORM_COMMISSION_RATE } from "@/utils/propertyRates";
 
 async function resolveHostId(propertyId) {
   const property = await Property.findById(propertyId).select("owner").lean();
@@ -268,11 +270,21 @@ export async function getAvailabilityPayload(propertyId, { isOwner = false } = {
 
   const customDayRates = normalizeCustomDayRates(availability.customDayRates || []);
 
+  const property = await Property.findById(propertyId).select("owner").lean();
+  let platformCommissionRate = PLATFORM_COMMISSION_RATE;
+  try {
+    const resolved = await resolveCommissionForProperty(property);
+    platformCommissionRate = resolved.commissionRate;
+  } catch (error) {
+    console.error("getAvailabilityPayload: commission lookup failed", error);
+  }
+
   const payload = {
     propertyId: String(propertyId),
     defaultAvailability: availability.defaultAvailability || "open",
     unavailableRanges,
     customDayRates,
+    platformCommissionRate,
   };
 
   if (isOwner) {

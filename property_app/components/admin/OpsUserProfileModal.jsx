@@ -8,9 +8,11 @@ import {
   MessageCircle,
   ShieldOff,
   UserRound,
+  Award,
   X,
 } from "lucide-react";
 import { formatAddress } from "@/utils/address";
+import Link from "next/link";
 import AdminMessageHostModal from "./AdminMessageHostModal";
 
 function formatDate(value) {
@@ -335,6 +337,11 @@ export default function OpsUserProfileModal({
                           Active
                         </span>
                       )}
+                      {payload?.foundingHost?.foundingHost?.number ? (
+                        <span className="rounded-full bg-[#1B5C57] px-2.5 py-0.5 text-xs font-semibold text-white">
+                          Founding Host #{payload.foundingHost.foundingHost.number}
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -343,6 +350,17 @@ export default function OpsUserProfileModal({
                   <Field label="Joined">{formatDate(user.createdAt)}</Field>
                   <Field label="Listings">
                     {payload?.stats?.listingCount ?? 0}
+                    {userId ? (
+                      <>
+                        {" · "}
+                        <Link
+                          href={`/ops/listings?status=approved&owner=${encodeURIComponent(String(userId))}`}
+                          className="font-semibold text-[#1B5C57] hover:underline"
+                        >
+                          Open listings
+                        </Link>
+                      </>
+                    ) : null}
                   </Field>
                   {user.hostAddress && (
                     <div className="sm:col-span-2">
@@ -360,6 +378,43 @@ export default function OpsUserProfileModal({
                     </>
                   )}
                 </dl>
+
+                <section className="rounded-xl border border-gray-200 bg-gray-50/80 p-4">
+                  <div className="mb-3 flex items-center gap-2 text-[#1B5C57]">
+                    <Award size={18} aria-hidden />
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      Founding Host & commission
+                    </h3>
+                  </div>
+                  {payload?.foundingHost?.foundingHost?.number ? (
+                    <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <Field label="Number">
+                        #{payload.foundingHost.foundingHost.number}
+                      </Field>
+                      <Field label="Status">
+                        <span className="capitalize">
+                          {payload.foundingHost.foundingHost.status}
+                        </span>
+                      </Field>
+                      <Field label="Granted">
+                        {formatDate(payload.foundingHost.foundingHost.grantedAt)}
+                      </Field>
+                      <Field label="Expires">
+                        {formatDate(payload.foundingHost.foundingHost.expiresAt)}
+                      </Field>
+                    </dl>
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      No Founding Host position on this account.
+                    </p>
+                  )}
+                  <Link
+                    href="/ops/founding-hosts"
+                    className="mt-3 inline-flex text-sm font-semibold text-[#1B5C57] hover:underline"
+                  >
+                    Open Founding Hosts
+                  </Link>
+                </section>
 
                 <section className="rounded-xl border border-gray-200 bg-gray-50/80 p-4">
                   <div className="mb-3 flex items-center gap-2 text-[#1B5C57]">

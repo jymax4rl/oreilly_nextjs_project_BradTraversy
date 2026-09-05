@@ -105,6 +105,26 @@ export const PATCH = async (request, { params }) => {
       return Response.json({ error: "Property not found" }, { status: 404 });
     }
 
+    if (status === "approved") {
+      try {
+        const { tryAllocateFoundingHostOnFirstListingApproval } = await import(
+          "@/utils/foundingHost/allocate"
+        );
+        await tryAllocateFoundingHostOnFirstListingApproval({
+          ownerId: property.owner,
+          listingId: id,
+          previousStatus: property.status,
+          grantedBy: {
+            id: session.user.id || "system",
+            email: session.user.email || null,
+            name: session.user.name || session.user.email || "Ops",
+          },
+        });
+      } catch (allocError) {
+        console.error("Founding Host allocation failed:", allocError);
+      }
+    }
+
     // Notify host (non-blocking for response)
     let hostEmail = property.seller_info?.email;
     let hostName = property.seller_info?.name;

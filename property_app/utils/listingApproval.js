@@ -1,4 +1,5 @@
 import { isOpsStaff } from "./opsAuth.js";
+import { canBrowseListingCatalog } from "./listings/catalogBeta.js";
 
 /**
  * Listing moderation helpers.
@@ -62,14 +63,17 @@ export function isPubliclyVisibleListing(property) {
 
 export function canUserViewListing(property, session) {
   if (!property) return false;
-  if (isPubliclyVisibleListing(property)) return true;
-  if (!session?.user) return false;
+  if (!session?.user) {
+    return canBrowseListingCatalog(session) && isPubliclyVisibleListing(property);
+  }
   if (isOpsStaff(session.user.role)) return true;
   const ownerId =
     property.owner?.toString?.() ?? String(property.owner ?? "");
   const userId =
     session.user.id?.toString?.() ?? String(session.user.id ?? "");
-  return Boolean(ownerId && userId && ownerId === userId);
+  if (ownerId && userId && ownerId === userId) return true;
+  if (!canBrowseListingCatalog(session)) return false;
+  return isPubliclyVisibleListing(property);
 }
 
 /** Merge public-visibility constraints into an existing Mongo query object. */

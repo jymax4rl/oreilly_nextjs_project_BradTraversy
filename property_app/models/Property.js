@@ -108,6 +108,8 @@ const PropertySchema = new mongoose.Schema(
   },
 );
 
+PropertySchema.index({ createdAt: 1 });
+
 const Property =
   mongoose.models.Property || mongoose.model("Property", PropertySchema);
 

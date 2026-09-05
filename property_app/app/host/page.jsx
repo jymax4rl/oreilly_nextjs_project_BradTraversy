@@ -9,6 +9,8 @@ import { isAwaitingListingModeration } from "@/utils/listingApproval";
 import { getLoginUrl } from "@/lib/legal/loginUrl";
 import { addDaysYmd, localTodayYmd } from "@/utils/host/reservationsCalendar";
 import HostHomeView from "@/components/host/home/HostHomeView";
+import User from "@/models/User";
+import { serializeFoundingHostPublic } from "@/utils/foundingHost/serialize";
 
 export const dynamic = "force-dynamic";
 
@@ -85,12 +87,17 @@ export default async function HostConsoleHomePage() {
     isAwaitingListingModeration(p),
   ).length;
 
+  const hostUser = await User.findById(ownerId)
+    .select("foundingHost")
+    .lean();
+
   return (
     <HostHomeView
       listings={properties.length}
       unread={unread}
       awaiting={awaiting}
       stays={bookings.map(serializeStay)}
+      foundingHost={serializeFoundingHostPublic(hostUser)}
     />
   );
 }

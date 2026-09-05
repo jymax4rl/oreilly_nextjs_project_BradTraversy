@@ -6,6 +6,11 @@ const PricingSnapshotSchema = new mongoose.Schema(
     accommodationBase: { type: Number },
     cleaningFee: { type: Number },
     platformFee: { type: Number },
+    /** Historical commission actually applied at booking creation. */
+    commissionRateApplied: { type: Number },
+    commissionAmount: { type: Number },
+    commissionWaived: { type: Boolean },
+    commissionWaiverReason: { type: String },
     total: { type: Number },
     nights: { type: Number },
     currency: { type: String, default: "USD" },
@@ -79,6 +84,16 @@ const BookingSchema = new mongoose.Schema(
       enum: ["manual", "gateway"],
       default: undefined,
     },
+    /**
+     * ops_training: seed stays created from the Operations console for host drills.
+     * Excluded from investor analytics. Hosts still see them as normal reservations.
+     */
+    source: {
+      type: String,
+      enum: ["ops_training"],
+      default: undefined,
+      index: true,
+    },
     transactionId: {
       type: Number,
       sparse: true,
@@ -121,6 +136,7 @@ const BookingSchema = new mongoose.Schema(
 );
 
 BookingSchema.index({ propertyId: 1, status: 1, checkIn: 1 });
+BookingSchema.index({ createdAt: 1, status: 1 });
 
 const Booking =
   mongoose.models.Booking || mongoose.model("Booking", BookingSchema);

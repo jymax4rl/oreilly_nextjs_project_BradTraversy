@@ -1,4 +1,6 @@
 import { isPubliclyVisibleListing } from "@/utils/listingApproval";
+import ComingSoonStays from "@/components/home/ComingSoonStays";
+import { canBrowseListingCatalog } from "@/utils/listings/catalogBeta";
 import React from "react";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
@@ -39,6 +41,10 @@ const SavedPropertiesPage = async () => {
         </div>
       </div>
     );
+  }
+
+  if (!canBrowseListingCatalog(session)) {
+    return <ComingSoonStays variant="page" />;
   }
 
   await connectToDatabase();

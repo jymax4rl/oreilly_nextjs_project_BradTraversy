@@ -269,6 +269,11 @@ export default function OpsReservationsPanel() {
                           Offline pay
                         </span>
                       ) : null}
+                      {row.source === "ops_training" ? (
+                        <span className="rounded-full bg-[#1B5C57]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#1B5C57]">
+                          Training
+                        </span>
+                      ) : null}
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${emailBadge(guestMail)}`}
                       >

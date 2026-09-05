@@ -8,6 +8,8 @@ import Hamburger from "@/components/hamburger";
 import { useScrollNav } from "@/contexts/ScrollNavContext";
 import { useMenuOverlay } from "@/contexts/MenuOverlayContext";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { useSession } from "next-auth/react";
+import { canBrowseListingCatalog } from "@/utils/listings/catalogBeta";
 
 /** Listing detail or host tools: /properties/[id](/calendar|/rates|/message|/reservations). */
 function isPropertyScopedPath(pathname) {
@@ -29,8 +31,12 @@ export default function MobileTopChrome() {
   const { navVisible } = useScrollNav();
   const { toggle, isOpen } = useMenuOverlay();
   const { t } = useLanguage();
+  const { data: session } = useSession();
   const isHome = pathname === "/";
-  const hideSearch = isHome || isPropertyScopedPath(pathname);
+  const hideSearch =
+    isHome ||
+    isPropertyScopedPath(pathname) ||
+    !canBrowseListingCatalog(session);
 
   const [location, setLocation] = useState("");
 

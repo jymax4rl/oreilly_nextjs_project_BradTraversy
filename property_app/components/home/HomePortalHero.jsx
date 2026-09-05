@@ -9,7 +9,7 @@ import { useLanguage } from "@/components/i18n/LanguageProvider";
  * Photograph first. Brand sits quietly; a thin line asks you to continue.
  * Search lives in the section below so the UI never fights the image.
  */
-export default function HomePortalHero() {
+export default function HomePortalHero({ catalogOpen = true }) {
   const { t } = useLanguage();
   const rootRef = useRef(null);
 
@@ -69,11 +69,15 @@ export default function HomePortalHero() {
 
         <a
           data-hero-fade
-          href="#search"
+          href={catalogOpen ? "#search" : "#stays"}
           className="home-scroll-line mt-8 sm:mt-10"
-          aria-label={t("home.browseStays")}
+          aria-label={
+            catalogOpen ? t("home.browseStays") : t("home.comingSoon.kicker")
+          }
           onClick={(event) => {
-            const target = document.getElementById("search");
+            const target = document.getElementById(
+              catalogOpen ? "search" : "stays",
+            );
             if (!target) return;
             event.preventDefault();
             target.scrollIntoView({ behavior: "smooth", block: "start" });

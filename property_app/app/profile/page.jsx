@@ -7,6 +7,7 @@ import ProfileDisplayNameForm from "@/components/profile/ProfileDisplayNameForm"
 import ProfileAvatarUpload from "@/components/profile/ProfileAvatarUpload";
 import ProfileSections from "@/components/profile/ProfileSections";
 import { ArrowLeft, Shield, UserRound } from "lucide-react";
+import FoundingHostBadge from "@/components/foundingHosts/FoundingHostBadge";
 
 export const metadata = {
   title: "Profile | Isisel",
@@ -115,6 +116,9 @@ export default async function ProfilePage() {
                   </RoleBadge>
                 )}
                 {profile.roles.host && <RoleBadge>Host</RoleBadge>}
+                {profile.foundingHost?.number ? (
+                  <FoundingHostBadge number={profile.foundingHost.number} />
+                ) : null}
                 <RoleBadge>Guest</RoleBadge>
               </div>
 

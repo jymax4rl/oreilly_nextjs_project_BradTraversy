@@ -182,6 +182,7 @@ export async function GET(request) {
             guestEmail: b.guestEmail || null,
             guestPhone: b.guestPhone || null,
             guestId: b.guestId || null,
+            source: b.source || null,
             propertyId: String(b.propertyId),
             propertyName: b.propertyName || property?.name || "Untitled",
             propertyLocation: locationLabel(property?.location),

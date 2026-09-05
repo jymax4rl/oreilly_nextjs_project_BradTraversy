@@ -1,0 +1,142 @@
+.fh-page {
+  --font-display: var(--font-kama-display), "Fraunces", Georgia, serif;
+  --font-sans: var(--font-kama-sans), "Outfit", system-ui, sans-serif;
+  color: var(--kama-ink);
+  background: var(--kama-canvas);
+  font-family: var(--font-sans);
+  padding-bottom: 4rem;
+}
+
+.fh-wrap {
+  width: min(40rem, calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+.fh-hero {
+  padding: 7rem 0 3.5rem;
+  background:
+    radial-gradient(ellipse at top, var(--kama-accent-glow), transparent 60%),
+    var(--kama-canvas);
+}
+
+.fh-kicker {
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--kama-accent);
+}
+
+.fh-hero h1 {
+  font-family: var(--font-display);
+  font-weight: 480;
+  letter-spacing: -0.03em;
+  font-size: clamp(2.1rem, 6vw, 3.4rem);
+  line-height: 1.12;
+  margin: 0.75rem 0 1rem;
+}
+
+.fh-lede {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--kama-ink-muted);
+  max-width: 34rem;
+}
+
+.fh-counter {
+  margin-top: 2rem;
+  padding: 1.25rem 1.4rem;
+  border: 1px solid var(--kama-border);
+  border-radius: 1.25rem;
+  background: var(--kama-surface);
+}
+
+.fh-counter__big {
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+.fh-counter__big strong {
+  font-variant-numeric: tabular-nums;
+  color: var(--kama-accent);
+}
+
+.fh-counter__remain {
+  margin-top: 0.35rem;
+  font-size: 0.9rem;
+  color: var(--kama-ink-muted);
+}
+
+.fh-cta {
+  display: inline-flex;
+  margin-top: 1.5rem;
+  align-items: center;
+  height: 2.85rem;
+  padding: 0 1.35rem;
+  border-radius: 0.9rem;
+  background: var(--kama-accent);
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 650;
+  text-decoration: none;
+  transition: background 160ms ease;
+}
+
+.fh-cta:hover {
+  background: var(--kama-accent-hover);
+}
+
+.fh-cta-note {
+  margin-top: 1.25rem;
+  font-size: 0.92rem;
+  color: var(--kama-ink-muted);
+}
+
+.fh-benefits {
+  padding: 1rem 0 4rem;
+}
+
+.fh-benefits h2 {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 480;
+  letter-spacing: -0.03em;
+}
+
+.fh-benefits ul {
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fh-benefits li {
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--kama-border);
+  font-size: 0.98rem;
+}
+
+.fh-benefits li::before {
+  content: "✓ ";
+  color: var(--kama-accent);
+  font-weight: 650;
+}
+
+.fh-fine {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--kama-ink-muted);
+}
+
+.fh-text-link {
+  display: inline-block;
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--kama-accent);
+  text-decoration: none;
+}
+
+.fh-text-link:hover {
+  text-decoration: underline;
+}

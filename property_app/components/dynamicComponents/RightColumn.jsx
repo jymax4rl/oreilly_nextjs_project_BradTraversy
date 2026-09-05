@@ -25,6 +25,7 @@ import {
   getPrimaryDisplayRate,
   hasAnyRate,
   normalizeRates,
+  PLATFORM_COMMISSION_RATE,
 } from "@/utils/propertyRates";
 import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 import { useSession } from "next-auth/react";
@@ -53,6 +54,9 @@ function RightColumn({ data }) {
   const [paymentNotice, setPaymentNotice] = useState(null);
   const [unavailableRanges, setUnavailableRanges] = useState([]);
   const [customDayRates, setCustomDayRates] = useState([]);
+  const [platformCommissionRate, setPlatformCommissionRate] = useState(
+    PLATFORM_COMMISSION_RATE,
+  );
   const [guestPhone, setGuestPhone] = useState("");
   const [phoneModalOpen, setPhoneModalOpen] = useState(false);
   const [phoneModalError, setPhoneModalError] = useState(null);
@@ -93,6 +97,9 @@ function RightColumn({ data }) {
         if (!cancelled && res.ok) {
           setUnavailableRanges(payload.unavailableRanges || []);
           setCustomDayRates(payload.customDayRates || []);
+          if (Number.isFinite(Number(payload.platformCommissionRate))) {
+            setPlatformCommissionRate(Number(payload.platformCommissionRate));
+          }
         }
       } catch {
         /* ignore */
@@ -112,7 +119,13 @@ function RightColumn({ data }) {
 
   const basePriceUsd = stayPricing?.base ?? primaryRate?.amount ?? 0;
   const { cleaningFee, commission, total: totalUsd } =
-    calculateBookingFees(basePriceUsd);
+    calculateBookingFees(basePriceUsd, {
+      commissionRate: platformCommissionRate,
+    });
+  const commissionPctLabel =
+    platformCommissionRate === 0
+      ? ""
+      : ` (${Math.round(platformCommissionRate * 1000) / 10}%)`;
 
   const numericalTotal = parseFloat((totalUsd * fx.rate).toFixed(2));
 
@@ -549,7 +562,7 @@ function RightColumn({ data }) {
               </span>
             </div>
             <div className="flex justify-between gap-3">
-              <span>Service fee (7%)</span>
+              <span>Service fee{commissionPctLabel}</span>
               <span className="tabular-nums">
                 {formatListingPrice(commission, rates, currencyCode)}
               </span>

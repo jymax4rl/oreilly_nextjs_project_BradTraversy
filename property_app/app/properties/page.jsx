@@ -1,5 +1,6 @@
 import React from "react";
 import HomeProperties from "@/components/HomeProperties";
+import ComingSoonStays from "@/components/home/ComingSoonStays";
 import Property from "@/models/Property";
 import connectToDatabase from "@/config/database";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
@@ -7,8 +8,24 @@ import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
 import { withApprovedListingFilter } from "@/utils/listingApproval";
 import { ensurePropertySlugs } from "@/utils/listings/propertySlug";
 import { redactPreviewLockedCatalogFields } from "@/utils/listings/previewLockedHost";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/utils/authOptions";
+import {
+  canBrowseListingCatalog,
+} from "@/utils/listings/catalogBeta";
 
 export async function generateMetadata({ searchParams }) {
+  const session = await getServerSession(authOptions);
+  if (!canBrowseListingCatalog(session)) {
+    return {
+      title: "Stays coming soon",
+      description:
+        "Isisel stays across Africa are opening soon. Hosts can preview the catalogue; guests will browse at launch.",
+      robots: { index: true, follow: true },
+      alternates: { canonical: "/properties" },
+    };
+  }
+
   const params = (await searchParams) || {};
   const location = String(params.location || "").trim();
   if (location) {
@@ -76,6 +93,11 @@ const PropertiesPage = async ({
   hideSearchToolbar = false,
   maxProperties,
 }) => {
+  const session = await getServerSession(authOptions);
+  if (!canBrowseListingCatalog(session)) {
+    return <ComingSoonStays variant={hideSearchToolbar ? "home" : "page"} />;
+  }
+
   const params = (await searchParams) || {};
   const locationQuery = params?.location?.trim();
   const typeQuery = params?.type;

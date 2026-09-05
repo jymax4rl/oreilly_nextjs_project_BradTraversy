@@ -62,6 +62,31 @@ const UserSchema = new Schema(
       ref: "User",
       default: null,
     },
+    /** Ops training guest used to seed host calendars. Excluded from analytics. */
+    isTrainingGuest: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    /**
+     * Web Push subscriptions (installed PWA / mobile Chrome).
+     * Used to alert hosts on new reservations, including lock screen.
+     */
+    pushSubscriptions: {
+      type: [
+        {
+          _id: false,
+          endpoint: { type: String, required: true },
+          expirationTime: { type: Number, default: null },
+          keys: {
+            p256dh: { type: String, required: true },
+            auth: { type: String, required: true },
+          },
+          updatedAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: undefined,
+    },
     /** Host-application pitch seen (modal on /host/onboarding). */
     hasCompletedHostOnboarding: {
       type: Boolean,
@@ -93,11 +118,50 @@ const UserSchema = new Schema(
       type: Date,
       default: null,
     },
+    /**
+     * Founding 100 Host program. Eligibility is attached to the host, not listings.
+     * `isFoundingHost` stays true after the commission-free window expires (badge).
+     * `status: revoked` hides the badge; `number` is never reused.
+     */
+    foundingHost: {
+      isFoundingHost: { type: Boolean, default: false },
+      number: { type: Number },
+      grantedAt: { type: Date },
+      expiresAt: { type: Date },
+      grantedBy: { type: Schema.Types.Mixed },
+      grantReason: { type: String, maxlength: 1000 },
+      status: {
+        type: String,
+        enum: ["active", "revoked"],
+      },
+    },
+    /**
+     * Ops-granted commission override. Independent of Founding 100 allocation.
+     */
+    commissionOverride: {
+      enabled: { type: Boolean, default: false },
+      rate: { type: Number, min: 0, max: 1 },
+      startsAt: { type: Date },
+      expiresAt: { type: Date },
+      reason: { type: String, maxlength: 1000 },
+      notes: { type: String, maxlength: 4000 },
+      grantedBy: { type: Schema.Types.ObjectId, ref: "User" },
+      grantedAt: { type: Date },
+    },
   },
   {
     timestamps: true,
   }
 );
+
+UserSchema.index({ createdAt: 1 });
+UserSchema.index({ hostStatus: 1, createdAt: 1 });
+
+UserSchema.index(
+  { "foundingHost.number": 1 },
+  { unique: true, sparse: true },
+);
+UserSchema.index({ "foundingHost.isFoundingHost": 1, "foundingHost.status": 1 });
 
 const User = models.User || model("User", UserSchema);
 export default User;

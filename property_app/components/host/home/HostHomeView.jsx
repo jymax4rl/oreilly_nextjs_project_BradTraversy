@@ -9,6 +9,7 @@ import {
   addDaysYmd,
   localTodayYmd,
 } from "@/utils/host/reservationsCalendar";
+import FoundingHostBanner from "@/components/foundingHosts/FoundingHostBanner";
 import "./host-home.css";
 
 function shortDate(ymd, locale) {
@@ -164,6 +165,7 @@ export default function HostHomeView({
   unread = 0,
   awaiting = 0,
   stays = [],
+  foundingHost = null,
 }) {
   const { t, lang } = useLanguage();
   const router = useRouter();
@@ -201,6 +203,11 @@ export default function HostHomeView({
   if (!listings) {
     return (
       <div>
+        <FoundingHostBanner
+          foundingHost={foundingHost}
+          t={t}
+          locale={locale}
+        />
         <p className="mb-8 max-w-2xl text-sm leading-relaxed text-[var(--kama-ink-muted)]">
           {t("hostConsole.blurb")}
         </p>
@@ -240,6 +247,11 @@ export default function HostHomeView({
 
   return (
     <div>
+      <FoundingHostBanner
+        foundingHost={foundingHost}
+        t={t}
+        locale={locale}
+      />
       <header className="mb-8 flex items-center justify-between gap-3">
         <p className="text-sm text-[var(--kama-ink-muted)]">
           {listings === 1

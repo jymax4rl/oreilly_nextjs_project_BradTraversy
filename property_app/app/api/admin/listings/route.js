@@ -42,6 +42,11 @@ export const GET = async (request) => {
       listingQuery = { status: "rejected" };
     }
 
+    const owner = String(searchParams.get("owner") || "").trim();
+    if (owner) {
+      listingQuery = { ...listingQuery, owner };
+    }
+
     const pendingQueue = pendingModerationQueueQuery();
 
     const [properties, pendingCount, approvedCount, rejectedCount, hiddenCount] =

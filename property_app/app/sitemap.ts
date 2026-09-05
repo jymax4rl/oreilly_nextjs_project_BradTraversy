@@ -6,6 +6,7 @@ import { ensurePropertySlug } from "@/utils/listings/propertySlug";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
 import { SECTION_IDS } from "@/lib/legal/content";
 import { findPreviewLockedOwnerIds } from "@/utils/listings/previewLockedHost.server";
+import { isListingsCatalogBeta } from "@/utils/listings/catalogBeta";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl =
@@ -22,14 +23,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: `${baseUrl}/properties`,
       lastModified: new Date(),
-      changeFrequency: "daily" as const,
-      priority: 0.9,
+      changeFrequency: "weekly" as const,
+      priority: isListingsCatalogBeta() ? 0.6 : 0.9,
     },
     {
       url: `${baseUrl}/business`,
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/founding-hosts`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/influencers`,
@@ -81,9 +88,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ];
 
-  // Dynamic property pages — only when database is available at build/runtime
+  // Dynamic property pages stay out of the public sitemap during host-only beta.
   let propertyRoutes: MetadataRoute.Sitemap = [];
-  if (process.env.MONGODB_URI) {
+  if (process.env.MONGODB_URI && !isListingsCatalogBeta()) {
     try {
       await connectToDatabase();
       const properties = (await (Property as any)

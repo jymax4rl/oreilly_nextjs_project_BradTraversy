@@ -9,6 +9,10 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { canUserViewListing } from "@/utils/listingApproval";
 import {
+  canBrowseListingCatalog,
+  isListingsCatalogBeta,
+} from "@/utils/listings/catalogBeta";
+import {
   ensurePropertySlug,
   findPropertyByParam,
 } from "@/utils/listings/propertySlug";
@@ -114,6 +118,9 @@ export default async function PropertyPage({ params }) {
 
   const session = await getServerSession(authOptions);
   if (!canUserViewListing(property, session)) {
+    if (isListingsCatalogBeta() && !canBrowseListingCatalog(session)) {
+      redirect("/properties");
+    }
     notFound();
   }
   const serialized = await attachOwnerProfiles(

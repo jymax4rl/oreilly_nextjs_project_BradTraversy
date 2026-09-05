@@ -5,6 +5,7 @@ import { Fraunces, Outfit } from "next/font/google";
 import Lenis from "lenis";
 import HomePortalHero from "./HomePortalHero";
 import HomeSearchSection from "./HomeSearchSection";
+import FoundingHostsHomeModal from "@/components/foundingHosts/FoundingHostsHomeModal";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -19,7 +20,11 @@ const outfit = Outfit({
   display: "swap",
 });
 
-export default function HomeImmersive({ children }) {
+export default function HomeImmersive({
+  children,
+  foundingStats = null,
+  catalogOpen = true,
+}) {
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const mobile = window.matchMedia("(max-width: 767px)").matches;
@@ -47,10 +52,11 @@ export default function HomeImmersive({ children }) {
   return (
     <div className={`home-portal ${fraunces.variable} ${outfit.variable}`}>
       <div className="home-portal-content">
-        <HomePortalHero />
-        <HomeSearchSection />
+        <HomePortalHero catalogOpen={catalogOpen} />
+        {catalogOpen ? <HomeSearchSection /> : null}
         {children}
       </div>
+      <FoundingHostsHomeModal stats={foundingStats} />
     </div>
   );
 }

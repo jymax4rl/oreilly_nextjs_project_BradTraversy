@@ -25,7 +25,7 @@ export const HOST_PITCH_SLIDES = [
     iconLabel: "No commission",
     eyebrow: "Zero commission",
     title: "Keep every night. We take none.",
-    body: "Founding hosts list with no cut. You set the rate. You and the guest agree how to pay. The stay stays yours.",
+    body: "Founding Hosts list with no Isisel cut for the founding term — if a Founding 100 spot is still open when your first listing is approved. You set the rate. You and the guest agree how to pay.",
   },
   {
     id: "wait",

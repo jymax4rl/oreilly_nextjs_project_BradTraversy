@@ -20,6 +20,7 @@ export default function AdminListingCardActions({
   canHide = false,
   onToggleListed,
   onDeleted,
+  onTrainingStay,
 }) {
   const { data: session } = useSession();
   const [messageOpen, setMessageOpen] = useState(false);
@@ -53,6 +54,16 @@ export default function AdminListingCardActions({
             Message host
           </button>
         )}
+
+        {typeof onTrainingStay === "function" ? (
+          <button
+            type="button"
+            onClick={onTrainingStay}
+            className="rounded-lg border border-[#1B5C57]/30 bg-[#1B5C57]/5 px-3 py-1.5 text-xs font-semibold text-[#1B5C57] hover:bg-[#1B5C57]/10"
+          >
+            Test stay
+          </button>
+        ) : null}
 
         {canHide && typeof onToggleListed === "function" ? (
           <button

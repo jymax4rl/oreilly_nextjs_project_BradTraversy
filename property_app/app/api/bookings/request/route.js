@@ -4,6 +4,7 @@ import { authOptions } from "@/utils/authOptions";
 import User from "@/models/User";
 import { createManualBookingRequest } from "@/utils/bookings/createManualBooking";
 import { isPaymentGatewayCheckoutEnabled } from "@/utils/bookings/paymentMode";
+import { canBrowseListingCatalog } from "@/utils/listings/catalogBeta";
 
 /**
  * POST /api/bookings/request
@@ -26,6 +27,9 @@ export async function POST(request) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id && !session?.user?.email) {
       return Response.json({ error: "Sign in to request a reservation" }, { status: 401 });
+    }
+    if (!canBrowseListingCatalog(session)) {
+      return Response.json({ error: "Property not found" }, { status: 404 });
     }
 
     const body = await request.json();

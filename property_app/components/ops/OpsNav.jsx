@@ -12,13 +12,17 @@ import {
   CreditCard,
   Megaphone,
   LogOut,
+  Award,
+  BarChart3,
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 
 const NAV = [
   { href: "/ops", label: "Home", exact: true, Icon: Home },
+  { href: "/ops/analytics", label: "Analytics", Icon: BarChart3 },
   { href: "/ops/users", label: "Users", Icon: Users },
   { href: "/ops/hosts", label: "Hosts", Icon: Building2 },
+  { href: "/ops/founding-hosts", label: "Founding", Icon: Award },
   { href: "/ops/listings", label: "Listings", Icon: LayoutList },
   { href: "/ops/reservations", label: "Reservations", Icon: CalendarCheck },
   { href: "/ops/transactions", label: "Payments", Icon: CreditCard },

@@ -5,6 +5,8 @@ import Property from "@/models/Property";
 import { redirect } from "next/navigation";
 import HostListingsView from "@/components/host/HostListingsView";
 import { isAwaitingListingModeration } from "@/utils/listingApproval";
+import User from "@/models/User";
+import { serializeFoundingHostPublic } from "@/utils/foundingHost/serialize";
 
 export const metadata = {
   title: "My Listings | Isisel",
@@ -50,12 +52,17 @@ export default async function HostListingsPage() {
     (p) => p.displayStatus === "pending",
   ).length;
 
+  const hostUser = await User.findById(session.user.id)
+    .select("foundingHost")
+    .lean();
+
   return (
     <HostListingsView
       properties={serialized}
       total={total}
       approved={approved}
       pending={pending}
+      foundingHost={serializeFoundingHostPublic(hostUser)}
     />
   );
 }

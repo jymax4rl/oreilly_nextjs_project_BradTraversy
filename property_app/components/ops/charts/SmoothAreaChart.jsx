@@ -14,11 +14,12 @@ export default function SmoothAreaChart({
   label = "Page views",
   subtitle = "Last 24 hours · 15 min",
   emptyHint = "The curve fills in as guests browse the public site.",
+  tickFormat,
 }) {
   const rawId = useId().replace(/:/g, "");
   const fillId = `ops-area-fill-${rawId}`;
 
-  const values = series.map((p) => Number(p.views) || 0);
+  const values = series.map((p) => Number(p.value ?? p.views) || 0);
   const hasSignal = values.some((v) => v > 0);
   const pts = scaleSeries(values.length ? values : [0], W, H, 28);
   const line = smoothPath(pts);
@@ -32,7 +33,9 @@ export default function SmoothAreaChart({
     for (let i = 0; i < series.length; i += step) {
       hourLabels.push({
         x: pts[i].x,
-        text: formatHour(series[i].t),
+        text: tickFormat
+          ? tickFormat(series[i].t)
+          : formatHour(series[i].t),
       });
     }
   }

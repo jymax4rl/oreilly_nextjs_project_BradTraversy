@@ -80,6 +80,12 @@ export const aboutPage = {
         label: "For businesses",
       },
       {
+        title: "Founding Hosts",
+        body: "The first hosts building Isisel with us — commission-free for a founding term.",
+        href: "/founding-hosts",
+        label: "Founding 100",
+      },
+      {
         title: "Creators",
         body: "Travel and culture voices who want to talk about partnership.",
         href: "/influencers",

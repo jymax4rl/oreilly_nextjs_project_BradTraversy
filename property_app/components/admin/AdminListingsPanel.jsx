@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { isOpsStaff, isSuperAdmin } from "@/utils/opsAuth";
 import AdminListingCardActions from "@/components/admin/AdminListingCardActions";
@@ -12,6 +12,7 @@ import OpsListingsMap, {
   pinsFromProperties,
 } from "@/components/maps/OpsListingsMap";
 import OpsNewReservationsDropdown from "@/components/ops/OpsNewReservationsDropdown";
+import OpsTrainingReservationModal from "@/components/ops/OpsTrainingReservationModal";
 
 const SEARCH_DEBOUNCE_MS = 280;
 const UNKNOWN_COUNTRY = "Unknown";
@@ -56,6 +57,8 @@ function matchesSearch(property, query) {
 export default function AdminListingsPanel() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const ownerFilter = (searchParams.get("owner") || "").trim();
   const [properties, setProperties] = useState([]);
   const [counts, setCounts] = useState({
     pending: 0,
@@ -64,13 +67,19 @@ export default function AdminListingsPanel() {
     hidden: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("pending");
+  const [filter, setFilter] = useState(() => {
+    const fromUrl = searchParams.get("status");
+    return ["pending", "approved", "rejected", "hidden"].includes(fromUrl)
+      ? fromUrl
+      : "pending";
+  });
   const [actionLoading, setActionLoading] = useState(null);
   const [countryFilter, setCountryFilter] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [mapOpenMobile, setMapOpenMobile] = useState(false);
   const [profileUserId, setProfileUserId] = useState(null);
+  const [trainingProperty, setTrainingProperty] = useState(null);
 
   useEffect(() => {
     if (status === "authenticated" && !isOpsStaff(session?.user?.role)) {
@@ -93,7 +102,9 @@ export default function AdminListingsPanel() {
       setCountryFilter(null);
       try {
         const res = await fetch(
-          `/api/admin/listings?status=${encodeURIComponent(filter)}&nc=${Date.now()}`,
+          `/api/admin/listings?status=${encodeURIComponent(filter)}${
+            ownerFilter ? `&owner=${encodeURIComponent(ownerFilter)}` : ""
+          }&nc=${Date.now()}`,
           {
             cache: "no-store",
             credentials: "include",
@@ -121,7 +132,7 @@ export default function AdminListingsPanel() {
     };
 
     fetchListings();
-  }, [filter, session, status]);
+  }, [filter, ownerFilter, session, status]);
 
   const searchMatched = useMemo(
     () => properties.filter((p) => matchesSearch(p, searchQuery)),
@@ -182,7 +193,9 @@ export default function AdminListingsPanel() {
       }
 
       const syncRes = await fetch(
-        `/api/admin/listings?status=${encodeURIComponent(filter)}&nc=${Date.now()}`,
+        `/api/admin/listings?status=${encodeURIComponent(filter)}${
+          ownerFilter ? `&owner=${encodeURIComponent(ownerFilter)}` : ""
+        }&nc=${Date.now()}`,
         {
           cache: "no-store",
           credentials: "include",
@@ -235,7 +248,9 @@ export default function AdminListingsPanel() {
         throw new Error(text || `Server returned ${res.status}`);
       }
       const syncRes = await fetch(
-        `/api/admin/listings?status=${encodeURIComponent(filter)}&nc=${Date.now()}`,
+        `/api/admin/listings?status=${encodeURIComponent(filter)}${
+          ownerFilter ? `&owner=${encodeURIComponent(ownerFilter)}` : ""
+        }&nc=${Date.now()}`,
         {
           cache: "no-store",
           credentials: "include",
@@ -311,11 +326,24 @@ export default function AdminListingsPanel() {
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-[var(--kama-ink-muted)]">
           Approve to publish publicly, or reject with a reason for the host.
-          Pending shows new submissions only; older listings stay under Approved.
-          Superadmins can Hide a live listing from the public site without deleting it.
-          Filter by country or search host and location within the active tab.
+          Approving a host’s first listing may assign a Founding 100 spot when
+          the program is active and spots remain. Pending shows new submissions
+          only; older listings stay under Approved. Superadmins can Hide a live
+          listing from the public site without deleting it. Filter by country or
+          search host and location within the active tab. Use Test stay to seed
+          a host calendar with a training guest (no emails, excluded from
+          analytics).
         </p>
       </header>
+
+      {ownerFilter ? (
+        <p className="mb-4 rounded-xl border border-[#1B5C57]/20 bg-[#1B5C57]/5 px-4 py-2.5 text-sm text-[#1B5C57]">
+          Showing listings for this host.{" "}
+          <Link href="/ops/listings" className="font-semibold underline-offset-2 hover:underline">
+            Show all hosts
+          </Link>
+        </p>
+      ) : null}
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
@@ -560,6 +588,12 @@ export default function AdminListingsPanel() {
                             [filter]: Math.max(0, (prev[filter] ?? 1) - 1),
                           }));
                         }}
+                        onTrainingStay={() =>
+                          setTrainingProperty({
+                            _id: id,
+                            name: property.name || "Untitled",
+                          })
+                        }
                       />
                     </div>
                   </li>
@@ -620,6 +654,23 @@ export default function AdminListingsPanel() {
                   : { banned },
               };
             }),
+          );
+        }}
+      />
+      <OpsTrainingReservationModal
+        open={Boolean(trainingProperty)}
+        property={trainingProperty}
+        onClose={() => setTrainingProperty(null)}
+        onCreated={() => {
+          setProperties((prev) =>
+            prev.map((p) =>
+              String(p._id) === String(trainingProperty?._id)
+                ? {
+                    ...p,
+                    reservationCount: (Number(p.reservationCount) || 0) + 1,
+                  }
+                : p,
+            ),
           );
         }}
       />

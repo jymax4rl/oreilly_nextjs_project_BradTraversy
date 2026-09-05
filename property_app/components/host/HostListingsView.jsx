@@ -17,6 +17,7 @@ import { useState } from "react";
 import DeletePropertyControl from "@/components/properties/DeletePropertyControl";
 import PropertyListingThumbnail from "@/components/properties/PropertyListingThumbnail";
 import HostCreateReservationModal from "@/components/host/HostCreateReservationModal";
+import FoundingHostBadge from "@/components/foundingHosts/FoundingHostBadge";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { propertyTypeMessageKey } from "@/lib/i18n/messages";
 import { propertyImageUrl } from "@/utils/propertyImageUrl";
@@ -45,6 +46,7 @@ export default function HostListingsView({
   total,
   approved,
   pending,
+  foundingHost = null,
 }) {
   const { t } = useLanguage();
   const [createFor, setCreateFor] = useState(null);
@@ -60,6 +62,11 @@ export default function HostListingsView({
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--kama-ink)]">
             {t("hostConsole.listingsTitle")}
           </h1>
+          {foundingHost?.number ? (
+            <div className="mt-2">
+              <FoundingHostBadge number={foundingHost.number} />
+            </div>
+          ) : null}
           <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
             {t(summaryKey, { total, approved, pending })}
           </p>

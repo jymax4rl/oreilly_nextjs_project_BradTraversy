@@ -50,6 +50,29 @@ export const messages = {
       browseStays: "Browse stays",
       staysEyebrow: "Stays",
       staysTitle: "Available vacation rentals in Africa",
+      founding: {
+        eyebrow: "Founding Hosts",
+        title: "Become one of Isisel's Founding {n} Hosts",
+        body: "We're building the future of property stays in Africa — and we want our first hosts to build it with us.",
+        claimed: "{claimed} of {limit} Founding Host spots claimed",
+        remaining: "{n} spots remaining",
+        remainingOne: "1 spot remaining",
+        benefit:
+          "{rate}% Isisel commission for {years} years, plus Founding Host recognition — awarded when your first listing is approved.",
+        apply: "Apply to host",
+        learnMore: "Learn more",
+        notNow: "Not now",
+        close: "Close",
+      },
+      comingSoon: {
+        kicker: "Coming soon",
+        title: "Homes across Africa, opening shortly",
+        body: "The catalogue is being prepared with founding hosts. Guests will browse when we open. Hosts already on Isisel can preview stays now.",
+        hostCta: "Become a host",
+        foundingCta: "Founding Hosts",
+        hostPreview:
+          "Host preview — guests cannot see the catalogue yet.",
+      },
     },
     search: {
       findStay: "Find a stay",
@@ -379,6 +402,16 @@ export const messages = {
         "{total} listing · {approved} live · {pending} in review",
       emptyTitle: "No listings yet",
       emptyHint: "Start earning by listing your first property on Isisel.",
+      founding: {
+        title: "You're one of Isisel's Founding Hosts",
+        commissionOn:
+          "You're currently enjoying 0% Isisel commission on your bookings.",
+        commissionOff:
+          "Your Founding Host recognition remains. New bookings now follow standard Isisel commission.",
+        until: "Commission-free until {date}",
+        ended: "Commission-free period ended {date}",
+        learnMore: "Learn more",
+      },
       listProperty: "List a property",
       approved: "Approved",
       pendingReview: "Pending review",
@@ -410,6 +443,17 @@ export const messages = {
         close: "Close",
         submit: "Create reservation",
         saving: "Creating…",
+      },
+      push: {
+        title: "Lock-screen alerts",
+        body: "Get a phone notification when a guest reserves one of your stays — even if Isisel is closed.",
+        iosInstall:
+          "On iPhone, add Isisel to your Home Screen first, open it from that icon, then come back here to enable alerts.",
+        enable: "Enable",
+        enabling: "Enabling…",
+        later: "Not now",
+        enabled: "This phone will alert you on the lock screen for new reservations.",
+        failed: "Could not enable notifications.",
       },
       rates: "Rates",
       calendarOpen: "Open availability",
@@ -735,6 +779,29 @@ export const messages = {
       browseStays: "Voir les séjours",
       staysEyebrow: "Séjours",
       staysTitle: "Locations de vacances disponibles en Afrique",
+      founding: {
+        eyebrow: "Hôtes fondateurs",
+        title: "Devenez l’un des {n} hôtes fondateurs d’Isisel",
+        body: "Nous construisons l’avenir des séjours en Afrique — et nous voulons que nos premiers hôtes le fassent avec nous.",
+        claimed: "{claimed} places d’hôte fondateur sur {limit} sont prises",
+        remaining: "{n} places restantes",
+        remainingOne: "1 place restante",
+        benefit:
+          "{rate} % de commission Isisel pendant {years} ans, et la reconnaissance d’hôte fondateur — attribuée lorsque votre première annonce est approuvée.",
+        apply: "Devenir hôte",
+        learnMore: "En savoir plus",
+        notNow: "Pas maintenant",
+        close: "Fermer",
+      },
+      comingSoon: {
+        kicker: "Bientôt",
+        title: "Des maisons à travers l’Afrique, très bientôt",
+        body: "Le catalogue se prépare avec les hôtes fondateurs. Les voyageurs y entreront à l’ouverture. Les hôtes déjà sur Isisel peuvent déjà prévisualiser les séjours.",
+        hostCta: "Devenir hôte",
+        foundingCta: "Hôtes fondateurs",
+        hostPreview:
+          "Aperçu hôte — les voyageurs ne voient pas encore le catalogue.",
+      },
     },
     search: {
       findStay: "Trouver un séjour",
@@ -1070,6 +1137,16 @@ export const messages = {
       emptyTitle: "Aucune annonce pour l’instant",
       emptyHint:
         "Commencez à gagner en publiant votre premier logement sur Isisel.",
+      founding: {
+        title: "Vous faites partie des hôtes fondateurs d’Isisel",
+        commissionOn:
+          "Vous bénéficiez actuellement de 0 % de commission Isisel sur vos réservations.",
+        commissionOff:
+          "Votre reconnaissance d’hôte fondateur reste. Les nouvelles réservations suivent désormais la commission Isisel standard.",
+        until: "Sans commission jusqu’au {date}",
+        ended: "Période sans commission terminée le {date}",
+        learnMore: "En savoir plus",
+      },
       listProperty: "Publier un logement",
       approved: "Approuvée",
       pendingReview: "En revue",
@@ -1101,6 +1178,17 @@ export const messages = {
         close: "Fermer",
         submit: "Créer la réservation",
         saving: "Création…",
+      },
+      push: {
+        title: "Alertes sur l’écran de verrouillage",
+        body: "Recevez une notification téléphone lorsqu’un voyageur réserve — même si Isisel est fermé.",
+        iosInstall:
+          "Sur iPhone, ajoutez d’abord Isisel à l’écran d’accueil, ouvrez-le depuis cette icône, puis revenez ici pour activer les alertes.",
+        enable: "Activer",
+        enabling: "Activation…",
+        later: "Plus tard",
+        enabled: "Ce téléphone vous alertera sur l’écran de verrouillage pour chaque nouvelle réservation.",
+        failed: "Impossible d’activer les notifications.",
       },
       rates: "Tarifs",
       calendarOpen: "Ouvrir les disponibilités",

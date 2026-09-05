@@ -19,7 +19,9 @@ export default function MainShell({ children }) {
     pathname === "/about" ||
     pathname.startsWith("/about/") ||
     pathname === "/contact" ||
-    pathname.startsWith("/contact/");
+    pathname.startsWith("/contact/") ||
+    pathname === "/founding-hosts" ||
+    pathname.startsWith("/founding-hosts/");
 
   return (
     <main
