@@ -123,7 +123,7 @@ export default function HostNav() {
   }, [activeIndex]);
 
   return (
-    <header className="sticky top-0 z-[60] border-b border-[var(--kama-border)] bg-[var(--kama-surface)]/90 shadow-[0_8px_28px_-20px_rgba(27,92,87,0.45)] backdrop-blur-md">
+    <header className="kama-safe-top sticky top-0 z-[60] border-b border-[var(--kama-border)] bg-[var(--kama-surface)]/90 shadow-[0_8px_28px_-20px_rgba(27,92,87,0.45)] backdrop-blur-md">
       <div className="mx-auto max-w-[1400px]">
         <div className="flex h-12 items-center gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-2.5">

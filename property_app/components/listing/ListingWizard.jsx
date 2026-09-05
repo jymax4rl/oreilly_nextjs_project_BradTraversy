@@ -538,7 +538,7 @@ export default function ListingWizard() {
       className="listing-wizard flex min-h-dvh flex-col bg-[var(--kama-canvas)]"
       data-listing-wizard
     >
-      <header className="sticky top-0 z-[60] border-b border-[var(--kama-border)] bg-[var(--kama-surface)]/95 backdrop-blur-md">
+      <header className="kama-safe-top sticky top-0 z-[60] border-b border-[var(--kama-border)] bg-[var(--kama-surface)]/95 backdrop-blur-md">
         <div className="flex items-center justify-between px-4 py-3 sm:px-6">
           <Link
             href="/host/listings"

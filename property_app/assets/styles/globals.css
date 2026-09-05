@@ -25,6 +25,9 @@
   --kama-chrome-clearance: calc(
     var(--kama-nav-height-mobile) + env(safe-area-inset-bottom, 0px)
   );
+  --kama-safe-top: env(safe-area-inset-top, 0px);
+  --kama-safe-left: env(safe-area-inset-left, 0px);
+  --kama-safe-right: env(safe-area-inset-right, 0px);
 
   /* Aliases used by home portal + shared chrome */
   --portal-canvas: var(--kama-canvas);
@@ -66,6 +69,17 @@ body {
   color: var(--kama-ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+  Installed PWAs use viewport-fit=cover. Header background still fills
+  the status-bar strip (native); buttons sit below it via --kama-safe-top,
+  which is 0 unless the OS is actually covering the webview.
+*/
+.kama-safe-top {
+  padding-top: var(--kama-safe-top);
+  padding-left: var(--kama-safe-left);
+  padding-right: var(--kama-safe-right);
 }
 
 h1 {

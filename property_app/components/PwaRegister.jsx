@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
+import { startPwaSafeAreaSync } from "@/utils/pwa/safeArea";
 
 /**
- * Registers the minimal service worker required for Chromium PWA installability.
+ * Registers the PWA service worker and keeps top chrome clear of the
+ * status bar only when the installed app is actually drawing under it.
  */
 export default function PwaRegister() {
+  useEffect(() => startPwaSafeAreaSync(), []);
+
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
       return;
