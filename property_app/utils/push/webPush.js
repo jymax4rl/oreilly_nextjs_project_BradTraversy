@@ -117,6 +117,13 @@ export async function notifyHostNewReservation({
     return finishPush({ sent: 0, skipped: "no-devices" });
   }
 
+  const bumped = await User.findByIdAndUpdate(
+    host._id,
+    { $inc: { hostPushBadge: 1 } },
+    { new: true, select: "hostPushBadge" },
+  );
+  const badge = Math.max(1, Number(bumped?.hostPushBadge) || 1);
+
   const stay = stayLabel(checkIn, checkOut);
   const guest = String(guestName || "Guest").trim() || "Guest";
   const listing = String(propertyName || "your listing").trim();
@@ -126,6 +133,7 @@ export async function notifyHostNewReservation({
     body: [guest, listing, stay].filter(Boolean).join(" · "),
     url: "/host",
     tag: bookingId ? `booking-${bookingId}` : "reservation",
+    badge,
   });
 
   let sent = 0;

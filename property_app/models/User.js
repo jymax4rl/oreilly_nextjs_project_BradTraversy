@@ -87,6 +87,15 @@ const UserSchema = new Schema(
       ],
       default: undefined,
     },
+    /**
+     * Unread reservation alerts for the installed PWA icon badge.
+     * Incremented on each host push; cleared when they open the host console.
+     */
+    hostPushBadge: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     /** Host-application pitch seen (modal on /host/onboarding). */
     hasCompletedHostOnboarding: {
       type: Boolean,

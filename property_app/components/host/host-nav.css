@@ -77,6 +77,27 @@
   opacity: 1;
 }
 
+.host-nav-count {
+  position: absolute;
+  top: -0.45rem;
+  right: -0.55rem;
+  z-index: 1;
+  display: flex;
+  min-width: 0.9rem;
+  height: 0.9rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.18rem;
+  border-radius: 999px;
+  background: var(--kama-danger);
+  color: #fff;
+  font-size: 0.5rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 0 0 1.5px
+    color-mix(in srgb, var(--kama-field) 70%, white);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .host-nav-pill {
     transition: none;

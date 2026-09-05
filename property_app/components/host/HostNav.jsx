@@ -15,7 +15,7 @@ import {
 import BrandLogo from "@/components/BrandLogo";
 import LanguageToggle from "@/components/i18n/LanguageToggle";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
-import { getUnreadMessageCount } from "@/utils/actions/messageActions";
+import { getHostNavCounts } from "@/utils/host/navCounts";
 import { isOpsStaff } from "@/utils/opsAuth";
 import "./host-nav.css";
 
@@ -50,6 +50,7 @@ export default function HostNav() {
   const { data: session } = useSession();
   const { t, lang } = useLanguage();
   const [unread, setUnread] = useState(0);
+  const [pending, setPending] = useState(0);
   const [pill, setPill] = useState({ x: 0, w: 0, ready: false });
   const [overflow, setOverflow] = useState("none");
   const railRef = useRef(null);
@@ -59,7 +60,12 @@ export default function HostNav() {
 
   useEffect(() => {
     if (!session?.user) return;
-    getUnreadMessageCount().then(setUnread).catch(() => {});
+    getHostNavCounts()
+      .then((counts) => {
+        setUnread(counts.unreadMessages || 0);
+        setPending(counts.pendingReservations || 0);
+      })
+      .catch(() => {});
   }, [session, pathname]);
 
   const syncRail = useCallback(() => {
@@ -83,7 +89,7 @@ export default function HostNav() {
 
   useLayoutEffect(() => {
     syncRail();
-  }, [syncRail, unread, pathname, lang]);
+  }, [syncRail, unread, pending, pathname, lang]);
 
   useEffect(() => {
     const rail = railRef.current;
@@ -173,7 +179,12 @@ export default function HostNav() {
                 />
                 {NAV.map((item, index) => {
                   const active = index === activeIndex;
-                  const showBadge = item.href === "/host/messages" && unread > 0;
+                  const count =
+                    item.href === "/host/messages"
+                      ? unread
+                      : item.href === "/host/reservations"
+                        ? pending
+                        : 0;
                   const Icon = item.Icon;
                   return (
                     <Link
@@ -197,22 +208,18 @@ export default function HostNav() {
                       }`}
                       aria-current={active ? "page" : undefined}
                     >
-                      <Icon
-                        className="h-3.5 w-3.5 shrink-0 opacity-90"
-                        strokeWidth={active ? 2.4 : 2}
-                      />
+                      <span className="relative inline-flex h-3.5 w-3.5 shrink-0">
+                        <Icon
+                          className="h-3.5 w-3.5 opacity-90"
+                          strokeWidth={active ? 2.4 : 2}
+                        />
+                        {count > 0 ? (
+                          <span className="host-nav-count" aria-hidden>
+                            {count > 9 ? "9+" : count}
+                          </span>
+                        ) : null}
+                      </span>
                       {t(item.labelKey)}
-                      {showBadge ? (
-                        <span
-                          className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold ${
-                            active
-                              ? "bg-white/20 text-white"
-                              : "bg-[var(--kama-accent)] text-white"
-                          }`}
-                        >
-                          {unread > 9 ? "9+" : unread}
-                        </span>
-                      ) : null}
                     </Link>
                   );
                 })}

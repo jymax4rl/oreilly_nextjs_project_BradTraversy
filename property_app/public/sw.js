@@ -1,6 +1,6 @@
 /* Minimal service worker — satisfies Chromium installability.
    Keep fetch handler present; network-first for navigations. */
-const CACHE = "isisel-shell-v2";
+const CACHE = "isisel-shell-v3";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -36,6 +36,18 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
+async function setIconBadge(count) {
+  try {
+    if (count > 0 && self.navigator?.setAppBadge) {
+      await self.navigator.setAppBadge(count);
+    } else if (self.navigator?.clearAppBadge) {
+      await self.navigator.clearAppBadge();
+    }
+  } catch {
+    /* Badging API is optional (desktop Chrome, older iOS). */
+  }
+}
+
 self.addEventListener("push", (event) => {
   let data = {};
   try {
@@ -52,7 +64,18 @@ self.addEventListener("push", (event) => {
     renotify: true,
     data: { url: data.url || "/host" },
   };
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    (async () => {
+      await self.registration.showNotification(title, options);
+      const notes = await self.registration.getNotifications();
+      const fromPayload = Number(data.badge);
+      const count =
+        Number.isFinite(fromPayload) && fromPayload > 0
+          ? fromPayload
+          : Math.max(1, notes.length);
+      await setIconBadge(count);
+    })(),
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {
@@ -60,6 +83,9 @@ self.addEventListener("notificationclick", (event) => {
   const url = event.notification?.data?.url || "/host";
   event.waitUntil(
     (async () => {
+      const notes = await self.registration.getNotifications();
+      await Promise.all(notes.map((n) => n.close()));
+      await setIconBadge(0);
       const all = await self.clients.matchAll({
         type: "window",
         includeUncontrolled: true,
