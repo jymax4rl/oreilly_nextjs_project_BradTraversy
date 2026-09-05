@@ -96,20 +96,26 @@ export async function notifyHostNewReservation({
   bookingId,
   status,
 }) {
-  if (!hostUserId || !applyVapid()) return { sent: 0, skipped: "unconfigured" };
+  if (!hostUserId || !applyVapid()) {
+    return finishPush({ sent: 0, skipped: "unconfigured" });
+  }
 
   const host = await User.findById(hostUserId)
     .select("pushSubscriptions preferences.notifications")
     .lean();
-  if (!host) return { sent: 0, skipped: "no-host" };
+  if (!host) return finishPush({ sent: 0, skipped: "no-host" });
 
   const prefs = normalizeNotificationPrefs(host.preferences?.notifications);
-  if (!prefs.hostNewBookings) return { sent: 0, skipped: "opted-out" };
+  if (!prefs.hostNewBookings) {
+    return finishPush({ sent: 0, skipped: "opted-out" });
+  }
 
   const subs = Array.isArray(host.pushSubscriptions)
     ? host.pushSubscriptions
     : [];
-  if (subs.length === 0) return { sent: 0, skipped: "no-devices" };
+  if (subs.length === 0) {
+    return finishPush({ sent: 0, skipped: "no-devices" });
+  }
 
   const stay = stayLabel(checkIn, checkOut);
   const guest = String(guestName || "Guest").trim() || "Guest";
@@ -147,5 +153,38 @@ export async function notifyHostNewReservation({
     }),
   );
 
-  return { sent };
+  return finishPush({ sent, skipped: sent ? null : "send-failed" });
+}
+
+function finishPush(result) {
+  if (result.skipped) {
+    console.info("[web-push] skipped:", result.skipped);
+  } else if (result.sent) {
+    console.info("[web-push] sent:", result.sent);
+  }
+  return result;
+}
+
+/** Ops / UI copy for a notifyHostNewReservation result. */
+export function describeHostPushResult(push) {
+  if (!push) {
+    return "Lock-screen alert was not attempted.";
+  }
+  if (push.sent > 0) {
+    return `Lock-screen alert sent to ${push.sent} device${push.sent === 1 ? "" : "s"}.`;
+  }
+  switch (push.skipped) {
+    case "unconfigured":
+      return "Lock-screen alert skipped: push is not configured on the server.";
+    case "no-host":
+      return "Lock-screen alert skipped: listing owner was not found.";
+    case "opted-out":
+      return "Lock-screen alert skipped: this host turned off new-reservation alerts in Settings.";
+    case "no-devices":
+      return "No lock-screen alert: this host has not enabled alerts on a phone yet. They must open /host, tap Enable, and allow notifications — then create another test stay.";
+    case "send-failed":
+      return "Lock-screen alert failed to reach the host's device.";
+    default:
+      return "No lock-screen alert was sent.";
+  }
 }

@@ -446,9 +446,13 @@ export const messages = {
       },
       push: {
         title: "Lock-screen alerts",
-        body: "Get a phone notification when a guest reserves one of your stays — even if Isisel is closed.",
+        body: "Tap Enable — your phone will then ask for permission. After that, new reservations (including ops training stays) reach this phone even if Isisel is closed.",
         iosInstall:
-          "On iPhone, add Isisel to your Home Screen first, open it from that icon, then come back here to enable alerts.",
+          "On iPhone, add Isisel to your Home Screen first, open it from that icon, then come back here to enable alerts. Safari in a browser tab cannot receive these.",
+        unsupported:
+          "This browser cannot receive lock-screen alerts. Use Chrome or Edge on Android, or add Isisel to the Home Screen on iPhone.",
+        denied:
+          "Notifications are blocked for this site. In the browser address bar, allow notifications for isisel.com, then tap Enable again.",
         enable: "Enable",
         enabling: "Enabling…",
         later: "Not now",
@@ -1181,9 +1185,13 @@ export const messages = {
       },
       push: {
         title: "Alertes sur l’écran de verrouillage",
-        body: "Recevez une notification téléphone lorsqu’un voyageur réserve — même si Isisel est fermé.",
+        body: "Appuyez sur Activer — le téléphone demandera alors l’autorisation. Ensuite, les nouvelles réservations (y compris les séjours d’entraînement ops) arriveront même si Isisel est fermé.",
         iosInstall:
-          "Sur iPhone, ajoutez d’abord Isisel à l’écran d’accueil, ouvrez-le depuis cette icône, puis revenez ici pour activer les alertes.",
+          "Sur iPhone, ajoutez d’abord Isisel à l’écran d’accueil, ouvrez-le depuis cette icône, puis revenez ici pour activer les alertes. Safari dans un onglet ne peut pas les recevoir.",
+        unsupported:
+          "Ce navigateur ne peut pas recevoir les alertes. Utilisez Chrome ou Edge sur Android, ou ajoutez Isisel à l’écran d’accueil sur iPhone.",
+        denied:
+          "Les notifications sont bloquées pour ce site. Autorisez-les dans la barre d’adresse, puis appuyez de nouveau sur Activer.",
         enable: "Activer",
         enabling: "Activation…",
         later: "Plus tard",

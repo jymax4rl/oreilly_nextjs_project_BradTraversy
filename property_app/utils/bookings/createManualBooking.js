@@ -166,12 +166,13 @@ export async function createManualBookingRequest({
 
   const plain = booking.toObject();
 
+  let push = { sent: 0, skipped: "not-attempted" };
   const shouldNotifyHost =
     Boolean(property.owner) &&
     (source === TRAINING_BOOKING_SOURCE || !createdByHost);
   if (shouldNotifyHost) {
     try {
-      await notifyHostNewReservation({
+      push = await notifyHostNewReservation({
         hostUserId: property.owner,
         propertyName: property.name,
         guestName,
@@ -182,6 +183,7 @@ export async function createManualBookingRequest({
       });
     } catch (err) {
       console.error("[web-push] host notify failed:", err);
+      push = { sent: 0, skipped: "send-failed" };
     }
   }
 
@@ -194,6 +196,7 @@ export async function createManualBookingRequest({
       booking: plain,
       nights,
       emails: { skipped: true },
+      push,
     };
   }
 
@@ -233,5 +236,6 @@ export async function createManualBookingRequest({
     booking: plain,
     nights,
     emails,
+    push,
   };
 }

@@ -52,6 +52,14 @@ export function dismissPushPrompt() {
   }
 }
 
+async function ensureServiceWorker() {
+  let reg = await navigator.serviceWorker.getRegistration("/");
+  if (!reg) {
+    reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+  }
+  return navigator.serviceWorker.ready;
+}
+
 export async function subscribeHostPush() {
   if (!pushSupported()) {
     throw new Error("Notifications are not available in this browser");
@@ -68,7 +76,7 @@ export async function subscribeHostPush() {
     throw new Error("Push is not configured on the server");
   }
 
-  const reg = await navigator.serviceWorker.ready;
+  const reg = await ensureServiceWorker();
   const sub = await reg.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(vapid.publicKey),

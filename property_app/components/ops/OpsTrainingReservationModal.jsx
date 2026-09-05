@@ -26,6 +26,7 @@ export default function OpsTrainingReservationModal({
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [pushResult, setPushResult] = useState(null);
 
   useEffect(() => {
     if (!open) {
@@ -39,6 +40,7 @@ export default function OpsTrainingReservationModal({
       setError("");
       setSubmitting(false);
       setDone(false);
+      setPushResult(null);
       return;
     }
     const onKey = (e) => {
@@ -84,6 +86,7 @@ export default function OpsTrainingReservationModal({
       if (!res.ok) {
         throw new Error(data.error || "Could not create training stay");
       }
+      setPushResult(data.push || null);
       setDone(true);
       onCreated?.(data);
     } catch (err) {
@@ -99,6 +102,7 @@ export default function OpsTrainingReservationModal({
     setDateError("");
     setError("");
     setDone(false);
+    setPushResult(null);
   };
 
   return (
@@ -148,6 +152,16 @@ export default function OpsTrainingReservationModal({
               Training stay created. It appears on the host calendar. No emails
               were sent. Analytics ignore these bookings.
             </p>
+            <p
+              className={`rounded-xl px-3 py-2.5 text-sm ${
+                pushResult?.sent > 0
+                  ? "bg-emerald-50 text-emerald-900"
+                  : "bg-amber-50 text-amber-950"
+              }`}
+            >
+              {pushResult?.message ||
+                "No lock-screen alert: this host has not enabled alerts on a phone yet."}
+            </p>
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"
@@ -181,6 +195,13 @@ export default function OpsTrainingReservationModal({
                   several different guests.
                 </p>
               </div>
+
+              <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-950">
+                Lock-screen alerts only reach a phone after that host opens{" "}
+                <strong>/host</strong>, taps <strong>Enable</strong>, and allows
+                notifications. Creating this stay will not show a permission
+                prompt.
+              </p>
 
               <div>
                 <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-gray-500">

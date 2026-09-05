@@ -19,11 +19,7 @@ export default function PwaRegister() {
       }
     };
 
-    if (document.readyState === "complete") {
-      register();
-    } else {
-      window.addEventListener("load", register, { once: true });
-    }
+    register();
   }, []);
 
   return null;

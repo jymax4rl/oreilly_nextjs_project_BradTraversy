@@ -5,6 +5,7 @@ import {
   TRAINING_GUEST,
   ensureTrainingGuestUser,
 } from "@/utils/opsTraining/guest";
+import { describeHostPushResult } from "@/utils/push/webPush";
 import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
@@ -77,6 +78,11 @@ export async function POST(request, { params }) {
         guestName: result.booking.guestName,
         guestPhone: result.booking.guestPhone,
         source: TRAINING_BOOKING_SOURCE,
+        push: {
+          sent: result.push?.sent || 0,
+          skipped: result.push?.skipped || null,
+          message: describeHostPushResult(result.push),
+        },
       },
       { status: 201 },
     );

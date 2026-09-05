@@ -14,6 +14,7 @@ import {
 import NotificationToggles from "@/components/settings/NotificationToggles";
 import CurrencyPreference from "@/components/settings/CurrencyPreference";
 import SignOutButton from "@/components/settings/SignOutButton";
+import HostPushPrompt from "@/components/host/HostPushPrompt";
 import { BECOME_A_HOST_HREF } from "@/utils/hostPwaInstall";
 
 function Section({ title, description, children }) {
@@ -125,6 +126,11 @@ export default function SettingsSections({ settings }) {
           initialNotifications={preferences.notifications}
           visibleKeys={notificationKeys}
         />
+        {isVerifiedHost ? (
+          <div className="mt-4">
+            <HostPushPrompt compact />
+          </div>
+        ) : null}
         <div className="mt-2">
           <DeepLink
             href="/messages"
