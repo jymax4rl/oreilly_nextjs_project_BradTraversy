@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import {
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -21,10 +22,11 @@ import { useScrollNav } from "@/contexts/ScrollNavContext";
 import { useMenuOverlay } from "@/contexts/MenuOverlayContext";
 import { getUnreadMessageCount } from "@/utils/actions/messageActions";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { buildLiquidGlassMaps } from "@/utils/liquidGlass";
 import "./mobile-bottom-nav.css";
 
 /**
- * Primary mobile tab bar — floating glass dock (PWA).
+ * Primary mobile tab bar — kube.io liquid-glass dock (PWA).
  * Explore uses outline MapPin (never a filled letter circle).
  * Never mounts Currency here.
  */
@@ -34,8 +36,12 @@ export default function MobileBottomNav() {
   const { toggle, isOpen } = useMenuOverlay();
   const { data: session } = useSession();
   const { t } = useLanguage();
+  const filterUid = useId().replace(/:/g, "");
+  const filterId = `kama-liquid-${filterUid}`;
+
   const [unreadCount, setUnreadCount] = useState(0);
   const [pill, setPill] = useState({ x: 0, y: 0, w: 0, h: 0, ready: false });
+  const [glass, setGlass] = useState(null);
   const dockRef = useRef(null);
   const itemRefs = useRef([]);
 
@@ -79,23 +85,54 @@ export default function MobileBottomNav() {
     });
   }, [activeIndex, compact]);
 
+  const syncGlass = useCallback(() => {
+    const dock = dockRef.current;
+    if (!dock || typeof document === "undefined") return;
+    const rect = dock.getBoundingClientRect();
+    if (rect.width < 8 || rect.height < 8) return;
+    try {
+      const maps = buildLiquidGlassMaps({
+        width: rect.width,
+        height: rect.height,
+        borderRadius: rect.height * 0.5,
+        bezelWidth: compact ? 12 : 16,
+        glassThickness: compact ? 24 : 30,
+        specularOpacity: 0.78,
+        lightAngle: -58,
+      });
+      setGlass(maps);
+    } catch {
+      setGlass(null);
+    }
+  }, [compact]);
+
   useLayoutEffect(() => {
     syncPill();
-    const frame = requestAnimationFrame(syncPill);
-    const timer = window.setTimeout(syncPill, 900);
+    syncGlass();
+    const frame = requestAnimationFrame(() => {
+      syncPill();
+      syncGlass();
+    });
+    const timer = window.setTimeout(() => {
+      syncPill();
+      syncGlass();
+    }, 900);
     return () => {
       cancelAnimationFrame(frame);
       window.clearTimeout(timer);
     };
-  }, [syncPill, unreadCount, t, compact]);
+  }, [syncPill, syncGlass, unreadCount, t, compact]);
 
   useEffect(() => {
     const dock = dockRef.current;
     if (!dock) return undefined;
-    const ro = new ResizeObserver(syncPill);
+    const ro = new ResizeObserver(() => {
+      syncPill();
+      syncGlass();
+    });
     ro.observe(dock);
     return () => ro.disconnect();
-  }, [syncPill]);
+  }, [syncPill, syncGlass]);
 
   return (
     <nav
@@ -106,7 +143,74 @@ export default function MobileBottomNav() {
       aria-hidden={!tabBarVisible}
       data-mobile-bottom-nav
     >
-      <div ref={dockRef} className="kama-tabbar__dock">
+      {glass ? (
+        <svg
+          className="kama-tabbar__svg"
+          aria-hidden
+          focusable="false"
+          colorInterpolationFilters="sRGB"
+        >
+          <defs>
+            <filter
+              id={filterId}
+              x="0"
+              y="0"
+              width={glass.width}
+              height={glass.height}
+              filterUnits="userSpaceOnUse"
+              colorInterpolationFilters="sRGB"
+            >
+              <feImage
+                href={glass.displacementMapUrl}
+                x="0"
+                y="0"
+                width={glass.width}
+                height={glass.height}
+                result="dispMap"
+                preserveAspectRatio="none"
+              />
+              <feDisplacementMap
+                in="SourceGraphic"
+                in2="dispMap"
+                scale={glass.scale}
+                xChannelSelector="R"
+                yChannelSelector="G"
+                result="displaced"
+              />
+              {/* Frost after refraction so edges stay wavy but glossy (kube.io) */}
+              <feGaussianBlur
+                in="displaced"
+                stdDeviation="1.1"
+                result="refracted"
+              />
+              <feImage
+                href={glass.specularMapUrl}
+                x="0"
+                y="0"
+                width={glass.width}
+                height={glass.height}
+                result="specMap"
+                preserveAspectRatio="none"
+              />
+              {/* Specular rim — screen-blend shine onto refracted backdrop */}
+              <feBlend in="specMap" in2="refracted" mode="screen" />
+            </filter>
+          </defs>
+        </svg>
+      ) : null}
+
+      <div
+        ref={dockRef}
+        className="kama-tabbar__dock"
+        style={
+          glass
+            ? { ["--kama-liquid-filter"]: `url(#${filterId})` }
+            : undefined
+        }
+      >
+        <span className="kama-tabbar__lens" aria-hidden />
+        <span className="kama-tabbar__shine" aria-hidden />
+        <span className="kama-tabbar__rim" aria-hidden />
         <span
           aria-hidden
           className="kama-tabbar__active"
