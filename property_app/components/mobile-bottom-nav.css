@@ -1,8 +1,8 @@
-/* Instagram-style floating glass tab bar (PWA / mobile). */
+/* Stable frosted mobile tab bar — no live refraction / no glitter. */
 
 .kama-tabbar {
-  --kama-tabbar-duration: 0.88s;
-  --kama-tabbar-ease: cubic-bezier(0.33, 0.05, 0.18, 1);
+  --kama-tabbar-duration: 0.32s;
+  --kama-tabbar-ease: cubic-bezier(0.22, 1, 0.36, 1);
   position: fixed;
   left: 0;
   right: 0;
@@ -10,26 +10,20 @@
   z-index: 70;
   display: flex;
   justify-content: center;
-  padding: 0 0.85rem calc(0.7rem + env(safe-area-inset-bottom, 0px));
+  padding: 0 0.85rem calc(0.65rem + env(safe-area-inset-bottom, 0px));
   pointer-events: none;
   background: transparent;
   border: 0;
   transform: translate3d(0, 0, 0);
   transition:
     transform var(--kama-tabbar-duration) var(--kama-tabbar-ease),
-    opacity var(--kama-tabbar-duration) var(--kama-tabbar-ease),
-    padding var(--kama-tabbar-duration) var(--kama-tabbar-ease);
+    opacity var(--kama-tabbar-duration) var(--kama-tabbar-ease);
 }
 
 .kama-tabbar[data-hidden="true"] {
-  transform: translate3d(0, calc(100% + 1.25rem), 0);
+  transform: translate3d(0, calc(100% + 1rem), 0);
   opacity: 0;
   pointer-events: none;
-}
-
-.kama-tabbar[data-compact="true"] {
-  padding-left: 1.65rem;
-  padding-right: 1.65rem;
 }
 
 .kama-tabbar__dock {
@@ -39,41 +33,22 @@
   max-width: 26rem;
   pointer-events: auto;
   align-items: stretch;
-  isolation: isolate;
   overflow: visible;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.38);
-  backdrop-filter: blur(20px) saturate(1.35);
-  -webkit-backdrop-filter: blur(20px) saturate(1.35);
+  /* Solid-enough frost so scrolling photos don’t shimmer through */
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   box-shadow:
-    0 8px 28px rgba(12, 26, 26, 0.08),
-    0 1px 0 rgba(255, 255, 255, 0.85) inset,
-    0 0 0 1px rgba(255, 255, 255, 0.65) inset;
-  transform: translateZ(0) scale(1);
-  transform-origin: 50% 100%;
-  transition:
-    max-width var(--kama-tabbar-duration) var(--kama-tabbar-ease),
-    transform var(--kama-tabbar-duration) var(--kama-tabbar-ease);
+    0 8px 28px rgba(12, 26, 26, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.85) inset;
 }
 
-.kama-tabbar[data-compact="true"] .kama-tabbar__dock {
-  max-width: 19.25rem;
-  transform: translateZ(0) scale(0.94);
-}
-
-.kama-tabbar__dock::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  border-radius: inherit;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.45) 0%,
-    rgba(255, 255, 255, 0.08) 42%,
-    transparent 62%
-  );
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .kama-tabbar__dock {
+    background: rgba(255, 255, 255, 0.94);
+  }
 }
 
 .kama-tabbar__active {
@@ -83,17 +58,16 @@
   z-index: 0;
   border-radius: 999px;
   pointer-events: none;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.92);
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.7) inset,
-    0 4px 14px -8px rgba(12, 26, 26, 0.18);
+    0 0 0 1px rgba(12, 26, 26, 0.04),
+    0 2px 8px rgba(12, 26, 26, 0.06);
   opacity: 0;
-  will-change: transform, width, height;
   transition:
-    transform 0.7s var(--kama-tabbar-ease),
-    width 0.7s var(--kama-tabbar-ease),
-    height 0.7s var(--kama-tabbar-ease),
-    opacity 0.35s ease;
+    transform 0.28s var(--kama-tabbar-ease),
+    width 0.28s var(--kama-tabbar-ease),
+    height 0.28s var(--kama-tabbar-ease),
+    opacity 0.2s ease;
 }
 
 .kama-tabbar__active[data-ready="true"] {
@@ -102,17 +76,17 @@
 
 .kama-tabbar__item {
   position: relative;
-  z-index: 2;
+  z-index: 1;
   display: flex;
   min-width: 0;
-  min-height: 3.15rem;
+  min-height: 3.1rem;
   flex: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.15rem;
-  padding: 0.45rem 0.15rem 0.4rem;
-  color: color-mix(in srgb, var(--kama-ink) 58%, transparent);
+  gap: 0.14rem;
+  padding: 0.42rem 0.12rem 0.38rem;
+  color: color-mix(in srgb, var(--kama-ink) 62%, transparent);
   font-size: 0.5625rem;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -121,18 +95,13 @@
   border: 0;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
-  transition:
-    color 0.4s ease,
-    transform 0.28s var(--kama-tabbar-ease),
-    min-height var(--kama-tabbar-duration) var(--kama-tabbar-ease),
-    padding var(--kama-tabbar-duration) var(--kama-tabbar-ease),
-    gap var(--kama-tabbar-duration) var(--kama-tabbar-ease);
+  transition: color 0.2s ease;
 }
 
 .kama-tabbar[data-compact="true"] .kama-tabbar__item {
-  min-height: 2.55rem;
+  min-height: 2.75rem;
   gap: 0;
-  padding: 0.32rem 0.1rem 0.32rem;
+  padding: 0.4rem 0.1rem;
 }
 
 .kama-tabbar__item[data-active="true"] {
@@ -140,28 +109,20 @@
 }
 
 .kama-tabbar__item:active {
-  transform: scale(0.9);
+  opacity: 0.72;
 }
 
 .kama-tabbar__icon {
   display: inline-flex;
-  height: 1.45rem;
-  width: 1.45rem;
+  height: 1.4rem;
+  width: 1.4rem;
   align-items: center;
   justify-content: center;
-  transition:
-    transform 0.32s var(--kama-tabbar-ease),
-    height var(--kama-tabbar-duration) var(--kama-tabbar-ease),
-    width var(--kama-tabbar-duration) var(--kama-tabbar-ease);
 }
 
 .kama-tabbar[data-compact="true"] .kama-tabbar__icon {
-  height: 1.22rem;
-  width: 1.22rem;
-}
-
-.kama-tabbar__item[data-active="true"] .kama-tabbar__icon {
-  transform: scale(1.08);
+  height: 1.28rem;
+  width: 1.28rem;
 }
 
 .kama-tabbar__label {
@@ -171,22 +132,18 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   opacity: 1;
-  transition:
-    max-height var(--kama-tabbar-duration) var(--kama-tabbar-ease),
-    opacity 0.55s var(--kama-tabbar-ease),
-    margin var(--kama-tabbar-duration) var(--kama-tabbar-ease);
+  transition: opacity 0.2s ease, max-height 0.2s ease;
 }
 
 .kama-tabbar[data-compact="true"] .kama-tabbar__label {
   max-height: 0;
-  margin: 0;
   opacity: 0;
 }
 
 .kama-tabbar__badge {
   position: absolute;
-  top: -0.35rem;
-  right: -0.45rem;
+  top: -0.3rem;
+  right: -0.4rem;
   display: flex;
   min-width: 0.95rem;
   height: 0.95rem;
@@ -198,23 +155,15 @@
   color: #fff;
   font-size: 0.5rem;
   font-weight: 800;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.65);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .kama-tabbar,
-  .kama-tabbar__dock,
   .kama-tabbar__active,
   .kama-tabbar__item,
-  .kama-tabbar__icon,
   .kama-tabbar__label {
     transition: none;
-  }
-
-  .kama-tabbar__item:active,
-  .kama-tabbar__item[data-active="true"] .kama-tabbar__icon,
-  .kama-tabbar[data-compact="true"] .kama-tabbar__dock {
-    transform: none;
   }
 }
 

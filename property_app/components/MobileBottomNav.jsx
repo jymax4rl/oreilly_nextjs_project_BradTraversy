@@ -24,7 +24,7 @@ import { useLanguage } from "@/components/i18n/LanguageProvider";
 import "./mobile-bottom-nav.css";
 
 /**
- * Primary mobile tab bar — floating glass dock (PWA).
+ * Primary mobile tab bar — calm frosted dock (PWA).
  * Explore uses outline MapPin (never a filled letter circle).
  * Never mounts Currency here.
  */
@@ -34,6 +34,7 @@ export default function MobileBottomNav() {
   const { toggle, isOpen } = useMenuOverlay();
   const { data: session } = useSession();
   const { t } = useLanguage();
+
   const [unreadCount, setUnreadCount] = useState(0);
   const [pill, setPill] = useState({ x: 0, y: 0, w: 0, h: 0, ready: false });
   const dockRef = useRef(null);
@@ -55,6 +56,7 @@ export default function MobileBottomNav() {
             ? 3
             : -1;
 
+  // Compact only hides labels — no dock scale (avoids jitter while scrolling)
   const compact = tabBarCompact && !isOpen;
 
   useEffect(() => {
@@ -68,8 +70,8 @@ export default function MobileBottomNav() {
       setPill((prev) => ({ ...prev, ready: false }));
       return;
     }
-    const insetX = compact ? 5 : 6;
-    const insetY = compact ? 4 : 5;
+    const insetX = 6;
+    const insetY = 5;
     setPill({
       x: item.offsetLeft + insetX,
       y: item.offsetTop + insetY,
@@ -77,16 +79,12 @@ export default function MobileBottomNav() {
       h: Math.max(0, item.offsetHeight - insetY * 2),
       ready: true,
     });
-  }, [activeIndex, compact]);
+  }, [activeIndex]);
 
   useLayoutEffect(() => {
     syncPill();
     const frame = requestAnimationFrame(syncPill);
-    const timer = window.setTimeout(syncPill, 900);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.clearTimeout(timer);
-    };
+    return () => cancelAnimationFrame(frame);
   }, [syncPill, unreadCount, t, compact]);
 
   useEffect(() => {
@@ -131,7 +129,7 @@ export default function MobileBottomNav() {
           <span className="kama-tabbar__icon">
             <MapPin
               className="h-full w-full shrink-0 fill-none stroke-current"
-              strokeWidth={exploreOn && !isOpen ? 2.35 : 1.75}
+              strokeWidth={exploreOn && !isOpen ? 2.2 : 1.75}
               aria-hidden
             />
           </span>
@@ -150,7 +148,7 @@ export default function MobileBottomNav() {
           <span className="kama-tabbar__icon">
             <Building2
               className="h-full w-full shrink-0 fill-none stroke-current"
-              strokeWidth={browseOn && !isOpen ? 2.35 : 1.75}
+              strokeWidth={browseOn && !isOpen ? 2.2 : 1.75}
               aria-hidden
             />
           </span>
@@ -169,7 +167,7 @@ export default function MobileBottomNav() {
           <span className="kama-tabbar__icon">
             <Heart
               className="h-full w-full shrink-0 fill-none stroke-current"
-              strokeWidth={savedOn && !isOpen ? 2.35 : 1.75}
+              strokeWidth={savedOn && !isOpen ? 2.2 : 1.75}
               aria-hidden
             />
           </span>
@@ -188,7 +186,7 @@ export default function MobileBottomNav() {
           <span className="kama-tabbar__icon relative">
             <MessageCircle
               className="h-full w-full shrink-0 fill-none stroke-current"
-              strokeWidth={messagesOn && !isOpen ? 2.35 : 1.75}
+              strokeWidth={messagesOn && !isOpen ? 2.2 : 1.75}
               aria-hidden
             />
             {unreadCount > 0 ? (
@@ -214,7 +212,7 @@ export default function MobileBottomNav() {
           <span className="kama-tabbar__icon">
             <CircleUserRound
               className="h-full w-full shrink-0 fill-none stroke-current"
-              strokeWidth={isOpen ? 2.35 : 1.75}
+              strokeWidth={isOpen ? 2.2 : 1.75}
               aria-hidden
             />
           </span>
