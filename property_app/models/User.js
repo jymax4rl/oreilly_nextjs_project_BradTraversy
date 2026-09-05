@@ -116,6 +116,12 @@ const UserSchema = new Schema(
         /** Host: guest date changes and cancellations */
         hostBookingChanges: { type: Boolean, default: true },
       },
+      /** Site UI language (EN/FR). Used for ops bulk emails and similar. */
+      language: {
+        type: String,
+        enum: ["en", "fr"],
+        default: undefined,
+      },
     },
     /** Last accepted Terms & Conditions version string (e.g. kama-terms-v1.0-…). */
     termsVersion: {
