@@ -171,7 +171,7 @@ export default function OpsMessagesPanel() {
         <div className="flex justify-center py-12">
           <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-gray-900" />
         </div>
-      ) : messages.length === 0 ? (
+      ) : error ? null : messages.length === 0 ? (
         <div className="rounded-xl border border-[var(--kama-border)] bg-[var(--kama-surface)] px-6 py-14 text-center">
           <p className="text-lg text-gray-500">No messages in this view yet.</p>
           <p className="mt-2 text-sm text-gray-400">
