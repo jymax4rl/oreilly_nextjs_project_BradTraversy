@@ -8,6 +8,7 @@ import {
   Building2,
   CalendarCheck,
   CalendarRange,
+  BarChart3,
   LayoutDashboard,
   MessageSquare,
   Plus,
@@ -23,6 +24,7 @@ const NAV = [
   { href: "/host", labelKey: "hostConsole.home", exact: true, Icon: LayoutDashboard },
   { href: "/host/reservations", labelKey: "hostConsole.reservations", Icon: CalendarCheck },
   { href: "/host/calendar", labelKey: "hostConsole.resCal.nav", Icon: CalendarRange },
+  { href: "/host/insights", labelKey: "hostConsole.insights.nav", Icon: BarChart3 },
   { href: "/host/listings", labelKey: "hostConsole.listings", Icon: Building2 },
   { href: "/host/messages", labelKey: "hostConsole.inbox", Icon: MessageSquare },
 ];
