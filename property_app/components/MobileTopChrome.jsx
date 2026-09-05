@@ -66,7 +66,7 @@ export default function MobileTopChrome() {
             : "border-b border-[var(--kama-border)] bg-[var(--kama-surface)] shadow-sm"
       }`}
     >
-      <div className="pt-2 [padding-top:max(0.5rem,env(safe-area-inset-top))]">
+      <div className="[padding-top:max(0.5rem,var(--kama-safe-top))] [padding-left:var(--kama-safe-left)] [padding-right:var(--kama-safe-right)]">
         <div className="flex items-center gap-2 px-3 py-2.5 pb-3">
           <BrandLogo
             className="h-9 w-auto"

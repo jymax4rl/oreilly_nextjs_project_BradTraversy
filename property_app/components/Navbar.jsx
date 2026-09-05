@@ -142,7 +142,7 @@ const Navbar = () => {
     <div>
       {!explore && (
         <nav
-          className={`menu-container m-0 grid grid-cols-2 z-50 fixed top-0 w-screen min-h-[8vh] lg:hidden transition-transform duration-300 ease-out will-change-transform [padding-top:env(safe-area-inset-top)] ${
+          className={`menu-container m-0 grid grid-cols-2 z-50 fixed top-0 w-screen min-h-[8vh] lg:hidden transition-transform duration-300 ease-out will-change-transform [padding-top:max(0.5rem,var(--kama-safe-top))] [padding-left:var(--kama-safe-left)] [padding-right:var(--kama-safe-right)] ${
             showNav ? "translate-y-0" : "-translate-y-full"
           } ${
             isPhotoNav ? "home-glass-nav" : "bg-[var(--kama-canvas)]/80 backdrop-blur-sm"
