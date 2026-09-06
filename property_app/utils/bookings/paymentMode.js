@@ -11,6 +11,12 @@
  *
  * Optional: NEXT_PUBLIC_PAYMENT_PROVIDER=geniuspay|creem sets preferred
  * default when both are configured. Flutterwave is deprecated.
+ *
+ * Important: secret keys (CREEM_*, GENIUSPAY_*) are server-only and are NOT
+ * available in the browser bundle. Client UI therefore treats the public
+ * gateway flag as the source of truth for offering MoMo/card; API routes
+ * still require real secrets via isCreemCheckoutConfigured /
+ * isGeniusPayCheckoutConfigured.
  */
 
 export const PAYMENT_PROVIDER_CREEM = "creem";
@@ -36,7 +42,16 @@ function preferredProvider() {
   return null;
 }
 
-function hasGeniusPayKeys() {
+function publicMethodFlag(name) {
+  const raw = String(process.env[name] || "")
+    .trim()
+    .toLowerCase();
+  if (raw === "true" || raw === "1" || raw === "yes") return true;
+  if (raw === "false" || raw === "0" || raw === "no") return false;
+  return null;
+}
+
+export function hasGeniusPayKeys() {
   return Boolean(
     String(
       process.env.GENIUSPAY_API_KEY || process.env.GENIUSPAY_PUBLIC_KEY || "",
@@ -49,7 +64,7 @@ function hasGeniusPayKeys() {
   );
 }
 
-function hasCreemKeys() {
+export function hasCreemKeys() {
   return Boolean(
     String(process.env.CREEM_API_KEY || "").trim() &&
       String(process.env.CREEM_PRODUCT_ID || "").trim(),
@@ -60,6 +75,7 @@ function hasCreemKeys() {
  * Preferred online provider when gateway checkout is enabled.
  * Prefers GeniusPay (MoMo) when configured; else Creem.
  * Returns null when guests should arrange payment with the host.
+ * Server-only (uses secret key presence).
  */
 export function getPaymentProvider() {
   if (!isPaymentGatewayCheckoutEnabled()) return null;
@@ -80,14 +96,33 @@ export function getPaymentProvider() {
   return null;
 }
 
-/** Creem card path — on when gateway is enabled and Creem keys exist. */
+/**
+ * Client-safe: offer Creem card checkout in the UI when the public gateway
+ * flag is on. Optional NEXT_PUBLIC_CREEM_CHECKOUT=false disables the method.
+ * Does not read CREEM_API_KEY (unavailable in the browser).
+ */
 export function isCreemCheckoutEnabled() {
-  return isPaymentGatewayCheckoutEnabled() && hasCreemKeys();
+  if (!isPaymentGatewayCheckoutEnabled()) return false;
+  return publicMethodFlag("NEXT_PUBLIC_CREEM_CHECKOUT") !== false;
 }
 
-/** GeniusPay MoMo path — on when gateway is enabled and GeniusPay keys exist. */
+/**
+ * Client-safe: offer GeniusPay MoMo checkout in the UI when the public
+ * gateway flag is on. Optional NEXT_PUBLIC_GENIUSPAY_CHECKOUT=false disables.
+ */
 export function isGeniusPayCheckoutEnabled() {
-  return isPaymentGatewayCheckoutEnabled() && hasGeniusPayKeys();
+  if (!isPaymentGatewayCheckoutEnabled()) return false;
+  return publicMethodFlag("NEXT_PUBLIC_GENIUSPAY_CHECKOUT") !== false;
+}
+
+/** Server-only: UI flag + real Creem secrets present. */
+export function isCreemCheckoutConfigured() {
+  return isCreemCheckoutEnabled() && hasCreemKeys();
+}
+
+/** Server-only: UI flag + real GeniusPay secrets present. */
+export function isGeniusPayCheckoutConfigured() {
+  return isGeniusPayCheckoutEnabled() && hasGeniusPayKeys();
 }
 
 /** @deprecated Flutterwave checkout is no longer offered in the UI. */

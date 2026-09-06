@@ -21,11 +21,15 @@
   --kama-glass: rgba(255, 255, 255, 0.82);
   --kama-focus-ring: 0 0 0 3px rgba(27, 92, 87, 0.18);
   --kama-danger: #b42318;
-  --kama-nav-height-mobile: 5.35rem;
+  /* Floating dock (~3.1rem) + outer pad (0.65rem) + breathing room */
+  --kama-nav-height-mobile: 6.25rem;
   --kama-chrome-clearance: calc(
-    var(--kama-nav-height-mobile) + env(safe-area-inset-bottom, 0px)
+    var(--kama-nav-height-mobile) +
+      env(safe-area-inset-bottom, 0px) +
+      var(--kama-safe-bottom, 0px)
   );
   --kama-safe-top: env(safe-area-inset-top, 0px);
+  --kama-safe-bottom: env(safe-area-inset-bottom, 0px);
   --kama-safe-left: env(safe-area-inset-left, 0px);
   --kama-safe-right: env(safe-area-inset-right, 0px);
 
@@ -55,6 +59,11 @@ html {
   min-height: -webkit-fill-available;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Keep focused / scrolled content clear of the floating tab bar */
+  scroll-padding-bottom: var(--kama-chrome-clearance);
+  scroll-padding-top: calc(
+    var(--kama-safe-top, env(safe-area-inset-top, 0px)) + 3.5rem
+  );
 }
 
 html.kama-photo-hero,
