@@ -21,8 +21,10 @@ import {
 import { getAvailabilityPayload } from "@/utils/availability/availabilityService";
 import { appUrl } from "@/utils/appUrl";
 import {
+  assertCreemLiveKeyIfRequired,
   createCreemCheckoutSession,
   dollarsToCents,
+  getCreemModeInfo,
   isCreemConfigured,
 } from "@/utils/payments/creemClient";
 
@@ -46,6 +48,20 @@ export async function POST(req) {
         {
           message:
             "Creem is not configured (CREEM_PRODUCTION or CREEM_API_KEY / CREEM_PRODUCT_ID)",
+          creem: getCreemModeInfo(),
+        },
+        { status: 503 },
+      );
+    }
+
+    try {
+      assertCreemLiveKeyIfRequired();
+    } catch (err) {
+      return NextResponse.json(
+        {
+          message: err.message,
+          code: err.code || "CREEM_TEST_KEY_IN_LIVE",
+          creem: getCreemModeInfo(),
         },
         { status: 503 },
       );
@@ -197,6 +213,20 @@ export async function POST(req) {
       );
     }
 
+    const creem = getCreemModeInfo();
+    // Guard: live config must never open a /test/ checkout URL.
+    if (creem.mode === "live" && String(checkoutUrl).includes("/test/")) {
+      return NextResponse.json(
+        {
+          message:
+            "Creem returned a test checkout URL while live mode is configured. Use a live API key and a live CREEM_PRODUCT_ID (create the product with Test Mode OFF in the Creem dashboard).",
+          code: "CREEM_TEST_CHECKOUT_URL",
+          creem,
+        },
+        { status: 502 },
+      );
+    }
+
     return NextResponse.json({
       status: "success",
       data: {
@@ -207,6 +237,7 @@ export async function POST(req) {
         currency: "USD",
         host_payout_usd: hostPayoutUsd,
         platform_fee_usd: fees.commission,
+        creem_mode: creem.mode,
       },
     });
   } catch (error) {
@@ -215,8 +246,10 @@ export async function POST(req) {
       {
         message:
           error?.message || "Failed to start Creem checkout",
+        creem: getCreemModeInfo(),
+        code: error?.code,
       },
-      { status: 500 },
+      { status: error?.status && error.status < 500 ? error.status : 500 },
     );
   }
 }
