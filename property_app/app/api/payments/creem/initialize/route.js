@@ -1,6 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import type { AuthOptions } from "next-auth";
 import { authOptions } from "@/utils/authOptions";
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
@@ -33,7 +32,7 @@ import {
  * so fee math matches calculateBookingFees. Local arrange-with-host remains the
  * default when NEXT_PUBLIC_USE_PAYMENT_GATEWAY is off.
  */
-export async function POST(req: NextRequest) {
+export async function POST(req) {
   try {
     if (!isCreemCheckoutEnabled()) {
       return NextResponse.json(
@@ -51,12 +50,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const session = await getServerSession(authOptions as AuthOptions);
+    const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const guestUserId = (session.user as { id?: string }).id;
+    const guestUserId = session.user.id;
     const guestEmail = session.user.email;
     const guestName = session.user.name || "";
     if (!guestUserId || !guestEmail) {
@@ -144,7 +143,7 @@ export async function POST(req: NextRequest) {
       Math.round((fees.base + fees.cleaningFee) * 100) / 100;
 
     const checkout = await createCreemCheckoutSession({
-      productId: process.env.CREEM_PRODUCT_ID!,
+      productId: process.env.CREEM_PRODUCT_ID,
       customPriceCents: amountCents,
       successUrl: appUrl(
         `/bookings/payment-success?provider=creem&property=${encodeURIComponent(String(propertyId))}`,
@@ -202,9 +201,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         message:
-          error instanceof Error
-            ? error.message
-            : "Failed to start Creem checkout",
+          error?.message || "Failed to start Creem checkout",
       },
       { status: 500 },
     );
