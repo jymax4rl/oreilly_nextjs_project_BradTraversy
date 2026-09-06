@@ -22,6 +22,7 @@ export function isExploreMobileLayout(pathname) {
   return (
     pathname === "/" ||
     pathname.startsWith("/properties") ||
-    pathname.startsWith("/saved-properties")
+    pathname.startsWith("/saved-properties") ||
+    pathname.startsWith("/messages")
   );
 }
