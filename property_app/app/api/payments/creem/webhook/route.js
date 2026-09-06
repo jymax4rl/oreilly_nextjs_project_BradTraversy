@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import connectToDatabase from "@/config/database";
 import { finalizeFromCreemCheckout } from "@/utils/bookings/finalizePaidTransaction";
 import { verifyCreemWebhookSignature } from "@/utils/payments/creemWebhook";
@@ -8,7 +8,7 @@ import { verifyCreemWebhookSignature } from "@/utils/payments/creemWebhook";
  * Creem sends checkout.completed (and related) events here.
  * Configure the URL in the Creem dashboard → Developers → Webhooks.
  */
-export async function POST(req: NextRequest) {
+export async function POST(req) {
   try {
     const rawBody = await req.text();
     const signature = req.headers.get("creem-signature");
