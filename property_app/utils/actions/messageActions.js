@@ -16,6 +16,7 @@ const MESSAGE_BODY_MAX = 4000;
 function revalidateMessagePaths(propertyId) {
   revalidatePath("/messages");
   revalidatePath("/host/messages");
+  revalidatePath("/ops/messages");
   if (!propertyId) return;
   revalidatePath(`/properties/${propertyId}`);
 }
@@ -247,6 +248,7 @@ export async function markMessageAsRead(messageId) {
 
   revalidatePath("/messages");
   revalidatePath("/host/messages");
+  revalidatePath("/ops/messages");
 
   return { read: message.read };
 }
@@ -277,6 +279,7 @@ export async function deleteMessage(messageId) {
 
   revalidatePath("/messages");
   revalidatePath("/host/messages");
+  revalidatePath("/ops/messages");
 
   return { success: "Message deleted." };
 }
