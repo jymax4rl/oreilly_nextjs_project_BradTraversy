@@ -44,7 +44,7 @@ export async function POST(req) {
       return NextResponse.json(
         {
           message:
-            "Creem is not configured (CREEM_API_KEY / CREEM_PRODUCT_ID)",
+            "Creem is not configured (CREEM_PRODUCTION or CREEM_API_KEY / CREEM_PRODUCT_ID)",
         },
         { status: 503 },
       );
