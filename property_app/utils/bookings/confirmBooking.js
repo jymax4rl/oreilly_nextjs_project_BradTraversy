@@ -116,7 +116,7 @@ export async function confirmBookingFromPayment({
   }
 
   if (transactionId != null) {
-    const existing = await Booking.findOne({ transactionId }).lean();
+    const existing = await Booking.findOne({ transactionId: String(transactionId) }).lean();
     if (existing) {
       return { ok: true, booking: existing, created: false };
     }
@@ -181,7 +181,7 @@ export async function confirmBookingFromPayment({
     checkOut: validation.checkOut,
     status: "confirmed",
     paymentMode: PAYMENT_MODE_GATEWAY,
-    transactionId: transactionId ?? undefined,
+    transactionId: transactionId != null ? String(transactionId) : undefined,
     amount: amount != null ? Number(amount) : pricingSnapshot?.total,
     currency: currency || pricingSnapshot?.currency || undefined,
     propertyName: propertyName || property?.name || undefined,
