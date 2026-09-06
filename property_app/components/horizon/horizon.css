@@ -1,0 +1,545 @@
+/**
+ * Horizon × Isisel — coastal ownership landing.
+ * Palette drawn from the tower: chalk white, espresso bronze, Atlantic teal.
+ */
+.horizon {
+  --hz-ink: #0c1412;
+  --hz-sea: #134e48;
+  --hz-sea-deep: #0a2e2b;
+  --hz-foam: #f4f7f5;
+  --hz-chalk: #fbfaf7;
+  --hz-bronze: #3d2c24;
+  --hz-muted: #5c6d69;
+  --hz-line: rgba(12, 20, 18, 0.1);
+  --hz-glow: rgba(19, 78, 72, 0.35);
+  --font-hz-display: var(--font-hz-display), "Syne", Georgia, serif;
+  --font-hz-sans: var(--font-hz-sans), "Figtree", system-ui, sans-serif;
+  color: var(--hz-ink);
+  background: var(--hz-chalk);
+  font-family: var(--font-hz-sans);
+  overflow-x: hidden;
+}
+
+.horizon * {
+  box-sizing: border-box;
+}
+
+.horizon-wrap {
+  width: min(1120px, calc(100% - 2.5rem));
+  margin-inline: auto;
+}
+
+.horizon-hero {
+  position: relative;
+  min-height: 100dvh;
+  min-height: 100svh;
+  display: flex;
+  align-items: flex-end;
+  padding: clamp(5.5rem, 12vh, 7rem) 0 clamp(2.5rem, 6vh, 4rem);
+  color: #fff;
+  isolation: isolate;
+}
+
+.horizon-hero__media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.horizon-hero__media img {
+  object-fit: cover;
+  object-position: center 35%;
+  transform: scale(1.04);
+  animation: hz-ken 28s ease-in-out infinite alternate;
+}
+
+@keyframes hz-ken {
+  from {
+    transform: scale(1.04) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.1) translate3d(-1.5%, -1%, 0);
+  }
+}
+
+.horizon-hero__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(6, 18, 16, 0.35) 0%,
+      rgba(6, 18, 16, 0.15) 38%,
+      rgba(6, 18, 16, 0.72) 78%,
+      rgba(6, 18, 16, 0.92) 100%
+    ),
+    radial-gradient(
+      90% 60% at 70% 20%,
+      rgba(19, 78, 72, 0.25),
+      transparent 60%
+    );
+}
+
+.horizon-hero__inner {
+  position: relative;
+  z-index: 2;
+  width: min(1120px, calc(100% - 2.5rem));
+  margin-inline: auto;
+  animation: hz-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes hz-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 1.25rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.horizon-brand {
+  font-family: var(--font-hz-display);
+  font-size: clamp(2.75rem, 9vw, 5.5rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  margin: 0 0 0.85rem;
+  text-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+}
+
+.horizon-brand span {
+  display: block;
+  font-size: 0.28em;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.82;
+  margin-bottom: 0.55rem;
+  font-family: var(--font-hz-sans);
+}
+
+.horizon-hero h1 {
+  font-family: var(--font-hz-display);
+  font-size: clamp(1.85rem, 4.8vw, 3.15rem);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  margin: 0 0 1rem;
+  max-width: 14ch;
+  white-space: pre-line;
+}
+
+.horizon-hero__lede {
+  margin: 0 0 1.5rem;
+  max-width: 36rem;
+  font-size: clamp(1rem, 2.2vw, 1.15rem);
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.horizon-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.horizon-btn {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.85rem 1.35rem;
+  border-radius: 999px;
+  font-family: var(--font-hz-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition:
+    transform 0.25s ease,
+    background 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.horizon-btn:hover {
+  transform: translateY(-1px);
+}
+
+.horizon-btn--solid {
+  background: #fff;
+  color: var(--hz-sea-deep);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+}
+
+.horizon-btn--solid:hover {
+  background: var(--hz-foam);
+}
+
+.horizon-btn--ghost {
+  background: transparent;
+  color: #fff;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
+}
+
+.horizon-btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.horizon-btn--ghost-ink {
+  color: var(--hz-sea-deep);
+  box-shadow: inset 0 0 0 1.5px rgba(19, 78, 72, 0.45);
+}
+
+.horizon-btn--ghost-ink:hover {
+  background: rgba(19, 78, 72, 0.08);
+}
+
+.horizon-btn--sea {
+  background: var(--hz-sea);
+  color: #fff;
+}
+
+.horizon-btn--sea:hover {
+  background: var(--hz-sea-deep);
+}
+
+.horizon-section {
+  padding: clamp(3.5rem, 9vw, 6.5rem) 0;
+}
+
+.horizon-section--foam {
+  background:
+    radial-gradient(
+      80% 70% at 10% 0%,
+      rgba(19, 78, 72, 0.08),
+      transparent 55%
+    ),
+    linear-gradient(180deg, #eef4f2 0%, var(--hz-foam) 40%, #f7faf8 100%);
+}
+
+.horizon-section--ink {
+  background:
+    linear-gradient(160deg, var(--hz-sea-deep), #123b37 55%, #1a4f49);
+  color: #f4f7f5;
+}
+
+.horizon-section h2 {
+  font-family: var(--font-hz-display);
+  font-size: clamp(1.85rem, 4.2vw, 2.75rem);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+  margin: 0 0 1rem;
+  max-width: 18ch;
+}
+
+.horizon-lead {
+  margin: 0 0 2rem;
+  max-width: 40rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--hz-muted);
+}
+
+.horizon-section--ink .horizon-lead {
+  color: rgba(244, 247, 245, 0.78);
+}
+
+.horizon-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--hz-line);
+  border: 1px solid var(--hz-line);
+  border-radius: 1.25rem;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+
+.horizon-stat {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(8px);
+  padding: clamp(1.25rem, 3vw, 1.85rem) 1.1rem;
+  text-align: center;
+}
+
+.horizon-stat strong {
+  display: block;
+  font-family: var(--font-hz-display);
+  font-size: clamp(1.85rem, 5vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--hz-sea-deep);
+  line-height: 1;
+}
+
+.horizon-stat span {
+  display: block;
+  margin-top: 0.45rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hz-muted);
+}
+
+.horizon-note {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--hz-muted);
+}
+
+.horizon-points {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 800px) {
+  .horizon-points {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2rem;
+  }
+}
+
+.horizon-point h3 {
+  font-family: var(--font-hz-display);
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.55rem;
+}
+
+.horizon-point p {
+  margin: 0;
+  line-height: 1.55;
+  color: rgba(244, 247, 245, 0.78);
+  font-size: 0.98rem;
+}
+
+.horizon-gallery {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 0.65rem;
+}
+
+.horizon-gallery__cell {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  min-height: clamp(12rem, 28vw, 18rem);
+  background: #dfe8e5;
+}
+
+.horizon-gallery__cell:first-child {
+  grid-row: span 2;
+  min-height: clamp(24rem, 56vw, 36rem);
+}
+
+.horizon-gallery__cell img {
+  object-fit: cover;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.horizon-gallery__cell:hover img {
+  transform: scale(1.04);
+}
+
+@media (max-width: 720px) {
+  .horizon-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .horizon-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .horizon-gallery__cell:first-child {
+    grid-row: auto;
+    min-height: 18rem;
+  }
+}
+
+.horizon-split {
+  display: grid;
+  gap: 1.75rem;
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .horizon-split {
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 3rem;
+  }
+}
+
+.horizon-map {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  min-height: clamp(16rem, 40vw, 24rem);
+  background: #dfe8e5;
+  box-shadow: 0 24px 60px rgba(12, 20, 18, 0.12);
+}
+
+.horizon-map img {
+  object-fit: cover;
+}
+
+.horizon-close {
+  text-align: center;
+}
+
+.horizon-close h2 {
+  margin-inline: auto;
+}
+
+.horizon-close .horizon-lead {
+  margin-inline: auto;
+}
+
+.horizon-close .horizon-actions {
+  justify-content: center;
+}
+
+.horizon-sticky {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  padding: 0.85rem 1rem
+    calc(0.85rem + env(safe-area-inset-bottom, 0px));
+  background: rgba(10, 46, 43, 0.88);
+  backdrop-filter: blur(16px);
+  transform: translateY(110%);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  display: flex;
+  justify-content: center;
+  gap: 0.65rem;
+}
+
+.horizon-sticky.is-on {
+  transform: none;
+}
+
+.horizon-dialog {
+  width: min(440px, calc(100vw - 1.5rem));
+  max-height: min(92vh, 720px);
+  margin: auto;
+  border: 0;
+  border-radius: 1.35rem;
+  padding: 0;
+  background: var(--hz-chalk);
+  color: var(--hz-ink);
+  box-shadow: 0 30px 80px rgba(6, 18, 16, 0.35);
+}
+
+.horizon-dialog::backdrop {
+  background: rgba(6, 18, 16, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.horizon-dialog__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.35rem 1.35rem 0.85rem;
+  border-bottom: 1px solid var(--hz-line);
+}
+
+.horizon-dialog__head h2 {
+  font-family: var(--font-hz-display);
+  font-size: 1.45rem;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.35rem;
+}
+
+.horizon-dialog__head p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--hz-muted);
+}
+
+.horizon-dialog__x {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--hz-muted);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.2rem;
+}
+
+.horizon-dialog form {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.1rem 1.35rem 1.35rem;
+}
+
+.horizon-dialog label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--hz-ink);
+}
+
+.horizon-dialog input,
+.horizon-dialog textarea,
+.horizon-dialog select {
+  width: 100%;
+  border: 1px solid var(--hz-line);
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  font: inherit;
+  font-weight: 400;
+  background: #fff;
+  color: var(--hz-ink);
+  outline: none;
+}
+
+.horizon-dialog input:focus,
+.horizon-dialog textarea:focus,
+.horizon-dialog select:focus {
+  border-color: var(--hz-sea);
+  box-shadow: 0 0 0 3px rgba(19, 78, 72, 0.15);
+}
+
+.horizon-dialog textarea {
+  min-height: 6.5rem;
+  resize: vertical;
+}
+
+.horizon-dialog__hp {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.horizon-dialog__err {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #9b2c2c;
+}
+
+.horizon-dialog__ok {
+  margin: 0;
+  padding: 1.5rem 1.35rem 1.75rem;
+  text-align: center;
+}
+
+.horizon-dialog__ok p {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+  line-height: 1.45;
+}

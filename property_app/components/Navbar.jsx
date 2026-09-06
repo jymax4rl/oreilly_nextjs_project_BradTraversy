@@ -57,7 +57,8 @@ const Navbar = () => {
     pathname.startsWith("/influencers") ||
     pathname.startsWith("/investors") ||
     pathname.startsWith("/about") ||
-    pathname.startsWith("/founding-hosts");
+    pathname.startsWith("/founding-hosts") ||
+    pathname.startsWith("/horizon");
   const profileImage = session?.user?.image;
   const explore = isExploreMobileLayout(pathname);
 
