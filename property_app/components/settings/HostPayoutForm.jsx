@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 /**
  * Host IBAN capture for platform-managed settlement.
- * Guests pay Isisel (Creem); payouts to this IBAN are handled by ops / future splits.
+ * Guests pay Isisel (GeniusPay / Creem); payouts to this IBAN are handled by ops / future splits.
  */
 export default function HostPayoutForm() {
   const [iban, setIban] = useState("");
