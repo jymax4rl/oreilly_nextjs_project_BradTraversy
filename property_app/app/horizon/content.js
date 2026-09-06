@@ -15,7 +15,7 @@ export const horizonPage = {
   place: "Bijilo, The Gambia",
   hero: {
     image: {
-      src: "/horizon/render-0055.jpeg",
+      src: "/horizon/hero-exterior.jpg",
       alt: "Horizon by Swami India — modern seaside apartments in Bijilo, The Gambia",
     },
     kicker: "Isisel × Swami India",
@@ -60,16 +60,16 @@ export const horizonPage = {
     h2: "Horizon, as built for the Atlantic rim.",
     images: [
       {
-        src: "/horizon/render-0055.jpeg",
+        src: "/horizon/hero-exterior.jpg",
         alt: "Horizon exterior with pool podium and palms",
+      },
+      {
+        src: "/horizon/hero-facade.jpg",
+        alt: "Horizon facade detail looking up the tower",
       },
       {
         src: "/horizon/render-0052.jpeg",
         alt: "Horizon street approach with tropical landscaping",
-      },
-      {
-        src: "/horizon/render-0062.jpeg",
-        alt: "Horizon facade detail looking up the tower",
       },
       {
         src: "/horizon/render-0057.jpeg",

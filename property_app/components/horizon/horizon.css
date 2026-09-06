@@ -44,21 +44,24 @@
   position: absolute;
   inset: 0;
   z-index: 0;
+  background: #0a2e2b;
 }
 
 .horizon-hero__media img {
   object-fit: cover;
-  object-position: center 35%;
-  transform: scale(1.04);
-  animation: hz-ken 28s ease-in-out infinite alternate;
+  object-position: center 28%;
+  /* Keep motion subtle — heavy scale reads as soft/blurry on mobile. */
+  transform: scale(1.02);
+  animation: hz-ken 36s ease-in-out infinite alternate;
+  image-rendering: auto;
 }
 
 @keyframes hz-ken {
   from {
-    transform: scale(1.04) translate3d(0, 0, 0);
+    transform: scale(1.02) translate3d(0, 0, 0);
   }
   to {
-    transform: scale(1.1) translate3d(-1.5%, -1%, 0);
+    transform: scale(1.05) translate3d(-0.6%, -0.4%, 0);
   }
 }
 
@@ -66,18 +69,21 @@
   position: absolute;
   inset: 0;
   z-index: 1;
+  pointer-events: none;
   background:
     linear-gradient(
       180deg,
-      rgba(6, 18, 16, 0.35) 0%,
-      rgba(6, 18, 16, 0.15) 38%,
-      rgba(6, 18, 16, 0.72) 78%,
-      rgba(6, 18, 16, 0.92) 100%
+      rgba(4, 14, 12, 0.55) 0%,
+      rgba(4, 14, 12, 0.28) 28%,
+      rgba(4, 14, 12, 0.55) 52%,
+      rgba(4, 14, 12, 0.88) 78%,
+      rgba(4, 14, 12, 0.96) 100%
     ),
-    radial-gradient(
-      90% 60% at 70% 20%,
-      rgba(19, 78, 72, 0.25),
-      transparent 60%
+    linear-gradient(
+      90deg,
+      rgba(4, 14, 12, 0.45) 0%,
+      rgba(4, 14, 12, 0.12) 55%,
+      rgba(4, 14, 12, 0.2) 100%
     );
 }
 
@@ -86,7 +92,26 @@
   z-index: 2;
   width: min(1120px, calc(100% - 2.5rem));
   margin-inline: auto;
+  padding: 1.1rem 1.05rem 1.15rem;
+  border-radius: 1.15rem;
+  background: linear-gradient(
+    180deg,
+    rgba(4, 14, 12, 0.28) 0%,
+    rgba(4, 14, 12, 0.62) 100%
+  );
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   animation: hz-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (min-width: 900px) {
+  .horizon-hero__inner {
+    max-width: 36rem;
+    margin-left: max(1.25rem, calc((100% - 1120px) / 2));
+    margin-right: auto;
+    padding: 1.35rem 1.4rem 1.45rem;
+  }
 }
 
 @keyframes hz-rise {
@@ -107,7 +132,8 @@
   letter-spacing: -0.04em;
   line-height: 0.95;
   margin: 0 0 0.85rem;
-  text-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
 }
 
 .horizon-brand span {
@@ -116,20 +142,24 @@
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  opacity: 0.82;
+  color: rgba(255, 255, 255, 0.9);
+  opacity: 1;
   margin-bottom: 0.55rem;
   font-family: var(--font-hz-sans);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.4);
 }
 
 .horizon-hero h1 {
   font-family: var(--font-hz-display);
   font-size: clamp(1.85rem, 4.8vw, 3.15rem);
-  font-weight: 650;
+  font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1.08;
   margin: 0 0 1rem;
   max-width: 14ch;
   white-space: pre-line;
+  color: #ffffff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
 }
 
 .horizon-hero__lede {
@@ -137,7 +167,8 @@
   max-width: 36rem;
   font-size: clamp(1rem, 2.2vw, 1.15rem);
   line-height: 1.55;
-  color: rgba(255, 255, 255, 0.88);
+  color: rgba(255, 255, 255, 0.94);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
 }
 
 .horizon-actions {

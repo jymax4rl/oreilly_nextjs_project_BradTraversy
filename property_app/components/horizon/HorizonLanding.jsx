@@ -44,7 +44,7 @@ export default function HorizonLanding({ seo, page }) {
               fill
               priority
               sizes="100vw"
-              quality={80}
+              quality={90}
             />
           </div>
           <div className="horizon-hero__scrim" aria-hidden="true" />
@@ -121,7 +121,7 @@ export default function HorizonLanding({ seo, page }) {
                         ? "(max-width: 720px) 100vw, 55vw"
                         : "(max-width: 720px) 100vw, 40vw"
                     }
-                    quality={75}
+                    quality={90}
                   />
                 </div>
               ))}
@@ -146,7 +146,7 @@ export default function HorizonLanding({ seo, page }) {
                 alt={page.location.image.alt}
                 fill
                 sizes="(max-width: 900px) 100vw, 50vw"
-                quality={75}
+                quality={90}
               />
             </div>
           </div>

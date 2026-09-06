@@ -24,9 +24,9 @@ export const metadata = {
     description: horizonSeo.ogDescription,
     images: [
       {
-        url: "/horizon/render-0055.jpeg",
-        width: 1080,
-        height: 607,
+        url: "/horizon/hero-exterior.jpg",
+        width: 2160,
+        height: 1214,
         alt: "Horizon by Swami India in Bijilo",
       },
     ],
@@ -35,7 +35,7 @@ export const metadata = {
     card: "summary_large_image",
     title: horizonSeo.ogTitle,
     description: horizonSeo.ogDescription,
-    images: ["/horizon/render-0055.jpeg"],
+    images: ["/horizon/hero-exterior.jpg"],
   },
 };
 
