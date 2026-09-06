@@ -3,11 +3,15 @@
  * Docs: https://docs.creem.io — test host is test-api.creem.io
  */
 
+/**
+ * Prefer CREEM_PRODUCTION (live) when set, else CREEM_API_KEY (often test).
+ * Production deploys should set CREEM_PRODUCTION after switching Creem to live.
+ */
 function readCreemApiKey() {
-  const raw = process.env.CREEM_API_KEY || "";
+  const raw = process.env.CREEM_PRODUCTION || process.env.CREEM_API_KEY || "";
   const apiKey = String(raw).trim();
   if (!apiKey) {
-    throw new Error("CREEM_API_KEY is not set");
+    throw new Error("CREEM_PRODUCTION or CREEM_API_KEY is not set");
   }
   // fetch() headers must be ByteString (code points ≤ 255). A pasted
   // ellipsis (…) or smart-quote in the Vercel env value throws:
@@ -15,7 +19,7 @@ function readCreemApiKey() {
   for (let i = 0; i < apiKey.length; i += 1) {
     if (apiKey.charCodeAt(i) > 255) {
       throw new Error(
-        "CREEM_API_KEY contains a non-Latin-1 character (often a pasted …). Re-save the key in Vercel with plain ASCII only.",
+        "Creem API key contains a non-Latin-1 character (often a pasted …). Re-save the key in Vercel with plain ASCII only.",
       );
     }
   }
@@ -41,6 +45,10 @@ function sanitizeMetadata(metadata) {
 }
 
 export function getCreemServer() {
+  // Live key wins over a leftover CREEM_SERVER=test from the test rollout.
+  if (String(process.env.CREEM_PRODUCTION || "").trim()) {
+    return "live";
+  }
   const explicit = String(process.env.CREEM_SERVER || "").toLowerCase();
   if (explicit === "test" || explicit === "live") return explicit;
   const key = String(process.env.CREEM_API_KEY || "").trim();
@@ -55,8 +63,9 @@ export function getCreemApiBase() {
 
 export function isCreemConfigured() {
   return Boolean(
-    String(process.env.CREEM_API_KEY || "").trim() &&
-      String(process.env.CREEM_PRODUCT_ID || "").trim(),
+    String(
+      process.env.CREEM_PRODUCTION || process.env.CREEM_API_KEY || "",
+    ).trim() && String(process.env.CREEM_PRODUCT_ID || "").trim(),
   );
 }
 
