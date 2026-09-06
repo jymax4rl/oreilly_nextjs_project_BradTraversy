@@ -201,6 +201,7 @@ export default function HorizonLanding({ seo, page }) {
 
           <section
             className="horizon-section horizon-section--close"
+            id="horizon-close"
             aria-labelledby="horizon-close-heading"
           >
             <div className="horizon-wrap horizon-close">

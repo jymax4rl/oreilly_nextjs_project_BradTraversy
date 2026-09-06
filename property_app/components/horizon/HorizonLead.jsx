@@ -34,16 +34,37 @@ export function HorizonLeadProvider({ children }) {
 
   useEffect(() => {
     const hero = document.getElementById("horizon-hero");
+    const close = document.getElementById("horizon-close");
     if (!hero || typeof IntersectionObserver === "undefined") {
       setSticky(true);
       return undefined;
     }
-    const io = new IntersectionObserver(
-      ([entry]) => setSticky(!entry.isIntersecting),
+    let heroOut = false;
+    let closeIn = false;
+    const sync = () => setSticky(heroOut && !closeIn);
+    const heroIo = new IntersectionObserver(
+      ([entry]) => {
+        heroOut = !entry.isIntersecting;
+        sync();
+      },
       { threshold: 0.12 },
     );
-    io.observe(hero);
-    return () => io.disconnect();
+    heroIo.observe(hero);
+    let closeIo;
+    if (close) {
+      closeIo = new IntersectionObserver(
+        ([entry]) => {
+          closeIn = entry.isIntersecting;
+          sync();
+        },
+        { threshold: 0.2, rootMargin: "0px 0px -12% 0px" },
+      );
+      closeIo.observe(close);
+    }
+    return () => {
+      heroIo.disconnect();
+      closeIo?.disconnect();
+    };
   }, []);
 
   const openLead = (nextMode = "call") => {
