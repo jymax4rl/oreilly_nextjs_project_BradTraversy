@@ -1,11 +1,14 @@
 /**
  * Minimal Creem REST client for Isisel stay checkouts.
  * Docs: https://docs.creem.io — test host is test-api.creem.io
+ *
+ * Mode is derived from the API key prefix (never trust CREEM_SERVER alone):
+ *   creem_test_… → test → https://test-api.creem.io/v1 → creem.io/test/checkout/…
+ *   anything else → live → https://api.creem.io/v1 → creem.io/checkout/…
  */
 
 /**
  * Prefer CREEM_PRODUCTION (live) when set, else CREEM_API_KEY (often test).
- * Production deploys should set CREEM_PRODUCTION after switching Creem to live.
  */
 function readCreemApiKey() {
   const raw = process.env.CREEM_PRODUCTION || process.env.CREEM_API_KEY || "";
@@ -26,6 +29,16 @@ function readCreemApiKey() {
   return apiKey;
 }
 
+function keySource() {
+  if (String(process.env.CREEM_PRODUCTION || "").trim()) {
+    return "CREEM_PRODUCTION";
+  }
+  if (String(process.env.CREEM_API_KEY || "").trim()) {
+    return "CREEM_API_KEY";
+  }
+  return null;
+}
+
 /** Keep metadata values header/JSON safe (strip exotic unicode). */
 function sanitizeMetaValue(value) {
   if (value == null) return value;
@@ -44,21 +57,40 @@ function sanitizeMetadata(metadata) {
   return out;
 }
 
+/**
+ * Live vs test from the key itself. A leftover CREEM_SERVER=test must not
+ * force test mode when CREEM_PRODUCTION holds a live key (and vice versa).
+ */
 export function getCreemServer() {
-  // Live key wins over a leftover CREEM_SERVER=test from the test rollout.
-  if (String(process.env.CREEM_PRODUCTION || "").trim()) {
-    return "live";
-  }
-  const explicit = String(process.env.CREEM_SERVER || "").toLowerCase();
-  if (explicit === "test" || explicit === "live") return explicit;
-  const key = String(process.env.CREEM_API_KEY || "").trim();
-  return key.startsWith("creem_test_") ? "test" : "live";
+  const key = readCreemApiKey();
+  if (key.startsWith("creem_test_")) return "test";
+  return "live";
 }
 
 export function getCreemApiBase() {
+  // Docs: https://docs.creem.io/getting-started/test-mode
   return getCreemServer() === "test"
     ? "https://test-api.creem.io/v1"
     : "https://api.creem.io/v1";
+}
+
+export function getCreemModeInfo() {
+  try {
+    const server = getCreemServer();
+    return {
+      mode: server,
+      apiBase: getCreemApiBase(),
+      keySource: keySource(),
+      keyPrefix: readCreemApiKey().slice(0, 11),
+    };
+  } catch {
+    return {
+      mode: null,
+      apiBase: null,
+      keySource: keySource(),
+      keyPrefix: null,
+    };
+  }
 }
 
 export function isCreemConfigured() {
@@ -69,10 +101,30 @@ export function isCreemConfigured() {
   );
 }
 
+/**
+ * Refuse to start "live" checkout with a test key (would open creem.io/test/…).
+ * Call from initialize when production traffic is expected.
+ */
+export function assertCreemLiveKeyIfRequired() {
+  const wantLive =
+    String(process.env.CREEM_SERVER || "").toLowerCase() === "live" ||
+    Boolean(String(process.env.CREEM_PRODUCTION || "").trim());
+  if (!wantLive) return;
+  const key = readCreemApiKey();
+  if (key.startsWith("creem_test_")) {
+    const err = new Error(
+      "Creem is configured for live (CREEM_PRODUCTION / CREEM_SERVER=live) but the active API key is still a test key (creem_test_…). Paste the live key from the Creem dashboard with Test Mode OFF into CREEM_PRODUCTION, and use a live CREEM_PRODUCT_ID.",
+    );
+    err.code = "CREEM_TEST_KEY_IN_LIVE";
+    throw err;
+  }
+}
+
 async function creemFetch(path, { method = "GET", body } = {}) {
   const apiKey = readCreemApiKey();
+  const base = getCreemApiBase();
 
-  const res = await fetch(`${getCreemApiBase()}${path}`, {
+  const res = await fetch(`${base}${path}`, {
     method,
     headers: {
       "Content-Type": "application/json",
@@ -87,10 +139,15 @@ async function creemFetch(path, { method = "GET", body } = {}) {
       data?.message ||
       data?.error ||
       (Array.isArray(data?.errors) ? data.errors.join(", ") : null) ||
+      (Array.isArray(data?.message) ? data.message.join(", ") : null) ||
       `Creem API ${res.status}`;
-    const err = new Error(message);
+    const err = new Error(
+      typeof message === "string" ? message : JSON.stringify(message),
+    );
     err.status = res.status;
     err.payload = data;
+    err.creemMode = getCreemServer();
+    err.creemApiBase = base;
     throw err;
   }
   return data;
