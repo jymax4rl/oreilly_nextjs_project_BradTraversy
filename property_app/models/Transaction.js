@@ -3,7 +3,7 @@ import { Schema, models, model } from "mongoose";
 const TransactionSchema = new Schema(
   {
     /**
-     * Provider payment id (Flutterwave numeric id as string, or Creem checkout/order id).
+     * Provider payment id (Flutterwave id, Creem checkout id, or GeniusPay reference).
      * Stored as string so Creem and Flutterwave share one unique key.
      */
     transaction_id: {
@@ -11,10 +11,10 @@ const TransactionSchema = new Schema(
       required: true,
       unique: true,
     },
-    /** flutterwave | creem */
+    /** flutterwave | creem | geniuspay */
     provider: {
       type: String,
-      enum: ["flutterwave", "creem"],
+      enum: ["flutterwave", "creem", "geniuspay"],
       default: "flutterwave",
       index: true,
     },

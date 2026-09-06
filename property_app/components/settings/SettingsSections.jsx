@@ -182,7 +182,7 @@ export default function SettingsSections({ settings }) {
                   Guest payments
                 </p>
                 <p className="mt-1.5 leading-relaxed">
-                  Online card checkout is handled by Creem (Isisel is the merchant
+                  Online checkout uses GeniusPay (mobile money) and Creem (cards). Isisel is the merchant
                   of record). Local stays can still be arranged directly with you.
                   Add your IBAN below for platform-managed host settlement.
                 </p>

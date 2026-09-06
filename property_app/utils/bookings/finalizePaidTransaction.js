@@ -792,4 +792,104 @@ export async function finalizeFromCreemCheckout(checkout) {
 }
 
 
+
+/**
+ * GeniusPay webhook path: payment.success after signature verification.
+ * Amount is XOF major units; USD fee snapshot lives in metadata.
+ */
+export async function finalizeFromGeniusPayPayment(payment) {
+  const meta = payment?.metadata || {};
+  const customer = payment?.customer || {};
+
+  const reference =
+    payment?.reference ||
+    payment?.id ||
+    meta.request_id;
+  if (!reference) {
+    return {
+      bookingId: null,
+      bookingError: "Missing GeniusPay payment reference",
+      created: false,
+    };
+  }
+
+  const amountXof =
+    payment?.amount != null
+      ? Number(payment.amount)
+      : meta.amount_xof != null
+        ? Number(meta.amount_xof)
+        : undefined;
+
+  const amountUsd =
+    meta.amount_total_usd != null
+      ? Number(meta.amount_total_usd)
+      : undefined;
+
+  const statusRaw = String(payment?.status || "").toLowerCase();
+  const successful =
+    statusRaw === "completed" ||
+    statusRaw === "successful" ||
+    statusRaw === "success" ||
+    statusRaw === "paid";
+
+  const body = {
+    transaction_id: String(reference),
+    provider: "geniuspay",
+    tx_ref: meta.request_id || String(reference),
+    provider_ref: String(payment?.id || reference),
+    // Persist USD stay total when we have it (fee math / host payout); else XOF charged.
+    amount: amountUsd != null && Number.isFinite(amountUsd) ? amountUsd : amountXof,
+    currency:
+      amountUsd != null && Number.isFinite(amountUsd)
+        ? "USD"
+        : String(payment?.currency || meta.currency || "XOF").toUpperCase(),
+    status: successful ? "successful" : payment?.status,
+    customer_name:
+      customer.name || payment?.customer_name || meta.guest_name,
+    customer_email:
+      customer.email || payment?.customer_email || meta.guest_email,
+    charge_response_message:
+      payment?.payment_method || payment?.provider || payment?.status,
+    flutterwave_created_at: payment?.completed_at
+      ? new Date(payment.completed_at)
+      : payment?.created_at
+        ? new Date(payment.created_at)
+        : new Date(),
+    platform_fee:
+      meta.platform_fee_usd != null ? Number(meta.platform_fee_usd) : undefined,
+    host_payout:
+      meta.host_payout_usd != null ? Number(meta.host_payout_usd) : undefined,
+    cleaning_fee:
+      meta.cleaning_fee_usd != null ? Number(meta.cleaning_fee_usd) : undefined,
+    property_id: meta.property_id,
+    property_name: meta.property_name,
+    host_id: meta.host_id,
+    host_name: meta.host_name,
+    host_email: meta.host_email,
+    check_in: meta.check_in,
+    check_out: meta.check_out,
+    nights: meta.nights != null ? Number(meta.nights) : undefined,
+    guest_phone: meta.guest_phone || customer.phone || payment?.customer_phone,
+  };
+
+  const result = await finalizePaidTransaction(body, {
+    userId: meta.guest_user_id || undefined,
+    customerEmail: body.customer_email,
+    customerName: body.customer_name,
+  });
+
+  console.info("[booking email] GeniusPay webhook finalize emails", {
+    bookingId: result.bookingId,
+    attempted: result.emails?.attempted,
+    guestStatus: result.emails?.guestStatus,
+    hostStatus: result.emails?.hostStatus,
+    configError: result.emails?.configError,
+    bookingError: result.bookingError,
+  });
+
+  return result;
+}
+
+
 export { bookingEmailConfigError };
+

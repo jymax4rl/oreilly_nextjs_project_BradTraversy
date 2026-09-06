@@ -5,8 +5,9 @@ import { X } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 
 /**
- * Collects a WhatsApp-preferred guest phone before submitting a reservation request.
- * Matches other Isisel dialogs: Escape, overlay click, body scroll lock, teal CTAs.
+ * Collects a WhatsApp-preferred guest phone before submitting a reservation.
+ * When online checkout is enabled, optional paymentMethods lets the guest pick
+ * Mobile Money (GeniusPay) or Card (Creem).
  */
 export default function GuestPhoneModal({
   open,
@@ -16,10 +17,16 @@ export default function GuestPhoneModal({
   onConfirm,
   submitting = false,
   error = null,
+  paymentMethods = null,
 }) {
   const titleId = useId();
   const inputId = useId();
   const inputRef = useRef(null);
+
+  const geniusEnabled = Boolean(paymentMethods?.geniuspay);
+  const creemEnabled = Boolean(paymentMethods?.creem);
+  const showMethods = geniusEnabled || creemEnabled;
+  const bothMethods = geniusEnabled && creemEnabled;
 
   useEffect(() => {
     if (!open) return;
@@ -41,7 +48,10 @@ export default function GuestPhoneModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!submitting) onConfirm?.();
+    if (submitting) return;
+    // Prefer MoMo when both are available and the guest uses the primary CTA.
+    const method = geniusEnabled ? "geniuspay" : creemEnabled ? "creem" : undefined;
+    onConfirm?.(method);
   };
 
   return (
@@ -108,7 +118,7 @@ export default function GuestPhoneModal({
                 inputMode="tel"
                 required
                 disabled={submitting}
-                placeholder="+237 6XX XXX XXX"
+                placeholder="+225 07 XX XX XX XX"
                 value={phone}
                 onChange={(e) => onPhoneChange?.(e.target.value)}
                 className="w-full rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2.5 text-sm text-[var(--kama-ink)] outline-none ring-[var(--kama-accent)] placeholder:text-[var(--kama-ink-muted)] focus:ring-2 disabled:opacity-60"
@@ -129,22 +139,61 @@ export default function GuestPhoneModal({
             )}
           </div>
 
-          <div className="flex flex-col-reverse gap-2 border-t border-[var(--kama-border)] px-5 py-4 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              onClick={() => onCancel?.()}
-              disabled={submitting}
-              className="rounded-xl border border-[var(--kama-border)] bg-white px-4 py-2.5 text-sm font-medium text-[var(--kama-ink)] transition hover:bg-[var(--kama-field)] disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="rounded-xl bg-[var(--kama-accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {submitting ? "Requesting…" : "Confirm reservation"}
-            </button>
+          <div className="flex flex-col gap-2 border-t border-[var(--kama-border)] px-5 py-4">
+            {bothMethods ? (
+              <>
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => !submitting && onConfirm?.("geniuspay")}
+                  className="rounded-xl bg-[var(--kama-accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submitting ? "Starting…" : "Pay with Mobile Money"}
+                </button>
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => !submitting && onConfirm?.("creem")}
+                  className="rounded-xl border border-[var(--kama-border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--kama-ink)] transition hover:bg-[var(--kama-field)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submitting ? "Starting…" : "Pay with card"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onCancel?.()}
+                  disabled={submitting}
+                  className="rounded-xl px-4 py-2 text-sm font-medium text-[var(--kama-ink-muted)] transition hover:text-[var(--kama-ink)] disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => onCancel?.()}
+                  disabled={submitting}
+                  className="rounded-xl border border-[var(--kama-border)] bg-white px-4 py-2.5 text-sm font-medium text-[var(--kama-ink)] transition hover:bg-[var(--kama-field)] disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="rounded-xl bg-[var(--kama-accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submitting
+                    ? showMethods
+                      ? "Starting…"
+                      : "Requesting…"
+                    : showMethods
+                      ? geniusEnabled
+                        ? "Pay with Mobile Money"
+                        : "Pay with card"
+                      : "Confirm reservation"}
+                </button>
+              </div>
+            )}
           </div>
         </form>
       </div>
