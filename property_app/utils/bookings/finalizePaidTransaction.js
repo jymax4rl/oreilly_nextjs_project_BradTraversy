@@ -331,7 +331,7 @@ export async function sendEmailsForBooking(
       force,
       guestEmail: resolvedGuest.guestEmail ? "set" : "missing",
       hostEmail: body.host_email ? "set" : "missing",
-      transactionId: body.transaction_id,
+      transactionId: body.transaction_id != null ? String(body.transaction_id) : body.transaction_id,
     });
     outcome = await sendBookingConfirmationEmails({
       guestEmail: resolvedGuest.guestEmail,
@@ -353,7 +353,10 @@ export async function sendEmailsForBooking(
       nights,
       amount: body.amount,
       currency: body.currency,
-      transactionId: body.transaction_id,
+      transactionId:
+        body.transaction_id != null
+          ? String(body.transaction_id)
+          : body.transaction_id,
       bookingId: String(bookingId),
       paymentMode: body.payment_mode || booking.paymentMode,
       // Force resend must not collide with Resend's 24h idempotency cache.
@@ -482,7 +485,7 @@ export async function attachBookingToTransaction(body, guestHint = {}) {
     guestPhone: body.guest_phone,
     checkIn: body.check_in,
     checkOut: body.check_out,
-    transactionId: body.transaction_id,
+    transactionId: body.transaction_id != null ? String(body.transaction_id) : body.transaction_id,
     amount: body.amount,
     currency: body.currency,
     propertyName: body.property_name,
@@ -531,7 +534,7 @@ export async function finalizePaidTransaction(
   clientOverride = null,
 ) {
   const existingTx = await Transaction.findOne({
-    transaction_id: body.transaction_id,
+    transaction_id: String(body.transaction_id),
   });
 
   if (existingTx) {
@@ -608,9 +611,11 @@ export async function finalizePaidTransaction(
   await enrichStayMetaFromProperty(body);
 
   const newTransaction = await Transaction.create({
-    transaction_id: body.transaction_id,
+    transaction_id: String(body.transaction_id),
+    provider: body.provider || "flutterwave",
     tx_ref: body.tx_ref,
-    flw_ref: body.flw_ref,
+    flw_ref: body.flw_ref || undefined,
+    provider_ref: body.provider_ref || body.flw_ref || undefined,
     amount: body.amount,
     currency: body.currency,
     status: body.status || "successful",
@@ -619,6 +624,9 @@ export async function finalizePaidTransaction(
     charge_response_code: body.charge_response_code,
     charge_response_message: body.charge_response_message,
     flutterwave_created_at: body.flutterwave_created_at || new Date(),
+    platform_fee: body.platform_fee,
+    host_payout: body.host_payout,
+    cleaning_fee: body.cleaning_fee,
     user: guestHint.userId || null,
     property_id: body.property_id || null,
     property_name: body.property_name,
@@ -666,11 +674,13 @@ export async function finalizePaidTransaction(
  * Webhook path: transaction already verified by Flutterwave API.
  */
 export async function finalizeFromFlutterwaveCharge(data) {
-  const transactionId = data.id;
+  const transactionId = String(data.id);
   const body = {
     transaction_id: transactionId,
+    provider: "flutterwave",
     tx_ref: data.tx_ref,
-    flw_ref: data.flw_ref || data.reference || String(transactionId),
+    flw_ref: data.flw_ref || data.reference || transactionId,
+    provider_ref: data.flw_ref || data.reference || transactionId,
     amount: data.amount,
     currency: data.currency,
     status: data.status,
@@ -705,5 +715,91 @@ export async function finalizeFromFlutterwaveCharge(data) {
 
   return result;
 }
+
+
+
+/**
+ * Creem webhook path: checkout.completed after signature verification.
+ * Amount on Creem orders is minor units (cents); we persist major units (USD).
+ */
+export async function finalizeFromCreemCheckout(checkout) {
+  const meta = checkout?.metadata || {};
+  const order = checkout?.order || {};
+  const customer = checkout?.customer || {};
+
+  const checkoutId = checkout?.id || order?.id;
+  if (!checkoutId) {
+    return {
+      bookingId: null,
+      bookingError: "Missing Creem checkout id",
+      created: false,
+    };
+  }
+
+  const amountCents =
+    order.amount != null
+      ? Number(order.amount)
+      : checkout.custom_price != null
+        ? Number(checkout.custom_price)
+        : null;
+  const amount =
+    amountCents != null && Number.isFinite(amountCents)
+      ? Math.round(amountCents) / 100
+      : meta.amount_total_usd != null
+        ? Number(meta.amount_total_usd)
+        : undefined;
+
+  const body = {
+    transaction_id: String(checkoutId),
+    provider: "creem",
+    tx_ref: checkout.request_id || meta.request_id || String(checkoutId),
+    provider_ref: order.id || String(checkoutId),
+    amount,
+    currency: String(order.currency || meta.currency || "USD").toUpperCase(),
+    status:
+      checkout.status === "completed" || order.status === "paid"
+        ? "successful"
+        : checkout.status,
+    customer_name: customer.name || meta.guest_name,
+    customer_email: customer.email || meta.guest_email,
+    charge_response_message: order.status || checkout.status,
+    flutterwave_created_at: order.created_at
+      ? new Date(order.created_at)
+      : new Date(),
+    platform_fee:
+      meta.platform_fee_usd != null ? Number(meta.platform_fee_usd) : undefined,
+    host_payout:
+      meta.host_payout_usd != null ? Number(meta.host_payout_usd) : undefined,
+    cleaning_fee:
+      meta.cleaning_fee_usd != null ? Number(meta.cleaning_fee_usd) : undefined,
+    property_id: meta.property_id,
+    property_name: meta.property_name,
+    host_id: meta.host_id,
+    host_name: meta.host_name,
+    host_email: meta.host_email,
+    check_in: meta.check_in,
+    check_out: meta.check_out,
+    nights: meta.nights != null ? Number(meta.nights) : undefined,
+    guest_phone: meta.guest_phone,
+  };
+
+  const result = await finalizePaidTransaction(body, {
+    userId: meta.guest_user_id || undefined,
+    customerEmail: body.customer_email,
+    customerName: body.customer_name,
+  });
+
+  console.info("[booking email] Creem webhook finalize emails", {
+    bookingId: result.bookingId,
+    attempted: result.emails?.attempted,
+    guestStatus: result.emails?.guestStatus,
+    hostStatus: result.emails?.hostStatus,
+    configError: result.emails?.configError,
+    bookingError: result.bookingError,
+  });
+
+  return result;
+}
+
 
 export { bookingEmailConfigError };

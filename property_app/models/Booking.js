@@ -77,7 +77,7 @@ const BookingSchema = new mongoose.Schema(
     /**
      * How payment is collected.
      * - manual: guest reserved without gateway; host arranges payment (status usually pending)
-     * - gateway: paid via Flutterwave (or similar); status usually confirmed
+     * - gateway: paid via Creem / Flutterwave (or similar); status usually confirmed
      */
     paymentMode: {
       type: String,
@@ -94,8 +94,9 @@ const BookingSchema = new mongoose.Schema(
       default: undefined,
       index: true,
     },
+    /** Provider payment id (string — works for Creem ids and Flutterwave numeric ids). */
     transactionId: {
-      type: Number,
+      type: String,
       sparse: true,
       unique: true,
     },
