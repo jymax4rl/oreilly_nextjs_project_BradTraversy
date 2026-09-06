@@ -37,6 +37,7 @@ import {
   isCreemCheckoutEnabled,
   isGeniusPayCheckoutEnabled,
 } from "@/utils/bookings/paymentMode";
+import { canUseOnlineCheckout } from "@/utils/payments/paymentAccess";
 import GuestPhoneModal from "@/components/bookings/GuestPhoneModal";
 
 function RightColumn({ data }) {
@@ -64,9 +65,12 @@ function RightColumn({ data }) {
   const fx = resolveFxRate(rates, currencyCode);
   const paymentCurrency = normalizeCurrencyCode(fx.currencyCode);
   const isOwner = session?.user?.id === data.owner;
-  const gatewayCheckout = isPaymentGatewayCheckoutEnabled();
-  const creemCheckout = isCreemCheckoutEnabled();
-  const geniusPayCheckout = isGeniusPayCheckoutEnabled();
+  // Soft launch: online checkout for ops, partner Sadio Diallo, or his listings.
+  const paymentAllowed = canUseOnlineCheckout(session, data);
+  const gatewayCheckout =
+    isPaymentGatewayCheckoutEnabled() && paymentAllowed;
+  const creemCheckout = isCreemCheckoutEnabled() && paymentAllowed;
+  const geniusPayCheckout = isGeniusPayCheckoutEnabled() && paymentAllowed;
   const checkInTimeLabel = formatClockTimeLabel(
     data.checkInTime,
     DEFAULT_CHECK_IN_TIME,

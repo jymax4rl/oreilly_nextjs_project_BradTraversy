@@ -8,6 +8,7 @@ import {
   isValidGuestPhone,
   normalizeGuestPhone,
 } from "@/utils/bookings/paymentMode";
+import { canUseOnlineCheckout } from "@/utils/payments/paymentAccess";
 import {
   calculateBookingFees,
   calculateStayTotal,
@@ -84,7 +85,9 @@ export async function POST(req) {
     }
 
     await connectToDatabase();
-    const property = await Property.findById(propertyId).lean();
+    const property = await Property.findById(propertyId)
+      .populate("owner", "username email role")
+      .lean();
     if (!property) {
       return NextResponse.json(
         { message: "Property not found" },
@@ -92,7 +95,17 @@ export async function POST(req) {
       );
     }
 
-    if (String(property.owner) === String(guestUserId)) {
+    if (!canUseOnlineCheckout(session, property)) {
+      return NextResponse.json(
+        {
+          message:
+            "Online checkout is limited to ops and partner listings right now. Request a reservation to arrange payment with the host.",
+        },
+        { status: 403 },
+      );
+    }
+
+    if (String(property.owner?._id || property.owner) === String(guestUserId)) {
       return NextResponse.json(
         { message: "You cannot book your own listing" },
         { status: 400 },
