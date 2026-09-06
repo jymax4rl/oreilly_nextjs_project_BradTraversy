@@ -4,11 +4,7 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { formatListingPrice, resolveFxRate } from "@/utils/currencyUtils";
-import {
-  getFlutterwaveCountry,
-  getFlutterwavePaymentOption,
-  normalizeCurrencyCode,
-} from "@/utils/mobileMoney";
+import { normalizeCurrencyCode } from "@/utils/mobileMoney";
 import Currency from "@/components/Currency";
 import PaymentMethodBadge from "@/components/PaymentMethodBadge";
 import MobileMoneyReserveButton from "@/components/MobileMoneyReserveButton";
@@ -25,8 +21,8 @@ import {
   getPrimaryDisplayRate,
   hasAnyRate,
   normalizeRates,
+  PLATFORM_COMMISSION_RATE,
 } from "@/utils/propertyRates";
-import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 import { useSession } from "next-auth/react";
 import DeletePropertyControl from "@/components/properties/DeletePropertyControl";
 import { getLoginUrl } from "@/lib/legal/loginUrl";
@@ -38,7 +34,10 @@ import {
 import {
   isValidGuestPhone,
   isPaymentGatewayCheckoutEnabled,
+  isCreemCheckoutEnabled,
+  isGeniusPayCheckoutEnabled,
 } from "@/utils/bookings/paymentMode";
+import { canUseOnlineCheckout } from "@/utils/payments/paymentAccess";
 import GuestPhoneModal from "@/components/bookings/GuestPhoneModal";
 
 function RightColumn({ data }) {
@@ -53,6 +52,9 @@ function RightColumn({ data }) {
   const [paymentNotice, setPaymentNotice] = useState(null);
   const [unavailableRanges, setUnavailableRanges] = useState([]);
   const [customDayRates, setCustomDayRates] = useState([]);
+  const [platformCommissionRate, setPlatformCommissionRate] = useState(
+    PLATFORM_COMMISSION_RATE,
+  );
   const [guestPhone, setGuestPhone] = useState("");
   const [phoneModalOpen, setPhoneModalOpen] = useState(false);
   const [phoneModalError, setPhoneModalError] = useState(null);
@@ -63,7 +65,12 @@ function RightColumn({ data }) {
   const fx = resolveFxRate(rates, currencyCode);
   const paymentCurrency = normalizeCurrencyCode(fx.currencyCode);
   const isOwner = session?.user?.id === data.owner;
-  const gatewayCheckout = isPaymentGatewayCheckoutEnabled();
+  // Soft launch: online checkout for ops, partner Sadio Diallo, or his listings.
+  const paymentAllowed = canUseOnlineCheckout(session, data);
+  const gatewayCheckout =
+    isPaymentGatewayCheckoutEnabled() && paymentAllowed;
+  const creemCheckout = isCreemCheckoutEnabled() && paymentAllowed;
+  const geniusPayCheckout = isGeniusPayCheckoutEnabled() && paymentAllowed;
   const checkInTimeLabel = formatClockTimeLabel(
     data.checkInTime,
     DEFAULT_CHECK_IN_TIME,
@@ -93,6 +100,9 @@ function RightColumn({ data }) {
         if (!cancelled && res.ok) {
           setUnavailableRanges(payload.unavailableRanges || []);
           setCustomDayRates(payload.customDayRates || []);
+          if (Number.isFinite(Number(payload.platformCommissionRate))) {
+            setPlatformCommissionRate(Number(payload.platformCommissionRate));
+          }
         }
       } catch {
         /* ignore */
@@ -112,7 +122,13 @@ function RightColumn({ data }) {
 
   const basePriceUsd = stayPricing?.base ?? primaryRate?.amount ?? 0;
   const { cleaningFee, commission, total: totalUsd } =
-    calculateBookingFees(basePriceUsd);
+    calculateBookingFees(basePriceUsd, {
+      commissionRate: platformCommissionRate,
+    });
+  const commissionPctLabel =
+    platformCommissionRate === 0
+      ? ""
+      : ` (${Math.round(platformCommissionRate * 1000) / 10}%)`;
 
   const numericalTotal = parseFloat((totalUsd * fx.rate).toFixed(2));
 
@@ -126,43 +142,6 @@ function RightColumn({ data }) {
     ? `for ${nights} night${nights !== 1 ? "s" : ""}`
     : primaryRate?.suffix || "";
 
-  const config = {
-    public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY,
-    tx_ref: `ISISEL-${Date.now()}`,
-    amount: numericalTotal,
-    currency: paymentCurrency,
-    country: getFlutterwaveCountry(paymentCurrency),
-    payment_options: getFlutterwavePaymentOption(paymentCurrency),
-    customer: {
-      email: session?.user?.email || "",
-      phone_number: guestPhone || "",
-      name: session?.user?.name || "",
-    },
-    customizations: {
-      title: "Isisel",
-      description: `Reservation for ${data.name || "Property"}${
-        checkIn && checkOut ? ` (${checkIn} – ${checkOut})` : ""
-      }`,
-      logo: "https://st2.depositphotos.com/4403291/7418/v/450/depositphotos_74189661-stock-illustration-online-shop-log.jpg",
-    },
-    ...(checkIn && checkOut
-      ? {
-          meta: {
-            property_id: String(data._id),
-            property_name: data.name || "Property",
-            host_id: String(data.owner || ""),
-            host_name: data.seller_info?.name || "",
-            host_email: data.seller_info?.email || "",
-            check_in: checkIn,
-            check_out: checkOut,
-            nights: String(nights),
-          },
-        }
-      : {}),
-  };
-
-  // Hook must stay unconditional; gateway path is feature-flagged at click time.
-  const handleFlutterPayment = useFlutterwave(config);
 
   const refreshAvailability = useCallback(async () => {
     try {
@@ -285,64 +264,109 @@ function RightColumn({ data }) {
     }
   };
 
-  const startGatewayCheckout = (validation, phone) => {
+  const startCreemCheckout = async (validation, phone) => {
     setPhoneModalOpen(false);
     setPendingValidation(null);
-    handleFlutterPayment({
-      callback: async (response) => {
-        if (response.status === "successful") {
-          try {
-            const res = await fetch("/api/transactions", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                ...response,
-                property_id: data._id,
-                property_name: data.name,
-                host_id: data.owner,
-                host_name: data.seller_info?.name || "Unknown",
-                host_email: data.seller_info?.email || "",
-                check_in: validation.checkIn,
-                check_out: validation.checkOut,
-                nights: countNights(validation.checkIn, validation.checkOut),
-                amount: numericalTotal,
-                currency: paymentCurrency,
-                guest_phone: phone,
-              }),
-            });
-            const payload = await res.json().catch(() => ({}));
-            if (!res.ok) {
-              setPaymentNotice({
-                type: "error",
-                title: "Could not confirm payment",
-                message:
-                  payload.message ||
-                  "Payment may have gone through, but we could not verify it. Save your receipt and contact support.",
-              });
-            } else if (payload.bookingId) {
-              window.location.href = "/my-bookings?confirmed=1";
-              return;
-            } else if (payload.bookingError) {
-              setPaymentNotice({
-                type: "warning",
-                title: "Payment received",
-                message: `Your payment was saved, but the booking could not be completed: ${payload.bookingError}`,
-              });
-            }
-          } catch (err) {
-            console.error("Error saving transaction:", err);
-            setPaymentNotice({
-              type: "error",
-              title: "Connection error",
-              message:
-                "Payment may have succeeded. Check My Bookings in a moment or contact support with your receipt.",
-            });
-          }
-        }
+    setSubmitting(true);
+    setPaymentNotice(null);
+    try {
+      const res = await fetch("/api/payments/creem/initialize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          propertyId: data._id,
+          checkIn: validation.checkIn,
+          checkOut: validation.checkOut,
+          guestPhone: phone,
+        }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok || !payload?.data?.checkout_url) {
+        setPaymentNotice({
+          type: "error",
+          title: "Could not start card checkout",
+          message:
+            payload.message ||
+            "Please try again, or message the host to arrange payment.",
+        });
+        return;
+      }
+      window.location.href = payload.data.checkout_url;
+    } catch (err) {
+      console.error("Creem checkout failed:", err);
+      setPaymentNotice({
+        type: "error",
+        title: "Connection error",
+        message: "Could not reach the payment service. Please try again.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-        closePaymentModal();
-      },
-      onClose: () => {},
+  const startGeniusPayCheckout = async (validation, phone) => {
+    setPhoneModalOpen(false);
+    setPendingValidation(null);
+    setSubmitting(true);
+    setPaymentNotice(null);
+    try {
+      const res = await fetch("/api/payments/geniuspay/initialize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          propertyId: data._id,
+          checkIn: validation.checkIn,
+          checkOut: validation.checkOut,
+          guestPhone: phone,
+        }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok || !payload?.data?.checkout_url) {
+        setPaymentNotice({
+          type: "error",
+          title: "Could not start mobile money checkout",
+          message:
+            payload.message ||
+            "Please try again, or message the host to arrange payment.",
+        });
+        return;
+      }
+      window.location.href = payload.data.checkout_url;
+    } catch (err) {
+      console.error("GeniusPay checkout failed:", err);
+      setPaymentNotice({
+        type: "error",
+        title: "Connection error",
+        message: "Could not reach the payment service. Please try again.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  /** Route explicit guest choice: geniuspay = MoMo, creem = card. */
+  const startGatewayCheckout = (validation, phone, method) => {
+    if (method === "creem" && creemCheckout) {
+      void startCreemCheckout(validation, phone);
+      return;
+    }
+    if (method === "geniuspay" && geniusPayCheckout) {
+      void startGeniusPayCheckout(validation, phone);
+      return;
+    }
+    // Fallback when only one provider is configured.
+    if (geniusPayCheckout) {
+      void startGeniusPayCheckout(validation, phone);
+      return;
+    }
+    if (creemCheckout) {
+      void startCreemCheckout(validation, phone);
+      return;
+    }
+    setPaymentNotice({
+      type: "error",
+      title: "Online checkout unavailable",
+      message: "Please request a reservation and arrange payment with the host.",
     });
   };
 
@@ -355,7 +379,7 @@ function RightColumn({ data }) {
     setPhoneModalOpen(true);
   };
 
-  const handlePhoneConfirm = async () => {
+  const handlePhoneConfirm = async (method) => {
     if (!pendingValidation) return;
     if (!isValidGuestPhone(guestPhone)) {
       setPhoneModalError("Enter a valid WhatsApp number so the host can reach you.");
@@ -367,7 +391,7 @@ function RightColumn({ data }) {
       return;
     }
 
-    startGatewayCheckout(pendingValidation, guestPhone);
+    startGatewayCheckout(pendingValidation, guestPhone, method);
   };
 
   return (
@@ -383,6 +407,14 @@ function RightColumn({ data }) {
             currencyCode={paymentCurrency}
             compact
             manual={!gatewayCheckout}
+            gatewayProviders={
+              gatewayCheckout
+                ? {
+                    geniuspay: geniusPayCheckout,
+                    creem: creemCheckout,
+                  }
+                : null
+            }
           />
         </div>
 
@@ -470,7 +502,11 @@ function RightColumn({ data }) {
               }
               hint={
                 gatewayCheckout
-                  ? undefined
+                  ? geniusPayCheckout && creemCheckout
+                    ? "Mobile Money or card at checkout"
+                    : geniusPayCheckout
+                      ? "Mobile Money at checkout"
+                      : "Card at checkout"
                   : "No online payment — arrange with the host after you reserve."
               }
               manual={!gatewayCheckout}
@@ -525,7 +561,7 @@ function RightColumn({ data }) {
 
         <p className="text-center text-[11px] text-[var(--kama-ink-muted)]">
           {gatewayCheckout
-            ? "You won't be charged until checkout"
+            ? "Pay with Mobile Money or card at checkout"
             : "Dates are held while you arrange payment with the host"}
         </p>
 
@@ -549,7 +585,7 @@ function RightColumn({ data }) {
               </span>
             </div>
             <div className="flex justify-between gap-3">
-              <span>Service fee (7%)</span>
+              <span>Service fee{commissionPctLabel}</span>
               <span className="tabular-nums">
                 {formatListingPrice(commission, rates, currencyCode)}
               </span>
@@ -588,6 +624,14 @@ function RightColumn({ data }) {
         onConfirm={handlePhoneConfirm}
         submitting={submitting}
         error={phoneModalError}
+        paymentMethods={
+          gatewayCheckout
+            ? {
+                geniuspay: geniusPayCheckout,
+                creem: creemCheckout,
+              }
+            : null
+        }
       />
     </div>
   );

@@ -1,11 +1,12 @@
 import { MetadataRoute } from "next";
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
-import { approvedListingQuery } from "@/utils/listingApproval";
+import { publicListingQuery } from "@/utils/listingApproval";
 import { ensurePropertySlug } from "@/utils/listings/propertySlug";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
 import { SECTION_IDS } from "@/lib/legal/content";
 import { findPreviewLockedOwnerIds } from "@/utils/listings/previewLockedHost.server";
+import { isListingsCatalogBeta } from "@/utils/listings/catalogBeta";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl =
@@ -22,8 +23,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: `${baseUrl}/properties`,
       lastModified: new Date(),
-      changeFrequency: "daily" as const,
-      priority: 0.9,
+      changeFrequency: "weekly" as const,
+      priority: isListingsCatalogBeta() ? 0.6 : 0.9,
     },
     {
       url: `${baseUrl}/business`,
@@ -32,10 +33,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.85,
     },
     {
+      url: `${baseUrl}/founding-hosts`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/influencers`,
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/investors`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/about`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
     },
     {
       url: `${baseUrl}/host/install`,
@@ -63,13 +88,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ];
 
-  // Dynamic property pages — only when database is available at build/runtime
+  // Dynamic property pages stay out of the public sitemap during host-only beta.
   let propertyRoutes: MetadataRoute.Sitemap = [];
-  if (process.env.MONGODB_URI) {
+  if (process.env.MONGODB_URI && !isListingsCatalogBeta()) {
     try {
       await connectToDatabase();
       const properties = (await (Property as any)
-        .find(approvedListingQuery())
+        .find(publicListingQuery())
         .select("_id updatedAt slug name location owner")
         .lean()) as Array<{
         _id: { toString(): string };

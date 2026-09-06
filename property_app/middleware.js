@@ -123,6 +123,10 @@ async function handleAuth(req) {
     return NextResponse.redirect(new URL("/host/onboarding", req.url));
   }
 
+  if (pathname === "/insvestors" || pathname.startsWith("/insvestors/")) {
+    return NextResponse.redirect(new URL("/investors", req.url));
+  }
+
   return NextResponse.next();
 }
 

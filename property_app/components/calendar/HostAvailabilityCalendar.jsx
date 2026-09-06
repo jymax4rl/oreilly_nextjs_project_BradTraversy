@@ -15,11 +15,9 @@ import {
   X,
 } from "lucide-react";
 import {
-  WEEKDAYS,
   addDays,
   buildMonthGrid,
   getDayStatus,
-  getMonthLabel,
   isPast,
   isToday,
   normalizeSelection,
@@ -37,8 +35,12 @@ import {
   upsertCustomDayRate,
 } from "@/utils/availability/customDayRates";
 import { getDefaultNightlyUsd } from "@/utils/propertyRates";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+
+const WEEKDAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
 export default function HostAvailabilityCalendar({ propertyId, baseRates = {} }) {
+  const { t, lang } = useLanguage();
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getUTCFullYear());
   const [viewMonth, setViewMonth] = useState(now.getUTCMonth());
@@ -65,7 +67,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
     try {
       const res = await fetch(`/api/properties/${propertyId}/availability`);
       const avail = await res.json();
-      if (!res.ok) throw new Error(avail.error || "Failed to load calendar");
+      if (!res.ok) throw new Error(avail.error || t("hostConsole.cal.loadFailed"));
       setHostBlocks(avail.hostBlocks || []);
       setCustomDayRates(avail.customDayRates || []);
       setUnavailableRanges(avail.unavailableRanges || []);
@@ -73,13 +75,13 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
       setSelectedRateDate(null);
       setRateDraft("");
     } catch (e) {
-      setError(e.message || "Could not load calendar");
+      setError(e.message || t("hostConsole.cal.couldNotLoad"));
     } finally {
       setLoading(false);
       setDirty(false);
       setEditingIndex(null);
     }
-  }, [propertyId]);
+  }, [propertyId, t]);
 
   useEffect(() => {
     load();
@@ -142,7 +144,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
       if (status !== "blocked") return;
       setHostBlocks((prev) => unlockDayFromHostBlocks(prev, dateStr));
       markDirty();
-      setSuccess("Date unlocked — tap Save calendar to apply");
+      setSuccess(t("hostConsole.cal.dateUnlocked"));
       return;
     }
 
@@ -150,7 +152,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
       setMode("unlock");
       setHostBlocks((prev) => unlockDayFromHostBlocks(prev, dateStr));
       markDirty();
-      setSuccess("Switched to Unlock — tap Save when finished");
+      setSuccess(t("hostConsole.cal.switchedUnlock"));
       return;
     }
 
@@ -177,13 +179,13 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
 
     for (const b of hostBlocks) {
       if (rangesOverlap(block, b)) {
-        setError("Selection overlaps an existing block");
+        setError(t("hostConsole.cal.overlapBlock"));
         return;
       }
     }
     for (const r of unavailableRanges) {
       if (r.source === "booking" && rangesOverlap(block, r)) {
-        setError("Selection overlaps a confirmed booking");
+        setError(t("hostConsole.cal.overlapBooking"));
         return;
       }
     }
@@ -193,14 +195,14 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
     setSelectEnd(null);
     markDirty();
     setError("");
-    setSuccess("Dates blocked — tap Save calendar to apply");
+    setSuccess(t("hostConsole.cal.datesBlocked"));
   };
 
   const unlockEntireBlock = (index) => {
     setHostBlocks((prev) => removeHostBlockAt(prev, index));
     if (editingIndex === index) setEditingIndex(null);
     markDirty();
-    setSuccess("Period unlocked — tap Save calendar to apply");
+    setSuccess(t("hostConsole.cal.periodUnlocked"));
   };
 
   const startEditBlock = (index) => {
@@ -229,7 +231,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
     for (let i = 0; i < hostBlocks.length; i++) {
       if (i === index) continue;
       if (rangesOverlap(updated, hostBlocks[i])) {
-        setError("Updated range overlaps another block");
+        setError(t("hostConsole.cal.overlapOther"));
         return;
       }
     }
@@ -240,7 +242,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
     setEditingIndex(null);
     markDirty();
     setError("");
-    setSuccess("Block updated — tap Save calendar to apply");
+    setSuccess(t("hostConsole.cal.blockUpdated"));
   };
 
   const applyCustomRate = () => {
@@ -249,7 +251,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
       upsertCustomDayRate(prev, selectedRateDate, rateDraft),
     );
     markDirty();
-    setSuccess(`Custom rate set for ${selectedRateDate} — tap Save calendar`);
+    setSuccess(t("hostConsole.cal.customSet", { date: selectedRateDate }));
     setError("");
   };
 
@@ -258,7 +260,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
     setCustomDayRates((prev) => removeCustomDayRate(prev, selectedRateDate));
     setRateDraft("");
     markDirty();
-    setSuccess(`Using default rate for ${selectedRateDate} — tap Save calendar`);
+    setSuccess(t("hostConsole.cal.usingDefault", { date: selectedRateDate }));
     setError("");
   };
 
@@ -269,7 +271,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
       setRateDraft("");
     }
     markDirty();
-    setSuccess("Custom rate removed — tap Save calendar");
+    setSuccess(t("hostConsole.cal.customRemoved"));
   };
 
   const save = async () => {
@@ -310,9 +312,9 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
       setUnavailableRanges(data.unavailableRanges || []);
       setDirty(false);
       setEditingIndex(null);
-      setSuccess("Calendar saved");
+      setSuccess(t("hostConsole.cal.saved"));
     } catch (e) {
-      setError(e.message || "Save failed");
+      setError(e.message || t("hostConsole.cal.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -372,7 +374,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
           }`}
         >
           <Lock size={16} aria-hidden />
-          Block
+          {t("hostConsole.cal.block")}
         </button>
         <button
           type="button"
@@ -388,7 +390,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
           }`}
         >
           <DollarSign size={16} aria-hidden />
-          Custom $
+          {t("hostConsole.cal.custom")}
         </button>
         <button
           type="button"
@@ -405,17 +407,14 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
           }`}
         >
           <Unlock size={16} aria-hidden />
-          Unlock
+          {t("hostConsole.cal.unlock")}
         </button>
       </div>
 
       <p className="text-center text-xs text-slate-500">
-        {mode === "block" &&
-          "Select a range, then Block selected dates. Save to update the listing."}
-        {mode === "rate" &&
-          "Tap a day to set a custom price (USD). Save calendar when finished."}
-        {mode === "unlock" &&
-          "Tap blocked days to open them again, or unlock a full period below."}
+        {mode === "block" && t("hostConsole.cal.hintBlock")}
+        {mode === "rate" && t("hostConsole.cal.hintRate")}
+        {mode === "unlock" && t("hostConsole.cal.hintUnlock")}
       </p>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -424,7 +423,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
             type="button"
             onClick={() => changeMonth(-1)}
             className="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 active:scale-95"
-            aria-label="Previous month"
+            aria-label={t("hostConsole.cal.prevMonth")}
           >
             <ChevronLeft size={22} />
           </button>
@@ -432,25 +431,28 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
             key={`${viewYear}-${viewMonth}`}
             className="text-lg font-semibold text-slate-900 animate-[calendarFadeIn_0.35s_ease-out]"
           >
-            {getMonthLabel(viewYear, viewMonth)}
+            {new Date(Date.UTC(viewYear, viewMonth, 1)).toLocaleDateString(
+              lang === "fr" ? "fr-FR" : "en-US",
+              { month: "long", year: "numeric", timeZone: "UTC" },
+            )}
           </h2>
           <button
             type="button"
             onClick={() => changeMonth(1)}
             className="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 active:scale-95"
-            aria-label="Next month"
+            aria-label={t("hostConsole.cal.nextMonth")}
           >
             <ChevronRight size={22} />
           </button>
         </div>
 
         <div className="grid grid-cols-7 gap-px border-b border-slate-100 bg-slate-100 px-px pt-px">
-          {WEEKDAYS.map((d) => (
+          {WEEKDAY_KEYS.map((key) => (
             <div
-              key={d}
+              key={key}
               className="bg-slate-50 py-2 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500"
             >
-              {d}
+              {t(`hostConsole.weekday.${key}`)}
             </div>
           ))}
         </div>
@@ -512,11 +514,11 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
                 className={cellClass}
                 title={
                   customPrice != null
-                    ? `Custom $${customPrice}`
+                    ? t("hostConsole.cal.customTitle", { price: customPrice })
                     : status === "blocked" && mode === "unlock"
-                      ? "Tap to unlock this day"
+                      ? t("hostConsole.cal.tapUnlock")
                       : mode === "rate"
-                        ? "Set custom rate"
+                        ? t("hostConsole.cal.setCustom")
                         : undefined
                 }
               >
@@ -544,25 +546,25 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
         <div className="flex flex-wrap items-center gap-4 border-t border-slate-100 px-4 py-3 text-xs text-slate-600 sm:px-6">
           <span className="flex items-center gap-1.5">
             <span className="h-3 w-3 rounded border border-slate-200 bg-white" />
-            Available
+            {t("hostConsole.cal.available")}
           </span>
           <span className="flex items-center gap-1.5">
             <span className="h-3 w-3 rounded bg-amber-100" />
-            Blocked
+            {t("hostConsole.cal.blocked")}
           </span>
           <span className="flex items-center gap-1.5">
             <span className="h-3 w-3 rounded bg-slate-200" />
-            Booked
+            {t("hostConsole.cal.booked")}
           </span>
           {mode === "block" && (
             <span className="flex items-center gap-1.5">
               <span className="h-3 w-3 rounded bg-indigo-100 ring-2 ring-indigo-500 ring-inset" />
-              Selecting
+              {t("hostConsole.cal.selecting")}
             </span>
           )}
           <span className="flex items-center gap-1.5">
             <span className="h-3 w-3 rounded bg-violet-100 ring-1 ring-violet-300" />
-            Custom $
+            {t("hostConsole.cal.custom")}
           </span>
         </div>
       </div>
@@ -572,12 +574,12 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
           <div className="mb-3 flex items-start justify-between gap-2">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-violet-800">
-                Custom rate
+                {t("hostConsole.cal.customRate")}
               </p>
               <p className="text-sm font-semibold text-slate-900">{selectedRateDate}</p>
               {defaultNightlyUsd != null && (
                 <p className="mt-1 text-xs text-violet-700/90">
-                  Default: ${defaultNightlyUsd}/night
+                  {t("hostConsole.cal.defaultNight", { amount: defaultNightlyUsd })}
                 </p>
               )}
             </div>
@@ -588,13 +590,13 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
                 setRateDraft("");
               }}
               className="rounded-lg p-1 text-slate-500 hover:bg-white/80"
-              aria-label="Close"
+              aria-label={t("hostConsole.cal.close")}
             >
               <X size={18} />
             </button>
           </div>
           <label className="text-[10px] font-bold uppercase text-slate-500">
-            Price (USD)
+            {t("hostConsole.cal.priceUsd")}
             <div className="relative mt-1">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-semibold text-slate-400">
                 $
@@ -617,7 +619,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
               disabled={!rateDraft}
               className="flex-1 rounded-xl bg-violet-700 py-2.5 text-sm font-semibold text-white hover:bg-violet-800 disabled:opacity-40"
             >
-              Apply rate
+              {t("hostConsole.cal.applyRate")}
             </button>
             <button
               type="button"
@@ -625,7 +627,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
               disabled={getCustomRateForDate(customDayRates, selectedRateDate) == null}
               className="flex-1 rounded-xl border border-violet-300 bg-white py-2.5 text-sm font-semibold text-violet-800 hover:bg-violet-50 disabled:opacity-40"
             >
-              Use default
+              {t("hostConsole.cal.useDefault")}
             </button>
           </div>
         </div>
@@ -643,7 +645,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
           ) : (
             <Save size={18} />
           )}
-          {saving ? "Saving…" : "Save calendar"}
+          {saving ? t("hostConsole.cal.saving") : t("hostConsole.cal.saveCalendar")}
         </button>
       )}
 
@@ -656,7 +658,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40 active:scale-[0.99]"
           >
             <CalendarDays size={18} />
-            Block selected dates
+            {t("hostConsole.cal.blockSelected")}
           </button>
           <button
             type="button"
@@ -669,7 +671,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
             ) : (
               <Save size={18} />
             )}
-            {saving ? "Saving…" : "Save calendar"}
+            {saving ? t("hostConsole.cal.saving") : t("hostConsole.cal.saveCalendar")}
           </button>
         </div>
       )}
@@ -686,22 +688,25 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
           ) : (
             <Save size={18} />
           )}
-          {saving ? "Saving…" : "Save changes"}
+          {saving ? t("hostConsole.cal.saving") : t("hostConsole.cal.saveChanges")}
         </button>
       )}
 
       {mode === "block" && selectStart && (
         <p className="text-center text-sm text-slate-500 animate-[calendarFadeIn_0.25s_ease-out]">
           {selectEnd
-            ? `Selected ${selection.startDate} → ${selection.endDate}`
-            : `Start ${selectStart} — tap end date`}
+            ? t("hostConsole.cal.selectedRange", {
+                start: selection.startDate,
+                end: selection.endDate,
+              })
+            : t("hostConsole.cal.tapEnd", { date: selectStart })}
         </p>
       )}
 
       {customDayRates.length > 0 && (
         <section className="rounded-2xl border border-violet-100 bg-white p-4 sm:p-5">
           <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-violet-700">
-            Custom day rates ({customDayRates.length})
+            {t("hostConsole.cal.customDayRates", { n: customDayRates.length })}
           </h3>
           <ul className="max-h-48 space-y-2 overflow-y-auto">
             {customDayRates.map((row) => (
@@ -720,7 +725,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
                   onClick={() => removeCustomRateEntry(row.date)}
                   className="rounded-lg px-2 py-1 text-xs font-semibold text-violet-700 hover:bg-white"
                 >
-                  Remove
+                  {t("hostConsole.cal.remove")}
                 </button>
               </li>
             ))}
@@ -730,10 +735,10 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
 
       <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
         <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-slate-500">
-          Blocked periods ({hostBlocks.length})
+          {t("hostConsole.cal.blockedPeriods", { n: hostBlocks.length })}
         </h3>
         {hostBlocks.length === 0 ? (
-          <p className="text-sm text-slate-500">No manual blocks.</p>
+          <p className="text-sm text-slate-500">{t("hostConsole.cal.noBlocks")}</p>
         ) : (
           <ul className="space-y-2">
             {hostBlocks.map((block, i) => (
@@ -746,8 +751,9 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
                 }`}
               >
                 {editingIndex === i ? (
-                  <BlockEditForm
+                    <BlockEditForm
                     block={block}
+                    t={t}
                     onSave={(start, end) => updateBlockDates(i, start, end)}
                     onCancel={() => setEditingIndex(null)}
                   />
@@ -763,7 +769,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
                         className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
                       >
                         <Pencil size={14} aria-hidden />
-                        Modify
+                        {t("hostConsole.cal.modify")}
                       </button>
                       <button
                         type="button"
@@ -771,7 +777,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
                         className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 transition hover:bg-emerald-100"
                       >
                         <LockOpen size={14} aria-hidden />
-                        Unlock all
+                        {t("hostConsole.cal.unlockAll")}
                       </button>
                     </div>
                   </div>
@@ -785,17 +791,17 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
   );
 }
 
-function BlockEditForm({ block, onSave, onCancel }) {
+function BlockEditForm({ block, onSave, onCancel, t }) {
   const lastNight = addDays(block.endDate, -1);
   const [start, setStart] = useState(block.startDate);
   const [end, setEnd] = useState(lastNight);
 
   return (
     <div className="space-y-3">
-      <p className="text-xs font-semibold text-indigo-800">Modify blocked period</p>
+      <p className="text-xs font-semibold text-indigo-800">{t("hostConsole.cal.modifyPeriod")}</p>
       <div className="grid grid-cols-2 gap-2">
         <label className="text-[10px] font-bold uppercase text-slate-500">
-          From
+          {t("hostConsole.cal.from")}
           <input
             type="date"
             value={start}
@@ -804,7 +810,7 @@ function BlockEditForm({ block, onSave, onCancel }) {
           />
         </label>
         <label className="text-[10px] font-bold uppercase text-slate-500">
-          To (last night)
+          {t("hostConsole.cal.toLastNight")}
           <input
             type="date"
             value={end}
@@ -819,14 +825,14 @@ function BlockEditForm({ block, onSave, onCancel }) {
           onClick={() => onSave(start, end)}
           className="flex-1 rounded-lg bg-slate-900 py-2 text-xs font-semibold text-white"
         >
-          Apply
+          {t("hostConsole.cal.apply")}
         </button>
         <button
           type="button"
           onClick={onCancel}
           className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600"
         >
-          Cancel
+          {t("hostConsole.cal.cancel")}
         </button>
       </div>
     </div>

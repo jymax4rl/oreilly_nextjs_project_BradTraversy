@@ -1,28 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   Building2,
   CalendarCheck,
-  CalendarDays,
+  CalendarRange,
   LayoutDashboard,
   MessageSquare,
   Plus,
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
-import { getUnreadMessageCount } from "@/utils/actions/messageActions";
+import LanguageToggle from "@/components/i18n/LanguageToggle";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { getHostNavCounts } from "@/utils/host/navCounts";
 import { isOpsStaff } from "@/utils/opsAuth";
 import "./host-nav.css";
 
 const NAV = [
-  { href: "/host", label: "Home", exact: true, Icon: LayoutDashboard },
-  { href: "/host/reservations", label: "Reservations", Icon: CalendarCheck },
-  { href: "/host/calendar", label: "Calendar", Icon: CalendarDays },
-  { href: "/host/listings", label: "Listings", Icon: Building2 },
-  { href: "/host/messages", label: "Inbox", Icon: MessageSquare },
+  { href: "/host", labelKey: "hostConsole.home", exact: true, Icon: LayoutDashboard },
+  { href: "/host/reservations", labelKey: "hostConsole.reservations", Icon: CalendarCheck },
+  { href: "/host/calendar", labelKey: "hostConsole.resCal.nav", Icon: CalendarRange },
+  { href: "/host/listings", labelKey: "hostConsole.listings", Icon: Building2 },
+  { href: "/host/messages", labelKey: "hostConsole.inbox", Icon: MessageSquare },
 ];
 
 function navActive(pathname, item) {
@@ -44,8 +46,11 @@ function overflowState(el) {
 
 export default function HostNav() {
   const pathname = usePathname() || "";
+  const router = useRouter();
   const { data: session } = useSession();
+  const { t, lang } = useLanguage();
   const [unread, setUnread] = useState(0);
+  const [pending, setPending] = useState(0);
   const [pill, setPill] = useState({ x: 0, w: 0, ready: false });
   const [overflow, setOverflow] = useState("none");
   const railRef = useRef(null);
@@ -55,7 +60,12 @@ export default function HostNav() {
 
   useEffect(() => {
     if (!session?.user) return;
-    getUnreadMessageCount().then(setUnread).catch(() => {});
+    getHostNavCounts()
+      .then((counts) => {
+        setUnread(counts.unreadMessages || 0);
+        setPending(counts.pendingReservations || 0);
+      })
+      .catch(() => {});
   }, [session, pathname]);
 
   const syncRail = useCallback(() => {
@@ -79,7 +89,7 @@ export default function HostNav() {
 
   useLayoutEffect(() => {
     syncRail();
-  }, [syncRail, unread, pathname]);
+  }, [syncRail, unread, pending, pathname, lang]);
 
   useEffect(() => {
     const rail = railRef.current;
@@ -113,37 +123,38 @@ export default function HostNav() {
   }, [activeIndex]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--kama-border)] bg-[var(--kama-surface)]/90 shadow-[0_8px_28px_-20px_rgba(27,92,87,0.45)] backdrop-blur-md">
+    <header className="kama-safe-top sticky top-0 z-[60] border-b border-[var(--kama-border)] bg-[var(--kama-surface)]/90 shadow-[0_8px_28px_-20px_rgba(27,92,87,0.45)] backdrop-blur-md">
       <div className="mx-auto max-w-[1400px]">
         <div className="flex h-12 items-center gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-2.5">
             <BrandLogo href="/host" className="h-8 w-auto" />
             <span className="hidden h-4 w-px bg-[var(--kama-border-strong)] sm:block" />
             <span className="hidden rounded-full bg-[var(--kama-accent-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--kama-accent)] sm:inline">
-              Host
+              {t("hostConsole.badge")}
             </span>
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <LanguageToggle className="shrink-0" />
             <Link
               href="/properties/add"
               className="inline-flex items-center gap-1.5 rounded-full bg-[var(--kama-accent)] px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-[var(--kama-accent-hover)] sm:px-3"
             >
               <Plus className="h-3.5 w-3.5" strokeWidth={2.4} />
-              <span className="hidden sm:inline">List a stay</span>
+              <span className="hidden sm:inline">{t("hostConsole.listStay")}</span>
             </Link>
             <Link
               href="/"
               className="rounded-full px-2.5 py-1.5 text-xs font-medium text-[var(--kama-ink-muted)] transition hover:bg-[var(--kama-field)] hover:text-[var(--kama-ink)]"
             >
-              View site
+              {t("hostConsole.viewSite")}
             </Link>
             {staff ? (
               <Link
                 href="/ops"
                 className="hidden rounded-full px-2.5 py-1.5 text-xs font-medium text-[var(--kama-ink-muted)] transition hover:bg-[var(--kama-field)] hover:text-[var(--kama-ink)] md:inline"
               >
-                Ops
+                {t("hostConsole.ops")}
               </Link>
             ) : null}
           </div>
@@ -154,7 +165,7 @@ export default function HostNav() {
             <div className="host-nav-fade" data-overflow={overflow}>
               <nav
                 ref={railRef}
-                aria-label="Host console"
+                aria-label={t("hostConsole.navAria")}
                 className="host-nav-rail relative flex items-stretch gap-0 overflow-x-auto"
               >
                 <span
@@ -168,7 +179,12 @@ export default function HostNav() {
                 />
                 {NAV.map((item, index) => {
                   const active = index === activeIndex;
-                  const showBadge = item.href === "/host/messages" && unread > 0;
+                  const count =
+                    item.href === "/host/messages"
+                      ? unread
+                      : item.href === "/host/reservations"
+                        ? pending
+                        : 0;
                   const Icon = item.Icon;
                   return (
                     <Link
@@ -177,6 +193,14 @@ export default function HostNav() {
                       ref={(el) => {
                         itemRefs.current[index] = el;
                       }}
+                      onClick={() => {
+                        if (item.href === "/host" && pathname === "/host") {
+                          window.dispatchEvent(
+                            new Event("kama-host-home-replay"),
+                          );
+                          router.refresh();
+                        }
+                      }}
                       className={`relative z-[1] flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[13px] font-semibold tracking-tight transition-colors sm:px-4 ${
                         active
                           ? "text-white"
@@ -184,22 +208,18 @@ export default function HostNav() {
                       }`}
                       aria-current={active ? "page" : undefined}
                     >
-                      <Icon
-                        className="h-3.5 w-3.5 shrink-0 opacity-90"
-                        strokeWidth={active ? 2.4 : 2}
-                      />
-                      {item.label}
-                      {showBadge ? (
-                        <span
-                          className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold ${
-                            active
-                              ? "bg-white/20 text-white"
-                              : "bg-[var(--kama-accent)] text-white"
-                          }`}
-                        >
-                          {unread > 9 ? "9+" : unread}
-                        </span>
-                      ) : null}
+                      <span className="relative inline-flex h-3.5 w-3.5 shrink-0">
+                        <Icon
+                          className="h-3.5 w-3.5 opacity-90"
+                          strokeWidth={active ? 2.4 : 2}
+                        />
+                        {count > 0 ? (
+                          <span className="host-nav-count" aria-hidden>
+                            {count > 9 ? "9+" : count}
+                          </span>
+                        ) : null}
+                      </span>
+                      {t(item.labelKey)}
                     </Link>
                   );
                 })}

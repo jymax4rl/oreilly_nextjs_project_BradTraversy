@@ -559,41 +559,37 @@ export default function GoogleMap({
   }
 
   if (errorInfo) {
+    // OpenStreetMap fallback so guests still see the neighborhood when Google
+    // auth fails (stale key, referrer block, billing, etc.).
+    const osmZoom = Math.min(17, Math.max(12, Number(zoom) || 14));
+    const delta = 0.01 * (18 - osmZoom);
+    const osmEmbedSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${safeLng - delta}%2C${safeLat - delta}%2C${safeLng + delta}%2C${safeLat + delta}&layer=mapnik&marker=${safeLat}%2C${safeLng}`;
+
     return (
       <div
-        className={`relative flex flex-col items-center justify-center gap-2 overflow-hidden bg-[var(--kama-field)] px-4 text-center text-sm text-[var(--kama-ink-muted)] ${className}`}
+        className={`relative overflow-hidden bg-[var(--kama-field)] ${className}`}
         role="alert"
       >
-        <div
-          className="pointer-events-none absolute inset-0 opacity-40"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 50% 45%, rgba(27,92,87,0.18), transparent 55%), linear-gradient(rgba(12,26,26,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(12,26,26,0.04) 1px, transparent 1px)",
-            backgroundSize: "auto, 24px 24px, 24px 24px",
-          }}
-          aria-hidden
+        <iframe
+          title="Map preview"
+          src={osmEmbedSrc}
+          className="absolute inset-0 h-full w-full border-0"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
         />
-        <div className="relative z-[1] flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kama-accent-soft)] text-[var(--kama-accent)]">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path
-              d="M12 21s7-5.2 7-11a7 7 0 10-14 0c0 5.8 7 11 7 11z"
-              stroke="currentColor"
-              strokeWidth="1.6"
-            />
-            <circle cx="12" cy="10" r="2.2" fill="currentColor" />
-          </svg>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-black/55 via-black/25 to-transparent px-3 pb-3 pt-10">
+          <p className="text-xs font-medium text-white">
+            {estimated ? "Approximate location" : "Map preview"}
+          </p>
+          <p className="mt-0.5 text-[11px] leading-snug text-white/85">
+            {estimated
+              ? "Pin saved from the address. Interactive Google Maps will return once the API key is fixed."
+              : "Showing OpenStreetMap while Google Maps is unavailable."}
+          </p>
+          <p className="mt-1 font-mono text-[10px] text-[var(--kama-accent-soft)]">
+            {safeLat.toFixed(4)}, {safeLng.toFixed(4)}
+          </p>
         </div>
-        <p className="relative z-[1] max-w-xs font-medium text-[var(--kama-ink)]">
-          {estimated ? "Map preview unavailable" : errorInfo.title}
-        </p>
-        <p className="relative z-[1] max-w-sm text-xs leading-relaxed">
-          {estimated
-            ? "Your approximate pin is saved from the address. You can continue — fix the Maps key later for an interactive map."
-            : errorInfo.detail}
-        </p>
-        <p className="relative z-[1] font-mono text-[11px] text-[var(--kama-accent)]">
-          {safeLat.toFixed(4)}, {safeLng.toFixed(4)}
-        </p>
       </div>
     );
   }

@@ -30,7 +30,7 @@ export default function NotificationToggles({
     hostNewBookings: {
       title: "New reservations",
       description:
-        "Email when a guest books one of your listings (after payment).",
+        "Email and lock-screen alert when a guest books one of your listings.",
     },
     hostBookingChanges: {
       title: "Reservation changes",

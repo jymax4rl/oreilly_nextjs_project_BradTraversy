@@ -1,4 +1,5 @@
-import { isOpsStaff } from "@/utils/opsAuth";
+import { isOpsStaff } from "./opsAuth.js";
+import { canBrowseListingCatalog } from "./listings/catalogBeta.js";
 
 /**
  * Listing moderation helpers.
@@ -30,6 +31,20 @@ export function approvedListingQuery() {
   };
 }
 
+/** Live on the public website (approved and not ops-hidden). */
+export function publicListingQuery() {
+  return {
+    $and: [approvedListingQuery(), { listed: { $ne: false } }],
+  };
+}
+
+/** Approved listings a superadmin has hidden from the public site. */
+export function hiddenListingQuery() {
+  return {
+    $and: [approvedListingQuery(), { listed: false }],
+  };
+}
+
 /** Admin "Pending" tab: only new submissions that requested moderation. */
 export function pendingModerationQueueQuery() {
   return {
@@ -40,6 +55,7 @@ export function pendingModerationQueueQuery() {
 
 export function isPubliclyVisibleListing(property) {
   if (!property) return false;
+  if (property.listed === false) return false;
   if (isAwaitingListingModeration(property)) return false;
   if (property.status === "rejected") return false;
   return true;
@@ -47,21 +63,24 @@ export function isPubliclyVisibleListing(property) {
 
 export function canUserViewListing(property, session) {
   if (!property) return false;
-  if (isPubliclyVisibleListing(property)) return true;
-  if (!session?.user) return false;
+  if (!session?.user) {
+    return canBrowseListingCatalog(session) && isPubliclyVisibleListing(property);
+  }
   if (isOpsStaff(session.user.role)) return true;
   const ownerId =
     property.owner?.toString?.() ?? String(property.owner ?? "");
   const userId =
     session.user.id?.toString?.() ?? String(session.user.id ?? "");
-  return Boolean(ownerId && userId && ownerId === userId);
+  if (ownerId && userId && ownerId === userId) return true;
+  if (!canBrowseListingCatalog(session)) return false;
+  return isPubliclyVisibleListing(property);
 }
 
 /** Merge public-visibility constraints into an existing Mongo query object. */
 export function withApprovedListingFilter(mongoQuery = {}) {
-  const approved = approvedListingQuery();
+  const publicOnly = publicListingQuery();
   if (!mongoQuery || Object.keys(mongoQuery).length === 0) {
-    return approved;
+    return publicOnly;
   }
-  return { $and: [mongoQuery, approved] };
+  return { $and: [mongoQuery, publicOnly] };
 }

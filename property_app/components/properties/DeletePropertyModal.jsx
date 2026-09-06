@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 const CONFIRM_WORD = "delete";
 
@@ -16,6 +17,7 @@ export default function DeletePropertyModal({
   isDeleting = false,
   error = null,
 }) {
+  const { t } = useLanguage();
   const titleId = useId();
   const inputId = useId();
   const inputRef = useRef(null);
@@ -54,7 +56,7 @@ export default function DeletePropertyModal({
       <button
         type="button"
         className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
-        aria-label="Close dialog"
+        aria-label={t("hostConsole.delete.close")}
         disabled={isDeleting}
         onClick={() => !isDeleting && onCancel?.()}
       />
@@ -70,11 +72,10 @@ export default function DeletePropertyModal({
                 id={titleId}
                 className="text-lg font-semibold text-[var(--kama-ink)]"
               >
-                Delete this listing?
+                {t("hostConsole.delete.title")}
               </h2>
               <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
-                This permanently removes the property from Isisel. This
-                cannot be undone.
+                {t("hostConsole.delete.body")}
               </p>
             </div>
           </div>
@@ -83,7 +84,7 @@ export default function DeletePropertyModal({
             onClick={() => !isDeleting && onCancel?.()}
             disabled={isDeleting}
             className="rounded-lg p-1.5 text-[var(--kama-ink-muted)] transition hover:bg-[var(--kama-field)] hover:text-[var(--kama-ink)] disabled:opacity-50"
-            aria-label="Cancel"
+            aria-label={t("hostConsole.delete.cancel")}
           >
             <X size={18} aria-hidden />
           </button>
@@ -101,11 +102,7 @@ export default function DeletePropertyModal({
               htmlFor={inputId}
               className="block text-sm font-medium text-[var(--kama-ink)]"
             >
-              Type{" "}
-              <code className="rounded bg-red-50 px-1.5 py-0.5 font-mono text-sm text-red-700">
-                {CONFIRM_WORD}
-              </code>{" "}
-              to confirm
+              {t("hostConsole.delete.typeToConfirm", { word: CONFIRM_WORD })}
             </label>
             <input
               ref={inputRef}
@@ -135,7 +132,7 @@ export default function DeletePropertyModal({
             disabled={isDeleting}
             className="rounded-xl border border-[var(--kama-border)] bg-white px-4 py-2.5 text-sm font-medium text-[var(--kama-ink)] transition hover:bg-[var(--kama-field)] disabled:opacity-50"
           >
-            Cancel
+            {t("hostConsole.delete.cancel")}
           </button>
           <button
             type="button"
@@ -143,7 +140,7 @@ export default function DeletePropertyModal({
             onClick={() => onConfirm?.()}
             className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300 disabled:hover:bg-red-300"
           >
-            {isDeleting ? "Deleting…" : "Delete permanently"}
+            {isDeleting ? t("hostConsole.delete.deleting") : t("hostConsole.delete.permanently")}
           </button>
         </div>
       </div>

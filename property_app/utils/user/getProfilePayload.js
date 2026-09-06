@@ -1,6 +1,7 @@
 import Booking from "@/models/Booking";
 import Property from "@/models/Property";
 import User from "@/models/User";
+import { serializeFoundingHostPublic } from "@/utils/foundingHost/serialize";
 
 /**
  * Assemble a safe public profile for the signed-in user.
@@ -15,7 +16,7 @@ export async function getProfilePayload(sessionUser) {
 
   const user = await User.findOne({ email: sessionUser.email })
     .select(
-      "username email image role hostStatus hasCompletedHostOnboarding bookmarks createdAt updatedAt",
+      "username email image role hostStatus hasCompletedHostOnboarding bookmarks createdAt updatedAt foundingHost",
     )
     .lean();
 
@@ -70,6 +71,7 @@ export async function getProfilePayload(sessionUser) {
     },
     hostStatus,
     hasCompletedHostOnboarding: !!user.hasCompletedHostOnboarding,
+    foundingHost: serializeFoundingHostPublic(user),
     createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : null,
     updatedAt: user.updatedAt ? new Date(user.updatedAt).toISOString() : null,
     counts: {

@@ -1,10 +1,12 @@
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
 import User from "@/models/User";
+import Booking from "@/models/Booking";
 import { getSessionFromRequest } from "@/utils/authSessionRoute";
 import {
-  approvedListingQuery,
+  hiddenListingQuery,
   pendingModerationQueueQuery,
+  publicListingQuery,
 } from "@/utils/listingApproval";
 import { isOpsStaff } from "@/utils/opsAuth";
 import mongoose from "mongoose";
@@ -26,26 +28,34 @@ export const GET = async (request) => {
 
     const { searchParams } = new URL(request.url);
     const statusFilter = searchParams.get("status") || "pending";
-    const valid = ["pending", "approved", "rejected"];
+    const valid = ["pending", "approved", "rejected", "hidden"];
     const filter = valid.includes(statusFilter) ? statusFilter : "pending";
 
     let listingQuery;
     if (filter === "approved") {
-      listingQuery = approvedListingQuery();
+      listingQuery = publicListingQuery();
+    } else if (filter === "hidden") {
+      listingQuery = hiddenListingQuery();
     } else if (filter === "pending") {
       listingQuery = pendingModerationQueueQuery();
     } else {
       listingQuery = { status: "rejected" };
     }
 
+    const owner = String(searchParams.get("owner") || "").trim();
+    if (owner) {
+      listingQuery = { ...listingQuery, owner };
+    }
+
     const pendingQueue = pendingModerationQueueQuery();
 
-    const [properties, pendingCount, approvedCount, rejectedCount] =
+    const [properties, pendingCount, approvedCount, rejectedCount, hiddenCount] =
       await Promise.all([
         Property.find(listingQuery).sort({ createdAt: -1 }).lean(),
         Property.countDocuments(pendingQueue),
-        Property.countDocuments(approvedListingQuery()),
+        Property.countDocuments(publicListingQuery()),
         Property.countDocuments({ status: "rejected" }),
+        Property.countDocuments(hiddenListingQuery()),
       ]);
 
     const ownerIds = [
@@ -67,11 +77,51 @@ export const GET = async (request) => {
       owners.map((u) => [u._id.toString(), u]),
     );
 
-    const withOwners = properties.map((p) => ({
-      ...p,
-      _id: p._id.toString(),
-      ownerUser: p.owner ? ownerById[String(p.owner)] || null : null,
-    }));
+    const propertyObjectIds = properties
+      .map((p) => p._id)
+      .filter(Boolean);
+
+    const reservationCounts =
+      propertyObjectIds.length > 0
+        ? await Booking.aggregate([
+            {
+              $match: {
+                propertyId: { $in: propertyObjectIds },
+                status: { $in: ["pending", "confirmed"] },
+              },
+            },
+            {
+              $group: {
+                _id: "$propertyId",
+                total: { $sum: 1 },
+                pending: {
+                  $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
+                },
+              },
+            },
+          ])
+        : [];
+    const reservationByProperty = Object.fromEntries(
+      reservationCounts.map((row) => [
+        String(row._id),
+        { total: row.total || 0, pending: row.pending || 0 },
+      ]),
+    );
+
+    const withOwners = properties.map((p) => {
+      const counts = reservationByProperty[String(p._id)] || {
+        total: 0,
+        pending: 0,
+      };
+      return {
+        ...p,
+        _id: p._id.toString(),
+        listed: p.listed !== false,
+        ownerUser: p.owner ? ownerById[String(p.owner)] || null : null,
+        reservationCount: counts.total,
+        pendingReservationCount: counts.pending,
+      };
+    });
 
     return Response.json(
       {
@@ -80,6 +130,7 @@ export const GET = async (request) => {
           pending: Number(pendingCount) || 0,
           approved: Number(approvedCount) || 0,
           rejected: Number(rejectedCount) || 0,
+          hidden: Number(hiddenCount) || 0,
         },
       },
       {

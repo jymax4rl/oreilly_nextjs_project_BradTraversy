@@ -21,7 +21,6 @@ import {
   LogOut,
   MessageSquare,
   CalendarCheck,
-  Clapperboard,
 } from "lucide-react";
 import LoginNavButton from "./LoginNavBtn";
 import { usePathname } from "next/navigation";
@@ -39,8 +38,6 @@ import LanguageToggle from "@/components/i18n/LanguageToggle";
 const navLinks = [
   { path: "/", labelKey: "nav.home", Icon: Home },
   { path: "/properties", labelKey: "nav.properties", Icon: Building2 },
-  { path: "/business", labelKey: "nav.business", Icon: Building2 },
-  { path: "/influencers", labelKey: "nav.creators", Icon: Clapperboard },
 ];
 
 const profileItemClass = "kama-profile-item font-medium";
@@ -55,7 +52,12 @@ const Navbar = () => {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const isPhotoNav =
-    isHome || pathname === "/business" || pathname.startsWith("/influencers");
+    isHome ||
+    pathname === "/business" ||
+    pathname.startsWith("/influencers") ||
+    pathname.startsWith("/investors") ||
+    pathname.startsWith("/about") ||
+    pathname.startsWith("/founding-hosts");
   const profileImage = session?.user?.image;
   const explore = isExploreMobileLayout(pathname);
 
@@ -83,6 +85,8 @@ const Navbar = () => {
   }, []);
 
   const closeMenuAnimation = () => {
+    if (typeof document === "undefined") return;
+    if (!document.querySelector(".overlay-wrapper")) return;
     gsap.to(".overlay-wrapper", {
       clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
       duration: 0.85,
@@ -91,6 +95,8 @@ const Navbar = () => {
   };
 
   const openMenuAnimation = () => {
+    if (typeof document === "undefined") return;
+    if (!document.querySelector(".overlay-wrapper")) return;
     gsap.to(".overlay-wrapper", {
       clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
       duration: 0.85,
@@ -136,11 +142,15 @@ const Navbar = () => {
     <div>
       {!explore && (
         <nav
-          className={`menu-container m-0 grid grid-cols-2 z-50 fixed top-0 w-screen min-h-[8vh] lg:hidden transition-transform duration-300 ease-out will-change-transform [padding-top:env(safe-area-inset-top)] ${
-            showNav ? "translate-y-0" : "-translate-y-full"
-          } ${
+          className={`menu-container m-0 grid grid-cols-2 z-50 fixed top-0 w-screen min-h-[8vh] lg:hidden transition-transform duration-300 ease-out will-change-transform [padding-top:max(0.75rem,var(--kama-safe-top),env(safe-area-inset-top,0px))] [padding-left:max(0px,var(--kama-safe-left),env(safe-area-inset-left,0px))] [padding-right:max(0px,var(--kama-safe-right),env(safe-area-inset-right,0px))] ${
             isPhotoNav ? "home-glass-nav" : "bg-[var(--kama-canvas)]/80 backdrop-blur-sm"
           }`}
+          style={{
+            // Keep status-bar / Dynamic Island strip covered when chrome hides.
+            transform: showNav
+              ? "translate3d(0,0,0)"
+              : "translate3d(0, calc(-100% + max(0.75rem, var(--kama-safe-top), env(safe-area-inset-top, 0px))), 0)",
+          }}
         >
           <div className="flex items-center ml-4 justify-start align-center">
             <BrandLogo

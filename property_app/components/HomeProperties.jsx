@@ -13,6 +13,7 @@ import HostListingCardActions from "./properties/HostListingCardActions";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { propertyTypeMessageKey } from "@/lib/i18n/messages";
+import { isListingsCatalogBeta } from "@/utils/listings/catalogBeta";
 
 const HomeProperties = ({
   initialProperties = [],
@@ -84,6 +85,10 @@ const HomeProperties = ({
           <h1 className="mb-8 text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
             {t("search.catalogTitle")}
           </h1>
+        ) : null}
+
+        {isListingsCatalogBeta() && !isSavedView && !hostListingsView ? (
+          <p className="host-catalog-preview">{t("home.comingSoon.hostPreview")}</p>
         ) : null}
 
         {hasSearch && (

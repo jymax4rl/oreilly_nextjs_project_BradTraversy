@@ -1,0 +1,175 @@
+/* Stable frosted mobile tab bar — no live refraction / no glitter. */
+
+.kama-tabbar {
+  --kama-tabbar-duration: 0.32s;
+  --kama-tabbar-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  display: flex;
+  justify-content: center;
+  padding: 0 0.85rem calc(0.65rem + env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
+  background: transparent;
+  border: 0;
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform var(--kama-tabbar-duration) var(--kama-tabbar-ease),
+    opacity var(--kama-tabbar-duration) var(--kama-tabbar-ease);
+}
+
+.kama-tabbar[data-hidden="true"] {
+  transform: translate3d(0, calc(100% + 1rem), 0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.kama-tabbar__dock {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: 26rem;
+  pointer-events: auto;
+  align-items: stretch;
+  overflow: visible;
+  border-radius: 999px;
+  /* Solid-enough frost so scrolling photos don’t shimmer through */
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 8px 28px rgba(12, 26, 26, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.85) inset;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .kama-tabbar__dock {
+    background: rgba(255, 255, 255, 0.94);
+  }
+}
+
+.kama-tabbar__active {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  border-radius: 999px;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 0 0 1px rgba(12, 26, 26, 0.04),
+    0 2px 8px rgba(12, 26, 26, 0.06);
+  opacity: 0;
+  transition:
+    transform 0.28s var(--kama-tabbar-ease),
+    width 0.28s var(--kama-tabbar-ease),
+    height 0.28s var(--kama-tabbar-ease),
+    opacity 0.2s ease;
+}
+
+.kama-tabbar__active[data-ready="true"] {
+  opacity: 1;
+}
+
+.kama-tabbar__item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  min-height: 3.1rem;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.14rem;
+  padding: 0.42rem 0.12rem 0.38rem;
+  color: color-mix(in srgb, var(--kama-ink) 62%, transparent);
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  background: transparent;
+  border: 0;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s ease;
+}
+
+.kama-tabbar[data-compact="true"] .kama-tabbar__item {
+  min-height: 2.75rem;
+  gap: 0;
+  padding: 0.4rem 0.1rem;
+}
+
+.kama-tabbar__item[data-active="true"] {
+  color: var(--kama-accent);
+}
+
+.kama-tabbar__item:active {
+  opacity: 0.72;
+}
+
+.kama-tabbar__icon {
+  display: inline-flex;
+  height: 1.4rem;
+  width: 1.4rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.kama-tabbar[data-compact="true"] .kama-tabbar__icon {
+  height: 1.28rem;
+  width: 1.28rem;
+}
+
+.kama-tabbar__label {
+  max-width: 100%;
+  max-height: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.2s ease, max-height 0.2s ease;
+}
+
+.kama-tabbar[data-compact="true"] .kama-tabbar__label {
+  max-height: 0;
+  opacity: 0;
+}
+
+.kama-tabbar__badge {
+  position: absolute;
+  top: -0.3rem;
+  right: -0.4rem;
+  display: flex;
+  min-width: 0.95rem;
+  height: 0.95rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.2rem;
+  border-radius: 999px;
+  background: var(--kama-danger);
+  color: #fff;
+  font-size: 0.5rem;
+  font-weight: 800;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kama-tabbar,
+  .kama-tabbar__active,
+  .kama-tabbar__item,
+  .kama-tabbar__label {
+    transition: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .kama-tabbar {
+    display: none !important;
+    pointer-events: none;
+  }
+}
