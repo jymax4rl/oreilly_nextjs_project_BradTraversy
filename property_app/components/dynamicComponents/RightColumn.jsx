@@ -38,6 +38,8 @@ import {
 import {
   isValidGuestPhone,
   isPaymentGatewayCheckoutEnabled,
+  isCreemCheckoutEnabled,
+  isFlutterwaveCheckoutEnabled,
 } from "@/utils/bookings/paymentMode";
 import GuestPhoneModal from "@/components/bookings/GuestPhoneModal";
 
@@ -64,6 +66,8 @@ function RightColumn({ data }) {
   const paymentCurrency = normalizeCurrencyCode(fx.currencyCode);
   const isOwner = session?.user?.id === data.owner;
   const gatewayCheckout = isPaymentGatewayCheckoutEnabled();
+  const creemCheckout = isCreemCheckoutEnabled();
+  const flutterwaveCheckout = isFlutterwaveCheckoutEnabled();
   const checkInTimeLabel = formatClockTimeLabel(
     data.checkInTime,
     DEFAULT_CHECK_IN_TIME,
@@ -285,7 +289,47 @@ function RightColumn({ data }) {
     }
   };
 
-  const startGatewayCheckout = (validation, phone) => {
+  const startCreemCheckout = async (validation, phone) => {
+    setPhoneModalOpen(false);
+    setPendingValidation(null);
+    setSubmitting(true);
+    setPaymentNotice(null);
+    try {
+      const res = await fetch("/api/payments/creem/initialize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          propertyId: data._id,
+          checkIn: validation.checkIn,
+          checkOut: validation.checkOut,
+          guestPhone: phone,
+        }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok || !payload?.data?.checkout_url) {
+        setPaymentNotice({
+          type: "error",
+          title: "Could not start card checkout",
+          message:
+            payload.message ||
+            "Please try again, or message the host to arrange payment.",
+        });
+        return;
+      }
+      window.location.href = payload.data.checkout_url;
+    } catch (err) {
+      console.error("Creem checkout failed:", err);
+      setPaymentNotice({
+        type: "error",
+        title: "Connection error",
+        message: "Could not reach the payment service. Please try again.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const startFlutterwaveCheckout = (validation, phone) => {
     setPhoneModalOpen(false);
     setPendingValidation(null);
     handleFlutterPayment({
@@ -343,6 +387,22 @@ function RightColumn({ data }) {
         closePaymentModal();
       },
       onClose: () => {},
+    });
+  };
+
+  const startGatewayCheckout = (validation, phone) => {
+    if (creemCheckout) {
+      void startCreemCheckout(validation, phone);
+      return;
+    }
+    if (flutterwaveCheckout) {
+      startFlutterwaveCheckout(validation, phone);
+      return;
+    }
+    setPaymentNotice({
+      type: "error",
+      title: "Online checkout unavailable",
+      message: "Please request a reservation and arrange payment with the host.",
     });
   };
 

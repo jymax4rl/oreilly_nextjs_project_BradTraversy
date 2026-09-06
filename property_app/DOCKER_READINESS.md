@@ -79,7 +79,13 @@ node scripts/docker-release.mjs --push ghcr.io/your-org
 | `NEXT_PUBLIC_APP_URL` | Recommended | No | Payments redirect/logo, app URL helper |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Recommended | No | Image URL resolution |
 | `NEXT_PUBLIC_CURRENCY_EXCHANGE_RATE_API` | Optional | Treat as semi-public | Currency rates (client) |
-| `NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY` | Yes if payments | No (public key) | Checkout UI |
+| `NEXT_PUBLIC_USE_PAYMENT_GATEWAY` | Optional | No | `true` enables online checkout (default offline arrange-with-host) |
+| `NEXT_PUBLIC_PAYMENT_PROVIDER` | Optional | No | `creem` (default when `CREEM_API_KEY` set) or `flutterwave` |
+| `NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY` | Yes if Flutterwave | No (public key) | Flutterwave checkout UI |
+| `CREEM_API_KEY` | Yes if Creem | **Yes** | Creem checkout + API |
+| `CREEM_PRODUCT_ID` | Yes if Creem | No | One-time stay product id |
+| `CREEM_WEBHOOK_SECRET` | Yes if Creem webhooks | **Yes** | Verify Creem webhooks |
+| `CREEM_SERVER` | Optional | No | `test` or `live` (inferred from key prefix) |
 | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` or `GOOGLE_MAPS_API_KEY` | Recommended (address search) | Treat as restricted public key | Listing wizard address autocomplete + map pin (`next.config.mjs` maps `GOOGLE_MAPS_API_KEY` → `NEXT_PUBLIC_*` at **build**) |
 | `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` / `GOOGLE_MAPS_MAP_ID` | Optional | No | Advanced Markers; classic pin works without it |
 
@@ -102,7 +108,8 @@ Rebuild command (from `property_app/`): `npm run docker:release -- --tag mvp` th
 | `GOOGLE_CLIENT_SECRET` | Yes | **Yes** | Google OAuth |
 | `MONGODB_URI` | Yes | **Yes** | Mongoose (`config/database.js`) |
 | `CLOUDINARY_URL` *or* `CLOUDINARY_CLOUD_NAME` + `CLOUDINARY_API_KEY` + `CLOUDINARY_API_SECRET` | Yes for media upload | **Yes** (secret) | Uploads / signatures |
-| `FLUTTERWAVE_SECRET_KEY` | Yes if payments | **Yes** | Verify / initialize |
+| `CREEM_API_KEY` / `CREEM_PRODUCT_ID` / `CREEM_WEBHOOK_SECRET` | Yes if Creem | **Yes** (key+secret) | Card MoR checkout |
+| `FLUTTERWAVE_SECRET_KEY` | Yes if Flutterwave | **Yes** | Verify / initialize |
 | `FLUTTERWAVE_WEBHOOK_SECRET` | Yes if webhooks | **Yes** | Webhook auth |
 | `EMAIL_FROM` | Optional | No | Defaults to `Isisel <contact@isisel.com>` |
 | `EMAIL_REPLY_TO` | Optional | No | Reply-To |
@@ -127,7 +134,7 @@ Application container (Next.js)
         |
         +---- Google OAuth
         |
-        +---- Flutterwave (payments + webhooks)
+        +---- Creem and/or Flutterwave (payments + webhooks)
         |
         +---- Resend (transactional email)
         |
@@ -138,7 +145,7 @@ Application container (Next.js)
 
 Do **not** put MongoDB/Cloudinary/etc. inside the app image unless product architecture changes.
 
-Webhook requirement: Flutterwave must reach `https://<public-host>/api/payments/webhook`.
+Webhook requirement: Creem must reach `https://<public-host>/api/payments/creem/webhook` (and/or Flutterwave `https://<public-host>/api/payments/webhook`).
 
 ---
 
@@ -156,7 +163,7 @@ Webhook requirement: Flutterwave must reach `https://<public-host>/api/payments/
 ## Networking
 
 - Listen: `0.0.0.0:3000` (or `PORT`)
-- Outbound HTTPS: MongoDB Atlas, Cloudinary, Google, Flutterwave, Resend, currency API
+- Outbound HTTPS: MongoDB Atlas, Cloudinary, Google, Creem, Flutterwave, Resend, currency API
 - Inbound: HTTP to Next; TLS terminated at reverse proxy / load balancer
 
 ---

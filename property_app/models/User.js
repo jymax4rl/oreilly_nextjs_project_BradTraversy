@@ -70,6 +70,17 @@ const UserSchema = new Schema(
     /** Verified host mailing address (synced from host application). */
     hostAddress: AddressSchema,
     /**
+     * Host settlement details for platform-managed payouts.
+     * Guests pay Isisel (Creem MoR); ops/transfers use this IBAN later.
+     * Never expose full IBAN to other users — settings API only.
+     */
+    hostPayout: {
+      iban: { type: String, default: null },
+      accountName: { type: String, default: null },
+      updatedAt: { type: Date, default: null },
+    },
+
+    /**
      * Account preferences (Settings). Missing keys mean “default on”.
      * Booking email senders honor these unless a force-resend bypasses them.
      */

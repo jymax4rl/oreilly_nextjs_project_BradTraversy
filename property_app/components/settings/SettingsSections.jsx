@@ -15,6 +15,7 @@ import NotificationToggles from "@/components/settings/NotificationToggles";
 import CurrencyPreference from "@/components/settings/CurrencyPreference";
 import SignOutButton from "@/components/settings/SignOutButton";
 import { BECOME_A_HOST_HREF } from "@/utils/hostPwaInstall";
+import HostPayoutForm from "@/components/settings/HostPayoutForm";
 
 function Section({ title, description, children }) {
   return (
@@ -181,10 +182,11 @@ export default function SettingsSections({ settings }) {
                   Guest payments
                 </p>
                 <p className="mt-1.5 leading-relaxed">
-                  Guests pay at checkout via Flutterwave (cards and mobile
-                  money where supported). Host payout setup is not self-serve in
-                  Settings yet — contact support if you need settlement help.
+                  Online card checkout is handled by Creem (Isisel is the merchant
+                  of record). Local stays can still be arranged directly with you.
+                  Add your IBAN below for platform-managed host settlement.
                 </p>
+                <HostPayoutForm />
               </div>
               <div className="space-y-0.5">
                 <DeepLink

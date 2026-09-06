@@ -1,11 +1,46 @@
 /**
  * Checkout payment mode for Isisel.
  *
- * Default: offline / arrange-with-host (no Flutterwave redirect).
- * Set NEXT_PUBLIC_USE_PAYMENT_GATEWAY=true to restore gateway checkout.
+ * Default: offline / arrange-with-host (local mobile money with the host).
+ * Set NEXT_PUBLIC_USE_PAYMENT_GATEWAY=true to enable online card checkout.
+ *
+ * Provider (when gateway is on):
+ *   NEXT_PUBLIC_PAYMENT_PROVIDER=creem|flutterwave
+ * Default provider is creem when CREEM_API_KEY is configured, else flutterwave.
  */
+
+export const PAYMENT_PROVIDER_CREEM = "creem";
+export const PAYMENT_PROVIDER_FLUTTERWAVE = "flutterwave";
+
 export function isPaymentGatewayCheckoutEnabled() {
   return process.env.NEXT_PUBLIC_USE_PAYMENT_GATEWAY === "true";
+}
+
+/**
+ * Active online provider when gateway checkout is enabled.
+ * Returns null when guests should arrange payment with the host.
+ */
+export function getPaymentProvider() {
+  if (!isPaymentGatewayCheckoutEnabled()) return null;
+
+  const raw = String(process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || "")
+    .trim()
+    .toLowerCase();
+  if (raw === PAYMENT_PROVIDER_CREEM || raw === PAYMENT_PROVIDER_FLUTTERWAVE) {
+    return raw;
+  }
+
+  // Prefer Creem for international card MoR when the secret key is present.
+  if (process.env.CREEM_API_KEY) return PAYMENT_PROVIDER_CREEM;
+  return PAYMENT_PROVIDER_FLUTTERWAVE;
+}
+
+export function isCreemCheckoutEnabled() {
+  return getPaymentProvider() === PAYMENT_PROVIDER_CREEM;
+}
+
+export function isFlutterwaveCheckoutEnabled() {
+  return getPaymentProvider() === PAYMENT_PROVIDER_FLUTTERWAVE;
 }
 
 /** Booking.paymentMode values */
