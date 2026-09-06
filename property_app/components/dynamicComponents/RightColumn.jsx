@@ -432,28 +432,17 @@ function RightColumn({ data }) {
     }
   };
 
+  /** Route explicit guest choice: geniuspay = MoMo, creem = card. */
   const startGatewayCheckout = (validation, phone, method) => {
-    const useGenius =
-      method === "geniuspay" ||
-      (!method && geniusPayCheckout) ||
-      (method !== "creem" && geniusPayCheckout && !creemCheckout);
-    const useCreem =
-      method === "creem" ||
-      (!method && !geniusPayCheckout && creemCheckout) ||
-      (method !== "geniuspay" && creemCheckout && !geniusPayCheckout);
-
-    if (method === "geniuspay" || (useGenius && method !== "creem")) {
-      if (geniusPayCheckout) {
-        void startGeniusPayCheckout(validation, phone);
-        return;
-      }
+    if (method === "creem" && creemCheckout) {
+      void startCreemCheckout(validation, phone);
+      return;
     }
-    if (method === "creem" || useCreem) {
-      if (creemCheckout) {
-        void startCreemCheckout(validation, phone);
-        return;
-      }
+    if (method === "geniuspay" && geniusPayCheckout) {
+      void startGeniusPayCheckout(validation, phone);
+      return;
     }
+    // Fallback when only one provider is configured.
     if (geniusPayCheckout) {
       void startGeniusPayCheckout(validation, phone);
       return;
@@ -506,6 +495,14 @@ function RightColumn({ data }) {
             currencyCode={paymentCurrency}
             compact
             manual={!gatewayCheckout}
+            gatewayProviders={
+              gatewayCheckout
+                ? {
+                    geniuspay: geniusPayCheckout,
+                    creem: creemCheckout,
+                  }
+                : null
+            }
           />
         </div>
 
@@ -644,7 +641,11 @@ function RightColumn({ data }) {
               }
               hint={
                 gatewayCheckout
-                  ? undefined
+                  ? geniusPayCheckout && creemCheckout
+                    ? "Mobile Money or card at checkout"
+                    : geniusPayCheckout
+                      ? "Mobile Money at checkout"
+                      : "Card at checkout"
                   : "No online payment — arrange with the host after you reserve."
               }
               manual={!gatewayCheckout}
@@ -699,7 +700,7 @@ function RightColumn({ data }) {
 
         <p className="text-center text-[11px] text-[var(--kama-ink-muted)]">
           {gatewayCheckout
-            ? "You won't be charged until checkout"
+            ? "Pay with Mobile Money or card at checkout"
             : "Dates are held while you arrange payment with the host"}
         </p>
 

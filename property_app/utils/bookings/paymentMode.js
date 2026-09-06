@@ -4,11 +4,12 @@
  * Default: offline / arrange-with-host (local mobile money with the host).
  * Set NEXT_PUBLIC_USE_PAYMENT_GATEWAY=true to enable online checkout.
  *
- * Online providers (both can be active when configured):
- *   - GeniusPay — African mobile money (Wave, Orange, MTN, Moov) + local card
- *   - Creem — international card MoR (USD)
+ * Production online split (both active when keys exist):
+ *   - GeniusPay — Mobile Money (Wave, Orange, MTN, Moov)
+ *   - Creem — Card (Visa / Mastercard)
+ * Guests pick the method in the checkout modal.
  *
- * Optional: NEXT_PUBLIC_PAYMENT_PROVIDER=geniuspay|creem sets the preferred
+ * Optional: NEXT_PUBLIC_PAYMENT_PROVIDER=geniuspay|creem sets preferred
  * default when both are configured. Flutterwave is deprecated.
  */
 
