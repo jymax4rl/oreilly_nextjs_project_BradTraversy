@@ -1,6 +1,6 @@
 /**
  * Horizon × Isisel — coastal ownership landing.
- * Palette drawn from the tower: chalk white, espresso bronze, Atlantic teal.
+ * Mobile-first. Palette: chalk white, espresso bronze, Atlantic teal.
  */
 .horizon {
   --hz-ink: #0c1412;
@@ -11,13 +11,14 @@
   --hz-bronze: #3d2c24;
   --hz-muted: #5c6d69;
   --hz-line: rgba(12, 20, 18, 0.1);
-  --hz-glow: rgba(19, 78, 72, 0.35);
+  --hz-sticky-h: calc(4.75rem + env(safe-area-inset-bottom, 0px));
   --font-hz-display: var(--font-hz-display), "Syne", Georgia, serif;
   --font-hz-sans: var(--font-hz-sans), "Figtree", system-ui, sans-serif;
   color: var(--hz-ink);
   background: var(--hz-chalk);
   font-family: var(--font-hz-sans);
   overflow-x: hidden;
+  padding-bottom: var(--hz-sticky-h);
 }
 
 .horizon * {
@@ -25,17 +26,26 @@
 }
 
 .horizon-wrap {
-  width: min(1120px, calc(100% - 2.5rem));
+  width: min(1120px, calc(100% - 1.5rem));
   margin-inline: auto;
 }
 
+@media (min-width: 640px) {
+  .horizon-wrap {
+    width: min(1120px, calc(100% - 2.5rem));
+  }
+}
+
+/* ——— Hero ——— */
 .horizon-hero {
   position: relative;
   min-height: 100dvh;
   min-height: 100svh;
   display: flex;
   align-items: flex-end;
-  padding: clamp(5.5rem, 12vh, 7rem) 0 clamp(2.5rem, 6vh, 4rem);
+  padding:
+    calc(4.75rem + env(safe-area-inset-top, 0px)) 0
+    clamp(1.5rem, 4vh, 3rem);
   color: #fff;
   isolation: isolate;
 }
@@ -50,7 +60,6 @@
 .horizon-hero__media img {
   object-fit: cover;
   object-position: center 28%;
-  /* Keep motion subtle — heavy scale reads as soft/blurry on mobile. */
   transform: scale(1.02);
   animation: hz-ken 36s ease-in-out infinite alternate;
   image-rendering: auto;
@@ -90,10 +99,10 @@
 .horizon-hero__inner {
   position: relative;
   z-index: 2;
-  width: min(1120px, calc(100% - 2.5rem));
+  width: min(1120px, calc(100% - 1.5rem));
   margin-inline: auto;
-  padding: 1.1rem 1.05rem 1.15rem;
-  border-radius: 1.15rem;
+  padding: 1rem 0.95rem 1.1rem;
+  border-radius: 1rem;
   background: linear-gradient(
     180deg,
     rgba(4, 14, 12, 0.28) 0%,
@@ -103,6 +112,14 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   animation: hz-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (min-width: 640px) {
+  .horizon-hero__inner {
+    width: min(1120px, calc(100% - 2.5rem));
+    padding: 1.15rem 1.15rem 1.25rem;
+    border-radius: 1.15rem;
+  }
 }
 
 @media (min-width: 900px) {
@@ -127,11 +144,11 @@
 
 .horizon-brand {
   font-family: var(--font-hz-display);
-  font-size: clamp(2.75rem, 9vw, 5.5rem);
+  font-size: clamp(2.35rem, 11vw, 5.5rem);
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 0.95;
-  margin: 0 0 0.85rem;
+  margin: 0 0 0.75rem;
   color: #ffffff;
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
 }
@@ -140,32 +157,31 @@
   display: block;
   font-size: 0.28em;
   font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.9);
-  opacity: 1;
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.5rem;
   font-family: var(--font-hz-sans);
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.4);
 }
 
 .horizon-hero h1 {
   font-family: var(--font-hz-display);
-  font-size: clamp(1.85rem, 4.8vw, 3.15rem);
+  font-size: clamp(1.55rem, 5.5vw, 3.15rem);
   font-weight: 700;
   letter-spacing: -0.035em;
-  line-height: 1.08;
-  margin: 0 0 1rem;
-  max-width: 14ch;
+  line-height: 1.1;
+  margin: 0 0 0.85rem;
+  max-width: 16ch;
   white-space: pre-line;
   color: #ffffff;
   text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
 }
 
 .horizon-hero__lede {
-  margin: 0 0 1.5rem;
+  margin: 0 0 1.25rem;
   max-width: 36rem;
-  font-size: clamp(1rem, 2.2vw, 1.15rem);
+  font-size: clamp(0.95rem, 2.8vw, 1.15rem);
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.94);
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
@@ -174,7 +190,7 @@
 .horizon-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
 .horizon-btn {
@@ -184,14 +200,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 3rem;
-  padding: 0.85rem 1.35rem;
+  min-height: 2.85rem;
+  min-width: 7.5rem;
+  padding: 0.75rem 1.2rem;
   border-radius: 999px;
   font-family: var(--font-hz-sans);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 600;
   letter-spacing: 0.01em;
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
   transition:
     transform 0.25s ease,
     background 0.25s ease,
@@ -199,8 +217,20 @@
     box-shadow 0.25s ease;
 }
 
+@media (min-width: 640px) {
+  .horizon-btn {
+    min-height: 3rem;
+    padding: 0.85rem 1.35rem;
+    font-size: 0.95rem;
+  }
+}
+
 .horizon-btn:hover {
   transform: translateY(-1px);
+}
+
+.horizon-btn:active {
+  transform: translateY(0);
 }
 
 .horizon-btn--solid {
@@ -241,8 +271,9 @@
   background: var(--hz-sea-deep);
 }
 
+/* ——— Sections ——— */
 .horizon-section {
-  padding: clamp(3.5rem, 9vw, 6.5rem) 0;
+  padding: clamp(2.75rem, 8vw, 6.5rem) 0;
 }
 
 .horizon-section--foam {
@@ -261,20 +292,24 @@
   color: #f4f7f5;
 }
 
+.horizon-section--close {
+  padding-bottom: clamp(3.5rem, 10vw, 7rem);
+}
+
 .horizon-section h2 {
   font-family: var(--font-hz-display);
-  font-size: clamp(1.85rem, 4.2vw, 2.75rem);
+  font-size: clamp(1.55rem, 5vw, 2.75rem);
   font-weight: 650;
   letter-spacing: -0.035em;
-  line-height: 1.12;
-  margin: 0 0 1rem;
-  max-width: 18ch;
+  line-height: 1.15;
+  margin: 0 0 0.85rem;
+  max-width: 20ch;
 }
 
 .horizon-lead {
-  margin: 0 0 2rem;
+  margin: 0 0 1.75rem;
   max-width: 40rem;
-  font-size: 1.05rem;
+  font-size: clamp(0.98rem, 2.4vw, 1.05rem);
   line-height: 1.6;
   color: var(--hz-muted);
 }
@@ -283,52 +318,55 @@
   color: rgba(244, 247, 245, 0.78);
 }
 
+/* Keep 3 stats side-by-side on mobile — compact, not stacked */
 .horizon-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
   background: var(--hz-line);
   border: 1px solid var(--hz-line);
-  border-radius: 1.25rem;
+  border-radius: 1rem;
   overflow: hidden;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.1rem;
 }
 
 .horizon-stat {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.78);
   backdrop-filter: blur(8px);
-  padding: clamp(1.25rem, 3vw, 1.85rem) 1.1rem;
+  padding: clamp(0.85rem, 2.5vw, 1.85rem) clamp(0.35rem, 1.5vw, 1.1rem);
   text-align: center;
 }
 
 .horizon-stat strong {
   display: block;
   font-family: var(--font-hz-display);
-  font-size: clamp(1.85rem, 5vw, 2.75rem);
+  font-size: clamp(1.15rem, 4.5vw, 2.75rem);
   font-weight: 700;
   letter-spacing: -0.04em;
   color: var(--hz-sea-deep);
-  line-height: 1;
+  line-height: 1.05;
 }
 
 .horizon-stat span {
   display: block;
-  margin-top: 0.45rem;
-  font-size: 0.82rem;
-  letter-spacing: 0.08em;
+  margin-top: 0.35rem;
+  font-size: clamp(0.62rem, 2.2vw, 0.82rem);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--hz-muted);
+  line-height: 1.25;
 }
 
 .horizon-note {
   margin: 0;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
   color: var(--hz-muted);
 }
 
 .horizon-points {
   display: grid;
-  gap: 1.5rem;
+  gap: 1.35rem;
 }
 
 @media (min-width: 800px) {
@@ -340,36 +378,45 @@
 
 .horizon-point h3 {
   font-family: var(--font-hz-display);
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 650;
   letter-spacing: -0.02em;
-  margin: 0 0 0.55rem;
+  margin: 0 0 0.5rem;
 }
 
 .horizon-point p {
   margin: 0;
   line-height: 1.55;
   color: rgba(244, 247, 245, 0.78);
-  font-size: 0.98rem;
+  font-size: 0.96rem;
 }
 
+/* ——— Gallery: snap scroll on small screens ——— */
 .horizon-gallery {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  display: flex;
   gap: 0.65rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.35rem;
+  margin-inline: -0.15rem;
+  padding-inline: 0.15rem;
+  scrollbar-width: thin;
 }
 
 .horizon-gallery__cell {
   position: relative;
+  flex: 0 0 min(82vw, 22rem);
   overflow: hidden;
   border-radius: 1rem;
-  min-height: clamp(12rem, 28vw, 18rem);
+  aspect-ratio: 4 / 3;
   background: #dfe8e5;
+  scroll-snap-align: start;
 }
 
 .horizon-gallery__cell:first-child {
-  grid-row: span 2;
-  min-height: clamp(24rem, 56vw, 36rem);
+  flex-basis: min(88vw, 28rem);
+  aspect-ratio: 5 / 4;
 }
 
 .horizon-gallery__cell img {
@@ -377,49 +424,152 @@
   transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.horizon-gallery__cell:hover img {
-  transform: scale(1.04);
+@media (hover: hover) {
+  .horizon-gallery__cell:hover img {
+    transform: scale(1.04);
+  }
 }
 
-@media (max-width: 720px) {
-  .horizon-stats {
-    grid-template-columns: 1fr;
+@media (min-width: 721px) {
+  .horizon-gallery {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    overflow: visible;
+    scroll-snap-type: none;
+    margin-inline: 0;
+    padding-inline: 0;
   }
 
-  .horizon-gallery {
-    grid-template-columns: 1fr;
+  .horizon-gallery__cell {
+    flex: none;
+    min-height: clamp(12rem, 28vw, 18rem);
+    aspect-ratio: auto;
   }
 
   .horizon-gallery__cell:first-child {
-    grid-row: auto;
-    min-height: 18rem;
+    grid-row: span 2;
+    min-height: clamp(24rem, 56vw, 36rem);
+    aspect-ratio: auto;
   }
 }
 
+/* ——— Location / aerial map ——— */
 .horizon-split {
   display: grid;
-  gap: 1.75rem;
-  align-items: center;
+  gap: 1.35rem;
+  align-items: start;
 }
 
 @media (min-width: 900px) {
   .horizon-split {
     grid-template-columns: 1.05fr 0.95fr;
     gap: 3rem;
+    align-items: center;
   }
 }
 
 .horizon-map {
-  position: relative;
-  overflow: hidden;
-  border-radius: 1.25rem;
-  min-height: clamp(16rem, 40vw, 24rem);
-  background: #dfe8e5;
-  box-shadow: 0 24px 60px rgba(12, 20, 18, 0.12);
+  margin: 0;
 }
 
-.horizon-map img {
-  object-fit: cover;
+.horizon-map__frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.15rem;
+  background: #e8eeeb;
+  box-shadow: 0 18px 48px rgba(12, 20, 18, 0.1);
+  /* Tall enough that survey labels stay legible on phones */
+  min-height: min(68vw, 22rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem;
+}
+
+@media (min-width: 640px) {
+  .horizon-map__frame {
+    min-height: clamp(18rem, 42vw, 26rem);
+    padding: 0.55rem;
+    border-radius: 1.25rem;
+  }
+}
+
+.horizon-map__img {
+  width: 100%;
+  height: auto;
+  max-height: min(72vw, 26rem);
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  border-radius: 0.85rem;
+}
+
+@media (min-width: 900px) {
+  .horizon-map__img {
+    max-height: 28rem;
+  }
+}
+
+.horizon-map__cap {
+  margin: 0.65rem 0 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--hz-muted);
+  line-height: 1.4;
+}
+
+/* ——— FAQ ——— */
+.horizon-section--faq {
+  background: var(--hz-chalk);
+  border-top: 1px solid var(--hz-line);
+}
+
+.horizon-faq {
+  display: grid;
+  gap: 0.55rem;
+  max-width: 40rem;
+}
+
+.horizon-faq__item {
+  border: 1px solid var(--hz-line);
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.65);
+  padding: 0 1rem;
+}
+
+.horizon-faq__item summary {
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-hz-display);
+  font-weight: 650;
+  font-size: 1.02rem;
+  letter-spacing: -0.02em;
+  padding: 1rem 0;
+  line-height: 1.35;
+  color: var(--hz-ink);
+}
+
+.horizon-faq__item summary::-webkit-details-marker {
+  display: none;
+}
+
+.horizon-faq__item summary::after {
+  content: "+";
+  float: right;
+  font-weight: 500;
+  color: var(--hz-sea);
+  margin-left: 0.75rem;
+}
+
+.horizon-faq__item[open] summary::after {
+  content: "–";
+}
+
+.horizon-faq__item p {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--hz-muted);
 }
 
 .horizon-close {
@@ -428,6 +578,7 @@
 
 .horizon-close h2 {
   margin-inline: auto;
+  max-width: 16ch;
 }
 
 .horizon-close .horizon-lead {
@@ -438,30 +589,41 @@
   justify-content: center;
 }
 
+/* ——— Sticky CTA ——— */
 .horizon-sticky {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 60;
-  padding: 0.85rem 1rem
-    calc(0.85rem + env(safe-area-inset-bottom, 0px));
-  background: rgba(10, 46, 43, 0.88);
+  padding: 0.7rem 0.85rem calc(0.7rem + env(safe-area-inset-bottom, 0px));
+  background: rgba(10, 46, 43, 0.92);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   transform: translateY(110%);
   transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;
   justify-content: center;
-  gap: 0.65rem;
+  gap: 0.55rem;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.18);
 }
 
 .horizon-sticky.is-on {
   transform: none;
 }
 
+.horizon-sticky .horizon-btn {
+  flex: 1 1 auto;
+  max-width: 11rem;
+  min-height: 2.75rem;
+  font-size: 0.88rem;
+  padding: 0.65rem 1rem;
+}
+
+/* ——— Dialog: bottom sheet on mobile ——— */
 .horizon-dialog {
-  width: min(440px, calc(100vw - 1.5rem));
-  max-height: min(92vh, 720px);
+  width: min(440px, calc(100vw - 1rem));
+  max-height: min(92dvh, 720px);
   margin: auto;
   border: 0;
   border-radius: 1.35rem;
@@ -469,6 +631,21 @@
   background: var(--hz-chalk);
   color: var(--hz-ink);
   box-shadow: 0 30px 80px rgba(6, 18, 16, 0.35);
+  overflow: auto;
+}
+
+@media (max-width: 640px) {
+  .horizon-dialog {
+    width: 100%;
+    max-width: 100%;
+    margin: auto 0 0;
+    border-radius: 1.25rem 1.25rem 0 0;
+    max-height: min(92dvh, 100%);
+  }
+
+  .horizon-dialog::backdrop {
+    background: rgba(6, 18, 16, 0.6);
+  }
 }
 
 .horizon-dialog::backdrop {
@@ -481,20 +658,24 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.35rem 1.35rem 0.85rem;
+  padding: 1.2rem 1.2rem 0.75rem;
   border-bottom: 1px solid var(--hz-line);
+  position: sticky;
+  top: 0;
+  background: var(--hz-chalk);
+  z-index: 1;
 }
 
 .horizon-dialog__head h2 {
   font-family: var(--font-hz-display);
-  font-size: 1.45rem;
+  font-size: 1.35rem;
   letter-spacing: -0.03em;
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.3rem;
 }
 
 .horizon-dialog__head p {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   line-height: 1.45;
   color: var(--hz-muted);
 }
@@ -504,22 +685,24 @@
   border: 0;
   background: transparent;
   color: var(--hz-muted);
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
-  padding: 0.2rem;
+  padding: 0.35rem;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
 }
 
 .horizon-dialog form {
   display: grid;
-  gap: 0.85rem;
-  padding: 1.1rem 1.35rem 1.35rem;
+  gap: 0.8rem;
+  padding: 1rem 1.2rem calc(1.2rem + env(safe-area-inset-bottom, 0px));
 }
 
 .horizon-dialog label {
   display: grid;
-  gap: 0.35rem;
-  font-size: 0.82rem;
+  gap: 0.3rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--hz-ink);
 }
@@ -532,6 +715,7 @@
   border-radius: 0.75rem;
   padding: 0.75rem 0.85rem;
   font: inherit;
+  font-size: 16px; /* prevent iOS zoom */
   font-weight: 400;
   background: #fff;
   color: var(--hz-ink);
@@ -546,7 +730,7 @@
 }
 
 .horizon-dialog textarea {
-  min-height: 6.5rem;
+  min-height: 5.5rem;
   resize: vertical;
 }
 
@@ -565,7 +749,7 @@
 
 .horizon-dialog__ok {
   margin: 0;
-  padding: 1.5rem 1.35rem 1.75rem;
+  padding: 1.5rem 1.2rem calc(1.75rem + env(safe-area-inset-bottom, 0px));
   text-align: center;
 }
 
@@ -573,4 +757,18 @@
   margin: 0 0 1rem;
   font-size: 1.05rem;
   line-height: 1.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .horizon-hero__media img,
+  .horizon-hero__inner,
+  .horizon-gallery__cell img,
+  .horizon-sticky {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .horizon-hero__media img {
+    transform: none;
+  }
 }

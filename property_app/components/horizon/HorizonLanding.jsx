@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Syne, Figtree } from "next/font/google";
 import AudienceJsonLd from "@/components/audience/AudienceJsonLd";
+import { horizonListingJsonLd } from "@/app/horizon/content";
 import {
   HorizonLeadProvider,
   HorizonLeadButton,
@@ -22,6 +23,7 @@ const figtree = Figtree({
 
 export default function HorizonLanding({ seo, page }) {
   const gallery = page.gallery.images.slice(0, 5);
+  const listingLd = horizonListingJsonLd();
 
   return (
     <div className={`horizon ${syne.variable} ${figtree.variable}`}>
@@ -31,8 +33,13 @@ export default function HorizonLanding({ seo, page }) {
         description={seo.description}
         breadcrumb={[
           { label: "Home", href: "/" },
-          { label: "Horizon", href: seo.canonical },
+          { label: "Horizon Bijilo", href: seo.canonical },
         ]}
+        faq={page.faq.items}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(listingLd) }}
       />
 
       <HorizonLeadProvider>
@@ -72,106 +79,150 @@ export default function HorizonLanding({ seo, page }) {
           </div>
         </header>
 
-        <section className="horizon-section horizon-section--foam" id={page.offer.id}>
-          <div className="horizon-wrap">
-            <h2>{page.offer.h2}</h2>
-            <p className="horizon-lead">{page.offer.intro}</p>
-            <div className="horizon-stats">
-              {page.offer.stats.map((stat) => (
-                <div className="horizon-stat" key={stat.label}>
-                  <strong>{stat.value}</strong>
-                  <span>{stat.label}</span>
-                </div>
-              ))}
+        <main>
+          <section
+            className="horizon-section horizon-section--foam"
+            id={page.offer.id}
+            aria-labelledby="horizon-offer-heading"
+          >
+            <div className="horizon-wrap">
+              <h2 id="horizon-offer-heading">{page.offer.h2}</h2>
+              <p className="horizon-lead">{page.offer.intro}</p>
+              <div className="horizon-stats" role="list">
+                {page.offer.stats.map((stat) => (
+                  <div className="horizon-stat" role="listitem" key={stat.label}>
+                    <strong>{stat.value}</strong>
+                    <span>{stat.label}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="horizon-note">{page.offer.note}</p>
             </div>
-            <p className="horizon-note">{page.offer.note}</p>
-          </div>
-        </section>
+          </section>
 
-        <section
-          className="horizon-section horizon-section--ink"
-          id={page.revolution.id}
-        >
-          <div className="horizon-wrap">
-            <h2>{page.revolution.h2}</h2>
-            <p className="horizon-lead">{page.revolution.lede}</p>
-            <div className="horizon-points">
-              {page.revolution.points.map((point) => (
-                <article className="horizon-point" key={point.title}>
-                  <h3>{point.title}</h3>
-                  <p>{point.body}</p>
-                </article>
-              ))}
+          <section
+            className="horizon-section horizon-section--ink"
+            id={page.revolution.id}
+            aria-labelledby="horizon-phone-heading"
+          >
+            <div className="horizon-wrap">
+              <h2 id="horizon-phone-heading">{page.revolution.h2}</h2>
+              <p className="horizon-lead">{page.revolution.lede}</p>
+              <div className="horizon-points">
+                {page.revolution.points.map((point) => (
+                  <article className="horizon-point" key={point.title}>
+                    <h3>{point.title}</h3>
+                    <p>{point.body}</p>
+                  </article>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section className="horizon-section" id={page.gallery.id}>
-          <div className="horizon-wrap">
-            <h2>{page.gallery.h2}</h2>
-            <div className="horizon-gallery">
-              {gallery.map((image, index) => (
-                <div className="horizon-gallery__cell" key={`${image.src}-${index}`}>
+          <section
+            className="horizon-section"
+            id={page.gallery.id}
+            aria-labelledby="horizon-gallery-heading"
+          >
+            <div className="horizon-wrap">
+              <h2 id="horizon-gallery-heading">{page.gallery.h2}</h2>
+              <div className="horizon-gallery" role="list">
+                {gallery.map((image, index) => (
+                  <div
+                    className="horizon-gallery__cell"
+                    role="listitem"
+                    key={`${image.src}-${index}`}
+                  >
+                    <Image
+                      src={image.src}
+                      alt={image.alt}
+                      fill
+                      sizes={
+                        index === 0
+                          ? "(max-width: 720px) 85vw, 55vw"
+                          : "(max-width: 720px) 70vw, 40vw"
+                      }
+                      quality={90}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section
+            className="horizon-section horizon-section--foam"
+            id={page.location.id}
+            aria-labelledby="horizon-location-heading"
+          >
+            <div className="horizon-wrap horizon-split">
+              <div>
+                <h2 id="horizon-location-heading">{page.location.h2}</h2>
+                <p className="horizon-lead" style={{ marginBottom: 0 }}>
+                  {page.location.body}
+                </p>
+              </div>
+              <figure className="horizon-map">
+                <div className="horizon-map__frame">
                   <Image
-                    src={image.src}
-                    alt={image.alt}
-                    fill
-                    sizes={
-                      index === 0
-                        ? "(max-width: 720px) 100vw, 55vw"
-                        : "(max-width: 720px) 100vw, 40vw"
-                    }
+                    src={page.location.image.src}
+                    alt={page.location.image.alt}
+                    width={page.location.image.width}
+                    height={page.location.image.height}
+                    sizes="(max-width: 900px) 100vw, 50vw"
                     quality={90}
+                    className="horizon-map__img"
                   />
                 </div>
-              ))}
+                <figcaption className="horizon-map__cap">
+                  {page.location.caption}
+                </figcaption>
+              </figure>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section
-          className="horizon-section horizon-section--foam"
-          id={page.location.id}
-        >
-          <div className="horizon-wrap horizon-split">
-            <div>
-              <h2>{page.location.h2}</h2>
-              <p className="horizon-lead" style={{ marginBottom: 0 }}>
-                {page.location.body}
-              </p>
+          <section
+            className="horizon-section horizon-section--faq"
+            id={page.faq.id}
+            aria-labelledby="horizon-faq-heading"
+          >
+            <div className="horizon-wrap">
+              <h2 id="horizon-faq-heading">{page.faq.h2}</h2>
+              <div className="horizon-faq">
+                {page.faq.items.map((item) => (
+                  <details className="horizon-faq__item" key={item.q}>
+                    <summary>{item.q}</summary>
+                    <p>{item.a}</p>
+                  </details>
+                ))}
+              </div>
             </div>
-            <div className="horizon-map">
-              <Image
-                src={page.location.image.src}
-                alt={page.location.image.alt}
-                fill
-                sizes="(max-width: 900px) 100vw, 50vw"
-                quality={90}
-              />
-            </div>
-          </div>
-        </section>
+          </section>
 
-        <section className="horizon-section">
-          <div className="horizon-wrap horizon-close">
-            <h2>{page.close.h2}</h2>
-            <p className="horizon-lead">{page.close.lede}</p>
-            <div className="horizon-actions">
-              <HorizonLeadButton
-                mode="call"
-                className="horizon-btn horizon-btn--sea"
-              >
-                {page.close.primaryCta}
-              </HorizonLeadButton>
-              <HorizonLeadButton
-                mode="contact"
-                className="horizon-btn horizon-btn--ghost horizon-btn--ghost-ink"
-              >
-                {page.close.secondaryCta}
-              </HorizonLeadButton>
+          <section
+            className="horizon-section horizon-section--close"
+            aria-labelledby="horizon-close-heading"
+          >
+            <div className="horizon-wrap horizon-close">
+              <h2 id="horizon-close-heading">{page.close.h2}</h2>
+              <p className="horizon-lead">{page.close.lede}</p>
+              <div className="horizon-actions">
+                <HorizonLeadButton
+                  mode="call"
+                  className="horizon-btn horizon-btn--sea"
+                >
+                  {page.close.primaryCta}
+                </HorizonLeadButton>
+                <HorizonLeadButton
+                  mode="contact"
+                  className="horizon-btn horizon-btn--ghost horizon-btn--ghost-ink"
+                >
+                  {page.close.secondaryCta}
+                </HorizonLeadButton>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </main>
       </HorizonLeadProvider>
     </div>
   );

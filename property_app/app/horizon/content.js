@@ -1,11 +1,31 @@
+import { siteUrl } from "@/utils/audience/paths";
+
+export const HORIZON_PATH = "/horizon";
+
 export const horizonSeo = {
-  title: "Horizon Bijilo — Own seaside. Run it from your phone | Isisel",
+  title:
+    "Horizon Bijilo Sea-View Apartments for Sale | $130,000 | Isisel Gambia",
   description:
-    "30 two-bedroom sea-view apartments left at Horizon by Swami India in Bijilo, The Gambia — from $130,000. Own the home. Manage stays commission-free on Isisel.",
-  canonical: "/horizon",
-  ogTitle: "Horizon × Isisel — Own the Atlantic from your phone",
+    "Buy a 2-bedroom sea-view apartment at Horizon by Swami India in Bijilo, The Gambia. 30 units left from $130,000. Own the home and manage stays commission-free on Isisel — Africa’s phone-first PMS.",
+  canonical: HORIZON_PATH,
+  keywords: [
+    "Horizon Bijilo",
+    "Gambia real estate investment",
+    "sea view apartments Bijilo",
+    "buy apartment The Gambia",
+    "Swami India Horizon",
+    "Isisel property management",
+    "commission-free vacation rental Africa",
+    "Bijilo beach apartments for sale",
+  ],
+  ogTitle: "Horizon Bijilo — Sea-view apartments from $130,000 | Isisel",
   ogDescription:
-    "Sea-side ownership in Bijilo, The Gambia. 30 units left. 2 bedrooms. $130,000. Commission-free phone PMS by Isisel.",
+    "30 two-bedroom units left at Horizon in Bijilo, The Gambia. Own a seaside home and run stays commission-free from your phone on Isisel.",
+  ogImage: "/horizon/hero-exterior.jpg",
+  ogImageWidth: 2160,
+  ogImageHeight: 1214,
+  pageUrl: () => siteUrl(HORIZON_PATH),
+  absoluteOgImage: () => siteUrl("/horizon/hero-exterior.jpg"),
 };
 
 export const horizonPage = {
@@ -16,25 +36,25 @@ export const horizonPage = {
   hero: {
     image: {
       src: "/horizon/hero-exterior.jpg",
-      alt: "Horizon by Swami India — modern seaside apartments in Bijilo, The Gambia",
+      alt: "Horizon by Swami India — modern sea-view apartments for sale in Bijilo, The Gambia",
     },
     kicker: "Isisel × Swami India",
-    h1: "Own the Atlantic.\nRun it from your phone.",
-    lede: "Horizon puts a sea-view home in your name. Isisel turns that home into a living business you manage anywhere — commission-free.",
+    h1: "Horizon Bijilo.\nOwn the sea view.",
+    lede: "Thirty 2-bedroom apartments left from $130,000. Host guests yourself on Isisel — Africa’s commission-free phone PMS.",
     primaryCta: "Request a call",
     secondaryCta: "Contact us",
   },
   offer: {
     id: "offer",
-    h2: "Thirty homes still open on the coast.",
+    h2: "Thirty sea-view homes still open.",
     intro:
-      "A rare seaside plate in Bijilo — Atlantic light, park air, and a finished tower you can own and operate.",
+      "A finished tower on Bijilo’s Atlantic corridor — park air, beach light, and a clear sea-view plate you can own and operate.",
     stats: [
       { value: "30", label: "units left" },
       { value: "2", label: "bedrooms" },
       { value: "$130,000", label: "sea-view entry" },
     ],
-    note: "Sea-side investment opportunity · Horizon by Swami India · Bijilo Beach corridor",
+    note: "Sea-side investment · Horizon by Swami India · Bijilo Beach, The Gambia",
   },
   revolution: {
     id: "phone",
@@ -61,11 +81,11 @@ export const horizonPage = {
     images: [
       {
         src: "/horizon/hero-exterior.jpg",
-        alt: "Horizon exterior with pool podium and palms",
+        alt: "Horizon exterior with pool podium and palms in Bijilo",
       },
       {
         src: "/horizon/hero-facade.jpg",
-        alt: "Horizon facade detail looking up the tower",
+        alt: "Horizon facade detail looking up the seaside tower",
       },
       {
         src: "/horizon/render-0052.jpeg",
@@ -73,11 +93,11 @@ export const horizonPage = {
       },
       {
         src: "/horizon/render-0057.jpeg",
-        alt: "Horizon architectural view",
+        alt: "Horizon architectural rendering in Bijilo",
       },
       {
         src: "/horizon/render-0059.jpeg",
-        alt: "Horizon balconies and glass",
+        alt: "Horizon balconies and glass facing the Atlantic corridor",
       },
       {
         src: "/horizon/render-0063.jpeg",
@@ -89,16 +109,45 @@ export const horizonPage = {
     id: "bijilo",
     h2: "Bijilo — beach, park, and open sea.",
     body: "Horizon sits in Bijilo with the Atlantic ahead and Bijilo National Park beside it. Own where guests already want to stay — then host them yourself on Isisel.",
+    caption: "Aerial survey — plot, sea-view cone, Bijilo Beach & National Park",
     image: {
       src: "/horizon/brochure-hero.jpg",
-      alt: "Horizon site in Bijilo with sea-view corridor to Bijilo Beach",
+      alt: "Aerial survey of Horizon plot in Bijilo showing sea-view corridor to Bijilo Beach and Bijilo National Park",
+      width: 2048,
+      height: 1359,
     },
+  },
+  faq: {
+    id: "faq",
+    h2: "Buying Horizon — answers first.",
+    items: [
+      {
+        q: "Where is Horizon located?",
+        a: "Horizon is in Bijilo, The Gambia — between the Atlantic coast and Bijilo National Park, near the Bijilo Beach corridor and established resorts.",
+      },
+      {
+        q: "How many apartments are still available?",
+        a: "Thirty units remain for purchase. The featured offer is a two-bedroom sea-view apartment from $130,000.",
+      },
+      {
+        q: "What do I get when I buy?",
+        a: "You own a finished residential apartment at Horizon by Swami India. You can live in it, host guests, or both — title is yours.",
+      },
+      {
+        q: "How does Isisel help after purchase?",
+        a: "Isisel is a phone-first property management platform. List the home, manage calendars and guests, and keep revenue commission-free — from anywhere.",
+      },
+      {
+        q: "How do I request details or a call?",
+        a: "Use Request a call or Contact us on this page. Your note goes to jimmeh@isisel.com and the Isisel team follows up about remaining units.",
+      },
+    ],
   },
   close: {
     h2: "Ready to own Horizon?",
     lede: "Tell us how to reach you. Jimmeh will follow up about the remaining units and how Isisel runs the home on your phone.",
     primaryCta: "Request a call",
-    secondaryCta: "Send a message",
+    secondaryCta: "Contact us",
   },
   form: {
     titleCall: "Request a call",
@@ -123,3 +172,46 @@ export const horizonPage = {
     close: "Close",
   },
 };
+
+/** Extra JSON-LD beyond WebPage / FAQ (RealEstateListing + Offer). */
+export function horizonListingJsonLd() {
+  const pageUrl = siteUrl(HORIZON_PATH);
+  const image = siteUrl("/horizon/hero-exterior.jpg");
+  return {
+    "@context": "https://schema.org",
+    "@type": "RealEstateListing",
+    "@id": `${pageUrl}#listing`,
+    name: "Horizon Bijilo — 2-bedroom sea-view apartments",
+    description: horizonSeo.description,
+    url: pageUrl,
+    image: [image, siteUrl("/horizon/brochure-hero.jpg")],
+    datePosted: "2026-03-01",
+    offers: {
+      "@type": "Offer",
+      price: "130000",
+      priceCurrency: "USD",
+      availability: "https://schema.org/LimitedAvailability",
+      url: pageUrl,
+      seller: {
+        "@type": "Organization",
+        name: "Isisel",
+        url: siteUrl("/"),
+      },
+    },
+    about: {
+      "@type": "Apartment",
+      name: "Horizon 2-bedroom sea-view apartment",
+      numberOfRooms: 2,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Bijilo",
+        addressCountry: "GM",
+      },
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: 13.4194,
+        longitude: -16.7237,
+      },
+    },
+  };
+}
