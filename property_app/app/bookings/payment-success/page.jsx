@@ -20,7 +20,9 @@ function PaymentSuccessBody() {
       <p className="mt-4 text-[var(--kama-ink-muted)] leading-relaxed">
         {provider === "creem"
           ? "Card payment was submitted through Creem. You will get a confirmation email once the booking is finalized — usually within a few seconds."
-          : "Payment was submitted. Check My Bookings for confirmation."}
+          : provider === "geniuspay"
+            ? "Mobile money payment was submitted through GeniusPay (Wave, Orange, MTN, Moov). You will get a confirmation email once the booking is finalized — usually within a few seconds."
+            : "Payment was submitted. Check My Bookings for confirmation."}
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
         <Link
