@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useId, useRef } from "react";
-import { X } from "lucide-react";
+import { CreditCard, Smartphone, X } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 
 /**
  * Collects a WhatsApp-preferred guest phone before submitting a reservation.
- * When online checkout is enabled, optional paymentMethods lets the guest pick
- * Mobile Money (GeniusPay) or Card (Creem).
+ * When online checkout is on, paymentMethods offers:
+ *   - geniuspay → Mobile Money (Wave / Orange / MTN / Moov)
+ *   - creem → Card (Visa / Mastercard via Creem)
  */
 export default function GuestPhoneModal({
   open,
@@ -46,12 +47,16 @@ export default function GuestPhoneModal({
 
   if (!open) return null;
 
+  const defaultMethod = geniusEnabled
+    ? "geniuspay"
+    : creemEnabled
+      ? "creem"
+      : undefined;
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (submitting) return;
-    // Prefer MoMo when both are available and the guest uses the primary CTA.
-    const method = geniusEnabled ? "geniuspay" : creemEnabled ? "creem" : undefined;
-    onConfirm?.(method);
+    onConfirm?.(defaultMethod);
   };
 
   return (
@@ -82,7 +87,7 @@ export default function GuestPhoneModal({
               id={titleId}
               className="text-lg font-semibold text-[var(--kama-ink)]"
             >
-              Let&apos;s stay in touch
+              {showMethods ? "Checkout" : "Let\u2019s stay in touch"}
             </h2>
           </div>
           <button
@@ -99,7 +104,9 @@ export default function GuestPhoneModal({
         <form onSubmit={handleSubmit} className="flex flex-col">
           <div className="space-y-4 overflow-y-auto px-5 py-4">
             <p className="text-sm leading-snug text-[var(--kama-ink-muted)]">
-              Share a WhatsApp number so the host can reach you about your stay.
+              {showMethods
+                ? "Share a WhatsApp number, then choose how you want to pay."
+                : "Share a WhatsApp number so the host can reach you about your stay."}
             </p>
 
             <div>
@@ -128,7 +135,7 @@ export default function GuestPhoneModal({
               />
             </div>
 
-            {error && (
+            {error ? (
               <p
                 id={`${inputId}-error`}
                 className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
@@ -136,37 +143,63 @@ export default function GuestPhoneModal({
               >
                 {error}
               </p>
-            )}
-          </div>
+            ) : null}
 
-          <div className="flex flex-col gap-2 border-t border-[var(--kama-border)] px-5 py-4">
             {bothMethods ? (
-              <>
+              <fieldset className="space-y-2">
+                <legend className="text-xs font-medium text-[var(--kama-ink-muted)]">
+                  Payment method
+                </legend>
                 <button
                   type="button"
                   disabled={submitting}
                   onClick={() => !submitting && onConfirm?.("geniuspay")}
-                  className="rounded-xl bg-[var(--kama-accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex w-full items-start gap-3 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3.5 py-3 text-left transition hover:border-[var(--kama-accent)] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {submitting ? "Starting…" : "Pay with Mobile Money"}
+                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--kama-accent)]/10 text-[var(--kama-accent)]">
+                    <Smartphone size={18} aria-hidden />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-[var(--kama-ink)]">
+                      {submitting ? "Starting…" : "Mobile Money"}
+                    </span>
+                    <span className="mt-0.5 block text-xs leading-snug text-[var(--kama-ink-muted)]">
+                      Wave, Orange Money, MTN MoMo, Moov — via GeniusPay
+                    </span>
+                  </span>
                 </button>
                 <button
                   type="button"
                   disabled={submitting}
                   onClick={() => !submitting && onConfirm?.("creem")}
-                  className="rounded-xl border border-[var(--kama-border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--kama-ink)] transition hover:bg-[var(--kama-field)] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex w-full items-start gap-3 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3.5 py-3 text-left transition hover:border-[var(--kama-accent)] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {submitting ? "Starting…" : "Pay with card"}
+                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--kama-accent)]/10 text-[var(--kama-accent)]">
+                    <CreditCard size={18} aria-hidden />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-[var(--kama-ink)]">
+                      {submitting ? "Starting…" : "Card"}
+                    </span>
+                    <span className="mt-0.5 block text-xs leading-snug text-[var(--kama-ink-muted)]">
+                      Visa / Mastercard — via Creem
+                    </span>
+                  </span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => onCancel?.()}
-                  disabled={submitting}
-                  className="rounded-xl px-4 py-2 text-sm font-medium text-[var(--kama-ink-muted)] transition hover:text-[var(--kama-ink)] disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-              </>
+              </fieldset>
+            ) : null}
+          </div>
+
+          <div className="flex flex-col gap-2 border-t border-[var(--kama-border)] px-5 py-4">
+            {bothMethods ? (
+              <button
+                type="button"
+                onClick={() => onCancel?.()}
+                disabled={submitting}
+                className="rounded-xl px-4 py-2 text-sm font-medium text-[var(--kama-ink-muted)] transition hover:text-[var(--kama-ink)] disabled:opacity-50"
+              >
+                Cancel
+              </button>
             ) : (
               <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <button
@@ -180,8 +213,15 @@ export default function GuestPhoneModal({
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-xl bg-[var(--kama-accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--kama-accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
+                  {showMethods ? (
+                    geniusEnabled ? (
+                      <Smartphone size={16} aria-hidden />
+                    ) : (
+                      <CreditCard size={16} aria-hidden />
+                    )
+                  ) : null}
                   {submitting
                     ? showMethods
                       ? "Starting…"
