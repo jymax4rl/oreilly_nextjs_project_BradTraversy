@@ -1,15 +1,7 @@
 /**
  * Isisel — legal & policies content (EN + FR).
  * Single source of truth for the /policies UI.
- *
- * Template for product use — not formal legal advice.
- * Counsel should review before treating as binding counsel-approved policies.
  */
-
-export const LEGAL_DISCLAIMER = {
-  en: "These pages are a product template for Isisel and are not formal legal advice. Have qualified counsel review them for your jurisdiction before relying on them as binding legal documents.",
-  fr: "Ces pages constituent un modèle produit pour Isisel et ne constituent pas un avis juridique formel. Faites-les examiner par un conseil qualifié pour votre juridiction avant de les considérer comme des documents juridiquement contraignants.",
-};
 
 export const POLICIES_META = {
   en: {
@@ -17,7 +9,7 @@ export const POLICIES_META = {
     subtitle:
       "Clear rules for guests and hosts on Isisel — African vacation rentals, with room to grow.",
     toc: "On this page",
-    lastUpdated: "Last updated: 31 August 2026",
+    lastUpdated: "Last updated: 4 September 2026",
     versionLabel: "Terms version",
   },
   fr: {
@@ -25,7 +17,7 @@ export const POLICIES_META = {
     subtitle:
       "Règles claires pour voyageurs et hôtes sur Isisel — locations de vacances en Afrique, avec une ambition d’évolution.",
     toc: "Sur cette page",
-    lastUpdated: "Dernière mise à jour : 31 août 2026",
+    lastUpdated: "Dernière mise à jour : 4 septembre 2026",
     versionLabel: "Version des conditions",
   },
 };
@@ -171,6 +163,32 @@ export const POLICY_SECTIONS = [
     },
   },
   {
+    id: "intellectual-property",
+    nav: { en: "Intellectual property", fr: "Propriété intellectuelle" },
+    title: {
+      en: "Intellectual property",
+      fr: "Propriété intellectuelle",
+    },
+    paragraphs: {
+      en: [
+        "All right, title, and interest in and to the Isisel service — including without limitation the Isisel and Kama Properties names, wordmarks, logos, domain names (including isisel.com), trade dress, user interface, layout, design system, icons, software, source code, object code, algorithms, databases (as compilations), APIs, documentation, and all related goodwill — are and shall remain the exclusive property of Isisel and its licensors. No licence is granted except the limited, revocable, non-exclusive, non-transferable, non-sublicensable right to access and use the service for its intended marketplace purpose, strictly in accordance with these Policies and the Terms of Service. All rights not expressly granted are reserved.",
+        "You shall not, and shall not permit any third party to: copy, reproduce, adapt, translate, modify, reverse engineer, decompile, disassemble, or create derivative works of the service except to the limited extent that applicable law prohibits such restriction; scrape, harvest, or systematically extract listings, prices, photographs, reviews, or other data; frame, mirror, or commercially exploit the service or its look and feel; use Isisel marks, or any confusingly similar name, logo, or domain, in a manner that suggests sponsorship, endorsement, partnership, or affiliation that does not exist; or register or use trademarks, company names, or social-media handles that imitate Isisel.",
+        "You retain whatever intellectual-property rights you already hold in content you lawfully submit (including listing text, photographs, house rules, messages, and reviews). By submitting such content, you represent that you have all rights necessary to do so, and you hereby grant Isisel a worldwide, royalty-free, transferable, sublicensable, perpetual licence to host, store, reproduce, adapt (including for formatting, compression, and thumbnails), display, perform, and distribute that content solely in connection with operating, improving, promoting, and protecting the service. You waive, to the maximum extent permitted by law, moral-rights claims against Isisel’s reasonable use of that content in the foregoing manner. This licence survives termination of your account as to copies already made in backups, caches, legal archives, and public pages until those copies are removed in the ordinary course.",
+        "You may not upload content that infringes copyright, trademark, design right, portrait/image rights, or trade secrets of any person. If you believe content on Isisel infringes your rights, send a written notice to contact@isisel.com identifying the work, the URL or listing, your contact details, and a good-faith statement of ownership or exclusive licence. We may remove or disable access to material, notify the poster, and, in appropriate cases, suspend repeat infringers. Isisel does not adjudicate ownership disputes between hosts and third-party photographers; those remain between the parties.",
+        "Names, logos, and product identifications of third parties that may appear on the site (including hospitality, software, or payment brands) remain the property of their respective owners. Their appearance does not, of itself, constitute a partnership, joint venture, sponsorship, or endorsement. Unsolicited ideas, feedback, or suggestions you send to Isisel may be used without obligation or compensation; you assign to Isisel all rights in such feedback to the extent assignable, or otherwise grant an equivalent unrestricted licence.",
+        "Creator, influencer, and partnership materials (including pitches, media kits, and user-generated stay content submitted to Isisel) are subject to this section. Commercial collaborations remain governed by any separate written agreement; absent such an agreement, no exclusive licence, revenue share, or brand-usage right is conferred on either party merely by submitting a lead or publishing a post. Durable long-form text: content/legal/INTELLECTUAL_PROPERTY.md.",
+      ],
+      fr: [
+        "Tous les droits, titres et intérêts afférents au service Isisel — notamment, sans limitation, les noms Isisel et Kama Properties, signes, logos, noms de domaine (y compris isisel.com), habillage commercial, interface, mise en page, système de design, icônes, logiciel, code source et objet, algorithmes, bases de données (en tant que compilations), API, documentation et le goodwill associé — sont et demeurent la propriété exclusive d’Isisel et de ses concédants. Aucune licence n’est accordée, hormis le droit limité, révocable, non exclusif, incessible et non sous-licenciable d’accéder au service et de l’utiliser aux fins marketplace prévues, strictement conformément aux présentes Politiques et aux Conditions d’utilisation. Tous les droits non expressément concédés sont réservés.",
+        "Vous ne devez pas, et ne devez pas permettre à un tiers de : copier, reproduire, adapter, traduire, modifier, rétroconcevoir, décompiler, désassembler ou créer des œuvres dérivées du service, sauf dans la mesure où la loi applicable interdit une telle restriction ; aspirer, collecter ou extraire de manière systématique les annonces, prix, photographies, avis ou autres données ; encadrer, mettre en miroir ou exploiter commercialement le service ou son apparence ; utiliser les marques Isisel, ou tout nom, logo ou domaine prêtant à confusion, de manière à suggérer un parrainage, une approbation, un partenariat ou une affiliation qui n’existent pas ; ou déposer ou utiliser des marques, dénominations sociales ou identifiants de réseaux sociaux imitant Isisel.",
+        "Vous conservez les droits de propriété intellectuelle que vous détenez déjà sur les contenus que vous soumettez licitement (textes d’annonces, photographies, règlements, messages et avis). En les soumettant, vous déclarez disposer de tous les droits nécessaires, et vous concédez par les présentes à Isisel une licence mondiale, gratuite, cessible, sous-licenciable et perpétuelle pour héberger, stocker, reproduire, adapter (y compris formatage, compression et miniatures), représenter, exécuter et diffuser ces contenus uniquement aux fins d’exploitation, d’amélioration, de promotion et de protection du service. Vous renoncez, dans la mesure maximale permise par la loi, aux prétentions de droits moraux contre l’usage raisonnable par Isisel dans les conditions ci-dessus. Cette licence survit à la clôture du compte pour les copies déjà réalisées (sauvegardes, caches, archives légales et pages publiques) jusqu’à leur suppression dans le cours normal.",
+        "Il est interdit de téléverser un contenu portant atteinte au droit d’auteur, aux marques, aux dessins et modèles, aux droits à l’image ou aux secrets d’affaires d’autrui. Si vous estimez qu’un contenu sur Isisel porte atteinte à vos droits, adressez une notification écrite à contact@isisel.com identifiant l’œuvre, l’URL ou l’annonce, vos coordonnées, et une déclaration de bonne foi de titularité ou de licence exclusive. Nous pouvons retirer ou désactiver l’accès, informer l’auteur de la publication et, le cas échéant, suspendre les contrevenants réitérants. Isisel ne tranche pas les litiges de titularité entre hôtes et photographes tiers ; ceux-ci restent entre les parties.",
+        "Les noms, logos et identifications de produits de tiers pouvant figurer sur le site (marques d’hospitalité, de logiciels ou de paiement notamment) restent la propriété de leurs titulaires. Leur apparition ne constitue pas, à elle seule, un partenariat, une coentreprise, un parrainage ou une approbation. Les idées, retours et suggestions non sollicités adressés à Isisel peuvent être utilisés sans obligation ni contrepartie ; vous cédez à Isisel tous les droits cessibles sur ces retours, ou concédez à défaut une licence équivalente et non restreinte.",
+        "Les matériels créateurs, influenceurs et partenariats (pitches, kits média et contenus de séjour soumis à Isisel) relèvent de la présente section. Les collaborations commerciales restent régies par tout contrat écrit distinct ; en l’absence d’un tel contrat, le dépôt d’un lead ou la publication d’un post ne confère à aucune partie de licence exclusive, de partage de revenus ni de droit d’usage de marque. Texte durable : content/legal/INTELLECTUAL_PROPERTY.md.",
+      ],
+    },
+  },
+  {
     id: "disputes",
     nav: { en: "Disputes", fr: "Litiges" },
     title: {
@@ -235,14 +253,14 @@ export const POLICY_SECTIONS = [
     paragraphs: {
       en: [
         "By creating an account or using Isisel, you agree to these Policies and the Terms of Service version shown at acceptance (currently stored as a versioned key on device and, after sign-in, on your user profile when available).",
-        "We grant you a limited, non-exclusive license to use the product for lawful booking and hosting. You may not scrape, abuse APIs, reverse-engineer for competitive cloning, or interfere with other users.",
+        "We grant you a limited, non-exclusive license to use the product for lawful booking and hosting. You may not scrape, abuse APIs, reverse-engineer for competitive cloning, or interfere with other users. Intellectual property is governed by the Intellectual property section of these Policies.",
         "The service is provided “as is” within commercial reasonableness for an early-stage marketplace. We limit liability to the maximum extent permitted by applicable law; we are not liable for off-platform payments, host–guest disputes beyond our mediation role, or indirect damages.",
         "We may update terms when the product changes. Material updates will bump the terms version; you may be asked to re-accept before signing in again.",
         "Durable full text: see content/legal/TERMS_OF_SERVICE.md in the project repository.",
       ],
       fr: [
         "En créant un compte ou en utilisant Isisel, vous acceptez ces Politiques et la version des Conditions affichée à l’acceptation (clé versionnée sur l’appareil et, après connexion, sur le profil utilisateur lorsque disponible).",
-        "Nous vous accordons une licence limitée et non exclusive d’usage légal pour réserver et héberger. Interdiction de scraper, d’abuser des API, de rétro-ingénierie concurrentielle ou de nuire aux autres utilisateurs.",
+        "Nous vous accordons une licence limitée et non exclusive d’usage légal pour réserver et héberger. Interdiction de scraper, d’abuser des API, de rétro-ingénierie concurrentielle ou de nuire aux autres utilisateurs. La propriété intellectuelle est régie par la section Propriété intellectuelle de ces Politiques.",
         "Le service est fourni « en l’état » dans la limite du raisonnable pour une marketplace en phase initiale. Nous limitons la responsabilité dans la mesure permise par la loi ; nous ne sommes pas responsables des paiements hors plateforme, des litiges hôte–voyageur au-delà de notre rôle de médiation, ni des dommages indirects.",
         "Nous pouvons mettre à jour les conditions lorsque le produit évolue. Une mise à jour matérielle incrémente la version ; une nouvelle acceptation pourra être demandée avant connexion.",
         "Texte durable : voir content/legal/TERMS_OF_SERVICE.md dans le dépôt.",

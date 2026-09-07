@@ -6,6 +6,8 @@ import { getMessages } from "@/utils/actions/messageActions";
 import MessageCard from "@/components/MessageCard";
 import MessageFilter from "@/components/MessageFilter";
 import { getLoginUrl } from "@/lib/legal/loginUrl";
+import HostMessagesHeader from "@/components/host/HostMessagesHeader";
+import HostInboxEmpty from "@/components/host/HostInboxEmpty";
 
 export const metadata = {
   title: "Inbox",
@@ -43,16 +45,7 @@ export default async function HostMessagesPage({ searchParams }) {
 
   return (
     <div>
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-[var(--kama-ink)]">
-          Inbox
-        </h1>
-        {unreadCount > 0 ? (
-          <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
-            {unreadCount} unread
-          </p>
-        ) : null}
-      </header>
+      <HostMessagesHeader unreadCount={unreadCount} />
 
       <Suspense fallback={null}>
         <MessageFilter currentFilter={filter} basePath="/host/messages" />
@@ -60,18 +53,7 @@ export default async function HostMessagesPage({ searchParams }) {
 
       <div className="mt-4 space-y-3">
         {filtered.length === 0 ? (
-          <div className="rounded-xl border border-[var(--kama-border)] bg-[var(--kama-surface)] px-6 py-14 text-center">
-            <p className="font-medium text-[var(--kama-ink)]">
-              {filter === "unread"
-                ? "No unread messages"
-                : filter === "sent"
-                  ? "No sent messages"
-                  : "No messages yet"}
-            </p>
-            <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
-              Guest threads about your listings appear here.
-            </p>
-          </div>
+          <HostInboxEmpty filter={filter} />
         ) : (
           filtered.map((message) => (
             <MessageCard

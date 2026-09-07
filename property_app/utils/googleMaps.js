@@ -5,11 +5,12 @@ const loadedLibraries = new Set();
 export const GOOGLE_MAPS_LOAD_TIMEOUT_MS = 10_000;
 
 function getApiKey() {
-  // Prefer NEXT_PUBLIC_*; also accept GOOGLE_MAPS_API_KEY (Vercel env name).
-  // next.config.mjs maps GOOGLE_MAPS_API_KEY → NEXT_PUBLIC_ at build time for the browser.
+  // Prefer GOOGLE_MAPS_API_KEY (Vercel production name) over NEXT_PUBLIC_* so a
+  // stale browser env cannot shadow the working key. next.config.mjs still
+  // inlines whichever wins into NEXT_PUBLIC_* for the client bundle.
   return (
-    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
     process.env.GOOGLE_MAPS_API_KEY ||
+    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
     process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY ||
     ""
   ).trim();
@@ -22,11 +23,11 @@ function getApiKey() {
  * For local testing you may set `DEMO_MAP_ID` (Google docs sample id).
  */
 export function getGoogleMapsMapId() {
-  // Prefer NEXT_PUBLIC_ (inlined via next.config env). GOOGLE_MAPS_MAP_ID is
-  // a server/build alias — only available client-side if next.config maps it.
+  // Prefer GOOGLE_MAPS_MAP_ID (Vercel) over NEXT_PUBLIC_ so stale values cannot
+  // shadow a working Map ID. next.config inlines the winner for the client.
   return (
-    process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ||
     process.env.GOOGLE_MAPS_MAP_ID ||
+    process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ||
     ""
   ).trim();
 }

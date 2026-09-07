@@ -1,4 +1,4 @@
-﻿import { enumerateStayNights } from "@/utils/availability/dateUtils";
+import { enumerateStayNights } from "@/utils/availability/dateUtils";
 import { customDayRatesToMap } from "@/utils/availability/customDayRates";
 
 /**
@@ -181,12 +181,20 @@ export function calculateBookingBase(rates, nights) {
 export const CLEANING_FEE_RATE = 0.15;
 export const PLATFORM_COMMISSION_RATE = 0.07;
 
-export function calculateBookingFees(baseUsd) {
+/**
+ * @param {number} baseUsd
+ * @param {{ commissionRate?: number }} [options] Host-specific rate; defaults to standard platform commission.
+ */
+export function calculateBookingFees(baseUsd, { commissionRate } = {}) {
   const base = Math.max(0, Math.round((baseUsd || 0) * 100) / 100);
   const cleaningFee = Math.round(base * CLEANING_FEE_RATE * 100) / 100;
-  const commission = Math.round(base * PLATFORM_COMMISSION_RATE * 100) / 100;
+  const rate =
+    commissionRate == null || !Number.isFinite(Number(commissionRate))
+      ? PLATFORM_COMMISSION_RATE
+      : Math.min(1, Math.max(0, Number(commissionRate)));
+  const commission = Math.round(base * rate * 100) / 100;
   const total = Math.round((base + cleaningFee + commission) * 100) / 100;
-  return { base, cleaningFee, commission, total };
+  return { base, cleaningFee, commission, total, commissionRate: rate };
 }
 
 export function validateRatesPayload(rates) {

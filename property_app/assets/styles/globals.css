@@ -21,10 +21,17 @@
   --kama-glass: rgba(255, 255, 255, 0.82);
   --kama-focus-ring: 0 0 0 3px rgba(27, 92, 87, 0.18);
   --kama-danger: #b42318;
-  --kama-nav-height-mobile: 4.25rem;
+  /* Floating dock (~3.1rem) + outer pad (0.65rem) + breathing room */
+  --kama-nav-height-mobile: 6.25rem;
   --kama-chrome-clearance: calc(
-    var(--kama-nav-height-mobile) + env(safe-area-inset-bottom, 0px)
+    var(--kama-nav-height-mobile) +
+      env(safe-area-inset-bottom, 0px) +
+      var(--kama-safe-bottom, 0px)
   );
+  --kama-safe-top: env(safe-area-inset-top, 0px);
+  --kama-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --kama-safe-left: env(safe-area-inset-left, 0px);
+  --kama-safe-right: env(safe-area-inset-right, 0px);
 
   /* Aliases used by home portal + shared chrome */
   --portal-canvas: var(--kama-canvas);
@@ -50,6 +57,11 @@ html {
   scroll-behavior: smooth;
   min-height: 100%;
   min-height: -webkit-fill-available;
+  /* Keep focused / scrolled content clear of the floating tab bar */
+  scroll-padding-bottom: var(--kama-chrome-clearance);
+  scroll-padding-top: calc(
+    var(--kama-safe-top, env(safe-area-inset-top, 0px)) + 3.5rem
+  );
 }
 
 html.kama-photo-hero,
@@ -66,6 +78,17 @@ body {
   color: var(--kama-ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+  Installed PWAs use viewport-fit=cover. Header background still fills
+  the status-bar strip (native); buttons sit below it via --kama-safe-top,
+  which is 0 unless the OS is actually covering the webview.
+*/
+.kama-safe-top {
+  padding-top: var(--kama-safe-top);
+  padding-left: var(--kama-safe-left);
+  padding-right: var(--kama-safe-right);
 }
 
 h1 {

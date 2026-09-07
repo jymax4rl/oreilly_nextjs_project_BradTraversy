@@ -11,6 +11,7 @@ import {
   getAvailabilityPayload,
   updatePropertyAvailability,
 } from "@/utils/availability/availabilityService";
+import { canUserViewListing } from "@/utils/listingApproval";
 
 export async function GET(request, { params }) {
   try {
@@ -25,6 +26,9 @@ export async function GET(request, { params }) {
     const session =
       (await getSessionFromRequest(request)) ||
       (await getServerSession(authOptions));
+    if (!canUserViewListing(property, session)) {
+      return Response.json({ error: "Property not found" }, { status: 404 });
+    }
     const isOwner = isPropertyOwner(property, session?.user?.id);
 
     const payload = await getAvailabilityPayload(id, { isOwner });

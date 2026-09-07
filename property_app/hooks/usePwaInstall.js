@@ -101,7 +101,7 @@ export default function usePwaInstall() {
   const promptInstall = useCallback(async () => {
     setInstallError("");
     if (!deferredPrompt) {
-      setInstallError("Install is not available in this browser yet.");
+      setInstallError("unavailable");
       return { outcome: "unavailable" };
     }
     try {
@@ -113,7 +113,7 @@ export default function usePwaInstall() {
       }
       return choice || { outcome: "dismissed" };
     } catch (err) {
-      setInstallError(err?.message || "Could not open the install dialog.");
+      setInstallError("dialog");
       return { outcome: "error" };
     }
   }, [deferredPrompt]);

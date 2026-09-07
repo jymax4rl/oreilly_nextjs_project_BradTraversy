@@ -15,6 +15,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "node --test utils/foundingHost/logic.test.mjs",
     "setup:email-templates": "node scripts/setup-resend-booking-templates.mjs",
     "docker:release": "node scripts/docker-release.mjs",
     "docker:bump": "node scripts/docker-release.mjs --bump",
@@ -45,11 +46,13 @@
     "mongoose": "^9.0.1",
     "next": "^16.2.6",
     "next-auth": "^4.24.13",
+    "pdf-lib": "^1.17.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-icons": "^5.5.0",
     "resend": "^6.25.0",
-    "styled-components": "^6.1.19"
+    "styled-components": "^6.1.19",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

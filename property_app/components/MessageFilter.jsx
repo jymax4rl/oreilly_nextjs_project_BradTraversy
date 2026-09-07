@@ -1,17 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 const FILTERS = [
-  { label: "All Messages", value: "all" },
-  { label: "Unread", value: "unread" },
-  { label: "Sent", value: "sent" },
+  { labelKey: "hostConsole.msg.all", value: "all" },
+  { labelKey: "hostConsole.msg.unread", value: "unread" },
+  { labelKey: "hostConsole.msg.sent", value: "sent" },
 ];
 
 export default function MessageFilter({ currentFilter, basePath = "/messages" }) {
+  const { t } = useLanguage();
+
   return (
     <div className="flex gap-2 overflow-x-auto pb-1">
-      {FILTERS.map(({ label, value }) => {
+      {FILTERS.map(({ labelKey, value }) => {
         const active = currentFilter === value;
         return (
           <Link
@@ -23,7 +26,7 @@ export default function MessageFilter({ currentFilter, basePath = "/messages" })
                 : "border border-[var(--kama-border)] bg-[var(--kama-surface)] text-[var(--kama-ink-muted)] hover:bg-[var(--kama-field)]"
             }`}
           >
-            {label}
+            {t(labelKey)}
           </Link>
         );
       })}
