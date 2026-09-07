@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import CleaningJob from "@/models/CleaningJob";
 import CleanerProfile from "@/models/CleanerProfile";
 import HostCleanerLink from "@/models/HostCleanerLink";
-import Property from "@/models/Property";
 import PropertyCleaningSettings from "@/models/PropertyCleaningSettings";
 import {
   CLEANING_TYPES,
