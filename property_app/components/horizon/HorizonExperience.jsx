@@ -15,7 +15,6 @@ export default function HorizonExperience({ children }) {
     if (!root) return undefined;
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const desktop = window.matchMedia("(min-width: 900px)").matches;
     let magnetCleanup;
 
     const ctx = gsap.context(() => {
@@ -44,16 +43,16 @@ export default function HorizonExperience({ children }) {
       root.querySelectorAll("[data-hz-reveal]").forEach((node) => {
         gsap.fromTo(
           node,
-          { autoAlpha: 0, y: reduce ? 0 : 32 },
+          { autoAlpha: 0, y: reduce ? 0 : 28 },
           {
             autoAlpha: 1,
             y: 0,
-            duration: reduce ? 0.01 : 1,
+            duration: reduce ? 0.01 : 0.95,
             ease: "power3.out",
             scrollTrigger: {
               trigger: node,
-              start: "top 86%",
-              toggleActions: "play none none reverse",
+              start: "top 88%",
+              once: true,
             },
           },
         );
@@ -92,52 +91,28 @@ export default function HorizonExperience({ children }) {
         });
       });
 
-      const seal = root.querySelector("[data-hz-seal]");
-      if (seal && !reduce) {
-        gsap.to(seal, {
-          rotate: 360,
-          ease: "none",
-          scrollTrigger: {
-            trigger: root,
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 0.6,
-          },
-        });
-      }
-
-      const flora = root.querySelector("[data-hz-flora]");
-      if (flora && !reduce) {
-        gsap.to(flora, {
-          y: -48,
-          x: 28,
-          ease: "none",
-          scrollTrigger: {
-            trigger: root,
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 0.85,
-          },
-        });
-      }
-
       const pin = root.querySelector(".hz-walk__pin");
       const track = root.querySelector("[data-hz-htrack]");
-      if (pin && track && desktop && !reduce) {
-        const getShift = () => Math.min(0, window.innerWidth - track.scrollWidth);
-        gsap.to(track, {
-          x: getShift,
-          ease: "none",
-          scrollTrigger: {
-            trigger: pin,
-            pin: true,
-            scrub: 0.85,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-            end: () => `+=${Math.max(track.scrollWidth - window.innerWidth, 400)}`,
-          },
-        });
-      }
+      ScrollTrigger.matchMedia({
+        "(min-width: 900px)": () => {
+          if (!pin || !track || reduce) return;
+          const getShift = () =>
+            Math.min(0, window.innerWidth - track.scrollWidth);
+          gsap.to(track, {
+            x: getShift,
+            ease: "none",
+            scrollTrigger: {
+              trigger: pin,
+              pin: true,
+              scrub: 0.85,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+              end: () =>
+                `+=${Math.max(track.scrollWidth - window.innerWidth, 400)}`,
+            },
+          });
+        },
+      });
 
       const magnet = root.querySelector("[data-hz-magnet]");
       if (magnet && window.matchMedia("(hover: hover)").matches && !reduce) {
@@ -172,6 +147,11 @@ export default function HorizonExperience({ children }) {
 
     const onResize = () => ScrollTrigger.refresh();
     window.addEventListener("resize", onResize);
+    const images = [...root.querySelectorAll("img")];
+    images.forEach((img) => {
+      if (img.complete) return;
+      img.addEventListener("load", onResize, { once: true });
+    });
     const fontsReady = document.fonts?.ready?.then(() => ScrollTrigger.refresh());
 
     return () => {
@@ -193,37 +173,6 @@ export default function HorizonExperience({ children }) {
         </span>
         <span className="hz-rail__scroll">{editorial.scroll}</span>
       </aside>
-
-      <div className="hz-seal" aria-hidden="true">
-        <svg viewBox="0 0 200 200" data-hz-seal>
-          <defs>
-            <path
-              id="hz-seal-path"
-              d="M100,100 m-72,0 a72,72 0 1,1 144,0 a72,72 0 1,1 -144,0"
-            />
-          </defs>
-          <text>
-            <textPath href="#hz-seal-path">{editorial.seal.repeat(2)}</textPath>
-          </text>
-          <path
-            className="hz-seal__mark"
-            d="M100 58 L108 86 L138 86 L114 104 L122 134 L100 116 L78 134 L86 104 L62 86 L92 86 Z"
-          />
-        </svg>
-      </div>
-
-      <div className="hz-flora" data-hz-flora>
-        <video
-          src="/horizon/flora.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          aria-hidden="true"
-        />
-      </div>
-
       {children}
     </div>
   );

@@ -150,71 +150,6 @@
   }
 }
 
-.hz-seal {
-  position: fixed;
-  top: calc(0.7rem + env(safe-area-inset-top, 0px));
-  left: 0.65rem;
-  z-index: 45;
-  width: 3.25rem;
-  height: 3.25rem;
-  pointer-events: none;
-  color: #fff;
-  mix-blend-mode: difference;
-}
-
-.hz-seal svg {
-  width: 100%;
-  height: 100%;
-}
-
-.hz-seal text {
-  fill: currentColor;
-  font-family: var(--hz-sans);
-  font-size: 13px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-}
-
-.hz-seal__mark {
-  fill: currentColor;
-}
-
-@media (min-width: 960px) {
-  .hz-seal {
-    width: 4.8rem;
-    height: 4.8rem;
-    left: 2.15rem;
-    top: 1.1rem;
-  }
-}
-
-.hz-flora {
-  display: none;
-}
-
-@media (min-width: 960px) {
-  .hz-flora {
-    display: block;
-    position: fixed;
-    top: 0;
-    right: 0;
-    z-index: 6;
-    width: min(18vw, 15rem);
-    aspect-ratio: 1;
-    pointer-events: none;
-    overflow: hidden;
-    opacity: 0.38;
-    mask-image: radial-gradient(circle, #000 30%, transparent 72%);
-    -webkit-mask-image: radial-gradient(circle, #000 30%, transparent 72%);
-  }
-
-  .hz-flora video {
-    width: 140%;
-    height: 140%;
-    object-fit: cover;
-  }
-}
-
 /* ——— Hero ——— */
 .hz-hero {
   position: relative;
@@ -234,6 +169,11 @@
   object-position: center 42%;
 }
 
+.hz-hero__media,
+.hz-hero__veil {
+  pointer-events: none;
+}
+
 .hz-hero__veil {
   position: absolute;
   inset: 0;
@@ -249,6 +189,7 @@
 .hz-hero__copy {
   position: relative;
   z-index: 2;
+  pointer-events: none;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -279,7 +220,8 @@
   position: absolute;
   right: 1rem;
   bottom: 5.6rem;
-  z-index: 3;
+  z-index: 5;
+  pointer-events: auto;
   width: 7.2rem;
   height: 7.2rem;
   border-radius: 50%;
@@ -785,6 +727,7 @@
   background: var(--hz-night);
   color: #fff;
   overflow: auto;
+  z-index: 80;
 }
 
 @media (max-width: 720px) {
@@ -981,7 +924,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .hz-dock,
-  .hz-flora video {
+  .hz-disc {
     animation: none !important;
     transition: none !important;
   }

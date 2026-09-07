@@ -121,8 +121,8 @@ export function HorizonLeadButton({ mode = "call", className, children, ...rest 
     <button
       type="button"
       className={className}
-      onClick={() => openLead(mode)}
       {...rest}
+      onClick={() => openLead(mode)}
     >
       {children}
     </button>
@@ -138,8 +138,13 @@ function HorizonLeadModal({ open, mode, onClose }) {
   useEffect(() => {
     const node = dialogRef.current;
     if (!node) return;
-    if (open && !node.open) node.showModal();
-    if (!open && node.open) node.close();
+    try {
+      if (open && !node.open) node.showModal();
+      if (!open && node.open) node.close();
+    } catch {
+      if (open) node.setAttribute("open", "");
+      else node.removeAttribute("open");
+    }
   }, [open]);
 
   useEffect(() => {
