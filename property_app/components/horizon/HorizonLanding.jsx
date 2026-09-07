@@ -5,6 +5,7 @@ import { horizonListingJsonLd } from "@/app/horizon/content";
 import {
   HorizonLeadProvider,
   HorizonLeadButton,
+  HorizonLeadForm,
 } from "./HorizonLead";
 import HorizonExperience from "./HorizonExperience";
 import HorizonReel from "./HorizonReel";
@@ -74,7 +75,7 @@ export default function HorizonLanding({ seo, page }) {
       <HorizonLeadProvider>
         <HorizonExperience>
           <header className="hz-hero" id="horizon-hero" data-hz-section>
-            <div className="hz-hero__media">
+            <div className="hz-hero__media" data-hz-parallax-media>
               <Image
                 src={page.hero.image.src}
                 alt={page.hero.image.alt}
@@ -85,7 +86,7 @@ export default function HorizonLanding({ seo, page }) {
               />
             </div>
             <div className="hz-hero__veil" aria-hidden="true" />
-            <div className="hz-hero__copy">
+            <div className="hz-hero__copy" data-hz-parallax-copy>
               <p className="hz-kicker hz-kicker--light">{page.hero.kicker}</p>
               <h1>{page.hero.h1}</h1>
               <p className="hz-hero__lede">{page.hero.lede}</p>
@@ -247,17 +248,28 @@ export default function HorizonLanding({ seo, page }) {
             data-hz-section
             aria-labelledby="hz-end-h"
           >
-            <div className="hz-wrap" data-hz-reveal>
-              <h2 id="hz-end-h">{page.close.h2}</h2>
-              <p className="hz-lede hz-lede--light">{page.close.lede}</p>
-              <div className="hz-end__actions">
-                <HorizonLeadButton mode="call" className="hz-textcta">
-                  {page.close.primaryCta}
-                </HorizonLeadButton>
-                <HorizonLeadButton mode="contact" className="hz-textcta">
-                  {page.close.secondaryCta}
-                </HorizonLeadButton>
+            <div className="hz-end__grid" data-hz-reveal>
+              <div>
+                <p className="hz-kicker hz-kicker--light">{page.close.kicker}</p>
+                <h2 id="hz-end-h">{page.close.h2}</h2>
+                <p className="hz-lede hz-lede--light">{page.close.lede}</p>
+                <HorizonLeadForm
+                  mode="call"
+                  showHeading={false}
+                  titleId="hz-end-h"
+                />
               </div>
+              <figure className="hz-end__visual">
+                <Image
+                  src={page.close.image.src}
+                  alt={page.close.image.alt}
+                  width={page.close.image.width}
+                  height={page.close.image.height}
+                  sizes="(max-width: 860px) 100vw, 46vw"
+                  quality={90}
+                  unoptimized={page.close.image.width < 1100}
+                />
+              </figure>
             </div>
           </section>
         </HorizonExperience>

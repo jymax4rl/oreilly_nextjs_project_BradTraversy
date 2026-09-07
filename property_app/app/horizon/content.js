@@ -265,13 +265,20 @@ export const horizonPage = {
     ],
   },
   close: {
-    h2: "Ready to own Horizon?",
+    kicker: "Speak with us",
+    h2: "Request a call.",
     lede: "Tell us how to reach you. Jimmeh will follow up about the remaining units and how Isisel runs the home on your phone.",
     primaryCta: "Request a call",
     secondaryCta: "Contact us",
+    image: {
+      src: "/horizon/pool-terrace.jpg",
+      alt: "Horizon infinity pool at dusk — tropical terrace above the palms",
+      width: 962,
+      height: 465,
+    },
   },
   form: {
-    titleCall: "Schedule a tour",
+    titleCall: "Request a call",
     titleContact: "Contact us",
     introCall:
       "Share your details. We’ll call about Horizon’s remaining two-bedrooms and phone-first ownership on Isisel.",
@@ -296,7 +303,7 @@ export const horizonPage = {
     close: "Close",
     legal:
       "By continuing you agree to be contacted by Isisel and its affiliates about Horizon. We will not sell your info.",
-    imageAlt: "Horizon by Swami India in Bijilo",
+    imageAlt: "Horizon infinity pool at dusk above the palms in Bijilo",
   },
 };
 

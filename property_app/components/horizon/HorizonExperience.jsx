@@ -91,6 +91,42 @@ export default function HorizonExperience({ children }) {
         });
       });
 
+      const hero = root.querySelector(".hz-hero");
+      const heroMedia = root.querySelector("[data-hz-parallax-media]");
+      const heroCopy = root.querySelector("[data-hz-parallax-copy]");
+      if (hero && heroMedia && !reduce) {
+        gsap.fromTo(
+          heroMedia,
+          { yPercent: -12 },
+          {
+            yPercent: 16,
+            ease: "none",
+            scrollTrigger: {
+              trigger: hero,
+              start: "top top",
+              end: "bottom top",
+              scrub: 0.6,
+            },
+          },
+        );
+      }
+      if (hero && heroCopy && !reduce) {
+        gsap.fromTo(
+          heroCopy,
+          { y: 0 },
+          {
+            y: -90,
+            ease: "none",
+            scrollTrigger: {
+              trigger: hero,
+              start: "top top",
+              end: "bottom top",
+              scrub: 0.45,
+            },
+          },
+        );
+      }
+
       const pin = root.querySelector(".hz-walk__pin");
       const track = root.querySelector("[data-hz-htrack]");
       ScrollTrigger.matchMedia({

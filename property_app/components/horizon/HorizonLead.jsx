@@ -20,6 +20,17 @@ function hashMode() {
   return null;
 }
 
+function clearLeadHash() {
+  if (typeof window === "undefined") return;
+  const hash = window.location.hash;
+  if (hash !== "#call" && hash !== "#contact") return;
+  window.history.replaceState(
+    null,
+    "",
+    `${window.location.pathname}${window.location.search}`,
+  );
+}
+
 export function HorizonLeadProvider({ children }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState("call");
@@ -37,12 +48,16 @@ export function HorizonLeadProvider({ children }) {
     };
     syncHash();
     window.addEventListener("hashchange", syncHash);
-    return () => window.removeEventListener("hashchange", syncHash);
+    window.addEventListener("popstate", syncHash);
+    return () => {
+      window.removeEventListener("hashchange", syncHash);
+      window.removeEventListener("popstate", syncHash);
+    };
   }, []);
 
   useEffect(() => {
     const hero = document.getElementById("horizon-hero");
-    const close = document.getElementById("horizon-close");
+    const closeSec = document.getElementById("horizon-close");
     if (!hero || typeof IntersectionObserver === "undefined") {
       setSticky(true);
       return undefined;
@@ -59,21 +74,26 @@ export function HorizonLeadProvider({ children }) {
     );
     heroIo.observe(hero);
     let closeIo;
-    if (close) {
+    if (closeSec) {
       closeIo = new IntersectionObserver(
         ([entry]) => {
           closeIn = entry.isIntersecting;
           sync();
         },
-        { threshold: 0.2, rootMargin: "0px 0px -12% 0px" },
+        { threshold: 0.15, rootMargin: "0px 0px -8% 0px" },
       );
-      closeIo.observe(close);
+      closeIo.observe(closeSec);
     }
     return () => {
       heroIo.disconnect();
       closeIo?.disconnect();
     };
   }, []);
+
+  const close = () => {
+    setOpen(false);
+    clearLeadHash();
+  };
 
   useEffect(() => {
     if (!open) return undefined;
@@ -101,20 +121,9 @@ export function HorizonLeadProvider({ children }) {
     }
   };
 
-  const close = () => {
-    setOpen(false);
-    if (typeof window !== "undefined") {
-      const hash = window.location.hash;
-      if (hash === "#call" || hash === "#contact") {
-        window.history.replaceState(null, "", window.location.pathname);
-      }
-    }
-  };
-
   return (
     <LeadCtx.Provider value={{ open, mode, openLead, close }}>
       {children}
-      <i id="contact" className="hz-hp" aria-hidden="true" />
       <HorizonLeadModal open={open} mode={mode} onClose={close} />
       {sticky && !open ? (
         <div className="hz-dock is-on">
@@ -131,29 +140,32 @@ export function HorizonLeadProvider({ children }) {
 }
 
 export function HorizonLeadButton({ mode = "call", className, children, ...rest }) {
+  const { openLead } = useHorizonLead();
   return (
     <a
       href={mode === "contact" ? "#contact" : "#call"}
       className={className}
       {...rest}
+      onClick={(event) => {
+        event.preventDefault();
+        openLead(mode);
+      }}
     >
       {children}
     </a>
   );
 }
 
-function HorizonLeadModal({ open, mode, onClose }) {
+export function HorizonLeadForm({
+  mode = "call",
+  onSuccess,
+  showHeading = true,
+  titleId = "hz-tour-title",
+}) {
   const form = horizonPage.form;
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
   const isCall = mode === "call";
-
-  useEffect(() => {
-    if (open) {
-      setStatus("idle");
-      setError("");
-    }
-  }, [open, mode]);
 
   async function onSubmit(event) {
     event.preventDefault();
@@ -194,6 +206,7 @@ function HorizonLeadModal({ open, mode, onClose }) {
         return;
       }
       setStatus("success");
+      onSuccess?.();
     } catch {
       setStatus("error");
       setError(form.error);
@@ -201,9 +214,120 @@ function HorizonLeadModal({ open, mode, onClose }) {
   }
 
   return (
+    <div className="hz-tour__form">
+      {showHeading ? (
+        <>
+          <h2 id={titleId}>{isCall ? form.titleCall : form.titleContact}</h2>
+          <p className="hz-tour__lede">
+            {isCall ? form.introCall : form.introContact}
+          </p>
+        </>
+      ) : null}
+
+      {status === "success" ? (
+        <div className="hz-tour__ok">
+          <p>{form.success}</p>
+        </div>
+      ) : (
+        <form onSubmit={onSubmit}>
+          <div className="hz-tour__row">
+            <label>
+              {form.firstName} *
+              <input
+                name="firstName"
+                autoComplete="given-name"
+                required
+                maxLength={60}
+              />
+            </label>
+            <label>
+              {form.lastName} *
+              <input
+                name="lastName"
+                autoComplete="family-name"
+                required
+                maxLength={60}
+              />
+            </label>
+          </div>
+          <div className="hz-tour__row">
+            <label>
+              {form.email} *
+              <input
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                maxLength={180}
+              />
+            </label>
+            <label>
+              {form.phone}
+              {isCall ? " *" : ""}
+              <input
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                required={isCall}
+                maxLength={40}
+              />
+            </label>
+          </div>
+          <div className="hz-tour__row">
+            <label>
+              {form.subject}
+              <select name="intent" defaultValue={isCall ? "call" : "message"}>
+                <option value="call">{form.intentCall}</option>
+                <option value="message">{form.intentMessage}</option>
+              </select>
+            </label>
+            <label>
+              {form.zip}
+              <input name="zip" autoComplete="postal-code" maxLength={20} />
+            </label>
+          </div>
+          <label className="hz-tour__full">
+            {form.message}
+            <textarea
+              name="message"
+              placeholder={form.messagePlaceholder}
+              maxLength={4000}
+              required={!isCall}
+            />
+          </label>
+          <label className="hz-hp" aria-hidden="true">
+            Fax
+            <input name="fax" tabIndex={-1} autoComplete="off" />
+          </label>
+          {error ? (
+            <p className="hz-tour__err" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <div className="hz-tour__foot">
+            <p>{form.legal}</p>
+            <button
+              type="submit"
+              className="hz-tour__submit"
+              disabled={status === "sending"}
+            >
+              {status === "sending" ? form.sending : form.submit}
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function HorizonLeadModal({ open, mode, onClose }) {
+  const form = horizonPage.form;
+
+  if (!open) return null;
+
+  return (
     <div
-      className={`hz-tour${open ? " is-open" : ""}`}
-      id="call"
+      className="hz-tour is-open"
       role="dialog"
       aria-modal="true"
       aria-labelledby="hz-tour-title"
@@ -215,131 +339,16 @@ function HorizonLeadModal({ open, mode, onClose }) {
         onClick={onClose}
       />
       <div className="hz-tour__panel">
-        <a
-          href="/horizon"
+        <button
+          type="button"
           className="hz-tour__x"
           aria-label="Close"
-          onClick={(event) => {
-            event.preventDefault();
-            onClose();
-          }}
+          onClick={onClose}
         >
           ×
-        </a>
-
+        </button>
         <div className="hz-tour__grid">
-          <div className="hz-tour__form">
-            <h2 id="hz-tour-title">
-              {isCall ? form.titleCall : form.titleContact}
-            </h2>
-            <p className="hz-tour__lede">
-              {isCall ? form.introCall : form.introContact}
-            </p>
-
-            {status === "success" ? (
-              <div className="hz-tour__ok">
-                <p>{form.success}</p>
-                <button
-                  type="button"
-                  className="hz-tour__submit"
-                  onClick={onClose}
-                >
-                  {form.close}
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={onSubmit}>
-                <div className="hz-tour__row">
-                  <label>
-                    {form.firstName} *
-                    <input
-                      name="firstName"
-                      autoComplete="given-name"
-                      required
-                      maxLength={60}
-                    />
-                  </label>
-                  <label>
-                    {form.lastName} *
-                    <input
-                      name="lastName"
-                      autoComplete="family-name"
-                      required
-                      maxLength={60}
-                    />
-                  </label>
-                </div>
-                <div className="hz-tour__row">
-                  <label>
-                    {form.email} *
-                    <input
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      maxLength={180}
-                    />
-                  </label>
-                  <label>
-                    {form.phone}
-                    {isCall ? " *" : ""}
-                    <input
-                      name="phone"
-                      type="tel"
-                      autoComplete="tel"
-                      required={isCall}
-                      maxLength={40}
-                    />
-                  </label>
-                </div>
-                <div className="hz-tour__row">
-                  <label>
-                    {form.subject}
-                    <select
-                      name="intent"
-                      defaultValue={isCall ? "call" : "message"}
-                    >
-                      <option value="call">{form.intentCall}</option>
-                      <option value="message">{form.intentMessage}</option>
-                    </select>
-                  </label>
-                  <label>
-                    {form.zip}
-                    <input name="zip" autoComplete="postal-code" maxLength={20} />
-                  </label>
-                </div>
-                <label className="hz-tour__full">
-                  {form.message}
-                  <textarea
-                    name="message"
-                    placeholder={form.messagePlaceholder}
-                    maxLength={4000}
-                    required={!isCall}
-                  />
-                </label>
-                <label className="hz-hp" aria-hidden="true">
-                  Fax
-                  <input name="fax" tabIndex={-1} autoComplete="off" />
-                </label>
-                {error ? (
-                  <p className="hz-tour__err" role="alert">
-                    {error}
-                  </p>
-                ) : null}
-                <div className="hz-tour__foot">
-                  <p>{form.legal}</p>
-                  <button
-                    type="submit"
-                    className="hz-tour__submit"
-                    disabled={status === "sending"}
-                  >
-                    {status === "sending" ? form.sending : form.submit}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-
+          <HorizonLeadForm mode={mode} />
           <figure className="hz-tour__visual">
             <img src="/horizon/street-twilight.jpg" alt={form.imageAlt} />
           </figure>

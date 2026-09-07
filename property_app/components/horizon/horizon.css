@@ -156,12 +156,14 @@
   min-height: 100svh;
   color: #fff;
   isolation: isolate;
+  overflow: hidden;
 }
 
 .hz-hero__media {
   position: absolute;
-  inset: 0;
+  inset: -18% 0 -10%;
   background: #1a1814;
+  will-change: transform;
 }
 
 .hz-hero__media img {
@@ -196,6 +198,7 @@
   min-height: 100svh;
   width: min(1080px, calc(100% - 2rem));
   margin: 0 auto;
+  will-change: transform;
   padding:
     calc(5.5rem + env(safe-area-inset-top, 0px)) 0
     6.4rem;
@@ -361,7 +364,7 @@
     display: grid;
     grid-template-rows: minmax(0, 1fr) auto;
     min-height: 0;
-    padding: 0 1.5rem 2.4rem 0;
+    padding: 0 1.5rem calc(var(--hz-sticky) + 1.6rem) 0;
   }
 
   .hz-walk__panel:last-child {
@@ -645,20 +648,59 @@
 
 /* ——— End ——— */
 .hz-end {
-  text-align: center;
-  padding-bottom: clamp(5.2rem, 12vw, 8.2rem);
+  text-align: left;
+  padding: 0;
 }
 
-.hz-end .hz-lede {
-  margin-inline: auto;
+.hz-end h2 {
+  max-width: 14ch;
+  margin-bottom: 0.35rem;
 }
 
-.hz-end__actions {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  margin-top: 1.9rem;
+.hz-end__grid {
+  display: grid;
+}
+
+@media (min-width: 860px) {
+  .hz-end__grid {
+    grid-template-columns: 1.1fr 0.9fr;
+    min-height: 38rem;
+  }
+}
+
+.hz-end__grid > div {
+  padding: 2rem 1.25rem calc(2rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 860px) {
+  .hz-end__grid > div {
+    padding: 2.6rem 2.2rem 2.4rem;
+  }
+}
+
+.hz-end .hz-tour__form {
+  padding: 1.2rem 0 0;
+}
+
+.hz-end__visual {
+  display: none;
+  margin: 0;
+  overflow: hidden;
+  background: #111;
+  min-height: 22rem;
+}
+
+@media (min-width: 860px) {
+  .hz-end__visual {
+    display: block;
+  }
+}
+
+.hz-end__visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
 }
 
 .hz-textcta {
@@ -749,14 +791,10 @@ a.hz-disc {
   padding: 0.5rem;
 }
 
-.hz-tour.is-open,
-#call:target,
-#contact:target + .hz-tour {
+.hz-tour.is-open {
   display: flex;
 }
 
-body:has(#call:target),
-body:has(#contact:target),
 body:has(.hz-tour.is-open) {
   overflow: hidden;
 }
