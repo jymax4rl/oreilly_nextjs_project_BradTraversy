@@ -50,6 +50,14 @@ export function ScrollNavProvider({ children }) {
       const delta = y - lastY.current;
       const threshold = 16;
 
+      if (y < 32) {
+        setNavVisible(true);
+      } else if (delta > threshold) {
+        setNavVisible(false);
+      } else if (delta < -threshold) {
+        setNavVisible(true);
+      }
+
       if (immersiveRef.current) {
         const show = y > 56;
         setBottomChromeVisible(show);
@@ -66,17 +74,14 @@ export function ScrollNavProvider({ children }) {
       }
 
       if (y < 32) {
-        setNavVisible(true);
         setBottomChromeVisible(true);
         setTabBarVisible(true);
         setTabBarCompact(false);
       } else if (delta > threshold) {
-        setNavVisible(false);
         setBottomChromeVisible(false);
         setTabBarVisible(true);
         setTabBarCompact(true);
       } else if (delta < -threshold) {
-        setNavVisible(true);
         setBottomChromeVisible(true);
         setTabBarVisible(true);
         setTabBarCompact(false);
