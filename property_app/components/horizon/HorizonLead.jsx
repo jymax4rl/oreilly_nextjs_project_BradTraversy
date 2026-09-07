@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { horizonPage } from "@/app/horizon/content";
 
 const LeadCtx = createContext(null);
@@ -13,22 +13,27 @@ export function useHorizonLead() {
   return ctx;
 }
 
+function hashMode() {
+  if (typeof window === "undefined") return null;
+  if (window.location.hash === "#contact") return "contact";
+  if (window.location.hash === "#call") return "call";
+  return null;
+}
+
 export function HorizonLeadProvider({ children }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState("call");
   const [sticky, setSticky] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return undefined;
     const syncHash = () => {
-      const hash = window.location.hash;
-      if (hash === "#call") {
-        setMode("call");
+      const next = hashMode();
+      if (next) {
+        setMode(next);
         setOpen(true);
-      } else if (hash === "#contact") {
-        setMode("contact");
-        setOpen(true);
+        return;
       }
+      setOpen(false);
     };
     syncHash();
     window.addEventListener("hashchange", syncHash);
@@ -70,6 +75,20 @@ export function HorizonLeadProvider({ children }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (event) => {
+      if (event.key === "Escape") close();
+    };
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
   const openLead = (nextMode = "call") => {
     setMode(nextMode);
     setOpen(true);
@@ -95,6 +114,7 @@ export function HorizonLeadProvider({ children }) {
   return (
     <LeadCtx.Provider value={{ open, mode, openLead, close }}>
       {children}
+      <i id="contact" className="hz-hp" aria-hidden="true" />
       <HorizonLeadModal open={open} mode={mode} onClose={close} />
       {sticky && !open ? (
         <div className="hz-dock is-on">
@@ -111,14 +131,11 @@ export function HorizonLeadProvider({ children }) {
 }
 
 export function HorizonLeadButton({ mode = "call", className, children, ...rest }) {
-  const { openLead } = useHorizonLead();
-  const href = mode === "contact" ? "#contact" : "#call";
   return (
     <a
-      href={href}
+      href={mode === "contact" ? "#contact" : "#call"}
       className={className}
       {...rest}
-      onClick={() => openLead(mode)}
     >
       {children}
     </a>
@@ -126,22 +143,10 @@ export function HorizonLeadButton({ mode = "call", className, children, ...rest 
 }
 
 function HorizonLeadModal({ open, mode, onClose }) {
-  const dialogRef = useRef(null);
   const form = horizonPage.form;
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    const node = dialogRef.current;
-    if (!node) return;
-    try {
-      if (open && !node.open) node.showModal();
-      if (!open && node.open) node.close();
-    } catch {
-      if (open) node.setAttribute("open", "");
-      else node.removeAttribute("open");
-    }
-  }, [open]);
+  const isCall = mode === "call";
 
   useEffect(() => {
     if (open) {
@@ -195,139 +200,148 @@ function HorizonLeadModal({ open, mode, onClose }) {
     }
   }
 
-  const isCall = mode === "call";
-
   return (
-    <dialog
-      ref={dialogRef}
-      className="hz-tour"
-      onClose={onClose}
-      onCancel={(e) => {
-        e.preventDefault();
-        onClose();
-      }}
+    <div
+      className={`hz-tour${open ? " is-open" : ""}`}
+      id="call"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="hz-tour-title"
     >
       <button
         type="button"
-        className="hz-tour__x"
-        onClick={onClose}
+        className="hz-tour__backdrop"
         aria-label="Close"
-      >
-        ×
-      </button>
+        onClick={onClose}
+      />
+      <div className="hz-tour__panel">
+        <button
+          type="button"
+          className="hz-tour__x"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          ×
+        </button>
 
-      <div className="hz-tour__grid">
-        <div className="hz-tour__form">
-          <h2>{isCall ? form.titleCall : form.titleContact}</h2>
-          <p className="hz-tour__lede">
-            {isCall ? form.introCall : form.introContact}
-          </p>
+        <div className="hz-tour__grid">
+          <div className="hz-tour__form">
+            <h2 id="hz-tour-title">
+              {isCall ? form.titleCall : form.titleContact}
+            </h2>
+            <p className="hz-tour__lede">
+              {isCall ? form.introCall : form.introContact}
+            </p>
 
-          {status === "success" ? (
-            <div className="hz-tour__ok">
-              <p>{form.success}</p>
-              <button
-                type="button"
-                className="hz-tour__submit"
-                onClick={onClose}
-              >
-                {form.close}
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={onSubmit}>
-              <div className="hz-tour__row">
-                <label>
-                  {form.firstName} *
-                  <input
-                    name="firstName"
-                    autoComplete="given-name"
-                    required
-                    maxLength={60}
-                  />
-                </label>
-                <label>
-                  {form.lastName} *
-                  <input
-                    name="lastName"
-                    autoComplete="family-name"
-                    required
-                    maxLength={60}
-                  />
-                </label>
-              </div>
-              <div className="hz-tour__row">
-                <label>
-                  {form.email} *
-                  <input
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    maxLength={180}
-                  />
-                </label>
-                <label>
-                  {form.phone}
-                  {isCall ? " *" : ""}
-                  <input
-                    name="phone"
-                    type="tel"
-                    autoComplete="tel"
-                    required={isCall}
-                    maxLength={40}
-                  />
-                </label>
-              </div>
-              <div className="hz-tour__row">
-                <label>
-                  {form.subject}
-                  <select name="intent" defaultValue={isCall ? "call" : "message"}>
-                    <option value="call">{form.intentCall}</option>
-                    <option value="message">{form.intentMessage}</option>
-                  </select>
-                </label>
-                <label>
-                  {form.zip}
-                  <input name="zip" autoComplete="postal-code" maxLength={20} />
-                </label>
-              </div>
-              <label className="hz-tour__full">
-                {form.message}
-                <textarea
-                  name="message"
-                  placeholder={form.messagePlaceholder}
-                  maxLength={4000}
-                  required={!isCall}
-                />
-              </label>
-              <label className="hz-hp" aria-hidden="true">
-                Fax
-                <input name="fax" tabIndex={-1} autoComplete="off" />
-              </label>
-              {error ? (
-                <p className="hz-tour__err" role="alert">
-                  {error}
-                </p>
-              ) : null}
-              <div className="hz-tour__foot">
-                <p>{form.legal}</p>
+            {status === "success" ? (
+              <div className="hz-tour__ok">
+                <p>{form.success}</p>
                 <button
-                  type="submit"
+                  type="button"
                   className="hz-tour__submit"
-                  disabled={status === "sending"}
+                  onClick={onClose}
                 >
-                  {status === "sending" ? form.sending : form.submit}
+                  {form.close}
                 </button>
               </div>
-            </form>
-          )}
-        </div>
+            ) : (
+              <form onSubmit={onSubmit}>
+                <div className="hz-tour__row">
+                  <label>
+                    {form.firstName} *
+                    <input
+                      name="firstName"
+                      autoComplete="given-name"
+                      required
+                      maxLength={60}
+                    />
+                  </label>
+                  <label>
+                    {form.lastName} *
+                    <input
+                      name="lastName"
+                      autoComplete="family-name"
+                      required
+                      maxLength={60}
+                    />
+                  </label>
+                </div>
+                <div className="hz-tour__row">
+                  <label>
+                    {form.email} *
+                    <input
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      maxLength={180}
+                    />
+                  </label>
+                  <label>
+                    {form.phone}
+                    {isCall ? " *" : ""}
+                    <input
+                      name="phone"
+                      type="tel"
+                      autoComplete="tel"
+                      required={isCall}
+                      maxLength={40}
+                    />
+                  </label>
+                </div>
+                <div className="hz-tour__row">
+                  <label>
+                    {form.subject}
+                    <select
+                      name="intent"
+                      defaultValue={isCall ? "call" : "message"}
+                    >
+                      <option value="call">{form.intentCall}</option>
+                      <option value="message">{form.intentMessage}</option>
+                    </select>
+                  </label>
+                  <label>
+                    {form.zip}
+                    <input name="zip" autoComplete="postal-code" maxLength={20} />
+                  </label>
+                </div>
+                <label className="hz-tour__full">
+                  {form.message}
+                  <textarea
+                    name="message"
+                    placeholder={form.messagePlaceholder}
+                    maxLength={4000}
+                    required={!isCall}
+                  />
+                </label>
+                <label className="hz-hp" aria-hidden="true">
+                  Fax
+                  <input name="fax" tabIndex={-1} autoComplete="off" />
+                </label>
+                {error ? (
+                  <p className="hz-tour__err" role="alert">
+                    {error}
+                  </p>
+                ) : null}
+                <div className="hz-tour__foot">
+                  <p>{form.legal}</p>
+                  <button
+                    type="submit"
+                    className="hz-tour__submit"
+                    disabled={status === "sending"}
+                  >
+                    {status === "sending" ? form.sending : form.submit}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
 
-        <figure className="hz-tour__visual">
-          <img src="/horizon/street-twilight.jpg" alt={form.imageAlt} />
-        </figure>
+          <figure className="hz-tour__visual">
+            <img src="/horizon/street-twilight.jpg" alt={form.imageAlt} />
+          </figure>
+        </div>
       </div>
-    </dialog>
+    </div>
   );
 }

@@ -740,27 +740,56 @@ a.hz-disc {
 
 /* ——— Tour ——— */
 .hz-tour {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+.hz-tour.is-open,
+#call:target,
+#contact:target + .hz-tour {
+  display: flex;
+}
+
+body:has(#call:target),
+body:has(#contact:target),
+body:has(.hz-tour.is-open) {
+  overflow: hidden;
+}
+
+.hz-tour__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(6, 8, 10, 0.72);
+  cursor: pointer;
+}
+
+.hz-tour__panel {
+  position: relative;
+  z-index: 1;
   width: min(1080px, calc(100vw - 1rem));
   max-height: min(94dvh, 820px);
   margin: auto;
-  border: 0;
-  padding: 0;
   background: var(--hz-night);
   color: #fff;
   overflow: auto;
-  z-index: 80;
 }
 
 @media (max-width: 720px) {
   .hz-tour {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .hz-tour__panel {
     width: 100%;
-    margin: auto 0 0;
     max-height: min(94dvh, 100%);
   }
-}
-
-.hz-tour::backdrop {
-  background: rgba(6, 8, 10, 0.72);
 }
 
 .hz-tour__x {
