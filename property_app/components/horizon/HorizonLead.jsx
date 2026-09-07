@@ -215,14 +215,17 @@ function HorizonLeadModal({ open, mode, onClose }) {
         onClick={onClose}
       />
       <div className="hz-tour__panel">
-        <button
-          type="button"
+        <a
+          href="/horizon"
           className="hz-tour__x"
-          onClick={onClose}
           aria-label="Close"
+          onClick={(event) => {
+            event.preventDefault();
+            onClose();
+          }}
         >
           ×
-        </button>
+        </a>
 
         <div className="hz-tour__grid">
           <div className="hz-tour__form">
