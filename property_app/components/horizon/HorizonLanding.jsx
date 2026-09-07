@@ -89,14 +89,14 @@ export default function HorizonLanding({ seo, page }) {
               <p className="hz-kicker hz-kicker--light">{page.hero.kicker}</p>
               <h1>{page.hero.h1}</h1>
               <p className="hz-hero__lede">{page.hero.lede}</p>
+              <HorizonLeadButton
+                mode="call"
+                className="hz-disc"
+                data-hz-magnet=""
+              >
+                {ed.magnetic}
+              </HorizonLeadButton>
             </div>
-            <HorizonLeadButton
-              mode="call"
-              className="hz-disc"
-              data-hz-magnet=""
-            >
-              {ed.magnetic}
-            </HorizonLeadButton>
           </header>
 
           <section className="hz-sheet" id={page.offer.id} data-hz-section>

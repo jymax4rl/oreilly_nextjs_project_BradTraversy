@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { horizonPage } from "@/app/horizon/content";
-import { useScrollNav } from "@/contexts/ScrollNavContext";
 
 const LeadCtx = createContext(null);
 
@@ -18,18 +17,22 @@ export function HorizonLeadProvider({ children }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState("call");
   const [sticky, setSticky] = useState(false);
-  const { bottomChromeVisible } = useScrollNav();
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.location.hash === "#call") {
-      setMode("call");
-      setOpen(true);
-    }
-    if (window.location.hash === "#contact") {
-      setMode("contact");
-      setOpen(true);
-    }
+    if (typeof window === "undefined") return undefined;
+    const syncHash = () => {
+      const hash = window.location.hash;
+      if (hash === "#call") {
+        setMode("call");
+        setOpen(true);
+      } else if (hash === "#contact") {
+        setMode("contact");
+        setOpen(true);
+      }
+    };
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    return () => window.removeEventListener("hashchange", syncHash);
   }, []);
 
   useEffect(() => {
@@ -94,21 +97,13 @@ export function HorizonLeadProvider({ children }) {
       {children}
       <HorizonLeadModal open={open} mode={mode} onClose={close} />
       {sticky && !open ? (
-        <div className={`hz-dock${bottomChromeVisible ? " is-on" : ""}`}>
-          <button
-            type="button"
-            className="hz-dock__btn hz-dock__btn--solid"
-            onClick={() => openLead("call")}
-          >
+        <div className="hz-dock is-on">
+          <a className="hz-dock__btn hz-dock__btn--solid" href="#call">
             {horizonPage.hero.primaryCta}
-          </button>
-          <button
-            type="button"
-            className="hz-dock__btn"
-            onClick={() => openLead("contact")}
-          >
+          </a>
+          <a className="hz-dock__btn" href="#contact">
             {horizonPage.hero.secondaryCta}
-          </button>
+          </a>
         </div>
       ) : null}
     </LeadCtx.Provider>
@@ -117,15 +112,16 @@ export function HorizonLeadProvider({ children }) {
 
 export function HorizonLeadButton({ mode = "call", className, children, ...rest }) {
   const { openLead } = useHorizonLead();
+  const href = mode === "contact" ? "#contact" : "#call";
   return (
-    <button
-      type="button"
+    <a
+      href={href}
       className={className}
       {...rest}
       onClick={() => openLead(mode)}
     >
       {children}
-    </button>
+    </a>
   );
 }
 
