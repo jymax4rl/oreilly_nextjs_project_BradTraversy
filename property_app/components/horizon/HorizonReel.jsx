@@ -20,11 +20,17 @@ export default function HorizonReel({ images, hint = "Swipe" }) {
     if (!scroller) return;
     const slides = [...scroller.querySelectorAll("[data-hz-slide]")];
     const target = slides[Math.max(0, Math.min(count - 1, next))];
-    target?.scrollIntoView({
-      behavior: "smooth",
-      inline: "center",
-      block: "nearest",
-    });
+    if (!target) return;
+    // Keep the page still. scrollIntoView also moves the document, so
+    // autoplay was yanking visitors back to this section every few seconds.
+    const delta =
+      target.getBoundingClientRect().left -
+      scroller.getBoundingClientRect().left;
+    const left =
+      scroller.scrollLeft +
+      delta -
+      (scroller.clientWidth - target.offsetWidth) / 2;
+    scroller.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
   };
 
   useEffect(() => {

@@ -400,6 +400,7 @@
 }
 
 .hz-reel__scroller {
+  position: relative;
   display: flex;
   gap: 0.75rem;
   overflow-x: auto;
