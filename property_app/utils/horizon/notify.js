@@ -50,6 +50,8 @@ export async function sendHorizonLeadEmail(lead) {
           ${row("Name", name)}
           ${row("Email", lead.email)}
           ${row("Phone", lead.phone)}
+          ${row("Subject", lead.subject)}
+          ${row("ZIP", lead.zip)}
           ${row("Message", lead.message)}
           ${row("Submitted", submitted)}
           ${row("Source", "Isisel /horizon")}
@@ -66,6 +68,8 @@ export async function sendHorizonLeadEmail(lead) {
     `Name: ${name}`,
     `Email: ${lead.email}`,
     `Phone: ${lead.phone || "—"}`,
+    `Subject: ${lead.subject || "—"}`,
+    `ZIP: ${lead.zip || "—"}`,
     `Message: ${lead.message || "—"}`,
     `Submitted: ${submitted}`,
     "Source: Isisel /horizon",

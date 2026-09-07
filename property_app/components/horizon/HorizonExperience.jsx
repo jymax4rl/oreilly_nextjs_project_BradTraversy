@@ -16,6 +16,8 @@ export default function HorizonExperience({ children }) {
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const desktop = window.matchMedia("(min-width: 900px)").matches;
+    let magnetCleanup;
+
     const ctx = gsap.context(() => {
       const progress = root.querySelector("[data-hz-progress]");
       const indexEl = root.querySelector("[data-hz-index]");
@@ -42,11 +44,11 @@ export default function HorizonExperience({ children }) {
       root.querySelectorAll("[data-hz-reveal]").forEach((node) => {
         gsap.fromTo(
           node,
-          { autoAlpha: 0, y: reduce ? 0 : 36 },
+          { autoAlpha: 0, y: reduce ? 0 : 32 },
           {
             autoAlpha: 1,
             y: 0,
-            duration: reduce ? 0.01 : 1.05,
+            duration: reduce ? 0.01 : 1,
             ease: "power3.out",
             scrollTrigger: {
               trigger: node,
@@ -82,7 +84,7 @@ export default function HorizonExperience({ children }) {
             const obj = { n: 0 };
             gsap.to(obj, {
               n: end,
-              duration: 1.8,
+              duration: 1.75,
               ease: "power2.out",
               onUpdate: () => apply(obj.n),
             });
@@ -104,22 +106,22 @@ export default function HorizonExperience({ children }) {
         });
       }
 
-      root.querySelectorAll("[data-hz-flora]").forEach((node, i) => {
-        if (reduce) return;
-        gsap.to(node, {
-          y: i % 2 ? 70 : -50,
-          x: i % 2 ? -30 : 36,
+      const flora = root.querySelector("[data-hz-flora]");
+      if (flora && !reduce) {
+        gsap.to(flora, {
+          y: -48,
+          x: 28,
           ease: "none",
           scrollTrigger: {
             trigger: root,
             start: "top top",
             end: "bottom bottom",
-            scrub: 0.8,
+            scrub: 0.85,
           },
         });
-      });
+      }
 
-      const pin = root.querySelector(".hz-hscroll__pin");
+      const pin = root.querySelector(".hz-walk__pin");
       const track = root.querySelector("[data-hz-htrack]");
       if (pin && track && desktop && !reduce) {
         const getShift = () => Math.min(0, window.innerWidth - track.scrollWidth);
@@ -145,8 +147,7 @@ export default function HorizonExperience({ children }) {
           const cy = box.top + box.height / 2;
           const dx = event.clientX - cx;
           const dy = event.clientY - cy;
-          const dist = Math.hypot(dx, dy);
-          if (dist > 140) {
+          if (Math.hypot(dx, dy) > 140) {
             gsap.to(magnet, { x: 0, y: 0, duration: 0.5, ease: "power3.out" });
             return;
           }
@@ -161,20 +162,22 @@ export default function HorizonExperience({ children }) {
           gsap.to(magnet, { x: 0, y: 0, duration: 0.6, ease: "power3.out" });
         window.addEventListener("pointermove", onMove);
         magnet.addEventListener("pointerleave", reset);
-        ScrollTrigger.addEventListener("refresh", reset);
-        root._magnetCleanup = () => {
+        magnetCleanup = () => {
           window.removeEventListener("pointermove", onMove);
           magnet.removeEventListener("pointerleave", reset);
+          reset();
         };
       }
     }, root);
 
     const onResize = () => ScrollTrigger.refresh();
     window.addEventListener("resize", onResize);
+    const fontsReady = document.fonts?.ready?.then(() => ScrollTrigger.refresh());
 
     return () => {
-      root._magnetCleanup?.();
+      magnetCleanup?.();
       window.removeEventListener("resize", onResize);
+      fontsReady?.catch?.(() => {});
       ctx.revert();
     };
   }, []);
@@ -209,18 +212,7 @@ export default function HorizonExperience({ children }) {
         </svg>
       </div>
 
-      <div className="hz-flora hz-flora--tr" data-hz-flora>
-        <video
-          src="/horizon/flora.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          aria-hidden="true"
-        />
-      </div>
-      <div className="hz-flora hz-flora--bl" data-hz-flora>
+      <div className="hz-flora" data-hz-flora>
         <video
           src="/horizon/flora.mp4"
           autoPlay

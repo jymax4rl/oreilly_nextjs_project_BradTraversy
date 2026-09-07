@@ -14,9 +14,13 @@ function isEmail(value) {
  */
 export function parseHorizonLeadInput(body) {
   const honeypot = Boolean(String(body?.fax || body?.website || "").trim());
-  const name = stripText(body?.name, 120);
+  const firstName = stripText(body?.firstName, 60);
+  const lastName = stripText(body?.lastName, 60);
+  const name = stripText(body?.name || `${firstName} ${lastName}`, 120);
   const email = stripText(body?.email, 180).toLowerCase();
   const phone = stripText(body?.phone, 40);
+  const subject = stripText(body?.subject, 80);
+  const zip = stripText(body?.zip, 20);
   const intentRaw = stripText(body?.intent, 20).toLowerCase();
   const intent = intentRaw === "message" ? "message" : "call";
   const message = stripText(body?.message || body?.note, 4000);
@@ -33,8 +37,12 @@ export function parseHorizonLeadInput(body) {
     honeypot,
     errors,
     name,
+    firstName,
+    lastName,
     email,
     phone,
+    subject,
+    zip,
     intent,
     message,
   };

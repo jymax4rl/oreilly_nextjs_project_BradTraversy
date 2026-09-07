@@ -42,6 +42,12 @@ function countAttrs(stat) {
   return { "data-count": stat.value.replace(/[^0-9]/g, "") };
 }
 
+function cropClass(crop) {
+  if (crop === "top") return " hz-media--top";
+  if (crop === "bottom") return " hz-media--bottom";
+  return "";
+}
+
 export default function HorizonLanding({ seo, page }) {
   const listingLd = horizonListingJsonLd();
   const ed = page.editorial;
@@ -67,237 +73,193 @@ export default function HorizonLanding({ seo, page }) {
 
       <HorizonLeadProvider>
         <HorizonExperience>
-          <header
-            className="horizon-hero"
-            id="horizon-hero"
-            data-hz-section
-          >
-            <div className="horizon-hero__media">
-              <div className="horizon-hero__parallax" data-hz-parallax>
-                <Image
-                  src={page.hero.image.src}
-                  alt={page.hero.image.alt}
-                  fill
-                  priority
-                  unoptimized
-                  sizes="(max-width: 1027px) 100vw, 1027px"
-                />
-              </div>
+          <header className="hz-hero" id="horizon-hero" data-hz-section>
+            <div className="hz-hero__media">
+              <Image
+                src={page.hero.image.src}
+                alt={page.hero.image.alt}
+                fill
+                priority
+                unoptimized
+                sizes="(max-width: 1027px) 100vw, 1027px"
+              />
             </div>
-            <div className="horizon-hero__scrim" aria-hidden="true" />
-            <div className="horizon-hero__inner">
-              <p className="horizon-brand">
-                <span>{page.hero.kicker}</span>
-                {page.brand}
-              </p>
+            <div className="hz-hero__veil" aria-hidden="true" />
+            <div className="hz-hero__copy">
+              <p className="hz-kicker hz-kicker--light">{page.hero.kicker}</p>
               <h1>{page.hero.h1}</h1>
-              <p className="horizon-hero__lede">{page.hero.lede}</p>
-              <div className="horizon-actions">
-                <HorizonLeadButton
-                  mode="call"
-                  className="horizon-btn horizon-btn--solid"
-                >
-                  {page.hero.primaryCta}
-                </HorizonLeadButton>
-                <HorizonLeadButton
-                  mode="contact"
-                  className="horizon-btn horizon-btn--ghost"
-                >
-                  {page.hero.secondaryCta}
-                </HorizonLeadButton>
-              </div>
+              <p className="hz-hero__lede">{page.hero.lede}</p>
             </div>
             <HorizonLeadButton
               mode="call"
-              className="hz-magnet"
+              className="hz-disc"
               data-hz-magnet=""
             >
               {ed.magnetic}
             </HorizonLeadButton>
           </header>
 
-          <section className="hz-editorial" data-hz-section aria-label="Editorial">
-            <div className="horizon-wrap hz-editorial__inner" data-hz-reveal>
+          <section className="hz-sheet" id={page.offer.id} data-hz-section>
+            <div className="hz-wrap" data-hz-reveal>
               <p className="hz-kicker">{ed.reasons}</p>
               <p className="hz-display">
                 {ed.line1}
                 <em>{ed.script}</em>
                 {ed.line2}
               </p>
-              <p className="hz-place">{ed.placeLine}</p>
+              <p className="hz-lede">{page.offer.intro}</p>
+              <p className="hz-fine">{ed.placeLine}</p>
+              <div className="hz-figures" role="list">
+                {page.offer.stats.map((stat) => (
+                  <div className="hz-figure" role="listitem" key={stat.label}>
+                    <span>{stat.label}</span>
+                    <strong {...countAttrs(stat)}>{stat.value}</strong>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
 
-          <main>
-            <section
-              className="horizon-section horizon-section--foam"
-              id={page.offer.id}
-              data-hz-section
-              aria-labelledby="horizon-offer-heading"
-            >
-              <div className="horizon-wrap hz-offer" data-hz-reveal>
-                <div>
-                  <h2 id="horizon-offer-heading">{page.offer.h2}</h2>
-                  <p className="horizon-lead">{page.offer.intro}</p>
-                  <p className="horizon-note">{page.offer.note}</p>
-                </div>
-                <div className="horizon-stats" role="list">
-                  {page.offer.stats.map((stat) => (
-                    <div className="horizon-stat" role="listitem" key={stat.label}>
-                      <strong {...countAttrs(stat)}>{stat.value}</strong>
-                      <span>{stat.label}</span>
+          <section
+            className="hz-walk"
+            id={page.story.id}
+            data-hz-section
+            aria-labelledby="hz-walk-h"
+          >
+            <div className="hz-wrap hz-walk__head" data-hz-reveal>
+              <p className="hz-kicker">{page.story.kicker}</p>
+              <h2 id="hz-walk-h">{page.story.h2}</h2>
+            </div>
+            <div className="hz-walk__mobile">
+              <HorizonReel
+                images={page.gallery.images}
+                hint={page.story.reelHint}
+              />
+            </div>
+            <div className="hz-walk__pin">
+              <div className="hz-walk__track" data-hz-htrack>
+                {page.story.chapters.map((chapter) => (
+                  <article className="hz-walk__panel" key={chapter.index}>
+                    <div
+                      className={`hz-walk__media${cropClass(chapter.crop)}`}
+                    >
+                      <Image
+                        src={chapter.image.src}
+                        alt={chapter.image.alt}
+                        fill
+                        sizes="70vw"
+                        quality={90}
+                        unoptimized={chapter.image.width < 1100}
+                      />
                     </div>
-                  ))}
-                </div>
+                    <div className="hz-walk__copy">
+                      <p className="hz-kicker">{chapter.index}</p>
+                      <h3>{chapter.title}</h3>
+                      <p>{chapter.body}</p>
+                    </div>
+                  </article>
+                ))}
               </div>
-            </section>
+            </div>
+          </section>
 
-            <section
-              className="horizon-section horizon-section--ink"
-              id={page.revolution.id}
-              data-hz-section
-              aria-labelledby="horizon-phone-heading"
-            >
-              <div className="horizon-wrap" data-hz-reveal>
-                <h2 id="horizon-phone-heading">{page.revolution.h2}</h2>
-                <p className="horizon-lead">{page.revolution.lede}</p>
-                <div className="horizon-points">
-                  {page.revolution.points.map((point) => (
-                    <article className="horizon-point" key={point.title}>
-                      <h3>{point.title}</h3>
-                      <p>{point.body}</p>
-                    </article>
-                  ))}
-                </div>
+          <section
+            className="hz-night"
+            id={page.revolution.id}
+            data-hz-section
+            aria-labelledby="hz-night-h"
+          >
+            <div className="hz-wrap" data-hz-reveal>
+              <p className="hz-kicker hz-kicker--light">
+                {page.revolution.kicker}
+              </p>
+              <h2 id="hz-night-h">{page.revolution.h2}</h2>
+              <p className="hz-lede hz-lede--light">{page.revolution.lede}</p>
+              <div className="hz-reasons">
+                {page.revolution.points.map((point, i) => (
+                  <article key={point.title}>
+                    <span>{String(i + 1).padStart(2, "0")}</span>
+                    <h3>{point.title}</h3>
+                    <p>{point.body}</p>
+                  </article>
+                ))}
               </div>
-            </section>
+            </div>
+          </section>
 
-            <section
-              className="hz-hscroll"
-              id={page.story.id}
-              data-hz-section
-              data-hz-hscroll
-              aria-labelledby="horizon-story-heading"
-            >
-              <div className="hz-hscroll__intro horizon-wrap" data-hz-reveal>
-                <p className="hz-kicker">{page.story.kicker}</p>
-                <h2 id="horizon-story-heading">{page.story.h2}</h2>
-                <p className="horizon-lead">{page.story.lede}</p>
+          <section
+            className="hz-sheet"
+            id={page.location.id}
+            data-hz-section
+            aria-labelledby="hz-place-h"
+          >
+            <div className="hz-wrap hz-place" data-hz-reveal>
+              <div>
+                <p className="hz-kicker">{page.location.kicker}</p>
+                <h2 id="hz-place-h">{page.location.h2}</h2>
+                <p className="hz-lede">{page.location.body}</p>
+                <ol className="hz-coast">
+                  {ed.coast.map((stop) => (
+                    <li key={stop.label}>
+                      <span>{stop.label}</span>
+                      <strong>{stop.time}</strong>
+                    </li>
+                  ))}
+                </ol>
               </div>
-              <div className="hz-hscroll__mobile">
-                <HorizonReel
-                  images={page.gallery.images}
-                  hint={page.story.reelHint}
+              <figure className="hz-map">
+                <Image
+                  src={page.location.image.src}
+                  alt={page.location.image.alt}
+                  width={page.location.image.width}
+                  height={page.location.image.height}
+                  sizes="(max-width: 900px) 100vw, 48vw"
+                  quality={90}
                 />
-              </div>
-              <div className="hz-hscroll__pin">
-                <div className="hz-hscroll__track" data-hz-htrack>
-                  {page.story.chapters.map((chapter) => (
-                    <article className="hz-hscroll__panel" key={chapter.index}>
-                      <div className="hz-hscroll__media">
-                        <Image
-                          src={chapter.image.src}
-                          alt={chapter.image.alt}
-                          fill
-                          sizes="70vw"
-                          quality={90}
-                          unoptimized={chapter.image.width < 1100}
-                        />
-                      </div>
-                      <div className="hz-hscroll__copy">
-                        <p className="hz-kicker">{chapter.index}</p>
-                        <h2>{chapter.title}</h2>
-                        <p>{chapter.body}</p>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            </section>
+                <figcaption>{page.location.caption}</figcaption>
+              </figure>
+            </div>
+          </section>
 
-            <section
-              className="horizon-section horizon-section--foam"
-              id={page.location.id}
-              data-hz-section
-              aria-labelledby="horizon-location-heading"
-            >
-              <div className="horizon-wrap horizon-split" data-hz-reveal>
-                <div>
-                  <h2 id="horizon-location-heading">{page.location.h2}</h2>
-                  <p className="horizon-lead">{page.location.body}</p>
-                  <ol className="hz-coast">
-                    {ed.coast.map((stop) => (
-                      <li key={stop.label}>
-                        <span>{stop.label}</span>
-                        <strong>{stop.time}</strong>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-                <figure className="horizon-map">
-                  <div className="horizon-map__frame">
-                    <Image
-                      src={page.location.image.src}
-                      alt={page.location.image.alt}
-                      width={page.location.image.width}
-                      height={page.location.image.height}
-                      sizes="(max-width: 900px) 100vw, 50vw"
-                      quality={90}
-                      className="horizon-map__img"
-                    />
-                  </div>
-                  <figcaption className="horizon-map__cap">
-                    {page.location.caption}
-                  </figcaption>
-                </figure>
+          <section
+            className="hz-sheet hz-sheet--tight"
+            id={page.faq.id}
+            data-hz-section
+            aria-labelledby="hz-faq-h"
+          >
+            <div className="hz-wrap" data-hz-reveal>
+              <p className="hz-kicker">{page.faq.kicker}</p>
+              <h2 id="hz-faq-h">{page.faq.h2}</h2>
+              <div className="hz-faq">
+                {page.faq.items.map((item) => (
+                  <details key={item.q}>
+                    <summary>{item.q}</summary>
+                    <p>{item.a}</p>
+                  </details>
+                ))}
               </div>
-            </section>
+            </div>
+          </section>
 
-            <section
-              className="horizon-section horizon-section--faq"
-              id={page.faq.id}
-              data-hz-section
-              aria-labelledby="horizon-faq-heading"
-            >
-              <div className="horizon-wrap" data-hz-reveal>
-                <h2 id="horizon-faq-heading">{page.faq.h2}</h2>
-                <div className="horizon-faq">
-                  {page.faq.items.map((item) => (
-                    <details className="horizon-faq__item" key={item.q}>
-                      <summary>{item.q}</summary>
-                      <p>{item.a}</p>
-                    </details>
-                  ))}
-                </div>
+          <section
+            className="hz-end"
+            id="horizon-close"
+            data-hz-section
+            aria-labelledby="hz-end-h"
+          >
+            <div className="hz-wrap" data-hz-reveal>
+              <h2 id="hz-end-h">{page.close.h2}</h2>
+              <p className="hz-lede hz-lede--light">{page.close.lede}</p>
+              <div className="hz-end__actions">
+                <HorizonLeadButton mode="call" className="hz-textcta">
+                  {page.close.primaryCta}
+                </HorizonLeadButton>
+                <HorizonLeadButton mode="contact" className="hz-textcta">
+                  {page.close.secondaryCta}
+                </HorizonLeadButton>
               </div>
-            </section>
-
-            <section
-              className="horizon-section horizon-section--close"
-              id="horizon-close"
-              data-hz-section
-              aria-labelledby="horizon-close-heading"
-            >
-              <div className="horizon-wrap horizon-close" data-hz-reveal>
-                <h2 id="horizon-close-heading">{page.close.h2}</h2>
-                <p className="horizon-lead">{page.close.lede}</p>
-                <div className="horizon-actions">
-                  <HorizonLeadButton
-                    mode="call"
-                    className="horizon-btn horizon-btn--sea"
-                  >
-                    {page.close.primaryCta}
-                  </HorizonLeadButton>
-                  <HorizonLeadButton
-                    mode="contact"
-                    className="horizon-btn horizon-btn--ghost horizon-btn--ghost-ink"
-                  >
-                    {page.close.secondaryCta}
-                  </HorizonLeadButton>
-                </div>
-              </div>
-            </section>
-          </main>
+            </div>
+          </section>
         </HorizonExperience>
       </HorizonLeadProvider>
     </div>

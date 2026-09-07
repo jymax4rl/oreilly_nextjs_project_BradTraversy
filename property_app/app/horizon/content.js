@@ -76,6 +76,7 @@ export const horizonPage = {
   },
   revolution: {
     id: "phone",
+    kicker: "The platform",
     h2: "A whole property business in your pocket.",
     lede: "Africa’s next owners will not sit behind a desk. They will buy once, then run calendars, guests, and payouts from the phone — without giving a cut to a middleman.",
     points: [
@@ -97,13 +98,13 @@ export const horizonPage = {
     id: "walk",
     kicker: "A walk through the building",
     h2: "From the street to the Atlantic rim.",
-    lede: "Slide the reel. Then scroll the rooms — lobby, water, roof, and the finished two-bedroom.",
     reelHint: "Swipe",
     chapters: [
       {
         index: "01",
         title: "Arrive at twilight.",
         body: "Glass, bronze, and warm light at the kerb. Horizon meets you at street level — then lifts you toward the sea.",
+        crop: "center",
         image: {
           src: "/horizon/street-twilight.jpg",
           alt: "Horizon lobby entrance at twilight",
@@ -115,6 +116,7 @@ export const horizonPage = {
         index: "02",
         title: "A lobby built to linger.",
         body: "Marble, chandelier, a desk that knows your name. The first room of ownership is not a corridor — it is a welcome.",
+        crop: "top",
         image: {
           src: "/horizon/lobby.jpg",
           alt: "Horizon lobby with marble floors and chandelier",
@@ -126,6 +128,7 @@ export const horizonPage = {
         index: "03",
         title: "Water on the podium.",
         body: "An infinity edge above the palms. Guests will remember the glow; you will remember the asset that holds it.",
+        crop: "center",
         image: {
           src: "/horizon/pool-terrace.jpg",
           alt: "Horizon podium infinity pool at dusk",
@@ -137,6 +140,7 @@ export const horizonPage = {
         index: "04",
         title: "Dinner above the canopy.",
         body: "The roof looks over Bijilo’s green and the Atlantic beyond. This is the view you host — and the view you keep.",
+        crop: "bottom",
         image: {
           src: "/horizon/rooftop-terrace.jpg",
           alt: "Horizon rooftop terrace toward the Atlantic",
@@ -148,6 +152,7 @@ export const horizonPage = {
         index: "05",
         title: "The two-bedroom, finished.",
         body: "Living, dining, kitchen in one calm plate. Title on a home you can live in, list, and run from your phone.",
+        crop: "center",
         image: {
           src: "/horizon/interior.jpg",
           alt: "Horizon two-bedroom living, dining, and kitchen",
@@ -164,56 +169,64 @@ export const horizonPage = {
       {
         src: "/horizon/exterior-palms.jpg",
         alt: "Horizon twin towers behind palms and Bijilo beach at golden hour",
+        caption: "The towers, from the beach",
         width: 1027,
         height: 912,
-        frame: "lead",
+        crop: "center",
       },
       {
         src: "/horizon/street-twilight.jpg",
         alt: "Horizon lobby entrance at twilight with warm interior light",
+        caption: "Arrival at twilight",
         width: 852,
         height: 507,
-        frame: "std",
+        crop: "center",
       },
       {
         src: "/horizon/lobby.jpg",
         alt: "Horizon lobby with marble floors, chandelier, and reception",
+        caption: "The lobby",
         width: 952,
         height: 667,
-        frame: "std",
+        crop: "top",
       },
       {
         src: "/horizon/pool-terrace.jpg",
         alt: "Horizon podium infinity pool and terrace at dusk",
+        caption: "Water on the podium",
         width: 962,
         height: 465,
-        frame: "wide",
+        crop: "center",
       },
       {
         src: "/horizon/rooftop-terrace.jpg",
         alt: "Horizon rooftop terrace looking over palms toward the Atlantic",
+        caption: "Dinner above the canopy",
         width: 840,
         height: 445,
-        frame: "wide",
+        crop: "bottom",
       },
       {
         src: "/horizon/interior.jpg",
         alt: "Horizon two-bedroom interior — living, dining, and kitchen",
+        caption: "The two-bedroom",
         width: 647,
         height: 372,
-        frame: "card",
+        crop: "center",
       },
       {
         src: "/horizon/facade-ocean.jpg",
         alt: "Horizon facade with balconies facing palms and the ocean",
+        caption: "The Atlantic face",
         width: 637,
         height: 370,
-        frame: "card",
+        crop: "center",
       },
     ],
   },
   location: {
     id: "bijilo",
+    kicker: "The coast",
     h2: "Bijilo — beach, park, and open sea.",
     body: "Horizon sits in Bijilo with the Atlantic ahead and Bijilo National Park beside it. Own where guests already want to stay — then host them yourself on Isisel.",
     caption: "Aerial survey — plot, sea-view cone, Bijilo Beach & National Park",
@@ -226,6 +239,7 @@ export const horizonPage = {
   },
   faq: {
     id: "faq",
+    kicker: "Questions",
     h2: "Buying Horizon — answers first.",
     items: [
       {
@@ -257,26 +271,32 @@ export const horizonPage = {
     secondaryCta: "Contact us",
   },
   form: {
-    titleCall: "Request a call",
+    titleCall: "Schedule a tour",
     titleContact: "Contact us",
     introCall:
       "Share your details. We’ll call about Horizon’s remaining two-bedrooms and phone-first ownership on Isisel.",
     introContact:
       "Write to the Isisel team. Your note goes straight to jimmeh@isisel.com.",
-    name: "Full name",
+    firstName: "First Name",
+    lastName: "Last Name",
     email: "Email",
-    phone: "Phone (with country code)",
-    intentCall: "I’d like a call",
-    intentMessage: "I’d like an email reply",
-    message: "What should we know?",
+    phone: "Phone",
+    subject: "Subject",
+    zip: "ZIP",
+    intentCall: "Request a call",
+    intentMessage: "Email reply",
+    message: "Message",
     messagePlaceholder:
       "Budget, timeline, whether you’ll live in the home or host it…",
-    submit: "Send",
+    submit: "Submit",
     sending: "Sending…",
     success: "Received — we’ll be in touch shortly.",
     error: "Something went wrong. Try again or email jimmeh@isisel.com.",
     required: "Please fill in the required fields.",
     close: "Close",
+    legal:
+      "By continuing you agree to be contacted by Isisel and its affiliates about Horizon. We will not sell your info.",
+    imageAlt: "Horizon by Swami India in Bijilo",
   },
 };
 

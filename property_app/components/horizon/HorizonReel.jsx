@@ -3,6 +3,12 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
+function cropClass(crop) {
+  if (crop === "top") return " hz-media--top";
+  if (crop === "bottom") return " hz-media--bottom";
+  return "";
+}
+
 export default function HorizonReel({ images, hint = "Swipe" }) {
   const scrollerRef = useRef(null);
   const [index, setIndex] = useState(0);
@@ -67,7 +73,7 @@ export default function HorizonReel({ images, hint = "Swipe" }) {
       >
         {images.map((image, i) => (
           <figure
-            className="hz-reel__slide"
+            className={`hz-reel__slide${cropClass(image.crop)}`}
             data-hz-slide={i}
             key={image.src}
           >
@@ -82,7 +88,7 @@ export default function HorizonReel({ images, hint = "Swipe" }) {
             />
             <figcaption>
               <span>{String(i + 1).padStart(2, "0")}</span>
-              {image.alt}
+              {image.caption || image.alt}
             </figcaption>
           </figure>
         ))}
