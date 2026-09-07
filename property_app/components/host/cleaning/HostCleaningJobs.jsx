@@ -25,9 +25,9 @@ export default function HostCleaningJobs({ scope }) {
   if (jobs.length === 0) {
     return (
       <div className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] p-6 text-sm text-[var(--kama-ink-muted)]">
-        No cleanings here yet.{" "}
+        Nothing here yet.{" "}
         <Link href="/host/cleaning/jobs/new" className="text-[var(--kama-accent)]">
-          Request one
+          Ask a cleaner
         </Link>
         .
       </div>

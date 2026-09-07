@@ -164,6 +164,76 @@ export async function notifyHostNewReservation({
   return finishPush({ sent, skipped: sent ? null : "send-failed" });
 }
 
+/**
+ * Lock-screen alert for a cleaner when a host asks them to clean.
+ * Uses the same PushSubscription list as hosts (same User, same PWA).
+ */
+export async function notifyCleanerNewJob({
+  cleanerUserId,
+  propertyName,
+  scheduledDate,
+  scheduledStartTime,
+  scheduledEndTime,
+  jobId,
+}) {
+  if (!cleanerUserId || !applyVapid()) {
+    return finishPush({ sent: 0, skipped: "unconfigured" });
+  }
+
+  const cleaner = await User.findById(cleanerUserId)
+    .select("pushSubscriptions")
+    .lean();
+  if (!cleaner) return finishPush({ sent: 0, skipped: "no-host" });
+
+  const subs = Array.isArray(cleaner.pushSubscriptions)
+    ? cleaner.pushSubscriptions
+    : [];
+  if (subs.length === 0) {
+    return finishPush({ sent: 0, skipped: "no-devices" });
+  }
+
+  const listing = String(propertyName || "a property").trim();
+  const when = [scheduledDate, scheduledStartTime && scheduledEndTime
+    ? `${scheduledStartTime}–${scheduledEndTime}`
+    : scheduledStartTime]
+    .filter(Boolean)
+    .join(" · ");
+  const payload = JSON.stringify({
+    title: "New cleaning",
+    body: [listing, when].filter(Boolean).join(" · "),
+    url: jobId ? `/cleaners/jobs/${jobId}` : "/cleaners",
+    tag: jobId ? `cleaning-${jobId}` : "cleaning",
+    badge: 1,
+  });
+
+  let sent = 0;
+  await Promise.all(
+    subs.map(async (sub) => {
+      try {
+        await webpush.sendNotification(
+          {
+            endpoint: sub.endpoint,
+            expirationTime: sub.expirationTime,
+            keys: sub.keys,
+          },
+          payload,
+          { TTL: 60 * 60 * 24 },
+        );
+        sent += 1;
+      } catch (err) {
+        const code = err?.statusCode;
+        if (code === 404 || code === 410) {
+          await dropDeadEndpoint(cleaner._id, sub.endpoint);
+        } else {
+          console.error("[web-push] cleaner send failed:", code || err?.message || err);
+        }
+      }
+    }),
+  );
+
+  return finishPush({ sent, skipped: sent ? null : "send-failed" });
+}
+
 function finishPush(result) {
   if (result.skipped) {
     console.info("[web-push] skipped:", result.skipped);

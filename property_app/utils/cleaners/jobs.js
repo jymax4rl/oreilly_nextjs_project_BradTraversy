@@ -9,12 +9,16 @@ import {
   DEFAULT_CHECKLIST,
 } from "@/utils/cleaners/constants";
 import {
+  addMinutes,
   assertHostOwnsProperty,
   formatPropertyAddress,
   timesOverlap,
 } from "@/utils/cleaners/access";
 import { notifyCleaning } from "@/utils/cleaners/notify";
 import { serializeCleaningJob } from "@/utils/cleaners/serialize";
+import { planCleaningWindow } from "@/utils/cleaners/schedule";
+import { localTodayYmd, addDaysYmd } from "@/utils/host/reservationsCalendar";
+import { notifyCleanerNewJob } from "@/utils/push/webPush";
 
 const ACTIVE_SCHEDULE_STATUSES = [
   "requested",
@@ -24,14 +28,7 @@ const ACTIVE_SCHEDULE_STATUSES = [
   "in_progress",
 ];
 
-export function addMinutes(hhmm, minutes) {
-  const [h, m] = String(hhmm || "11:00").split(":").map(Number);
-  const total = (h || 0) * 60 + (m || 0) + Number(minutes || 0);
-  const wrapped = ((total % (24 * 60)) + 24 * 60) % (24 * 60);
-  const hh = String(Math.floor(wrapped / 60)).padStart(2, "0");
-  const mm = String(wrapped % 60).padStart(2, "0");
-  return `${hh}:${mm}`;
-}
+export { addMinutes };
 
 export async function loadJobForHost(jobId, hostId, extra = {}) {
   if (!mongoose.Types.ObjectId.isValid(jobId)) return null;
@@ -81,17 +78,68 @@ export async function cleanerHasConflict({
   );
 }
 
+export async function findAssignedCleaner(hostId, propertyId) {
+  const link = await HostCleanerLink.findOne({
+    hostId,
+    status: "active",
+    assignedPropertyIds: propertyId,
+  }).lean();
+  return link?.cleanerId ? String(link.cleanerId) : null;
+}
+
+export async function nextStayAfter(propertyId, checkOutYmd) {
+  const Booking = (await import("@/models/Booking")).default;
+  return Booking.findOne({
+    propertyId,
+    status: { $in: ["pending", "confirmed"] },
+    listed: { $ne: false },
+    checkIn: { $gte: checkOutYmd },
+  })
+    .select("checkIn checkOut")
+    .sort({ checkIn: 1 })
+    .lean();
+}
+
+export async function loadStay(reservationId, hostPropertyId) {
+  if (!reservationId) return null;
+  const Booking = (await import("@/models/Booking")).default;
+  const stay = await Booking.findById(reservationId)
+    .select("propertyId checkIn checkOut status listed guestName")
+    .lean();
+  if (!stay) return null;
+  if (String(stay.propertyId) !== String(hostPropertyId)) return null;
+  return stay;
+}
+
+export async function notifyCleanerOfJob(job, propertyName) {
+  const userId = job.requestedCleanerId || job.cleanerId;
+  if (!userId) return;
+  const start = job.scheduledStartTime;
+  const end = job.scheduledEndTime;
+  const date = job.scheduledDate;
+  await notifyCleaning({
+    userId,
+    jobId: job._id,
+    kind: job.status === "requested" ? "cleaning_request" : "cleaning_scheduled",
+    title: "New cleaning",
+    body: `${propertyName} · ${date} · ${start}–${end}`,
+  });
+  await notifyCleanerNewJob({
+    cleanerUserId: userId,
+    propertyName,
+    scheduledDate: date,
+    scheduledStartTime: start,
+    scheduledEndTime: end,
+    jobId: String(job._id),
+  });
+}
+
 export async function createCleaningJob({
   hostId,
   propertyId,
-  scheduledDate,
-  scheduledStartTime,
-  scheduledEndTime,
-  estimatedDuration,
   cleaningType,
   hostNotes,
   cleanerId,
-  requestCleaner,
   reservationId,
   agreedPrice,
   currency,
@@ -99,13 +147,38 @@ export async function createCleaningJob({
   const owned = await assertHostOwnsProperty(propertyId, hostId);
   if (!owned.ok) return owned;
 
-  const type = CLEANING_TYPES.includes(cleaningType) ? cleaningType : "regular";
+  const type = CLEANING_TYPES.includes(cleaningType) ? cleaningType : "checkout";
   const settings = await PropertyCleaningSettings.findOne({
     propertyId,
   }).lean();
-  const duration = Number(estimatedDuration) || settings?.estimatedMinutes || 150;
-  const start = scheduledStartTime || owned.property.checkOutTime || "11:00";
-  const end = scheduledEndTime || addMinutes(start, duration);
+  const stay = await loadStay(reservationId, propertyId);
+  const next = stay
+    ? await nextStayAfter(propertyId, stay.checkOut)
+    : await nextStayAfter(propertyId, localTodayYmd());
+
+  const today = localTodayYmd();
+  let plan = planCleaningWindow({
+    type,
+    checkOutTime: owned.property.checkOutTime || "11:00",
+    checkInTime: owned.property.checkInTime || "15:00",
+    booking: stay,
+    nextBooking: next && String(next._id) !== String(stay?._id) ? next : null,
+    todayYmd: today,
+    settingsMinutes: settings?.estimatedMinutes,
+  });
+
+  if (
+    !stay &&
+    type !== "emergency" &&
+    plan.scheduledDate === today &&
+    minutesOfNowPast(owned.property.checkOutTime || "11:00")
+  ) {
+    plan = {
+      ...plan,
+      scheduledDate: addDaysYmd(today, 1),
+    };
+  }
+
   const checklistSource = settings?.checklist?.length
     ? settings.checklist
     : DEFAULT_CHECKLIST;
@@ -113,49 +186,45 @@ export async function createCleaningJob({
   let status = "pending";
   let assigned = null;
   let requested = null;
+  const chosenCleaner = cleanerId || (await findAssignedCleaner(hostId, propertyId));
 
-  if (cleanerId) {
+  if (chosenCleaner) {
     const link = await HostCleanerLink.findOne({
       hostId,
-      cleanerId,
+      cleanerId: chosenCleaner,
       status: "active",
     }).lean();
     if (!link) {
       return { ok: false, status: 400, error: "Cleaner is not on your trusted list" };
     }
     const conflict = await cleanerHasConflict({
-      cleanerId,
-      scheduledDate,
-      scheduledStartTime: start,
-      scheduledEndTime: end,
+      cleanerId: chosenCleaner,
+      scheduledDate: plan.scheduledDate,
+      scheduledStartTime: plan.scheduledStartTime,
+      scheduledEndTime: plan.scheduledEndTime,
     });
     if (conflict) {
       return { ok: false, status: 409, error: "This cleaner already has a job in that window" };
     }
-    if (requestCleaner) {
-      status = "requested";
-      requested = cleanerId;
-    } else {
-      status = "scheduled";
-      assigned = cleanerId;
-    }
+    status = "requested";
+    requested = chosenCleaner;
   }
 
   const job = await CleaningJob.create({
     hostId: String(hostId),
     propertyId,
-    reservationId: reservationId || undefined,
+    reservationId: stay?._id || undefined,
     cleanerId: assigned,
     requestedCleanerId: requested,
     propertyName: owned.property.name || "",
     propertyAddress: formatPropertyAddress(owned.property),
     checkoutTime: owned.property.checkOutTime || "11:00",
-    scheduledDate,
-    scheduledStartTime: start,
-    scheduledEndTime: end,
-    estimatedDuration: duration,
+    scheduledDate: plan.scheduledDate,
+    scheduledStartTime: plan.scheduledStartTime,
+    scheduledEndTime: plan.scheduledEndTime,
+    estimatedDuration: plan.estimatedDuration,
     status,
-    cleaningType: type,
+    cleaningType: plan.cleaningType,
     checklist: checklistSource.map((item, index) => ({
       key: item.key || `item-${index}`,
       label: item.label,
@@ -167,18 +236,16 @@ export async function createCleaningJob({
     currency: currency || "GMD",
   });
 
-  const notifyUser = requested || assigned;
-  if (notifyUser) {
-    await notifyCleaning({
-      userId: notifyUser,
-      jobId: job._id,
-      kind: requested ? "cleaning_request" : "cleaning_scheduled",
-      title: requested ? "New cleaning request" : "New cleaning assigned",
-      body: `${owned.property.name} · ${scheduledDate} · ${start}–${end}`,
-    });
-  }
-
+  await notifyCleanerOfJob(job.toObject(), owned.property.name);
   return { ok: true, job: job.toObject() };
+}
+
+function minutesOfNowPast(checkOutTime) {
+  const now = new Date();
+  const hm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const [nh, nm] = hm.split(":").map(Number);
+  const [ch, cm] = String(checkOutTime).split(":").map(Number);
+  return nh * 60 + nm >= (ch || 0) * 60 + (cm || 0);
 }
 
 export async function acceptCleaningJob(jobId, cleanerId) {

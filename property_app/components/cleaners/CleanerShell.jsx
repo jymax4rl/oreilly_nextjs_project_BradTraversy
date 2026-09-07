@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CalendarDays, Home, Sparkles, UserRound } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
+import CleanerPushPrompt from "@/components/cleaners/CleanerPushPrompt";
 import "./cleaner-shell.css";
 
 const NAV = [
@@ -35,7 +36,10 @@ export default function CleanerShell({ children, name }) {
           </span>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-lg px-4 py-5">{children}</main>
+      <main className="mx-auto w-full max-w-lg px-4 py-5">
+        <CleanerPushPrompt />
+        {children}
+      </main>
       <nav className="cleaner-bottom" aria-label="Cleaner">
         {NAV.map((item) => {
           const active = item.exact

@@ -83,6 +83,14 @@ export function minutesOf(hhmm) {
   return (h || 0) * 60 + (m || 0);
 }
 
+export function addMinutes(hhmm, minutes) {
+  const total = minutesOf(hhmm) + Number(minutes || 0);
+  const wrapped = ((total % (24 * 60)) + 24 * 60) % (24 * 60);
+  const hh = String(Math.floor(wrapped / 60)).padStart(2, "0");
+  const mm = String(wrapped % 60).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
 export function timesOverlap(aStart, aEnd, bStart, bEnd) {
   const startA = minutesOf(aStart);
   const endA = minutesOf(aEnd || aStart) || startA + 60;

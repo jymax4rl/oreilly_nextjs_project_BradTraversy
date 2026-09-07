@@ -9,17 +9,20 @@ import {
 
 export const dynamic = "force-dynamic";
 
-function requireHostSession(session) {
+function requirePushSession(session) {
   if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
-  if (session.user.hostStatus !== "verified") {
-    return { error: "Verified hosts only", status: 403 };
+  const host = session.user.hostStatus === "verified";
+  const cleaner =
+    session.user.cleanerStatus === "active" || session.user.role === "cleaner";
+  if (!host && !cleaner) {
+    return { error: "Host or cleaner access required", status: 403 };
   }
   return null;
 }
 
 export async function POST(request) {
   const session = await getServerSession(authOptions);
-  const denied = requireHostSession(session);
+  const denied = requirePushSession(session);
   if (denied) {
     return Response.json({ error: denied.error }, { status: denied.status });
   }
@@ -42,7 +45,7 @@ export async function POST(request) {
 
 export async function DELETE(request) {
   const session = await getServerSession(authOptions);
-  const denied = requireHostSession(session);
+  const denied = requirePushSession(session);
   if (denied) {
     return Response.json({ error: denied.error }, { status: denied.status });
   }

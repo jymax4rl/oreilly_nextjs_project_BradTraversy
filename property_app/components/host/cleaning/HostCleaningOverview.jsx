@@ -84,13 +84,13 @@ export default function HostCleaningOverview() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-[var(--kama-ink-muted)]">
-          Today’s turnover, upcoming visits, and anything that still needs a cleaner.
+          Assign people to a home, then ask. Times follow the stay’s checkout.
         </p>
         <Link
           href="/host/cleaning/jobs/new"
-          className="inline-flex rounded-full bg-[var(--kama-accent)] px-4 py-2 text-xs font-semibold text-white hover:bg-[var(--kama-accent-hover)]"
+          className="inline-flex min-h-11 items-center rounded-full bg-[var(--kama-accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--kama-accent-hover)]"
         >
-          Request cleaning
+          Ask a cleaner
         </Link>
       </div>
       <div className="grid gap-4 lg:grid-cols-2">

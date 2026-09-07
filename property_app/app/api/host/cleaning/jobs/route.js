@@ -79,11 +79,11 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    if (!body?.propertyId || !body?.scheduledDate) {
-      return Response.json(
-        { error: "Property and date are required" },
-        { status: 400 },
-      );
+    if (!body?.propertyId) {
+      return Response.json({ error: "Choose a property" }, { status: 400 });
+    }
+    if (!body?.cleanerId) {
+      return Response.json({ error: "Choose a cleaner" }, { status: 400 });
     }
     if (body.cleaningType && !CLEANING_TYPES.includes(body.cleaningType)) {
       return Response.json({ error: "Invalid cleaning type" }, { status: 400 });
@@ -92,17 +92,10 @@ export async function POST(request) {
     const result = await createCleaningJob({
       hostId: session.user.id,
       propertyId: body.propertyId,
-      scheduledDate: body.scheduledDate,
-      scheduledStartTime: body.scheduledStartTime,
-      scheduledEndTime: body.scheduledEndTime,
-      estimatedDuration: body.estimatedDuration,
-      cleaningType: body.cleaningType,
+      cleaningType: body.cleaningType || "checkout",
       hostNotes: body.hostNotes,
-      cleanerId: body.cleanerId || null,
-      requestCleaner: body.requestCleaner !== false && Boolean(body.cleanerId),
+      cleanerId: body.cleanerId,
       reservationId: body.reservationId || null,
-      agreedPrice: body.agreedPrice,
-      currency: body.currency,
     });
 
     if (!result.ok) {

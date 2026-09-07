@@ -57,12 +57,12 @@ self.addEventListener("push", (event) => {
   }
   const title = data.title || "Isisel";
   const options = {
-    body: data.body || "You have a new reservation.",
+    body: data.body || "You have a new Isisel update.",
     icon: "/icons/icon-192.png",
     badge: "/icons/icon-192.png",
-    tag: data.tag || "isisel-reservation",
+    tag: data.tag || "isisel",
     renotify: true,
-    data: { url: data.url || "/host" },
+    data: { url: data.url || "/" },
   };
   event.waitUntil(
     (async () => {
