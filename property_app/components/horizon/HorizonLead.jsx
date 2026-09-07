@@ -331,14 +331,12 @@ function HorizonLeadModal({ open, mode, onClose }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="hz-tour-title"
+      onClick={onClose}
     >
-      <button
-        type="button"
-        className="hz-tour__backdrop"
-        aria-label="Close"
-        onClick={onClose}
-      />
-      <div className="hz-tour__panel">
+      <div
+        className="hz-tour__panel"
+        onClick={(event) => event.stopPropagation()}
+      >
         <button
           type="button"
           className="hz-tour__x"

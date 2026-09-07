@@ -348,7 +348,7 @@
 
   .hz-walk__pin {
     display: block;
-    height: 100vh;
+    height: calc(100vh - var(--hz-sticky));
     overflow: hidden;
   }
 
@@ -793,18 +793,12 @@ a.hz-disc {
 
 .hz-tour.is-open {
   display: flex;
+  background: rgba(6, 8, 10, 0.72);
+  cursor: pointer;
 }
 
 body:has(.hz-tour.is-open) {
   overflow: hidden;
-}
-
-.hz-tour__backdrop {
-  position: absolute;
-  inset: 0;
-  border: 0;
-  background: rgba(6, 8, 10, 0.72);
-  cursor: pointer;
 }
 
 .hz-tour__panel {
@@ -816,6 +810,7 @@ body:has(.hz-tour.is-open) {
   background: var(--hz-night);
   color: #fff;
   overflow: auto;
+  cursor: default;
 }
 
 @media (max-width: 720px) {
