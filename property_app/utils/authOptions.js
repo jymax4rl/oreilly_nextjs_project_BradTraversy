@@ -98,7 +98,8 @@ export const authOptions = {
         typeof token.role !== "string" ||
         typeof token.hostStatus !== "string" ||
         typeof token.hasCompletedHostOnboarding !== "boolean" ||
-        typeof token.banned !== "boolean";
+        typeof token.banned !== "boolean" ||
+        typeof token.cleanerStatus !== "string";
 
       if (needsHydrate || trigger === "update") {
         await connectToDatabase();
@@ -118,6 +119,7 @@ export const authOptions = {
           token.hostStatus = user.hostStatus;
           token.hasCompletedHostOnboarding = !!user.hasCompletedHostOnboarding;
           token.banned = !!user.banned;
+          token.cleanerStatus = user.cleanerStatus || "none";
           // Prefer DB display name so Profile edits show in Navbar
           if (user.username) {
             token.name = user.username;
@@ -139,6 +141,7 @@ export const authOptions = {
         session.user.hasCompletedHostOnboarding =
           token.hasCompletedHostOnboarding === true;
         session.user.banned = token.banned === true;
+        session.user.cleanerStatus = token.cleanerStatus || "none";
         if (token.picture) {
           session.user.image = token.picture;
         }

@@ -8,17 +8,27 @@ import {
   Users,
   Building2,
   LayoutList,
+  CalendarCheck,
   CreditCard,
   Megaphone,
   LogOut,
+  Award,
+  BarChart3,
+  MessageSquare,
+  Sparkles,
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 
 const NAV = [
   { href: "/ops", label: "Home", exact: true, Icon: Home },
+  { href: "/ops/analytics", label: "Analytics", Icon: BarChart3 },
   { href: "/ops/users", label: "Users", Icon: Users },
+  { href: "/ops/messages", label: "Messages", Icon: MessageSquare },
   { href: "/ops/hosts", label: "Hosts", Icon: Building2 },
+  { href: "/ops/cleaners", label: "Cleaners", Icon: Sparkles },
+  { href: "/ops/founding-hosts", label: "Founding", Icon: Award },
   { href: "/ops/listings", label: "Listings", Icon: LayoutList },
+  { href: "/ops/reservations", label: "Reservations", Icon: CalendarCheck },
   { href: "/ops/transactions", label: "Payments", Icon: CreditCard },
   { href: "/ops/marketing", label: "Marketing", Icon: Megaphone },
 ];

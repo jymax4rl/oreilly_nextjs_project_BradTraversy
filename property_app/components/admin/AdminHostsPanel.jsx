@@ -195,8 +195,15 @@ export default function AdminHostsPanel() {
         <p className="mt-2 text-sm leading-relaxed text-[var(--kama-ink-muted)]">
           Review and manage host onboarding applications. Search by name, email,
           phone, or address within the active tab. Open a profile for IDs and
-          ban controls.
+          ban controls. Founding 100 spots are assigned when a host’s first
+          listing is approved, not when the application is approved.
         </p>
+        <Link
+          href="/ops/founding-hosts"
+          className="mt-3 inline-flex text-sm font-semibold text-[var(--kama-accent)] hover:underline"
+        >
+          Open Founding Hosts
+        </Link>
       </header>
 
       <div className="mb-4 flex flex-wrap gap-2">
@@ -378,6 +385,14 @@ export default function AdminHostsPanel() {
                     </div>
                   )}
 
+                  {app.user?._id ? (
+                    <Link
+                      href={`/ops/listings?status=approved&owner=${encodeURIComponent(String(app.user._id))}`}
+                      className="inline-flex min-h-11 w-full items-center justify-center rounded border border-gray-200 bg-white px-4 py-2 font-medium text-gray-800 transition hover:bg-gray-50"
+                    >
+                      Listings
+                    </Link>
+                  ) : null}
                   <button
                     type="button"
                     onClick={() => openProfile(app.user?._id)}

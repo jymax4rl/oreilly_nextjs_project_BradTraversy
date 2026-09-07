@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { isOpsStaff } from "@/utils/opsAuth";
 import mongoose from "mongoose";
+import { serializeFoundingHostOps } from "@/utils/foundingHost/serialize";
 
 /**
  * Ops-only user profile payload for the in-console profile modal.
@@ -32,7 +33,7 @@ export const GET = async (_request, { params }) => {
       await Promise.all([
         User.findById(userId)
           .select(
-            "email username image role hostStatus banned bannedAt bannedReason bannedBy createdAt updatedAt hostAddress hasCompletedHostOnboarding termsVersion termsAcceptedAt",
+            "email username image role hostStatus banned bannedAt bannedReason bannedBy createdAt updatedAt hostAddress hasCompletedHostOnboarding termsVersion termsAcceptedAt foundingHost commissionOverride",
           )
           .lean(),
         HostApplication.findOne({ user: userId }).lean(),
@@ -59,6 +60,7 @@ export const GET = async (_request, { params }) => {
         _id: String(user._id),
         bannedBy: user.bannedBy ? String(user.bannedBy) : null,
       },
+      foundingHost: serializeFoundingHostOps(user),
       hostApplication: hostApplication
         ? {
             ...hostApplication,

@@ -2,6 +2,7 @@ import Booking from "@/models/Booking";
 import Property from "@/models/Property";
 import Transaction from "@/models/Transaction";
 import { countNights } from "@/utils/availability/validateStay";
+import { resolveHostContact } from "@/utils/email/resolveHostContact";
 import {
   formatPropertyLocation,
   propertyImageAbsoluteUrl,
@@ -23,8 +24,6 @@ async function buildLifecyclePayload(booking, propertyHint) {
       .select("name seller_info images location beds baths type owner")
       .lean());
 
-  let hostEmail = property?.seller_info?.email;
-  let hostName = property?.seller_info?.name;
   let tx = null;
 
   if (booking.transactionId != null) {
@@ -33,9 +32,14 @@ async function buildLifecyclePayload(booking, propertyHint) {
     })
       .select("host_email host_name property_name")
       .lean();
-    if (tx?.host_email) hostEmail = hostEmail || tx.host_email;
-    if (tx?.host_name) hostName = hostName || tx.host_name;
   }
+
+  const host = await resolveHostContact(property, {
+    host_email: tx?.host_email,
+    host_name: tx?.host_name,
+  });
+  const hostEmail = host.hostEmail;
+  const hostName = host.hostName;
 
   const locationLabel = property
     ? formatPropertyLocation(property.location)
@@ -63,6 +67,7 @@ async function buildLifecyclePayload(booking, propertyHint) {
     amount: booking.amount,
     currency: booking.currency,
     transactionId: booking.transactionId,
+    bookingId: booking._id ? String(booking._id) : undefined,
   };
 }
 
@@ -76,12 +81,19 @@ function statusFromResult(result, hasEmail, sameAsOther) {
 
 /**
  * After dates change — email guest + host. Never throws to callers.
+ * `previousPropertyName` means the stay was moved to a different listing.
  */
-export async function notifyBookingModified(booking, property, { actor } = {}) {
+export async function notifyBookingModified(
+  booking,
+  property,
+  { actor, previousPropertyName } = {},
+) {
   try {
     const payload = await buildLifecyclePayload(booking, property);
     payload.previousCheckIn = booking.previousCheckIn;
     payload.previousCheckOut = booking.previousCheckOut;
+    payload.previousPropertyName =
+      previousPropertyName || booking.previousPropertyName || null;
     payload.changedBy = actor || "guest";
     payload.idempotencySuffix = `mod-${booking.modificationCount || 1}-${Date.now()}`;
 

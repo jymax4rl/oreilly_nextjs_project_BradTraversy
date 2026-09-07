@@ -9,6 +9,7 @@ import {
   isAwaitingListingModeration,
   isPubliclyVisibleListing,
   pendingModerationQueueQuery,
+  publicListingQuery,
   withApprovedListingFilter,
 } from "../utils/listingApproval.js";
 
@@ -51,6 +52,8 @@ assert.equal(
 );
 assert.equal(isPubliclyVisibleListing({ status: "rejected" }), false);
 assert.equal(isPubliclyVisibleListing({ status: "approved" }), true);
+assert.equal(isPubliclyVisibleListing({ status: "approved", listed: false }), false);
+assert.ok(publicListingQuery().$and);
 
 assert.equal(
   canUserViewListing(

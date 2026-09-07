@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useId, useRef } from "react";
-import { X } from "lucide-react";
+import { CreditCard, Smartphone, X } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 
 /**
- * Collects a WhatsApp-preferred guest phone before submitting a reservation request.
- * Matches other Isisel dialogs: Escape, overlay click, body scroll lock, teal CTAs.
+ * Collects a WhatsApp-preferred guest phone before submitting a reservation.
+ * When online checkout is on, paymentMethods offers:
+ *   - geniuspay → Mobile Money (Wave / Orange / MTN / Moov)
+ *   - creem → Card (Visa / Mastercard via Creem)
  */
 export default function GuestPhoneModal({
   open,
@@ -16,10 +18,16 @@ export default function GuestPhoneModal({
   onConfirm,
   submitting = false,
   error = null,
+  paymentMethods = null,
 }) {
   const titleId = useId();
   const inputId = useId();
   const inputRef = useRef(null);
+
+  const geniusEnabled = Boolean(paymentMethods?.geniuspay);
+  const creemEnabled = Boolean(paymentMethods?.creem);
+  const showMethods = geniusEnabled || creemEnabled;
+  const bothMethods = geniusEnabled && creemEnabled;
 
   useEffect(() => {
     if (!open) return;
@@ -39,9 +47,16 @@ export default function GuestPhoneModal({
 
   if (!open) return null;
 
+  const defaultMethod = geniusEnabled
+    ? "geniuspay"
+    : creemEnabled
+      ? "creem"
+      : undefined;
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!submitting) onConfirm?.();
+    if (submitting) return;
+    onConfirm?.(defaultMethod);
   };
 
   return (
@@ -72,7 +87,7 @@ export default function GuestPhoneModal({
               id={titleId}
               className="text-lg font-semibold text-[var(--kama-ink)]"
             >
-              Let&apos;s stay in touch
+              {showMethods ? "Checkout" : "Let\u2019s stay in touch"}
             </h2>
           </div>
           <button
@@ -89,7 +104,9 @@ export default function GuestPhoneModal({
         <form onSubmit={handleSubmit} className="flex flex-col">
           <div className="space-y-4 overflow-y-auto px-5 py-4">
             <p className="text-sm leading-snug text-[var(--kama-ink-muted)]">
-              Share a WhatsApp number so the host can reach you about your stay.
+              {showMethods
+                ? "Share a WhatsApp number, then choose how you want to pay."
+                : "Share a WhatsApp number so the host can reach you about your stay."}
             </p>
 
             <div>
@@ -108,7 +125,7 @@ export default function GuestPhoneModal({
                 inputMode="tel"
                 required
                 disabled={submitting}
-                placeholder="+237 6XX XXX XXX"
+                placeholder="+225 07 XX XX XX XX"
                 value={phone}
                 onChange={(e) => onPhoneChange?.(e.target.value)}
                 className="w-full rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2.5 text-sm text-[var(--kama-ink)] outline-none ring-[var(--kama-accent)] placeholder:text-[var(--kama-ink-muted)] focus:ring-2 disabled:opacity-60"
@@ -118,7 +135,7 @@ export default function GuestPhoneModal({
               />
             </div>
 
-            {error && (
+            {error ? (
               <p
                 id={`${inputId}-error`}
                 className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
@@ -126,25 +143,97 @@ export default function GuestPhoneModal({
               >
                 {error}
               </p>
-            )}
+            ) : null}
+
+            {bothMethods ? (
+              <fieldset className="space-y-2">
+                <legend className="text-xs font-medium text-[var(--kama-ink-muted)]">
+                  Payment method
+                </legend>
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => !submitting && onConfirm?.("geniuspay")}
+                  className="flex w-full items-start gap-3 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3.5 py-3 text-left transition hover:border-[var(--kama-accent)] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--kama-accent)]/10 text-[var(--kama-accent)]">
+                    <Smartphone size={18} aria-hidden />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-[var(--kama-ink)]">
+                      {submitting ? "Starting…" : "Mobile Money"}
+                    </span>
+                    <span className="mt-0.5 block text-xs leading-snug text-[var(--kama-ink-muted)]">
+                      Wave, Orange Money, MTN MoMo, Moov — via GeniusPay
+                    </span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => !submitting && onConfirm?.("creem")}
+                  className="flex w-full items-start gap-3 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3.5 py-3 text-left transition hover:border-[var(--kama-accent)] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--kama-accent)]/10 text-[var(--kama-accent)]">
+                    <CreditCard size={18} aria-hidden />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-[var(--kama-ink)]">
+                      {submitting ? "Starting…" : "Card"}
+                    </span>
+                    <span className="mt-0.5 block text-xs leading-snug text-[var(--kama-ink-muted)]">
+                      Visa / Mastercard — via Creem
+                    </span>
+                  </span>
+                </button>
+              </fieldset>
+            ) : null}
           </div>
 
-          <div className="flex flex-col-reverse gap-2 border-t border-[var(--kama-border)] px-5 py-4 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              onClick={() => onCancel?.()}
-              disabled={submitting}
-              className="rounded-xl border border-[var(--kama-border)] bg-white px-4 py-2.5 text-sm font-medium text-[var(--kama-ink)] transition hover:bg-[var(--kama-field)] disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="rounded-xl bg-[var(--kama-accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {submitting ? "Requesting…" : "Confirm reservation"}
-            </button>
+          <div className="flex flex-col gap-2 border-t border-[var(--kama-border)] px-5 py-4">
+            {bothMethods ? (
+              <button
+                type="button"
+                onClick={() => onCancel?.()}
+                disabled={submitting}
+                className="rounded-xl px-4 py-2 text-sm font-medium text-[var(--kama-ink-muted)] transition hover:text-[var(--kama-ink)] disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            ) : (
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => onCancel?.()}
+                  disabled={submitting}
+                  className="rounded-xl border border-[var(--kama-border)] bg-white px-4 py-2.5 text-sm font-medium text-[var(--kama-ink)] transition hover:bg-[var(--kama-field)] disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--kama-accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {showMethods ? (
+                    geniusEnabled ? (
+                      <Smartphone size={16} aria-hidden />
+                    ) : (
+                      <CreditCard size={16} aria-hidden />
+                    )
+                  ) : null}
+                  {submitting
+                    ? showMethods
+                      ? "Starting…"
+                      : "Requesting…"
+                    : showMethods
+                      ? geniusEnabled
+                        ? "Pay with Mobile Money"
+                        : "Pay with card"
+                      : "Confirm reservation"}
+                </button>
+              </div>
+            )}
           </div>
         </form>
       </div>

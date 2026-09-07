@@ -117,6 +117,8 @@ export function bookingMatchesSearch(booking, raw) {
     booking.guestName,
     booking.guestEmail,
     booking.guestPhone,
+    booking.propertyName,
+    booking.property?.name,
   ];
   return candidates.some((c) => {
     if (c == null || c === "") return false;

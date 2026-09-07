@@ -4,8 +4,8 @@ import Transaction from "@/models/Transaction";
 import User from "@/models/User";
 import { getSessionFromRequest } from "@/utils/authSessionRoute";
 import {
-  approvedListingQuery,
   pendingModerationQueueQuery,
+  publicListingQuery,
 } from "@/utils/listingApproval";
 import { isOpsStaff } from "@/utils/opsAuth";
 import mongoose from "mongoose";
@@ -71,7 +71,7 @@ export const GET = async (request) => {
           "name type status location owner seller_info listingModerationRequestedAt createdAt slug",
         )
         .lean(),
-      Property.countDocuments(approvedListingQuery()),
+      Property.countDocuments(publicListingQuery()),
       Property.countDocuments(pendingModerationQueueQuery()),
       Transaction.countDocuments({ createdAt: { $gte: thirtyDaysAgo } }),
     ]);

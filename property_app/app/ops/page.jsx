@@ -8,10 +8,16 @@ import {
   LayoutList,
   CreditCard,
   Clapperboard,
+  Landmark,
+  Award,
+  BarChart3,
+  MessageSquare,
+  Sparkles,
 } from "lucide-react";
 import OpsShell from "@/components/ops/OpsShell";
 import OpsOverviewPanel from "@/components/ops/OpsOverviewPanel";
 import OpsTrafficPanel from "@/components/ops/OpsTrafficPanel";
+import OpsFoundingHostsHomeCard from "@/components/ops/OpsFoundingHostsHomeCard";
 
 export const metadata = {
   title: "Home",
@@ -19,10 +25,22 @@ export const metadata = {
 
 const TOOLS = [
   {
+    href: "/ops/analytics",
+    title: "Analytics",
+    description: "Growth, reservations, booking value, and investor-ready reports.",
+    Icon: BarChart3,
+  },
+  {
     href: "/ops/marketing/creators",
     title: "Creator Leads",
     description: "Influencer partnership requests from /influencers — separate from host CRM.",
     Icon: Clapperboard,
+  },
+  {
+    href: "/ops/marketing/investors",
+    title: "Investor Proposals",
+    description: "Inbound investment proposals from /investors — emailed to contact@isisel.com.",
+    Icon: Landmark,
   },
   {
     href: "/ops/marketing/acquisition",
@@ -49,10 +67,28 @@ const TOOLS = [
     Icon: Users,
   },
   {
+    href: "/ops/messages",
+    title: "Messages",
+    description: "In-app notes ops sent to hosts and guests, plus replies.",
+    Icon: MessageSquare,
+  },
+  {
     href: "/ops/hosts",
     title: "Hosts",
     description: "Applications and verification.",
     Icon: Building2,
+  },
+  {
+    href: "/ops/cleaners",
+    title: "Cleaners",
+    description: "Cleaner accounts, jobs, issues, and reviews.",
+    Icon: Sparkles,
+  },
+  {
+    href: "/ops/founding-hosts",
+    title: "Founding Hosts",
+    description: "Founding 100 allocation, commission-free controls, and program settings.",
+    Icon: Award,
   },
   {
     href: "/ops/listings",
@@ -108,6 +144,7 @@ export default function OpsHomePage() {
         </ul>
       </section>
 
+      <OpsFoundingHostsHomeCard />
       <OpsTrafficPanel />
       <OpsOverviewPanel />
     </OpsShell>

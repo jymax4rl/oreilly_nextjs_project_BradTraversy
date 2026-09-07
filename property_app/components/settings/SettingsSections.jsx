@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   ArrowRight,
@@ -14,7 +16,10 @@ import {
 import NotificationToggles from "@/components/settings/NotificationToggles";
 import CurrencyPreference from "@/components/settings/CurrencyPreference";
 import SignOutButton from "@/components/settings/SignOutButton";
+import HostPushPrompt from "@/components/host/HostPushPrompt";
 import { BECOME_A_HOST_HREF } from "@/utils/hostPwaInstall";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import HostPayoutForm from "@/components/settings/HostPayoutForm";
 
 function Section({ title, description, children }) {
   return (
@@ -64,6 +69,7 @@ function DeepLink({ href, icon: Icon, label, description }) {
  * Role-adaptive Settings body. Only notification keys relevant to the user are shown.
  */
 export default function SettingsSections({ settings }) {
+  const { t } = useLanguage();
   const { roles, hostStatus, preferences, auth, email } = settings;
   const isVerifiedHost = hostStatus === "verified" || roles.host;
   const isPendingHost = hostStatus === "onboarding";
@@ -125,6 +131,11 @@ export default function SettingsSections({ settings }) {
           initialNotifications={preferences.notifications}
           visibleKeys={notificationKeys}
         />
+        {isVerifiedHost ? (
+          <div className="mt-4">
+            <HostPushPrompt compact />
+          </div>
+        ) : null}
         <div className="mt-2">
           <DeepLink
             href="/messages"
@@ -181,10 +192,11 @@ export default function SettingsSections({ settings }) {
                   Guest payments
                 </p>
                 <p className="mt-1.5 leading-relaxed">
-                  Guests pay at checkout via Flutterwave (cards and mobile
-                  money where supported). Host payout setup is not self-serve in
-                  Settings yet — contact support if you need settlement help.
+                  Online checkout uses GeniusPay (mobile money) and Creem (cards). Isisel is the merchant
+                  of record). Local stays can still be arranged directly with you.
+                  Add your IBAN below for platform-managed host settlement.
                 </p>
+                <HostPayoutForm />
               </div>
               <div className="space-y-0.5">
                 <DeepLink
@@ -196,8 +208,8 @@ export default function SettingsSections({ settings }) {
                 <DeepLink
                   href="/host/install?next=/settings"
                   icon={Smartphone}
-                  label="Install Isisel app"
-                  description="Add to home screen for faster hosting"
+                  label={t("pwa.navLabel")}
+                  description={t("pwa.navHintSettings")}
                 />
               </div>
             </>
@@ -214,8 +226,8 @@ export default function SettingsSections({ settings }) {
               <DeepLink
                 href="/host/install?next=/host/pending"
                 icon={Smartphone}
-                label="Install Isisel app"
-                description="Add to home screen while you wait"
+                label={t("pwa.navLabel")}
+                description={t("pwa.navHintWait")}
               />
             </>
           )}

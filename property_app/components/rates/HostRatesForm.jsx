@@ -8,14 +8,15 @@ import {
   hasAnyRate,
   normalizeRates,
 } from "@/utils/propertyRates";
-
-const FIELDS = [
-  { key: "nightly", label: "Nightly", hint: "Per night stays" },
-  { key: "weekly", label: "Weekly", hint: "Week-long stays" },
-  { key: "monthly", label: "Monthly", hint: "28+ night stays" },
-];
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 export default function HostRatesForm({ propertyId, propertyName }) {
+  const { t } = useLanguage();
+  const FIELDS = [
+    { key: "nightly", labelKey: "hostConsole.rateForm.nightly", hintKey: "hostConsole.rateForm.nightlyHint" },
+    { key: "weekly", labelKey: "hostConsole.rateForm.weekly", hintKey: "hostConsole.rateForm.weeklyHint" },
+    { key: "monthly", labelKey: "hostConsole.rateForm.monthly", hintKey: "hostConsole.rateForm.monthlyHint" },
+  ];
   const [rates, setRates] = useState({
     nightly: "",
     weekly: "",
@@ -32,7 +33,7 @@ export default function HostRatesForm({ propertyId, propertyName }) {
     try {
       const res = await fetch(`/api/properties/${propertyId}/rates`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to load rates");
+      if (!res.ok) throw new Error(data.error || t("hostConsole.rateForm.loadFailed"));
       const r = data.rates || {};
       setRates({
         nightly: r.nightly != null ? String(r.nightly) : "",
@@ -40,11 +41,11 @@ export default function HostRatesForm({ propertyId, propertyName }) {
         monthly: r.monthly != null ? String(r.monthly) : "",
       });
     } catch (e) {
-      setError(e.message || "Could not load rates");
+      setError(e.message || t("hostConsole.rateForm.couldNotLoad"));
     } finally {
       setLoading(false);
     }
-  }, [propertyId]);
+  }, [propertyId, t]);
 
   useEffect(() => {
     load();
@@ -87,7 +88,7 @@ export default function HostRatesForm({ propertyId, propertyName }) {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Save failed");
+      if (!res.ok) throw new Error(data.error || t("hostConsole.rateForm.saveFailed"));
 
       const r = data.rates || {};
       setRates({
@@ -95,9 +96,9 @@ export default function HostRatesForm({ propertyId, propertyName }) {
         weekly: r.weekly != null ? String(r.weekly) : "",
         monthly: r.monthly != null ? String(r.monthly) : "",
       });
-      setSuccess("Rates saved to your listing");
+      setSuccess(t("hostConsole.rateForm.saved"));
     } catch (e) {
-      setError(e.message || "Save failed");
+      setError(e.message || t("hostConsole.rateForm.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -125,21 +126,18 @@ export default function HostRatesForm({ propertyId, propertyName }) {
       )}
 
       <p className="text-sm text-slate-600">
-        Set prices in <strong>USD</strong> for{" "}
-        <span className="font-medium text-slate-900">{propertyName}</span>.
-        Leave a field empty if you do not offer that period. At least one rate is
-        required.
+        {t("hostConsole.rateForm.intro", { name: propertyName })}
       </p>
 
       <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        {FIELDS.map(({ key, label, hint }) => (
+        {FIELDS.map(({ key, labelKey, hintKey }) => (
           <div key={key} className="relative">
             <label
               htmlFor={`rate-${key}`}
               className="mb-1 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500"
             >
-              <span>{label}</span>
-              <span className="font-normal normal-case text-slate-400">{hint}</span>
+              <span>{t(labelKey)}</span>
+              <span className="font-normal normal-case text-slate-400">{t(hintKey)}</span>
             </label>
             <div className="relative">
               <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-slate-400">
@@ -151,7 +149,7 @@ export default function HostRatesForm({ propertyId, propertyName }) {
                 min="0"
                 step="0.01"
                 inputMode="decimal"
-                placeholder="Not offered"
+                placeholder={t("hostConsole.rateForm.notOffered")}
                 value={rates[key]}
                 onChange={(e) => setField(key, e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-9 pr-4 text-lg font-semibold text-slate-900 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-500/20"
@@ -163,15 +161,19 @@ export default function HostRatesForm({ propertyId, propertyName }) {
 
       {primary && (
         <div className="rounded-xl border border-indigo-100 bg-indigo-50/80 px-4 py-3 text-sm text-indigo-900">
-          <p className="font-semibold">Listing preview</p>
+          <p className="font-semibold">{t("hostConsole.rateForm.preview")}</p>
           <p className="mt-1 tabular-nums">
-            From ${primary.amount.toLocaleString()}
-            {primary.suffix}
+            {t("hostConsole.rateForm.fromAmount", {
+              amount: primary.amount.toLocaleString(),
+              suffix: primary.suffix,
+            })}
           </p>
           {exampleStay && (
             <p className="mt-1 text-indigo-700/90">
-              Example 3-night stay: ${exampleStay.base.toLocaleString()} (
-              {exampleStay.label})
+              {t("hostConsole.rateForm.exampleStay", {
+                amount: exampleStay.base.toLocaleString(),
+                label: exampleStay.label,
+              })}
             </p>
           )}
         </div>
@@ -188,7 +190,7 @@ export default function HostRatesForm({ propertyId, propertyName }) {
         ) : (
           <Save size={18} />
         )}
-        {saving ? "Saving…" : "Save rates"}
+        {saving ? t("hostConsole.rateForm.saving") : t("hostConsole.rateForm.save")}
       </button>
     </div>
   );

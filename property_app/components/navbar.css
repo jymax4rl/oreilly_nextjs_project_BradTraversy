@@ -63,7 +63,9 @@
   justify-content: space-between;
   gap: 0.75rem;
   border-bottom: 1px solid var(--menu-border);
-  padding: max(0.85rem, env(safe-area-inset-top)) 1.15rem 0.85rem;
+  padding: max(0.85rem, var(--kama-safe-top, env(safe-area-inset-top, 0px)))
+    max(1.15rem, var(--kama-safe-right, 0px)) 0.85rem
+    max(1.15rem, var(--kama-safe-left, 0px));
   background: rgba(255, 255, 255, 0.55);
   backdrop-filter: blur(10px);
 }

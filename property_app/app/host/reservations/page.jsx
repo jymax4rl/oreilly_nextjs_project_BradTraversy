@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/utils/authOptions";
 import HostPropertyBookings from "@/components/bookings/HostPropertyBookings";
+import HostPageHeader from "@/components/host/HostPageHeader";
 
 export const metadata = {
   title: "Manage Reservations | Isisel",
@@ -24,16 +25,12 @@ export default async function HostReservationsPage() {
 
   return (
     <div>
-      <header className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-[var(--kama-ink)]">
-          Reservations
-        </h1>
-        <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
-          Requests, confirmed stays, and cancellations across your listings.
-        </p>
-      </header>
+      <HostPageHeader
+        titleKey="hostConsole.reservationsTitle"
+        blurbKey="hostConsole.reservationsBlurb"
+      />
 
-      <HostPropertyBookings mode="all" title="All reservations" />
+      <HostPropertyBookings mode="all" />
     </div>
   );
 }

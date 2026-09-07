@@ -6,6 +6,11 @@ const PricingSnapshotSchema = new mongoose.Schema(
     accommodationBase: { type: Number },
     cleaningFee: { type: Number },
     platformFee: { type: Number },
+    /** Historical commission actually applied at booking creation. */
+    commissionRateApplied: { type: Number },
+    commissionAmount: { type: Number },
+    commissionWaived: { type: Boolean },
+    commissionWaiverReason: { type: String },
     total: { type: Number },
     nights: { type: Number },
     currency: { type: String, default: "USD" },
@@ -24,6 +29,7 @@ const EmailStatusSchema = new mongoose.Schema(
     modifiedHost: { type: String, enum: EMAIL_DISPATCH_STATUS },
     cancelledGuest: { type: String, enum: EMAIL_DISPATCH_STATUS },
     cancelledHost: { type: String, enum: EMAIL_DISPATCH_STATUS },
+    lastError: { type: String, maxlength: 500 },
   },
   { _id: false },
 );
@@ -62,21 +68,45 @@ const BookingSchema = new mongoose.Schema(
       index: true,
     },
     /**
+     * When false, the stay is hidden from calendars and does not block nights.
+     * The booking is kept (not cancelled). Missing/true = listed.
+     */
+    listed: { type: Boolean, default: true, index: true },
+    unlistedAt: { type: Date },
+    unlistedBy: { type: String },
+    /**
      * How payment is collected.
      * - manual: guest reserved without gateway; host arranges payment (status usually pending)
-     * - gateway: paid via Flutterwave (or similar); status usually confirmed
+     * - gateway: paid via Creem / Flutterwave (or similar); status usually confirmed
      */
     paymentMode: {
       type: String,
       enum: ["manual", "gateway"],
       default: undefined,
     },
+    /**
+     * ops_training: seed stays created from the Operations console for host drills.
+     * Excluded from investor analytics. Hosts still see them as normal reservations.
+     */
+    source: {
+      type: String,
+      enum: ["ops_training"],
+      default: undefined,
+      index: true,
+    },
+    /** Provider payment id (string — works for Creem ids and Flutterwave numeric ids). */
     transactionId: {
-      type: Number,
+      type: String,
       sparse: true,
       unique: true,
     },
     propertyName: { type: String },
+    /** Last listing this stay was moved from (host property-to-property move). */
+    previousPropertyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Property",
+    },
+    previousPropertyName: { type: String },
     amount: { type: Number },
     currency: { type: String },
     version: { type: Number, default: 0 },
@@ -107,6 +137,7 @@ const BookingSchema = new mongoose.Schema(
 );
 
 BookingSchema.index({ propertyId: 1, status: 1, checkIn: 1 });
+BookingSchema.index({ createdAt: 1, status: 1 });
 
 const Booking =
   mongoose.models.Booking || mongoose.model("Booking", BookingSchema);
