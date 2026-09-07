@@ -396,65 +396,59 @@
   font-size: 0.96rem;
 }
 
-/* ——— Gallery: snap scroll on small screens ——— */
-.horizon-gallery {
-  display: flex;
-  gap: 0.65rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 0.35rem;
-  margin-inline: -0.15rem;
-  padding-inline: 0.15rem;
-  scrollbar-width: thin;
+/* ——— Shots: native-size frames so brochure stills stay sharp ——— */
+.horizon-shots {
+  display: grid;
+  gap: 0.75rem;
 }
 
-.horizon-gallery__cell {
-  position: relative;
-  flex: 0 0 min(82vw, 22rem);
+@media (min-width: 800px) {
+  .horizon-shots {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+  }
+}
+
+.horizon-shot {
+  margin: 0 auto;
+  width: 100%;
   overflow: hidden;
   border-radius: 1rem;
-  aspect-ratio: 4 / 3;
   background: #dfe8e5;
-  scroll-snap-align: start;
 }
 
-.horizon-gallery__cell:first-child {
-  flex-basis: min(88vw, 28rem);
-  aspect-ratio: 5 / 4;
+.horizon-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
-.horizon-gallery__cell img {
-  object-fit: cover;
-  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+/* Never display wider than the source file */
+.horizon-shot--lead {
+  grid-column: 1 / -1;
+  max-width: 1027px;
 }
 
-@media (hover: hover) {
-  .horizon-gallery__cell:hover img {
-    transform: scale(1.04);
-  }
+.horizon-shot--wide {
+  grid-column: 1 / -1;
+  max-width: 962px;
 }
 
-@media (min-width: 721px) {
-  .horizon-gallery {
-    display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    overflow: visible;
-    scroll-snap-type: none;
-    margin-inline: 0;
-    padding-inline: 0;
-  }
+.horizon-shot--std {
+  max-width: 952px;
+}
 
-  .horizon-gallery__cell {
-    flex: none;
-    min-height: clamp(12rem, 28vw, 18rem);
-    aspect-ratio: auto;
+.horizon-shot--card {
+  max-width: 647px;
+}
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .horizon-shot img {
+    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .horizon-gallery__cell:first-child {
-    grid-row: span 2;
-    min-height: clamp(24rem, 56vw, 36rem);
-    aspect-ratio: auto;
+  .horizon-shot:hover img {
+    transform: scale(1.015);
   }
 }
 
@@ -769,7 +763,7 @@
 @media (prefers-reduced-motion: reduce) {
   .horizon-hero__media img,
   .horizon-hero__inner,
-  .horizon-gallery__cell img,
+  .horizon-shot img,
   .horizon-sticky {
     animation: none !important;
     transition: none !important;

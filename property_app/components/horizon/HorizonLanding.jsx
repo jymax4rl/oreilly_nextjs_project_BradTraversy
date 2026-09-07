@@ -22,7 +22,7 @@ const figtree = Figtree({
 });
 
 export default function HorizonLanding({ seo, page }) {
-  const gallery = page.gallery.images.slice(0, 5);
+  const gallery = page.gallery.images;
   const listingLd = horizonListingJsonLd();
 
   return (
@@ -126,25 +126,26 @@ export default function HorizonLanding({ seo, page }) {
           >
             <div className="horizon-wrap">
               <h2 id="horizon-gallery-heading">{page.gallery.h2}</h2>
-              <div className="horizon-gallery" role="list">
-                {gallery.map((image, index) => (
-                  <div
-                    className="horizon-gallery__cell"
+              <div className="horizon-shots" role="list">
+                {gallery.map((image) => (
+                  <figure
+                    className={`horizon-shot horizon-shot--${image.frame}`}
                     role="listitem"
-                    key={`${image.src}-${index}`}
+                    key={image.src}
                   >
                     <Image
                       src={image.src}
                       alt={image.alt}
-                      fill
+                      width={image.width}
+                      height={image.height}
                       sizes={
-                        index === 0
-                          ? "(max-width: 720px) 85vw, 55vw"
-                          : "(max-width: 720px) 70vw, 40vw"
+                        image.frame === "lead" || image.frame === "wide"
+                          ? `(max-width: ${image.width}px) 100vw, ${image.width}px`
+                          : `(max-width: 800px) 100vw, ${Math.min(image.width, 560)}px`
                       }
                       quality={90}
                     />
-                  </div>
+                  </figure>
                 ))}
               </div>
             </div>
