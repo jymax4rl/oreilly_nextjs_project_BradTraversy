@@ -119,6 +119,20 @@ async function handleAuth(req) {
     return NextResponse.next();
   }
 
+  if (pathname.startsWith("/cleaners")) {
+    const joining =
+      pathname === "/cleaners/join" || pathname.startsWith("/cleaners/join/");
+    if (joining) {
+      return NextResponse.next();
+    }
+    if (!token) {
+      return NextResponse.redirect(
+        signInUrl(req, `${pathname}${req.nextUrl.search || ""}`),
+      );
+    }
+    return NextResponse.next();
+  }
+
   if (pathname === "/onboarding") {
     return NextResponse.redirect(new URL("/host/onboarding", req.url));
   }

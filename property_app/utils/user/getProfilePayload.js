@@ -16,7 +16,7 @@ export async function getProfilePayload(sessionUser) {
 
   const user = await User.findOne({ email: sessionUser.email })
     .select(
-      "username email image role hostStatus hasCompletedHostOnboarding bookmarks createdAt updatedAt foundingHost",
+      "username email image role hostStatus cleanerStatus hasCompletedHostOnboarding bookmarks createdAt updatedAt foundingHost",
     )
     .lean();
 
@@ -53,6 +53,7 @@ export async function getProfilePayload(sessionUser) {
 
   const role = user.role || "guest";
   const hostStatus = user.hostStatus || "none";
+  const cleanerStatus = user.cleanerStatus || "none";
 
   return {
     id: userId,
@@ -64,12 +65,15 @@ export async function getProfilePayload(sessionUser) {
       guest:
         role === "guest" ||
         role === "host" ||
+        role === "cleaner" ||
         role === "admin" ||
         role === "superadmin",
       host: role === "host" || hostStatus === "verified",
+      cleaner: cleanerStatus === "active" || role === "cleaner",
       admin: role === "admin" || role === "superadmin",
     },
     hostStatus,
+    cleanerStatus,
     hasCompletedHostOnboarding: !!user.hasCompletedHostOnboarding,
     foundingHost: serializeFoundingHostPublic(user),
     createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : null,

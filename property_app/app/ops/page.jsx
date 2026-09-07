@@ -12,6 +12,7 @@ import {
   Award,
   BarChart3,
   MessageSquare,
+  Sparkles,
 } from "lucide-react";
 import OpsShell from "@/components/ops/OpsShell";
 import OpsOverviewPanel from "@/components/ops/OpsOverviewPanel";
@@ -76,6 +77,12 @@ const TOOLS = [
     title: "Hosts",
     description: "Applications and verification.",
     Icon: Building2,
+  },
+  {
+    href: "/ops/cleaners",
+    title: "Cleaners",
+    description: "Cleaner accounts, jobs, issues, and reviews.",
+    Icon: Sparkles,
   },
   {
     href: "/ops/founding-hosts",

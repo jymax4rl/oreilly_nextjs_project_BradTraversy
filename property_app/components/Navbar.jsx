@@ -21,6 +21,7 @@ import {
   LogOut,
   MessageSquare,
   CalendarCheck,
+  Sparkles,
 } from "lucide-react";
 import LoginNavButton from "./LoginNavBtn";
 import { usePathname } from "next/navigation";
@@ -383,6 +384,19 @@ const Navbar = () => {
                   >
                     <LayoutList />
                     <span>{t("nav.hostConsole")}</span>
+                  </Link>
+                )}
+
+                {(session?.user?.cleanerStatus === "active" ||
+                  session?.user?.role === "cleaner") && (
+                  <Link
+                    href="/cleaners"
+                    className={`${profileItemClass} !text-[#1b5c57]`}
+                    role="menuitem"
+                    onClick={() => setIsProfileOpen(false)}
+                  >
+                    <Sparkles />
+                    <span>{t("nav.cleanerConsole")}</span>
                   </Link>
                 )}
 

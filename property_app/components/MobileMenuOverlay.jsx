@@ -20,6 +20,7 @@ import {
   X,
   Info,
   Mail,
+  Sparkles,
 } from "lucide-react";
 import { LuUserRound } from "react-icons/lu";
 import BrandLogo from "@/components/BrandLogo";
@@ -43,6 +44,7 @@ export default function MobileMenuOverlay({
   const { t } = useLanguage();
   const user = session?.user;
   const isHost = user?.hostStatus === "verified";
+  const isCleaner = user?.cleanerStatus === "active" || user?.role === "cleaner";
   const isAdmin = isOpsStaff(user?.role);
   const profileImage = user?.image;
 
@@ -260,6 +262,19 @@ export default function MobileMenuOverlay({
                       {t("menu.becomeHost")}
                     </Link>
                     )}
+                    {isCleaner ? (
+                      <Link
+                        href="/cleaners"
+                        onClick={close}
+                        className={`${rowClass("/cleaners")} kama-menu-row--accent`}
+                      >
+                        <Sparkles
+                          className="kama-menu-row-icon"
+                          aria-hidden
+                        />
+                        {t("nav.cleanerConsole")}
+                      </Link>
+                    ) : null}
                     <Link
                       href="/about"
                       onClick={close}

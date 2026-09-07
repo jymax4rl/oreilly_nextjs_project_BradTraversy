@@ -24,8 +24,18 @@ const UserSchema = new Schema(
     //role and host status
     role: {
       type: String,
-      enum: ["guest", "host", "admin", "superadmin"],
+      enum: ["guest", "host", "cleaner", "admin", "superadmin"],
       default: "guest",
+    },
+    /**
+     * Cleaner console access. Independent of hostStatus so a verified host
+     * can also clean, and a cleaner is never treated as a verified host.
+     */
+    cleanerStatus: {
+      type: String,
+      enum: ["none", "active", "suspended"],
+      default: "none",
+      index: true,
     },
     /**
      * bcrypt hash for ops Credentials sign-in only.

@@ -16,6 +16,7 @@ import {
 import { resolveCommissionForProperty } from "@/utils/foundingHost/resolveCommission";
 import { buildPricingCommissionFields } from "@/utils/foundingHost/logic";
 import { notifyHostNewReservation } from "@/utils/push/webPush";
+import { safeEnsureCheckoutCleaningJob } from "@/utils/cleaners/checkoutJob";
 
 async function buildGatewayPricingSnapshot({
   propertyId,
@@ -161,6 +162,8 @@ export async function confirmBookingFromPayment({
       console.error("[web-push] host notify failed:", err);
     }
   }
+
+  await safeEnsureCheckoutCleaningJob(booking._id);
 
   return {
     ok: true,

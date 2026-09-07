@@ -9,7 +9,8 @@ export function isExploreMobileLayout(pathname) {
   if (
     pathname.startsWith("/admin") ||
     pathname.startsWith("/ops") ||
-    pathname.startsWith("/host")
+    pathname.startsWith("/host") ||
+    pathname.startsWith("/cleaners")
   )
     return false;
   // Fullscreen host flows — no bottom tab bar / currency chrome

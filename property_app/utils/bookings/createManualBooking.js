@@ -23,6 +23,7 @@ import { resolveCommissionForProperty } from "@/utils/foundingHost/resolveCommis
 import { buildPricingCommissionFields } from "@/utils/foundingHost/logic";
 import { notifyHostNewReservation } from "@/utils/push/webPush";
 import { TRAINING_BOOKING_SOURCE } from "@/utils/opsTraining/constants";
+import { safeEnsureCheckoutCleaningJob } from "@/utils/cleaners/checkoutJob";
 
 /**
  * Create a pending reservation without a payment gateway.
@@ -165,6 +166,10 @@ export async function createManualBookingRequest({
   });
 
   const plain = booking.toObject();
+
+  if (bookingStatus === "confirmed") {
+    await safeEnsureCheckoutCleaningJob(booking._id);
+  }
 
   let push = { sent: 0, skipped: "not-attempted" };
   const shouldNotifyHost =

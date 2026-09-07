@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   MessageSquare,
   Plus,
+  Sparkles,
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import LanguageToggle from "@/components/i18n/LanguageToggle";
@@ -24,6 +25,7 @@ const NAV = [
   { href: "/host/reservations", labelKey: "hostConsole.reservations", Icon: CalendarCheck },
   { href: "/host/calendar", labelKey: "hostConsole.resCal.nav", Icon: CalendarRange },
   { href: "/host/listings", labelKey: "hostConsole.listings", Icon: Building2 },
+  { href: "/host/cleaning", labelKey: "hostConsole.cleaning.nav", Icon: Sparkles },
   { href: "/host/messages", labelKey: "hostConsole.inbox", Icon: MessageSquare },
 ];
 
