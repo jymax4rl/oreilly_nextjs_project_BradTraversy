@@ -364,7 +364,7 @@
     display: grid;
     grid-template-rows: minmax(0, 1fr) auto;
     min-height: 0;
-    padding: 0 1.5rem calc(var(--hz-sticky) + 1.6rem) 0;
+    padding: 0 1.5rem calc(var(--hz-sticky) + 2.4rem) 0;
   }
 
   .hz-walk__panel:last-child {
