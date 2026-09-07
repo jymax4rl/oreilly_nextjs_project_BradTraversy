@@ -33,6 +33,22 @@ export const horizonPage = {
   partner: "Swami India",
   project: "Horizon",
   place: "Bijilo, The Gambia",
+  editorial: {
+    seal: "Horizon Bijilo · Isisel ·",
+    line1: "The sea view",
+    script: "yours",
+    line2: "this year",
+    reasons: "Three reasons to own Horizon",
+    placeLine: "A place to own — then host year after year",
+    magnetic: "Request a call",
+    scroll: "Scroll",
+    coast: [
+      { label: "Bijilo Beach", time: "4 min" },
+      { label: "National Park", time: "6 min" },
+      { label: "Senegambia", time: "8 min" },
+      { label: "Banjul Airport", time: "25 min" },
+    ],
+  },
   hero: {
     image: {
       src: "/horizon/exterior-palms.jpg",
@@ -74,6 +90,70 @@ export const horizonPage = {
       {
         title: "One console, anywhere",
         body: "The same host console on a laptop in Dakar or a handset in London. Reservations, calendar, and inbox travel with you.",
+      },
+    ],
+  },
+  story: {
+    id: "walk",
+    kicker: "A walk through the building",
+    h2: "From the street to the Atlantic rim.",
+    lede: "Slide the reel. Then scroll the rooms — lobby, water, roof, and the finished two-bedroom.",
+    reelHint: "Swipe",
+    chapters: [
+      {
+        index: "01",
+        title: "Arrive at twilight.",
+        body: "Glass, bronze, and warm light at the kerb. Horizon meets you at street level — then lifts you toward the sea.",
+        image: {
+          src: "/horizon/street-twilight.jpg",
+          alt: "Horizon lobby entrance at twilight",
+          width: 852,
+          height: 507,
+        },
+      },
+      {
+        index: "02",
+        title: "A lobby built to linger.",
+        body: "Marble, chandelier, a desk that knows your name. The first room of ownership is not a corridor — it is a welcome.",
+        image: {
+          src: "/horizon/lobby.jpg",
+          alt: "Horizon lobby with marble floors and chandelier",
+          width: 952,
+          height: 667,
+        },
+      },
+      {
+        index: "03",
+        title: "Water on the podium.",
+        body: "An infinity edge above the palms. Guests will remember the glow; you will remember the asset that holds it.",
+        image: {
+          src: "/horizon/pool-terrace.jpg",
+          alt: "Horizon podium infinity pool at dusk",
+          width: 962,
+          height: 465,
+        },
+      },
+      {
+        index: "04",
+        title: "Dinner above the canopy.",
+        body: "The roof looks over Bijilo’s green and the Atlantic beyond. This is the view you host — and the view you keep.",
+        image: {
+          src: "/horizon/rooftop-terrace.jpg",
+          alt: "Horizon rooftop terrace toward the Atlantic",
+          width: 840,
+          height: 445,
+        },
+      },
+      {
+        index: "05",
+        title: "The two-bedroom, finished.",
+        body: "Living, dining, kitchen in one calm plate. Title on a home you can live in, list, and run from your phone.",
+        image: {
+          src: "/horizon/interior.jpg",
+          alt: "Horizon two-bedroom living, dining, and kitchen",
+          width: 647,
+          height: 372,
+        },
       },
     ],
   },

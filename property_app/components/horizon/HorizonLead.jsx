@@ -117,13 +117,14 @@ export function HorizonLeadProvider({ children }) {
   );
 }
 
-export function HorizonLeadButton({ mode = "call", className, children }) {
+export function HorizonLeadButton({ mode = "call", className, children, ...rest }) {
   const { openLead } = useHorizonLead();
   return (
     <button
       type="button"
       className={className}
       onClick={() => openLead(mode)}
+      {...rest}
     >
       {children}
     </button>
