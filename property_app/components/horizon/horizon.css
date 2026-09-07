@@ -59,19 +59,8 @@
 
 .horizon-hero__media img {
   object-fit: cover;
-  object-position: center 28%;
-  transform: scale(1.02);
-  animation: hz-ken 36s ease-in-out infinite alternate;
-  image-rendering: auto;
-}
-
-@keyframes hz-ken {
-  from {
-    transform: scale(1.02) translate3d(0, 0, 0);
-  }
-  to {
-    transform: scale(1.05) translate3d(-0.6%, -0.4%, 0);
-  }
+  object-position: center 42%;
+  /* No Ken Burns / extra scale — that made the old hero look soft. */
 }
 
 .horizon-hero__scrim {

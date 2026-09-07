@@ -21,11 +21,11 @@ export const horizonSeo = {
   ogTitle: "Horizon Bijilo — Sea-view apartments from $130,000 | Isisel",
   ogDescription:
     "30 two-bedroom units left at Horizon in Bijilo, The Gambia. Own a seaside home and run stays commission-free from your phone on Isisel.",
-  ogImage: "/horizon/hero-exterior.jpg",
-  ogImageWidth: 2160,
-  ogImageHeight: 1214,
+  ogImage: "/horizon/exterior-palms.jpg",
+  ogImageWidth: 1027,
+  ogImageHeight: 912,
   pageUrl: () => siteUrl(HORIZON_PATH),
-  absoluteOgImage: () => siteUrl("/horizon/hero-exterior.jpg"),
+  absoluteOgImage: () => siteUrl("/horizon/exterior-palms.jpg"),
 };
 
 export const horizonPage = {
@@ -35,8 +35,10 @@ export const horizonPage = {
   place: "Bijilo, The Gambia",
   hero: {
     image: {
-      src: "/horizon/hero-exterior.jpg",
-      alt: "Horizon by Swami India — modern sea-view apartments for sale in Bijilo, The Gambia",
+      src: "/horizon/exterior-palms.jpg",
+      alt: "Horizon by Swami India — sea-view towers behind palms on Bijilo beach",
+      width: 1027,
+      height: 912,
     },
     kicker: "Isisel × Swami India",
     h1: "Horizon Bijilo.\nOwn the sea view.",
@@ -201,7 +203,6 @@ export const horizonPage = {
 /** Extra JSON-LD beyond WebPage / FAQ (RealEstateListing + Offer). */
 export function horizonListingJsonLd() {
   const pageUrl = siteUrl(HORIZON_PATH);
-  const image = siteUrl("/horizon/hero-exterior.jpg");
   return {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
@@ -210,7 +211,6 @@ export function horizonListingJsonLd() {
     description: horizonSeo.description,
     url: pageUrl,
     image: [
-      image,
       siteUrl("/horizon/exterior-palms.jpg"),
       siteUrl("/horizon/brochure-hero.jpg"),
     ],

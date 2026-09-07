@@ -50,8 +50,8 @@ export default function HorizonLanding({ seo, page }) {
               alt={page.hero.image.alt}
               fill
               priority
-              sizes="100vw"
-              quality={90}
+              unoptimized
+              sizes="(max-width: 1027px) 100vw, 1027px"
             />
           </div>
           <div className="horizon-hero__scrim" aria-hidden="true" />
