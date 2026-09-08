@@ -1,4 +1,5 @@
 import { buildCreatorPortal } from "@/utils/creators/creatorPortal";
+import { enrichPortalWithAvailability } from "@/utils/creators/creatorConsole";
 import connectToDatabase from "@/config/database";
 import CreatorPortalView from "@/components/creators/CreatorPortalView";
 
@@ -12,9 +13,9 @@ export const metadata = {
 export default async function CreatorPortalPage({ params }) {
   const { token } = await params;
   await connectToDatabase();
-  const portal = await buildCreatorPortal(token);
+  const base = await buildCreatorPortal(token);
 
-  if (!portal) {
+  if (!base) {
     return (
       <main className="mx-auto max-w-lg px-4 py-20 text-center">
         <h1 className="text-xl font-semibold text-[var(--kama-ink)]">
@@ -27,5 +28,10 @@ export default async function CreatorPortalPage({ params }) {
     );
   }
 
-  return <CreatorPortalView data={portal} />;
+  const portal = await enrichPortalWithAvailability({
+    ...base,
+    joinPath: `/creators/join/${token}`,
+  });
+
+  return <CreatorPortalView data={portal} token={token} />;
 }

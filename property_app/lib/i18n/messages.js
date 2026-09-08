@@ -43,6 +43,7 @@ export const messages = {
       myBookings: "My bookings",
       becomeHost: "Become a host",
       opsConsole: "Ops console",
+      creatorConsole: "Creator console",
     },
     home: {
       tagline: "African vacation rentals",
@@ -416,9 +417,9 @@ export const messages = {
         codeAdded: "Promo code assigned",
         saving: "Saving…",
         failed: "Something went wrong. Try again.",
-        sharePortal: "Copy creator portal link",
+        sharePortal: "Copy creator invite link",
         rotatePortal: "Rotate link",
-        portalCopied: "Creator portal link copied — share it with them.",
+        portalCopied: "Invite link copied — they sign in with Google to open their console.",
         economicsTitle: "Creator commission",
         economicsLine: "Creator share {amount}",
         economicsHint:
@@ -895,6 +896,7 @@ export const messages = {
       myBookings: "Mes réservations",
       becomeHost: "Devenir hôte",
       opsConsole: "Console ops",
+      creatorConsole: "Console créateur",
     },
     home: {
       tagline: "Locations de vacances en Afrique",
@@ -1272,9 +1274,10 @@ export const messages = {
         codeAdded: "Code promo attribué",
         saving: "Enregistrement…",
         failed: "Une erreur est survenue. Réessayez.",
-        sharePortal: "Copier le lien portail créateur",
+        sharePortal: "Copier le lien d’invitation créateur",
         rotatePortal: "Régénérer le lien",
-        portalCopied: "Lien portail copié — partagez-le avec le créateur.",
+        portalCopied:
+          "Lien d’invitation copié — ils se connectent avec Google pour ouvrir leur console.",
         economicsTitle: "Commission créateur",
         economicsLine: "Part créateur {amount}",
         economicsHint:

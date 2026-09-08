@@ -339,7 +339,11 @@ export async function aggregateCommissionLedger({
 } = {}) {
   const match = {};
   if (hostId) match.hostId = String(hostId);
-  if (creatorPartnerId) match.creatorPartnerId = creatorPartnerId;
+  if (creatorPartnerId) {
+    match.creatorPartnerId = mongoose.Types.ObjectId.isValid(creatorPartnerId)
+      ? new mongoose.Types.ObjectId(creatorPartnerId)
+      : creatorPartnerId;
+  }
 
   const [row] = await CreatorCommission.aggregate([
     { $match: match },

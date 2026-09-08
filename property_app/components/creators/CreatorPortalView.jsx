@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import CreatorAvailabilityCalendar from "@/components/creators/CreatorAvailabilityCalendar";
 
 function money(n, currency = "USD") {
   return new Intl.NumberFormat("en-US", {
@@ -33,12 +35,21 @@ const STATUS_LABEL = {
   reversed: "Reversed",
 };
 
-export default function CreatorPortalView({ data }) {
-  const { creator, summary, codes, bookings } = data;
+export default function CreatorPortalView({ data, token }) {
+  const { creator, summary, codes, bookings, properties = [], joinPath } = data;
   const activeCode = useMemo(
     () => codes.find((c) => c.status === "active") || codes[0],
     [codes],
   );
+  const [selectedPropertyId, setSelectedPropertyId] = useState(
+    properties[0]?.id || null,
+  );
+  const selected = useMemo(
+    () =>
+      properties.find((p) => p.id === selectedPropertyId) || properties[0] || null,
+    [properties, selectedPropertyId],
+  );
+  const joinHref = joinPath || (token ? `/creators/join/${token}` : "/creators/console");
 
   return (
     <main className="min-h-screen bg-[radial-gradient(ellipse_at_top,_#e8f5f3_0%,_#f7f6f2_45%,_#f3efe6_100%)]">
@@ -50,9 +61,22 @@ export default function CreatorPortalView({ data }) {
           {creator.name}
         </h1>
         <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
-          Performance earnings from attributed stays — paid after checkout,
-          separate from Isisel platform fees.
+          Check open nights before you post, then earn when guests book with your
+          code — paid after checkout, separate from Isisel platform fees.
         </p>
+
+        <div className="mt-5">
+          <Link
+            href={joinHref}
+            className="inline-flex rounded-full bg-[var(--kama-accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--kama-accent-hover)]"
+          >
+            Sign up / open my console
+          </Link>
+          <p className="mt-2 text-xs text-[var(--kama-ink-muted)]">
+            Google sign-in unlocks all of your assigned codes across hosts in one
+            place.
+          </p>
+        </div>
 
         <section className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
@@ -86,6 +110,40 @@ export default function CreatorPortalView({ data }) {
             <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
               {pct(activeCode.commissionRate)} of accommodation · {activeCode.status}
               {codes.length > 1 ? ` · ${codes.length} codes total` : ""}
+            </p>
+          </section>
+        ) : null}
+
+        {properties.length ? (
+          <section className="mt-8 space-y-4">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-[var(--kama-ink-muted)]">
+              Availability for your listings
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {properties.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setSelectedPropertyId(p.id)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+                    selected?.id === p.id
+                      ? "bg-[var(--kama-accent)] text-white"
+                      : "bg-white/90 text-[var(--kama-ink-muted)] ring-1 ring-[var(--kama-border)]"
+                  }`}
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+            {selected ? (
+              <CreatorAvailabilityCalendar
+                propertyName={selected.name}
+                unavailableRanges={selected.unavailableRanges || []}
+              />
+            ) : null}
+            <p className="text-xs text-[var(--kama-ink-muted)]">
+              Green nights are open on Isisel — good dates to feature in stories
+              with your promo code.
             </p>
           </section>
         ) : null}

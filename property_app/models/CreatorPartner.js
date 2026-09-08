@@ -36,7 +36,7 @@ const CreatorPartnerSchema = new Schema(
       default: null,
     },
     /**
-     * Read-only creator dashboard share token (host shares the portal URL).
+     * Read-only creator dashboard share / join token (host shares the URL).
      * Regenerating invalidates the previous link.
      */
     portalToken: {
@@ -46,6 +46,17 @@ const CreatorPartnerSchema = new Schema(
       index: true,
     },
     portalTokenRotatedAt: { type: Date },
+    /**
+     * Linked Isisel account after the creator signs in via the invite link.
+     * One Google user can claim multiple host partnerships.
+     */
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+      index: true,
+    },
+    claimedAt: { type: Date, default: null },
   },
   { timestamps: true, collection: "CreatorPartners" },
 );
@@ -53,6 +64,7 @@ const CreatorPartnerSchema = new Schema(
 CreatorPartnerSchema.index({ hostId: 1, status: 1, createdAt: -1 });
 CreatorPartnerSchema.index({ hostId: 1, name: 1 });
 CreatorPartnerSchema.index({ email: 1, hostId: 1 });
+CreatorPartnerSchema.index({ userId: 1, status: 1 });
 
 CreatorPartnerSchema.methods.ensurePortalToken = function ensurePortalToken() {
   if (this.portalToken) return this.portalToken;

@@ -108,6 +108,7 @@ export async function buildHostCreatorsProgram(hostId) {
       portalUrl: p.portalToken
         ? `/creators/portal/${p.portalToken}`
         : null,
+      joinUrl: p.portalToken ? `/creators/join/${p.portalToken}` : null,
       codes: partnerCodes,
       reservations: stats.reservations,
       confirmedReservations:

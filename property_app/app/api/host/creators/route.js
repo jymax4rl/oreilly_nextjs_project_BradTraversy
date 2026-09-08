@@ -87,7 +87,9 @@ export async function POST(request) {
         notes: partner.notes,
         status: partner.status,
         portalToken: partner.portalToken,
-        portalUrl: `/creators/portal/${partner.portalToken}`,
+        portalUrl: `/creators/join/${partner.portalToken}`,
+        joinUrl: `/creators/join/${partner.portalToken}`,
+        earningsUrl: `/creators/portal/${partner.portalToken}`,
       },
       { status: 201 },
     );

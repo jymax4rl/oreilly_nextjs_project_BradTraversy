@@ -40,11 +40,13 @@ export async function POST(request, { params }) {
     }
     await partner.save();
 
-    const path = `/creators/portal/${partner.portalToken}`;
+    const path = `/creators/join/${partner.portalToken}`;
     return Response.json({
       portalToken: partner.portalToken,
       portalPath: path,
       portalUrl: path,
+      joinPath: path,
+      earningsPath: `/creators/portal/${partner.portalToken}`,
       rotatedAt: partner.portalTokenRotatedAt,
     });
   } catch (error) {
