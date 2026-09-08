@@ -24,6 +24,7 @@ import {
   assertCreemLiveKeyIfRequired,
   createCreemCheckoutSession,
   dollarsToCents,
+  ensureCreemStayProductId,
   getCreemModeInfo,
   isCreemConfigured,
 } from "@/utils/payments/creemClient";
@@ -51,7 +52,7 @@ export async function POST(req) {
       return NextResponse.json(
         {
           message:
-            "Creem is not configured (CREEM_PRODUCTION or CREEM_API_KEY / CREEM_PRODUCT_ID)",
+            "Creem is not configured (set CREEM_PRODUCTION or CREEM_API_KEY)",
           creem: getCreemModeInfo(),
         },
         { status: 503 },
@@ -194,8 +195,24 @@ export async function POST(req) {
       Math.round((fees.base + fees.cleaningFee) * 100) / 100;
     const hostId = String(property.owner?._id || property.owner || "");
 
+    let productId;
+    try {
+      productId = await ensureCreemStayProductId();
+    } catch (err) {
+      return NextResponse.json(
+        {
+          message:
+            err?.message ||
+            "Creem product is missing. Create a one-time product in the Creem dashboard (same mode as your API key) and set CREEM_PRODUCT_ID.",
+          code: err?.code || "CREEM_PRODUCT_NOT_FOUND",
+          creem: getCreemModeInfo(),
+        },
+        { status: 503 },
+      );
+    }
+
     const checkout = await createCreemCheckoutSession({
-      productId: process.env.CREEM_PRODUCT_ID,
+      productId,
       customPriceCents: amountCents,
       successUrl: appUrl(
         `/bookings/payment-success?provider=creem&property=${encodeURIComponent(String(propertyId))}`,
@@ -269,10 +286,18 @@ export async function POST(req) {
     });
   } catch (error) {
     console.error("Creem initialize error:", error);
+    const rawMessage = error?.message || "Failed to start Creem checkout";
+    const message = Array.isArray(rawMessage)
+      ? rawMessage.join(", ")
+      : String(rawMessage).replace(/^\[|\]$/g, "").replace(/"/g, "");
+    const friendly =
+      error?.code === "CREEM_PRODUCT_NOT_FOUND" ||
+      /product not found/i.test(message)
+        ? "Card checkout product is missing in Creem. Create a one-time product in the Creem dashboard (Test Mode OFF for live) and set CREEM_PRODUCT_ID, or retry so we can create one automatically."
+        : message;
     return NextResponse.json(
       {
-        message:
-          error?.message || "Failed to start Creem checkout",
+        message: friendly,
         creem: getCreemModeInfo(),
         code: error?.code,
       },

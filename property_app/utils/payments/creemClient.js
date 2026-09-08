@@ -94,11 +94,33 @@ export function getCreemModeInfo() {
 }
 
 export function isCreemConfigured() {
+  // Product id can be auto-created at checkout if missing/stale.
   return Boolean(
     String(
       process.env.CREEM_PRODUCTION || process.env.CREEM_API_KEY || "",
-    ).trim() && String(process.env.CREEM_PRODUCT_ID || "").trim(),
+    ).trim(),
   );
+}
+
+/**
+ * Prefer mode-specific product ids so test/live don't get crossed.
+ * Live key → CREEM_PRODUCT_ID_LIVE || CREEM_PRODUCT_ID
+ * Test key → CREEM_PRODUCT_ID_TEST || CREEM_PRODUCT_ID
+ */
+export function getConfiguredCreemProductId() {
+  const mode = (() => {
+    try {
+      return getCreemServer();
+    } catch {
+      return null;
+    }
+  })();
+  const live = String(process.env.CREEM_PRODUCT_ID_LIVE || "").trim();
+  const test = String(process.env.CREEM_PRODUCT_ID_TEST || "").trim();
+  const generic = String(process.env.CREEM_PRODUCT_ID || "").trim();
+  if (mode === "live") return live || generic;
+  if (mode === "test") return test || generic;
+  return generic || live || test;
 }
 
 /**
@@ -120,6 +142,23 @@ export function assertCreemLiveKeyIfRequired() {
   }
 }
 
+function formatCreemErrorMessage(data, status) {
+  const raw =
+    data?.message ||
+    data?.error ||
+    (Array.isArray(data?.errors) ? data.errors : null);
+  if (Array.isArray(raw)) return raw.filter(Boolean).join(", ");
+  if (typeof raw === "string" && raw.trim()) return raw.trim();
+  if (raw && typeof raw === "object") {
+    try {
+      return JSON.stringify(raw);
+    } catch {
+      /* ignore */
+    }
+  }
+  return `Creem API ${status}`;
+}
+
 async function creemFetch(path, { method = "GET", body } = {}) {
   const apiKey = readCreemApiKey();
   const base = getCreemApiBase();
@@ -135,22 +174,116 @@ async function creemFetch(path, { method = "GET", body } = {}) {
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const message =
-      data?.message ||
-      data?.error ||
-      (Array.isArray(data?.errors) ? data.errors.join(", ") : null) ||
-      (Array.isArray(data?.message) ? data.message.join(", ") : null) ||
-      `Creem API ${res.status}`;
-    const err = new Error(
-      typeof message === "string" ? message : JSON.stringify(message),
-    );
+    const message = formatCreemErrorMessage(data, res.status);
+    const err = new Error(message);
     err.status = res.status;
     err.payload = data;
     err.creemMode = getCreemServer();
     err.creemApiBase = base;
+    err.code =
+      /product not found/i.test(message) ? "CREEM_PRODUCT_NOT_FOUND" : undefined;
     throw err;
   }
   return data;
+}
+
+export async function getCreemProduct(productId) {
+  const id = encodeURIComponent(String(productId || "").trim());
+  if (!id) return null;
+  try {
+    return await creemFetch(`/products/${id}`, { method: "GET" });
+  } catch (err) {
+    if (err?.status === 404 || err?.code === "CREEM_PRODUCT_NOT_FOUND") {
+      return null;
+    }
+    throw err;
+  }
+}
+
+export async function searchCreemProducts({ billingType, status } = {}) {
+  const params = new URLSearchParams();
+  if (billingType) params.set("billing_type", billingType);
+  if (status) params.set("status", status);
+  params.set("page_size", "50");
+  const qs = params.toString();
+  const data = await creemFetch(
+    `/products/search${qs ? `?${qs}` : ""}`,
+    { method: "GET" },
+  );
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.products)) return data.products;
+  return [];
+}
+
+export async function createCreemOneTimeProduct({
+  name = "Isisel stay",
+  description = "One-time Isisel accommodation payment (amount set at checkout)",
+  currency = "USD",
+  priceCents = 100,
+} = {}) {
+  return creemFetch("/products", {
+    method: "POST",
+    body: {
+      name: sanitizeMetaValue(name),
+      description: sanitizeMetaValue(description),
+      price: Math.max(100, Math.round(Number(priceCents) || 100)),
+      currency: String(currency || "USD").toUpperCase(),
+      billing_type: "onetime",
+    },
+  });
+}
+
+const STAY_PRODUCT_NAME = "Isisel stay";
+
+/**
+ * Resolve a one-time Creem product id for dynamic stay checkouts.
+ * Verifies CREEM_PRODUCT_ID against the active key mode; if missing/wrong,
+ * reuses an existing "Isisel stay" product or creates one (onetime + USD).
+ */
+export async function ensureCreemStayProductId() {
+  const configured = getConfiguredCreemProductId();
+  if (configured) {
+    const existing = await getCreemProduct(configured);
+    if (existing?.id) return String(existing.id);
+  }
+
+  try {
+    const products = await searchCreemProducts({
+      billingType: "onetime",
+      status: "active",
+    });
+    const match = products.find((p) => {
+      const name = String(p?.name || "").trim().toLowerCase();
+      const billing = String(p?.billing_type || "").toLowerCase();
+      return (
+        name === STAY_PRODUCT_NAME.toLowerCase() &&
+        (billing === "onetime" || billing === "one-time" || !billing)
+      );
+    });
+    if (match?.id) return String(match.id);
+  } catch (err) {
+    console.warn("[creem] product search failed:", err?.message || err);
+  }
+
+  const created = await createCreemOneTimeProduct({
+    name: STAY_PRODUCT_NAME,
+    description:
+      "Dynamic Isisel stay checkout. Price is overridden per booking via custom_price.",
+    currency: "USD",
+    priceCents: 100,
+  });
+  const id = created?.id || created?.product_id;
+  if (!id) {
+    const err = new Error(
+      "Creem product is missing. Set CREEM_PRODUCT_ID to a one-time product that matches your API key mode (live vs test), or allow the app to create one.",
+    );
+    err.code = "CREEM_PRODUCT_NOT_FOUND";
+    throw err;
+  }
+  console.info("[creem] created stay product", id);
+  return String(id);
 }
 
 /**
@@ -171,28 +304,68 @@ export async function createCreemCheckoutSession({
   const price = customPriceCents ?? custom_price;
   const success = successUrl ?? success_url;
   const reqId = requestId ?? request_id;
+  const resolvedProductId =
+    productId || (await ensureCreemStayProductId());
 
-  return creemFetch("/checkouts", {
-    method: "POST",
-    body: {
-      product_id: productId,
-      custom_price: price,
-      success_url: success,
-      ...(reqId ? { request_id: reqId } : {}),
-      ...(customer
-        ? {
-            customer: {
-              ...customer,
-              name: customer.name ? sanitizeMetaValue(customer.name) : customer.name,
-              email: customer.email
-                ? sanitizeMetaValue(customer.email)
-                : customer.email,
-            },
-          }
-        : {}),
-      ...(metadata ? { metadata: sanitizeMetadata(metadata) } : {}),
-    },
-  });
+  try {
+    return await creemFetch("/checkouts", {
+      method: "POST",
+      body: {
+        product_id: resolvedProductId,
+        custom_price: price,
+        success_url: success,
+        ...(reqId ? { request_id: reqId } : {}),
+        ...(customer
+          ? {
+              customer: {
+                ...customer,
+                name: customer.name
+                  ? sanitizeMetaValue(customer.name)
+                  : customer.name,
+                email: customer.email
+                  ? sanitizeMetaValue(customer.email)
+                  : customer.email,
+              },
+            }
+          : {}),
+        ...(metadata ? { metadata: sanitizeMetadata(metadata) } : {}),
+      },
+    });
+  } catch (err) {
+    // Stale product id in env → recreate/resolve and retry once.
+    if (
+      err?.code === "CREEM_PRODUCT_NOT_FOUND" ||
+      /product not found/i.test(String(err?.message || ""))
+    ) {
+      const freshId = await ensureCreemStayProductId();
+      if (freshId && freshId !== resolvedProductId) {
+        return creemFetch("/checkouts", {
+          method: "POST",
+          body: {
+            product_id: freshId,
+            custom_price: price,
+            success_url: success,
+            ...(reqId ? { request_id: reqId } : {}),
+            ...(customer
+              ? {
+                  customer: {
+                    ...customer,
+                    name: customer.name
+                      ? sanitizeMetaValue(customer.name)
+                      : customer.name,
+                    email: customer.email
+                      ? sanitizeMetaValue(customer.email)
+                      : customer.email,
+                  },
+                }
+              : {}),
+            ...(metadata ? { metadata: sanitizeMetadata(metadata) } : {}),
+          },
+        });
+      }
+    }
+    throw err;
+  }
 }
 
 export function dollarsToCents(amount) {

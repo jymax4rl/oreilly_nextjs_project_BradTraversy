@@ -68,7 +68,7 @@ export function hasCreemKeys() {
   return Boolean(
     String(
       process.env.CREEM_PRODUCTION || process.env.CREEM_API_KEY || "",
-    ).trim() && String(process.env.CREEM_PRODUCT_ID || "").trim(),
+    ).trim(),
   );
 }
 
