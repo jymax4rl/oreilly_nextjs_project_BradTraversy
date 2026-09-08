@@ -15,6 +15,7 @@ import {
   notifyBookingCancelled,
   notifyBookingModified,
 } from "@/utils/bookings/notifyBookingEmails";
+import { reverseCommissionForBooking } from "@/utils/creators/commissionEngine";
 
 export function isBookingListed(booking) {
   return booking?.listed !== false;
@@ -141,6 +142,15 @@ export async function cancelBookingRecord({
   }
   booking.version = (booking.version || 0) + 1;
   await booking.save();
+
+  try {
+    await reverseCommissionForBooking(booking.toObject(), {
+      actor: `${actor}:${actorUserId || "unknown"}`,
+      note: reason || "booking cancelled",
+    });
+  } catch (err) {
+    console.error("[creator commission] reverse failed:", err);
+  }
 
   const emails = await notifyBookingCancelled(booking.toObject(), prop, {
     actor,

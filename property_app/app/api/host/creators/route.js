@@ -74,6 +74,8 @@ export async function POST(request) {
       notes: String(body.notes || "").trim().slice(0, 2000),
       status: "active",
     });
+    partner.ensurePortalToken();
+    await partner.save();
 
     return Response.json(
       {
@@ -84,6 +86,8 @@ export async function POST(request) {
         profileUrl: partner.profileUrl,
         notes: partner.notes,
         status: partner.status,
+        portalToken: partner.portalToken,
+        portalUrl: `/creators/portal/${partner.portalToken}`,
       },
       { status: 201 },
     );

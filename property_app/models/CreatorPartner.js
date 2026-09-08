@@ -1,4 +1,5 @@
 import { Schema, models, model } from "mongoose";
+import crypto from "crypto";
 
 /**
  * Host-managed creator partner for the performance commission program.
@@ -28,12 +29,43 @@ const CreatorPartnerSchema = new Schema(
       default: "active",
       index: true,
     },
+    /** Optional link back to ops CRM lead. */
+    creatorLeadId: {
+      type: Schema.Types.ObjectId,
+      ref: "CreatorLead",
+      default: null,
+    },
+    /**
+     * Read-only creator dashboard share token (host shares the portal URL).
+     * Regenerating invalidates the previous link.
+     */
+    portalToken: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
+    portalTokenRotatedAt: { type: Date },
   },
   { timestamps: true, collection: "CreatorPartners" },
 );
 
 CreatorPartnerSchema.index({ hostId: 1, status: 1, createdAt: -1 });
 CreatorPartnerSchema.index({ hostId: 1, name: 1 });
+CreatorPartnerSchema.index({ email: 1, hostId: 1 });
+
+CreatorPartnerSchema.methods.ensurePortalToken = function ensurePortalToken() {
+  if (this.portalToken) return this.portalToken;
+  this.portalToken = crypto.randomBytes(24).toString("base64url");
+  this.portalTokenRotatedAt = new Date();
+  return this.portalToken;
+};
+
+CreatorPartnerSchema.methods.rotatePortalToken = function rotatePortalToken() {
+  this.portalToken = crypto.randomBytes(24).toString("base64url");
+  this.portalTokenRotatedAt = new Date();
+  return this.portalToken;
+};
 
 const CreatorPartner =
   models.CreatorPartner || model("CreatorPartner", CreatorPartnerSchema);

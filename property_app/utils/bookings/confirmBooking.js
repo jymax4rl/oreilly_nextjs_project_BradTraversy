@@ -20,6 +20,7 @@ import {
   buildCreatorBookingFields,
   resolveOptionalPromoAttribution,
 } from "@/utils/creators/promoAttribution";
+import { upsertCommissionForBooking } from "@/utils/creators/commissionEngine";
 
 async function buildGatewayPricingSnapshot({
   propertyId,
@@ -172,6 +173,16 @@ export async function confirmBookingFromPayment({
     pricingSnapshot,
     ...creatorFields,
   });
+
+  if (creatorFields.creatorAttributionStatus === "attributed") {
+    try {
+      await upsertCommissionForBooking(booking.toObject(), {
+        actor: "booking.confirm",
+      });
+    } catch (err) {
+      console.error("[creator commission] upsert failed:", err);
+    }
+  }
 
   if (property?.owner) {
     try {

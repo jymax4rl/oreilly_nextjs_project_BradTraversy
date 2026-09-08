@@ -63,6 +63,7 @@ function RightColumn({ data }) {
   const [pendingValidation, setPendingValidation] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [promoCode, setPromoCode] = useState("");
+  const [promoHint, setPromoHint] = useState(null);
 
   const listingRates = normalizeRates(data.rates);
   const fx = resolveFxRate(rates, currencyCode);
@@ -460,13 +461,66 @@ function RightColumn({ data }) {
               <input
                 type="text"
                 value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                onChange={(e) => {
+                  setPromoCode(e.target.value.toUpperCase());
+                  setPromoHint(null);
+                }}
+                onBlur={async () => {
+                  const code = promoCode.trim();
+                  if (!code) {
+                    setPromoHint(null);
+                    return;
+                  }
+                  try {
+                    const res = await fetch("/api/creators/promo/validate", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        propertyId: data._id,
+                        promoCode: code,
+                        guestEmail: session?.user?.email,
+                        guestId: session?.user?.id,
+                      }),
+                    });
+                    const payload = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                      setPromoHint({ ok: false, text: "Could not check code" });
+                      return;
+                    }
+                    if (payload.valid) {
+                      setPromoHint({
+                        ok: true,
+                        text: payload.creatorName
+                          ? `Code applied for ${payload.creatorName}`
+                          : "Promo code looks good",
+                      });
+                    } else if (!payload.empty) {
+                      setPromoHint({
+                        ok: false,
+                        text: payload.error || "Invalid promo code",
+                      });
+                    } else {
+                      setPromoHint(null);
+                    }
+                  } catch {
+                    setPromoHint(null);
+                  }
+                }}
                 placeholder="Creator code"
                 autoComplete="off"
                 spellCheck={false}
                 maxLength={32}
                 className="w-full rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2.5 text-sm font-semibold uppercase tracking-wide text-[var(--kama-ink)] outline-none transition placeholder:font-normal placeholder:normal-case placeholder:tracking-normal placeholder:text-[var(--kama-ink-muted)] focus:border-[var(--kama-accent)] focus:ring-2 focus:ring-[var(--kama-accent-soft)]"
               />
+              {promoHint ? (
+                <p
+                  className={`mt-1.5 text-xs ${
+                    promoHint.ok ? "text-[var(--kama-accent)]" : "text-red-700"
+                  }`}
+                >
+                  {promoHint.text}
+                </p>
+              ) : null}
             </label>
 
             {paymentNotice && (

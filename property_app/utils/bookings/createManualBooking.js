@@ -27,6 +27,7 @@ import {
   buildCreatorBookingFields,
   resolveOptionalPromoAttribution,
 } from "@/utils/creators/promoAttribution";
+import { upsertCommissionForBooking } from "@/utils/creators/commissionEngine";
 
 /**
  * Create a pending reservation without a payment gateway.
@@ -188,6 +189,16 @@ export async function createManualBookingRequest({
       ...buildPricingCommissionFields({ commission, resolved }),
     },
   });
+
+  if (creatorFields.creatorAttributionStatus === "attributed") {
+    try {
+      await upsertCommissionForBooking(booking.toObject(), {
+        actor: "booking.create",
+      });
+    } catch (err) {
+      console.error("[creator commission] upsert failed:", err);
+    }
+  }
 
   const plain = booking.toObject();
 

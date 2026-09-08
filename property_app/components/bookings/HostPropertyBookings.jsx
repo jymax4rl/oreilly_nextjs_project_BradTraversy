@@ -198,6 +198,38 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
             )}
             {amountLabel ? ` · ${amountLabel}` : ""}
           </p>
+          {booking.creatorAttributionStatus === "attributed" ||
+          booking.creatorPromoCode ? (
+            <div className="mt-2 rounded-lg border border-emerald-100 bg-emerald-50/80 px-3 py-2 text-xs text-emerald-950">
+              <p className="font-semibold">
+                {t("hostConsole.creators.economicsTitle")}
+              </p>
+              <p className="mt-0.5 text-emerald-900/80">
+                {booking.creatorPartnerName || t("hostConsole.creators.nav")}
+                {booking.creatorPromoCode
+                  ? ` · ${booking.creatorPromoCode}`
+                  : ""}
+                {booking.creatorCommissionRate != null
+                  ? ` · ${Math.round(Number(booking.creatorCommissionRate) * 1000) / 10}%`
+                  : ""}
+              </p>
+              {booking.creatorCommissionAmount != null ? (
+                <p className="mt-1 font-medium tabular-nums">
+                  {t("hostConsole.creators.economicsLine", {
+                    amount: formatAmount(
+                      booking.creatorCommissionAmount,
+                      booking.currency ||
+                        booking.pricingSnapshot?.currency ||
+                        "USD",
+                    ) || String(booking.creatorCommissionAmount),
+                  })}
+                </p>
+              ) : null}
+              <p className="mt-1 text-[11px] text-emerald-800/70">
+                {t("hostConsole.creators.economicsHint")}
+              </p>
+            </div>
+          ) : null}
           {booking.propertyName && (
             <p className="mt-1 text-xs font-medium text-[#1b5c57]">
               <Link

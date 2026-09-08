@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Megaphone, Pause, Play, Plus, RefreshCw } from "lucide-react";
+import { Megaphone, Link2, Pause, Play, Plus, RefreshCw } from "lucide-react";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 import HostPageHeader from "@/components/host/HostPageHeader";
 import "../home/host-home.css";
@@ -190,6 +190,35 @@ export default function HostCreatorsView({ initial }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("hostConsole.creators.failed"));
+      await refreshProgram();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function sharePortal(rotate = false) {
+    if (!selected?.id) return;
+    setBusy("portal");
+    setError("");
+    setNotice("");
+    try {
+      const res = await fetch(`/api/host/creators/${selected.id}/portal`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rotate }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || t("hostConsole.creators.failed"));
+      const absolute =
+        typeof window !== "undefined"
+          ? `${window.location.origin}${data.portalPath}`
+          : data.portalPath;
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(absolute);
+      }
+      setNotice(t("hostConsole.creators.portalCopied"));
       await refreshProgram();
     } catch (err) {
       setError(err.message);
@@ -438,6 +467,28 @@ export default function HostCreatorsView({ initial }) {
                   </span>
                 </div>
 
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={busy === "portal"}
+                    onClick={() => sharePortal(false)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[var(--kama-border)] px-3 py-1.5 text-xs font-semibold text-[var(--kama-ink)] transition hover:border-[var(--kama-border-strong)]"
+                  >
+                    <Link2 className="h-3.5 w-3.5" />
+                    {t("hostConsole.creators.sharePortal")}
+                  </button>
+                  {selected.portalToken ? (
+                    <button
+                      type="button"
+                      disabled={busy === "portal"}
+                      onClick={() => sharePortal(true)}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[var(--kama-border)] px-3 py-1.5 text-xs font-semibold text-[var(--kama-ink-muted)]"
+                    >
+                      {t("hostConsole.creators.rotatePortal")}
+                    </button>
+                  ) : null}
+                </div>
+
                 <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <div>
                     <dt className="text-[10px] font-medium uppercase tracking-wide text-[var(--kama-ink-muted)]">
@@ -605,6 +656,9 @@ export default function HostCreatorsView({ initial }) {
                           <p className="text-xs text-[var(--kama-ink-muted)]">
                             {shortDate(b.checkIn, lang)} – {shortDate(b.checkOut, lang)}
                             {b.promoCode ? ` · ${b.promoCode}` : ""} · {b.status}
+                            {b.commissionStatus
+                              ? ` · ${b.commissionStatus}`
+                              : ""}
                           </p>
                         </div>
                         <p className="shrink-0 text-sm font-semibold tabular-nums text-[var(--kama-ink)]">
