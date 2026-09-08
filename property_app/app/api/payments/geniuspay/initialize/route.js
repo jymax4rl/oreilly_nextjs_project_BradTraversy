@@ -21,10 +21,11 @@ import {
 import { getAvailabilityPayload } from "@/utils/availability/availabilityService";
 import { appUrl } from "@/utils/appUrl";
 import {
+  convertUsdToGeniusPayAmount,
   createGeniusPayPayment,
-  getUsdToXofRate,
   isGeniusPayConfigured,
-  usdToXof,
+  resolveGeniusPayCheckoutPlan,
+  resolveGeniusPayFxRate,
 } from "@/utils/payments/geniusPayClient";
 import {
   applyGuestPromoDiscount,
@@ -34,8 +35,11 @@ import {
 /**
  * POST /api/payments/geniuspay/initialize
  *
- * Starts GeniusPay hosted checkout (Wave / Orange / MTN / Moov / card).
- * Listing fees stay in USD; we charge XOF via GENIUSPAY_USD_TO_XOF (default 600).
+ * Starts GeniusPay hosted checkout.
+ * Listing fees are priced in USD; we charge:
+ *   - XOF for African / MoMo currencies (Wave / Orange / MTN / …)
+ *   - EUR or USD for non-African selectors (card / Apple Pay / Google Pay)
+ * Guest currency selector is propagated via `currency` on the GeniusPay payment.
  */
 export async function POST(req) {
   try {
@@ -75,6 +79,11 @@ export async function POST(req) {
       body.guestPhone || body.guest_phone,
     );
     const promoCode = body.promoCode || body.promo_code || "";
+    const selectedCurrency = String(
+      body.currency || body.currencyCode || body.currency_code || "USD",
+    )
+      .trim()
+      .toUpperCase();
 
     if (!propertyId || !checkIn || !checkOut) {
       return NextResponse.json(
@@ -162,11 +171,22 @@ export async function POST(req) {
       attribution?.guestDiscountRate || 0,
     );
     const fees = calculateBookingFees(discount.discountedBase);
-    const fxRate = getUsdToXofRate();
-    const amountXof = usdToXof(fees.total, fxRate);
-    if (!amountXof) {
+
+    const plan = resolveGeniusPayCheckoutPlan(selectedCurrency);
+    const fxRate = await resolveGeniusPayFxRate(plan.chargeCurrency);
+    const converted = convertUsdToGeniusPayAmount(
+      fees.total,
+      plan.chargeCurrency,
+      fxRate,
+    );
+    if (!converted) {
       return NextResponse.json(
-        { message: "Stay total is too low for mobile money checkout" },
+        {
+          message:
+            plan.rail === "international"
+              ? "Stay total is too low for card checkout"
+              : "Stay total is too low for mobile money checkout",
+        },
         { status: 400 },
       );
     }
@@ -188,8 +208,10 @@ export async function POST(req) {
     );
 
     const payment = await createGeniusPayPayment({
-      amountXof,
-      currency: "XOF",
+      amount: converted.amount,
+      currency: plan.chargeCurrency,
+      allowedMethods: plan.allowedMethods,
+      paymentMethod: plan.paymentMethod,
       description: `Isisel stay — ${property.name || "Property"} (${validation.checkIn} → ${validation.checkOut})`,
       customer: {
         email: guestEmail,
@@ -213,10 +235,14 @@ export async function POST(req) {
         guest_email: guestEmail,
         guest_name: guestName || "",
         guest_phone: guestPhone,
-        currency: "XOF",
+        selected_currency: plan.selectedCurrency,
+        currency: plan.chargeCurrency,
+        rail: plan.rail,
         amount_total_usd: String(fees.total),
-        amount_xof: String(amountXof),
-        usd_to_xof: String(fxRate),
+        amount_charged: String(converted.amount),
+        amount_xof:
+          plan.chargeCurrency === "XOF" ? String(converted.amount) : "",
+        usd_fx_rate: String(converted.rate),
         platform_fee_usd: String(fees.commission),
         cleaning_fee_usd: String(fees.cleaningFee),
         host_payout_usd: String(hostPayoutUsd),
@@ -243,9 +269,13 @@ export async function POST(req) {
         reference: payment.reference,
         request_id: requestId,
         amount_usd: fees.total,
-        amount_xof: amountXof,
-        currency: "XOF",
-        usd_to_xof: fxRate,
+        amount_charged: converted.amount,
+        amount_xof:
+          plan.chargeCurrency === "XOF" ? converted.amount : undefined,
+        currency: plan.chargeCurrency,
+        selected_currency: plan.selectedCurrency,
+        rail: plan.rail,
+        usd_fx_rate: converted.rate,
         host_payout_usd: hostPayoutUsd,
         platform_fee_usd: fees.commission,
       },

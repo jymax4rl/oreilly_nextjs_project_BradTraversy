@@ -410,13 +410,16 @@ function RightColumn({ data }) {
           checkOut: validation.checkOut,
           guestPhone: phone,
           promoCode: promoCode.trim() || undefined,
+          // Propagate currency selector so GeniusPay charges EUR/USD (card /
+          // Apple Pay / Google Pay) instead of always forcing XOF MoMo.
+          currency: paymentCurrency,
         }),
       });
       const payload = await res.json().catch(() => ({}));
       if (!res.ok || !payload?.data?.checkout_url) {
         setPaymentNotice({
           type: "error",
-          title: "Could not start mobile money checkout",
+          title: "Could not start checkout",
           message:
             payload.message ||
             "Please try again, or message the host to arrange payment.",

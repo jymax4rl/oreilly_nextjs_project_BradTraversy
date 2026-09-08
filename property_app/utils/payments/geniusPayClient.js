@@ -1,10 +1,34 @@
 /**
- * GeniusPay merchant API client (Wave / Orange / MTN / Moov / card checkout).
+ * GeniusPay merchant API client (Wave / Orange / MTN / Moov / card / wallets).
  * Docs: https://geniuspay.ci/docs/api
  * Base: https://geniuspay.ci/api/v1/merchant
+ *
+ * Charge currencies supported by GeniusPay create-payment: XOF, EUR, USD.
+ * African MoMo selectors → XOF + full checkout.
+ * Non-African selectors → EUR or USD + card/wallet rail (Apple Pay / Google Pay / card).
  */
 
 const DEFAULT_BASE = "https://geniuspay.ci/api/v1/merchant";
+
+/** GeniusPay create-payment accepts these charge currencies. */
+export const GENIUSPAY_CHARGE_CURRENCIES = new Set(["XOF", "EUR", "USD"]);
+
+/** Currencies that should stay on the African MoMo checkout rail. */
+const AFRICAN_MOMO_CURRENCIES = new Set([
+  "XOF",
+  "XAF",
+  "GHS",
+  "KES",
+  "NGN",
+  "ZAR",
+  "UGX",
+  "RWF",
+  "ZMW",
+  "GMD",
+  "MAD",
+  "CDF",
+  "SLE",
+]);
 
 function assertLatin1Env(name, value) {
   for (let i = 0; i < value.length; i += 1) {
@@ -86,6 +110,103 @@ export function usdToXof(amountUsd, rate = getUsdToXofRate()) {
   return xof >= 200 ? xof : null;
 }
 
+/**
+ * Map the guest currency selector to a GeniusPay charge plan.
+ * - African MoMo currencies → XOF, open checkout (MoMo + card)
+ * - EUR → charge EUR, card/wallet rail only
+ * - Everything else international → charge USD, card/wallet rail only
+ */
+export function resolveGeniusPayCheckoutPlan(selectedCurrency) {
+  const selected = String(selectedCurrency || "USD")
+    .trim()
+    .toUpperCase() || "USD";
+
+  const african = AFRICAN_MOMO_CURRENCIES.has(selected);
+
+  if (african) {
+    return {
+      selectedCurrency: selected,
+      chargeCurrency: "XOF",
+      rail: "africa",
+      // Hosted checkout — guest picks Wave / Orange / MTN / card
+      paymentMethod: null,
+      allowedMethods: null,
+    };
+  }
+
+  const chargeCurrency = selected === "EUR" ? "EUR" : "USD";
+  return {
+    selectedCurrency: selected,
+    chargeCurrency,
+    rail: "international",
+    // Card rail surfaces Visa/Mastercard + Apple Pay / Google Pay on Stripe
+    paymentMethod: null,
+    allowedMethods: ["card"],
+  };
+}
+
+/**
+ * Convert a USD stay total into GeniusPay major units for the charge currency.
+ * @returns {{ amount: number, rate: number } | null}
+ */
+export function convertUsdToGeniusPayAmount(amountUsd, chargeCurrency, fxRate) {
+  const usd = Number(amountUsd);
+  const currency = String(chargeCurrency || "XOF").toUpperCase();
+  if (!Number.isFinite(usd) || usd <= 0) return null;
+
+  if (currency === "XOF") {
+    const rate =
+      Number.isFinite(Number(fxRate)) && Number(fxRate) > 0
+        ? Number(fxRate)
+        : getUsdToXofRate();
+    const amount = Math.round(usd * rate);
+    return amount >= 200 ? { amount, rate } : null;
+  }
+
+  if (currency === "USD") {
+    const amount = Math.round(usd * 100) / 100;
+    return amount >= 1 ? { amount, rate: 1 } : null;
+  }
+
+  if (currency === "EUR") {
+    const rate =
+      Number.isFinite(Number(fxRate)) && Number(fxRate) > 0
+        ? Number(fxRate)
+        : Number(process.env.GENIUSPAY_USD_TO_EUR || 0.92);
+    if (!Number.isFinite(rate) || rate <= 0) return null;
+    const amount = Math.round(usd * rate * 100) / 100;
+    return amount >= 1 ? { amount, rate } : null;
+  }
+
+  return null;
+}
+
+/**
+ * Resolve USD→charge FX. Prefers live open.er-api.com; falls back to env defaults.
+ */
+export async function resolveGeniusPayFxRate(chargeCurrency) {
+  const currency = String(chargeCurrency || "XOF").toUpperCase();
+  if (currency === "USD") return 1;
+  if (currency === "XOF") return getUsdToXofRate();
+
+  try {
+    const res = await fetch("https://open.er-api.com/v6/latest/USD", {
+      next: { revalidate: 3600 },
+    });
+    const data = await res.json().catch(() => ({}));
+    const rate = Number(data?.rates?.[currency]);
+    if (Number.isFinite(rate) && rate > 0) return rate;
+  } catch {
+    /* fall through */
+  }
+
+  if (currency === "EUR") {
+    const fallback = Number(process.env.GENIUSPAY_USD_TO_EUR || 0.92);
+    return Number.isFinite(fallback) && fallback > 0 ? fallback : 0.92;
+  }
+  return null;
+}
+
 async function geniusPayFetch(path, { method = "GET", body } = {}) {
   const apiKey = getGeniusPayPublicKey();
   const apiSecret = getGeniusPaySecretKey();
@@ -122,26 +243,55 @@ async function geniusPayFetch(path, { method = "GET", body } = {}) {
 }
 
 /**
- * Create a hosted checkout (omit payment_method → Wave / Orange / MTN / card).
- * Amount is XOF by default for MoMo reliability.
+ * Create a hosted checkout.
+ * - Africa / XOF: omit payment_method → MoMo + card chooser
+ * - International EUR/USD: pass allowed_methods=["card"] so checkout
+ *   offers card + Apple Pay / Google Pay (Stripe rail), not Wave/Orange/MTN
  */
 export async function createGeniusPayPayment({
+  amount,
   amountXof,
   currency = "XOF",
+  paymentMethod = null,
+  allowedMethods = null,
   description,
   customer,
   successUrl,
   errorUrl,
   metadata,
 }) {
-  const amount = Math.round(Number(amountXof));
-  if (!Number.isFinite(amount) || amount < 200) {
+  const chargeCurrency = String(currency || "XOF").toUpperCase();
+  const rawAmount = amount != null ? Number(amount) : Number(amountXof);
+  const chargeAmount =
+    chargeCurrency === "XOF"
+      ? Math.round(rawAmount)
+      : Math.round(rawAmount * 100) / 100;
+
+  if (!Number.isFinite(chargeAmount) || chargeAmount <= 0) {
+    throw new Error("GeniusPay amount is invalid");
+  }
+  if (chargeCurrency === "XOF" && chargeAmount < 200) {
     throw new Error("GeniusPay amount must be at least 200 XOF");
+  }
+  if (
+    (chargeCurrency === "EUR" || chargeCurrency === "USD") &&
+    chargeAmount < 1
+  ) {
+    throw new Error(`GeniusPay amount must be at least 1 ${chargeCurrency}`);
   }
 
   const payload = {
-    amount,
-    currency: String(currency || "XOF").toUpperCase(),
+    amount: chargeAmount,
+    currency: GENIUSPAY_CHARGE_CURRENCIES.has(chargeCurrency)
+      ? chargeCurrency
+      : "XOF",
+    ...(paymentMethod ? { payment_method: String(paymentMethod) } : {}),
+    ...(Array.isArray(allowedMethods) && allowedMethods.length
+      ? {
+          // Flutter SDK uses allowedMethods; REST accepts snake_case equivalents.
+          allowed_methods: allowedMethods.map((m) => String(m)),
+        }
+      : {}),
     ...(description ? { description: sanitizeMetaValue(description) } : {}),
     ...(customer
       ? {
@@ -169,6 +319,25 @@ export async function createGeniusPayPayment({
   const result = await geniusPayFetch("/payments", {
     method: "POST",
     body: payload,
+  }).catch(async (err) => {
+    // Older API builds may reject allowed_methods — retry without it so
+    // currency still propagates (EUR/USD → card/wallet UI on checkout).
+    if (
+      Array.isArray(allowedMethods) &&
+      allowedMethods.length &&
+      payload.allowed_methods
+    ) {
+      const { allowed_methods: _ignored, ...withoutAllowed } = payload;
+      try {
+        return await geniusPayFetch("/payments", {
+          method: "POST",
+          body: withoutAllowed,
+        });
+      } catch {
+        throw err;
+      }
+    }
+    throw err;
   });
 
   return result?.data || result;
