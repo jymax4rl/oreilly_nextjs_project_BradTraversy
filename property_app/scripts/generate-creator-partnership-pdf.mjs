@@ -38,22 +38,59 @@ if (!existsSync(htmlPath)) {
   process.exit(1);
 }
 
-const htmlUrl = pathToFileURL(htmlPath).href;
-const args = [
-  "--headless=new",
-  "--no-sandbox",
-  "--disable-gpu",
-  "--no-pdf-header-footer",
-  "--virtual-time-budget=30000",
-  `--print-to-pdf=${pdfPath}`,
-  htmlUrl,
-];
-
-const child = spawn(chrome, args, { stdio: "inherit" });
-child.on("exit", (code) => {
-  if (code !== 0) {
-    console.error(`Print failed (${code}): ${pdfPath}`);
-    process.exit(code || 1);
+async function printWithPuppeteer() {
+  try {
+    const puppeteer = await import("puppeteer-core");
+    const browser = await puppeteer.default.launch({
+      executablePath: chrome,
+      headless: true,
+      args: ["--no-sandbox", "--disable-gpu"],
+    });
+    const page = await browser.newPage();
+    await page.goto(pathToFileURL(htmlPath).href, {
+      waitUntil: "networkidle0",
+      timeout: 120000,
+    });
+    await page.emulateMediaType("print");
+    await page.pdf({
+      path: pdfPath,
+      format: "A4",
+      printBackground: true,
+      preferCSSPageSize: false,
+      margin: { top: "12mm", right: "12mm", bottom: "12mm", left: "12mm" },
+    });
+    await browser.close();
+    console.log("Wrote", pdfPath, "(puppeteer-core)");
+    return true;
+  } catch {
+    return false;
   }
-  console.log("Wrote", pdfPath);
-});
+}
+
+async function printWithChromeCli() {
+  const htmlUrl = pathToFileURL(htmlPath).href;
+  const args = [
+    "--headless=new",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--no-pdf-header-footer",
+    "--virtual-time-budget=60000",
+    `--print-to-pdf=${pdfPath}`,
+    htmlUrl,
+  ];
+  await new Promise((resolve, reject) => {
+    const child = spawn(chrome, args, { stdio: "inherit" });
+    child.on("exit", (code) => {
+      if (code !== 0) {
+        reject(new Error(`Print failed (${code}): ${pdfPath}`));
+        return;
+      }
+      resolve();
+    });
+  });
+  console.log("Wrote", pdfPath, "(chrome cli)");
+}
+
+if (!(await printWithPuppeteer())) {
+  await printWithChromeCli();
+}

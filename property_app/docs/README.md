@@ -6,6 +6,20 @@
 |------|---------|
 | `HANDOFF.md` | **Read first.** 2026-09-04 snapshot: production vs git, influencer track, uncommitted work |
 
+## Creator Partnership System (product specification)
+
+| File | Purpose |
+|------|---------|
+| `ISISel_Creator_Partnership_System.md` | Source specification (edit this) |
+| `ISISel_Creator_Partnership_System.html` | Print-ready layout |
+| `ISISel_Creator_Partnership_System.pdf` | Partner / investor PDF |
+
+Regenerate PDF:
+
+```bash
+node scripts/generate-creator-partnership-pdf.mjs
+```
+
 ## Project status (advancement & next steps)
 
 | File | Purpose |

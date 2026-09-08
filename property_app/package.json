@@ -23,6 +23,7 @@
     "docs:track-record-pdf": "node scripts/generate-track-record-pdf.mjs",
     "docs:project-status-pdf": "node scripts/generate-project-status-pdf.mjs",
     "docs:marketing-pdfs": "node scripts/generate-marketing-pdfs.mjs",
+    "docs:creator-partnership-pdf": "node scripts/generate-creator-partnership-pdf.mjs",
     "db:backfill-availability-host": "node scripts/backfill-availability-host-id.mjs",
     "db:backfill-cloudinary-folders": "node scripts/backfillCloudinaryFolders.mjs",
     "db:provision-cloudinary-folders": "node scripts/provisionCloudinaryFolders.mjs",

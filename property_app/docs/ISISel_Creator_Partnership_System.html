@@ -19,28 +19,36 @@
       --line: rgba(27, 92, 87, 0.14);
       --sand-soft: rgba(196, 165, 116, 0.22);
     }
-    @page { size: A4; margin: 14mm; }
+    @page { size: A4; margin: 16mm 14mm; }
     * { box-sizing: border-box; }
     html, body {
       margin: 0; padding: 0; background: #ddd9d0; color: var(--ink);
       font-family: Outfit, "Segoe UI", sans-serif;
-      font-size: 9.6pt; line-height: 1.45;
+      font-size: 10pt; line-height: 1.5;
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
     .doc {
       width: 210mm; max-width: 210mm; margin: 0 auto; background: var(--paper);
-      padding: 0 0 10mm;
+      padding: 0 0 12mm;
     }
-    p { margin: 0 0 2.8mm; }
+    p { margin: 0 0 3.2mm; }
     a { color: var(--teal); text-decoration: none; font-weight: 600; }
     h1, h2, h3, h4 { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; page-break-after: avoid; }
     h2 {
-      font-size: 18pt; line-height: 1.1; margin: 7mm 0 2.5mm; color: var(--ink);
-      padding-bottom: 2mm; border-bottom: 1px solid var(--line);
+      font-size: 19pt; line-height: 1.12; margin: 0 0 3mm; color: var(--ink);
+      padding-bottom: 2.2mm; border-bottom: 1px solid var(--line);
     }
-    h3 { font-size: 12.5pt; color: var(--teal); margin: 4.5mm 0 1.8mm; }
-    h4 { font-size: 10.5pt; margin: 3mm 0 1.5mm; color: var(--ink); }
-    .sec { padding: 0 14mm; page-break-inside: auto; }
+    h3 { font-size: 13pt; color: var(--teal); margin: 5mm 0 2mm; }
+    h4 { font-size: 11pt; margin: 3.5mm 0 1.8mm; color: var(--ink); }
+    .sec {
+      padding: 6mm 14mm 4mm;
+      page-break-inside: auto;
+      page-break-before: auto;
+    }
+    .sec.break-before {
+      page-break-before: always;
+      break-before: page;
+    }
     .sec-num {
       font-size: 7.5pt; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
       color: var(--sand); margin: 0 0 1mm;
@@ -347,7 +355,7 @@
   </section>
 
   <!-- 5 -->
-  <section class="sec" id="s5">
+  <section class="sec break-before" id="s5">
     <p class="sec-num">Section 05</p>
     <h2>Creator Compensation Model</h2>
     <p class="lede">Three configurable tracks. Campaigns may stack fixed fee, hosted stay, and performance commission under written terms.</p>
@@ -442,7 +450,7 @@
   </section>
 
   <!-- 9 -->
-  <section class="sec" id="s9">
+  <section class="sec break-before" id="s9">
     <p class="sec-num">Section 09</p>
     <h2>Booking Flows — Standard vs Influencer</h2>
     <div class="grid2">
@@ -536,7 +544,7 @@ Payout batch (ops) → creator receives funds</div>
   </section>
 
   <!-- 14 -->
-  <section class="sec" id="s14">
+  <section class="sec break-before" id="s14">
     <p class="sec-num">Section 14</p>
     <h2>Creator Dashboard — Wireframe</h2>
     <p><span class="tag tag-pr">Proposed</span> Authenticated creator portal (or read-only ops share link for MVP).</p>
@@ -602,7 +610,7 @@ Payout batch (ops) → creator receives funds</div>
   </section>
 
   <!-- 17 -->
-  <section class="sec" id="s17">
+  <section class="sec break-before" id="s17">
     <p class="sec-num">Section 17</p>
     <h2>Database Architecture</h2>
     <h3>Existing entities</h3>
@@ -738,7 +746,7 @@ Payout batch (ops) → creator receives funds</div>
   </section>
 
   <!-- 24 -->
-  <section class="sec" id="s24">
+  <section class="sec break-before" id="s24">
     <p class="sec-num">Section 24</p>
     <h2>Example — Binta Lola Camara</h2>
     <p class="lede">Flagship partnership illustration for planning — not a live contract in code.</p>
@@ -818,7 +826,7 @@ Payout batch (ops) → creator receives funds</div>
   </section>
 
   <!-- 27 -->
-  <section class="sec" id="s27">
+  <section class="sec break-before" id="s27">
     <p class="sec-num">Section 27</p>
     <h2>MVP Scope</h2>
     <table>
