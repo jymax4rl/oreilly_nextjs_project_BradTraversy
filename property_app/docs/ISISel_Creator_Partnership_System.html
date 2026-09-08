@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Isisel — Creator Partnership &amp; Influencer Commission System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --teal: #1b5c57;
+      --teal-deep: #0f3d3a;
+      --ink: #121212;
+      --muted: #5a5854;
+      --cream: #f4f1ea;
+      --paper: #fbfaf6;
+      --sand: #c4a574;
+      --line: rgba(27, 92, 87, 0.14);
+      --sand-soft: rgba(196, 165, 116, 0.22);
+    }
+    @page { size: A4; margin: 14mm; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; background: #ddd9d0; color: var(--ink);
+      font-family: Outfit, "Segoe UI", sans-serif;
+      font-size: 9.6pt; line-height: 1.45;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .doc {
+      width: 210mm; max-width: 210mm; margin: 0 auto; background: var(--paper);
+      padding: 0 0 10mm;
+    }
+    p { margin: 0 0 2.8mm; }
+    a { color: var(--teal); text-decoration: none; font-weight: 600; }
+    h1, h2, h3, h4 { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; page-break-after: avoid; }
+    h2 {
+      font-size: 18pt; line-height: 1.1; margin: 7mm 0 2.5mm; color: var(--ink);
+      padding-bottom: 2mm; border-bottom: 1px solid var(--line);
+    }
+    h3 { font-size: 12.5pt; color: var(--teal); margin: 4.5mm 0 1.8mm; }
+    h4 { font-size: 10.5pt; margin: 3mm 0 1.5mm; color: var(--ink); }
+    .sec { padding: 0 14mm; page-break-inside: auto; }
+    .sec-num {
+      font-size: 7.5pt; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--sand); margin: 0 0 1mm;
+    }
+    .lede { font-size: 10.2pt; color: var(--muted); max-width: 170mm; margin-bottom: 3.5mm; }
+    .lede strong { color: var(--ink); font-weight: 600; }
+    .mark { width: 34px; height: 32px; display: block; }
+    .cover {
+      min-height: 269mm; color: #f7f4ee; display: flex; flex-direction: column;
+      padding: 16mm 16mm 14mm; page-break-after: always;
+      background:
+        radial-gradient(ellipse 90% 55% at 85% 12%, rgba(196,165,116,0.18), transparent 55%),
+        linear-gradient(165deg, #163f3c 0%, #0f3d3a 38%, #0a2a28 72%, #071c1b 100%);
+    }
+    .cover-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      letter-spacing: 0.22em; font-size: 10pt; font-weight: 600; text-transform: uppercase;
+    }
+    .cover-meta { text-align: right; font-size: 8.5pt; line-height: 1.5; opacity: 0.9; }
+    .cover-meta a { color: #e8d7b5; }
+    .cover-hero { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 4mm; }
+    .eyebrow {
+      font-size: 8pt; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--sand); margin-bottom: 5mm;
+    }
+    .cover h1 {
+      font-size: 34pt; line-height: 0.96; margin: 0 0 5mm; max-width: 175mm; color: #f7f4ee;
+    }
+    .cover h1 em { font-style: italic; color: #e8d7b5; }
+    .cover-sub {
+      font-size: 12pt; font-weight: 300; letter-spacing: 0.04em; opacity: 0.92; margin: 0 0 6mm;
+    }
+    .cover-rule { width: 28mm; height: 2px; background: var(--sand); margin: 0 0 6mm; }
+    .cover-body { font-size: 10.5pt; font-weight: 300; line-height: 1.5; max-width: 158mm; opacity: 0.92; }
+    .cover-body strong { font-weight: 600; color: #fff; }
+    .cover-badges { display: flex; flex-wrap: wrap; gap: 2.5mm; margin-top: 8mm; }
+    .c-badge {
+      border: 1px solid rgba(232,215,181,0.45); color: #e8d7b5; font-size: 7.5pt;
+      font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; padding: 2.2mm 4mm;
+    }
+    .toc {
+      padding: 10mm 14mm 6mm; border-bottom: 1px solid var(--line); margin-bottom: 2mm;
+      page-break-after: always;
+    }
+    .toc h2 { border: none; padding: 0; margin-bottom: 4mm; }
+    .toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2mm 8mm; }
+    .toc a {
+      display: flex; gap: 3mm; font-size: 8.6pt; font-weight: 500; color: var(--ink);
+      padding: 1.2mm 0; border-bottom: 1px dotted var(--line);
+    }
+    .toc .n { color: var(--sand); font-weight: 600; min-width: 6mm; }
+    .principle {
+      background: var(--cream); border-left: 3px solid var(--teal); padding: 3.5mm 4.5mm;
+      margin: 3.5mm 0 4mm;
+    }
+    .principle .k { font-size: 7pt; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--teal); margin-bottom: 1mm; }
+    .principle p { margin: 0; font-size: 9.4pt; color: var(--ink); }
+    .principle strong { color: var(--teal-deep); }
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.5mm; margin: 3mm 0 4mm; }
+    .kpi {
+      background: #fff; border: 1px solid var(--line); padding: 3.5mm 3.2mm; text-align: left;
+    }
+    .kpi .v {
+      font-family: "Cormorant Garamond", Georgia, serif; font-size: 16pt; font-weight: 600;
+      color: var(--teal); line-height: 1; margin-bottom: 1.5mm;
+    }
+    .kpi .l { font-size: 7.5pt; color: var(--muted); line-height: 1.35; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; margin: 3mm 0; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2.8mm; margin: 3mm 0; }
+    .card {
+      background: #fff; border: 1px solid var(--line); padding: 3.8mm 4mm;
+    }
+    .card.cream { background: var(--cream); }
+    .card .k {
+      font-size: 7pt; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--sand); margin-bottom: 1.2mm;
+    }
+    .card h4 { margin-top: 0; }
+    .card p, .card li { font-size: 8.8pt; color: var(--muted); }
+    .card ul, .card ol { margin: 1.5mm 0 0; padding-left: 4mm; }
+    .card li { margin-bottom: 1mm; }
+    .card li strong { color: var(--ink); }
+    table {
+      width: 100%; border-collapse: collapse; margin: 2.5mm 0 4mm; font-size: 8.4pt;
+      page-break-inside: avoid;
+    }
+    th, td {
+      border: 1px solid var(--line); padding: 2.2mm 2.8mm; text-align: left; vertical-align: top;
+    }
+    th {
+      background: var(--cream); font-weight: 600; color: var(--teal-deep); font-size: 7.5pt;
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    td strong { color: var(--ink); }
+    .tag {
+      display: inline-block; font-size: 6.5pt; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; padding: 0.8mm 2mm; vertical-align: middle; margin-right: 1mm;
+    }
+    .tag-ex { background: var(--teal); color: #f7f4ee; }
+    .tag-pr { background: var(--sand); color: var(--ink); }
+    .flowbox {
+      font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 7.6pt; line-height: 1.55;
+      background: #fff; border: 1px solid var(--line); padding: 3.5mm 4mm; white-space: pre;
+      overflow: hidden; color: var(--ink); margin: 2mm 0 3.5mm;
+    }
+    .flowbox .dim { color: var(--muted); }
+    .wire {
+      border: 1.5px solid var(--teal); background: #fff; padding: 0; margin: 2.5mm 0 4mm;
+      page-break-inside: avoid;
+    }
+    .wire-bar {
+      background: var(--cream); border-bottom: 1px solid var(--line);
+      padding: 2.2mm 3.5mm; display: flex; justify-content: space-between; align-items: center;
+      font-size: 7.5pt; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal);
+    }
+    .wire-body { padding: 3.5mm; display: grid; gap: 2.5mm; }
+    .wire-row { display: grid; gap: 2.5mm; }
+    .wire-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .wire-row.cols-2 { grid-template-columns: 1.2fr 0.8fr; }
+    .wire-row.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .w-box {
+      border: 1px dashed rgba(27,92,87,0.35); background: var(--paper); padding: 2.5mm 3mm; min-height: 14mm;
+    }
+    .w-box .t { font-size: 7pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sand); margin-bottom: 1mm; }
+    .w-box .b { font-size: 8.2pt; color: var(--muted); line-height: 1.35; }
+    .w-box .b strong { color: var(--ink); }
+    .nav-mock {
+      display: flex; gap: 3mm; flex-wrap: wrap; font-size: 7.5pt; color: var(--muted); margin-bottom: 1mm;
+    }
+    .nav-mock span { border-bottom: 1px solid transparent; padding-bottom: 0.5mm; }
+    .nav-mock .on { color: var(--teal); border-color: var(--teal); font-weight: 600; }
+    ul.tight { margin: 1.5mm 0 3mm; padding-left: 4.5mm; }
+    ul.tight li { margin-bottom: 1.2mm; font-size: 9pt; color: var(--muted); }
+    ul.tight li strong { color: var(--ink); }
+    .note {
+      font-size: 8pt; color: var(--muted); border-top: 1px solid var(--line);
+      padding-top: 2mm; margin-top: 2mm;
+    }
+    .foot-doc {
+      margin: 8mm 14mm 0; padding-top: 3.5mm; border-top: 1px solid var(--line);
+      font-size: 7.5pt; color: var(--muted); display: flex; justify-content: space-between;
+    }
+    .close {
+      background: var(--teal-deep); color: #f7f4ee; padding: 6mm 7mm; margin: 4mm 0 2mm;
+    }
+    .close h3 { color: #e8d7b5; margin-top: 0; }
+    .close p { color: rgba(247,244,238,0.92); font-weight: 300; margin: 0; }
+    .close strong { color: #fff; font-weight: 600; }
+    .split-label { display: flex; align-items: center; gap: 2mm; flex-wrap: wrap; margin-bottom: 2mm; }
+    code {
+      font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 8pt;
+      background: var(--cream); padding: 0.3mm 1.4mm; border: 1px solid var(--line);
+    }
+    @media print {
+      html, body { background: none; }
+      .doc { width: auto; max-width: none; margin: 0; padding: 0; }
+      .cover { min-height: auto; height: auto; padding: 8mm 4mm 10mm; margin: -14mm -14mm 8mm; width: calc(100% + 28mm); }
+      .toc { page-break-after: always; }
+      .sec { padding: 0; }
+      .foot-doc { margin: 8mm 0 0; }
+      a { color: inherit; }
+    }
+    @media screen {
+      .doc { box-shadow: 0 8px 40px rgba(0,0,0,0.12); margin: 8mm auto 16mm; }
+    }
+  </style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- 1 COVER -->
+  <section class="cover" id="cover">
+    <div class="cover-top">
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 551 519" fill="none" aria-hidden="true">
+          <path d="M238.24 278C229.74 332.5 245.74 393.5 245.74 393.5C245.74 393.5 235.581 401.468 231.74 408.5C227.515 416.232 226.74 430.5 226.74 430.5V517H37.2395C37.2395 517 18.6308 518 6.2395 499C-6.15182 480 3.7395 459 3.7395 459L68.2395 331H205.24C209.74 354.5 229.74 379 229.74 379C229.74 379 219.74 347 226.24 278C232.74 209 274.24 172 274.24 172C274.24 172 246.74 223.5 238.24 278Z" fill="#E8D7B5"/>
+          <path d="M324.24 430.5V517L501.24 519C501.24 519 521.662 516.854 531.74 509.5C540.983 502.755 546.329 497.066 549.24 486C551.678 476.73 548.425 467.5 546.74 463.5C545.054 459.5 536.74 442 536.74 442L480.24 331L329.24 330.5L333.24 325L338.74 316L472.74 314.5L420.74 216H356.74L357.24 205.5L356.74 199H414.74L333.74 48.5C333.74 48.5 309.24 1.53901e-05 274.24 0C239.24 -1.53901e-05 214.24 48.5 214.24 48.5L135.24 199H209.24C209.24 199 234.74 138.5 254.74 114C274.74 89.5 295.74 77 319.74 84C343.74 91 343.74 131 343.74 131C343.74 131 342.863 174.782 326.74 195C315.559 209.02 289.24 221.5 289.24 221.5C289.24 221.5 309.921 219.477 321.74 214C332.161 209.171 345.74 197 345.74 197C345.74 197 349.401 222.094 345.74 237.5C341.394 255.786 333.464 265.159 319.74 278C304.499 292.26 272.24 302.5 272.24 302.5C272.24 302.5 291.49 301.404 303.24 298C317.165 293.966 336.74 282 336.74 282C336.74 282 332.74 315.5 312.24 331C291.74 346.5 298.44 341.372 289.24 347.5C281.574 352.606 273.74 356.5 269.24 360C264.74 363.5 259.24 366.5 256.74 370C254.24 373.5 253.74 374 254.24 379C254.74 384 256.74 387 256.74 387C256.74 387 269.24 383.301 279.24 384C292.24 384.909 301.857 390 306.24 393.5C310.622 397 315.981 402.657 319.74 411C323.268 418.833 324.24 430.5 324.24 430.5Z" fill="#E8D7B5"/>
+        </svg>
+        Isisel
+      </div>
+      <div class="cover-meta">
+        www.isisel.com<br />
+        <a href="https://www.isisel.com/influencers">/influencers</a>
+      </div>
+    </div>
+    <div class="cover-hero">
+      <div class="eyebrow">Product specification · Partner-ready</div>
+      <h1>Creator Partnership<br />&amp; <em>Influencer Commission</em><br />System</h1>
+      <p class="cover-sub">Product Specification</p>
+      <div class="cover-rule"></div>
+      <p class="cover-body">
+        How Isisel partners with creators and influencers to generate <strong>qualified bookings</strong>,
+        compensate them fairly from host economics — never by taxing Isisel’s own platform fee —
+        and operate the ledger, dashboards, and payouts end to end.
+      </p>
+      <div class="cover-badges">
+        <span class="c-badge">Confidential</span>
+        <span class="c-badge">Partner-ready</span>
+        <span class="c-badge">Investors · Devs · Hosts · Creators</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOC -->
+  <section class="toc">
+    <p class="sec-num">Contents</p>
+    <h2>Document map</h2>
+    <div class="toc-grid">
+      <a href="#s2"><span class="n">02</span> Executive Summary</a>
+      <a href="#s3"><span class="n">03</span> Isisel Business Model</a>
+      <a href="#s4"><span class="n">04</span> Why Creator Partnerships</a>
+      <a href="#s5"><span class="n">05</span> Creator Compensation Model</a>
+      <a href="#s6"><span class="n">06</span> Hosted Stay Model</a>
+      <a href="#s7"><span class="n">07</span> Influencer Promo Code Model</a>
+      <a href="#s8"><span class="n">08</span> Host Economics</a>
+      <a href="#s9"><span class="n">09</span> Booking Flows</a>
+      <a href="#s10"><span class="n">10</span> Commission Flow</a>
+      <a href="#s11"><span class="n">11–13</span> Journeys</a>
+      <a href="#s14"><span class="n">14</span> Creator Dashboard</a>
+      <a href="#s15"><span class="n">15</span> Host Dashboard</a>
+      <a href="#s16"><span class="n">16</span> Admin / Ops Dashboard</a>
+      <a href="#s17"><span class="n">17</span> Database Architecture</a>
+      <a href="#s18"><span class="n">18</span> Technical Architecture</a>
+      <a href="#s19"><span class="n">19</span> Commission Engine</a>
+      <a href="#s20"><span class="n">20</span> Fraud Prevention</a>
+      <a href="#s21"><span class="n">21</span> Payout Lifecycle</a>
+      <a href="#s22"><span class="n">22</span> Campaign Analytics</a>
+      <a href="#s23"><span class="n">23</span> Creator CAC</a>
+      <a href="#s24"><span class="n">24</span> Example — Binta Lola Camara</a>
+      <a href="#s25"><span class="n">25</span> Campaign Economics</a>
+      <a href="#s26"><span class="n">26</span> Legal / Commercial</a>
+      <a href="#s27"><span class="n">27</span> MVP Scope</a>
+      <a href="#s28"><span class="n">28</span> Phase 2</a>
+      <a href="#s29"><span class="n">29</span> Future Marketplace</a>
+      <a href="#s30"><span class="n">30</span> Conclusion</a>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="sec" id="s2">
+    <p class="sec-num">Section 02</p>
+    <h2>Executive Summary</h2>
+    <p class="lede">
+      Isisel is a live African vacation-rentals marketplace. Creator partnerships are the near-term
+      <strong>demand and trust engine</strong>: influencers bring audiences; hosts pay a creator share
+      <strong>only when a qualifying booking completes</strong>.
+    </p>
+    <div class="principle">
+      <div class="k">Governing principle</div>
+      <p><strong>Creator commission ≠ Isisel platform commission.</strong> Platform fee (<code>pricingSnapshot.platformFee</code> / commission) stays Isisel revenue. Creator pay is a separate host-funded line on a dedicated ledger. Hosts only pay when a creator generates a qualifying booking.</p>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="v">2 tracks</div><div class="l">Hosted stay intro · Promo-code bookings</div></div>
+      <div class="kpi"><div class="v">0 fee</div><div class="l">Isisel take from creator share (model default)</div></div>
+      <div class="kpi"><div class="v">Post-stay</div><div class="l">Finalize commission after checkout past</div></div>
+      <div class="kpi"><div class="v">CRM live</div><div class="l"><code>/influencers</code> + <code>/ops/marketing/creators</code></div></div>
+    </div>
+    <div class="grid2">
+      <article class="card cream">
+        <div class="k">Existing today</div>
+        <h4>Funnel &amp; ops inbox</h4>
+        <p>Public creator landing, lead capture, funnel events, and ops CRM stages — no promo codes, no creator payout ledger yet.</p>
+      </article>
+      <article class="card">
+        <div class="k">This specification</div>
+        <h4>Commercial + product system</h4>
+        <p>Compensation models, attribution, commission engine, dashboards, fraud controls, MVP and Phase 2 — ready for partners and build.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="sec" id="s3">
+    <p class="sec-num">Section 03</p>
+    <h2>Isisel Business Model</h2>
+    <p>Isisel connects travellers with vetted stays across Africa. Guests book; hosts manage inventory from <code>/host</code>. Revenue today is primarily <strong>platform commission</strong> captured in <code>pricingSnapshot</code> at booking time (gateway or manual).</p>
+    <table>
+      <tr><th>Layer</th><th>Role</th><th>Status</th></tr>
+      <tr><td>Marketplace</td><td>Listings, search, booking, payments</td><td><span class="tag tag-ex">Existing</span></td></tr>
+      <tr><td>Host console</td><td><code>/host</code> calendar, reservations, listings</td><td><span class="tag tag-ex">Existing</span></td></tr>
+      <tr><td>Ops console</td><td><code>/ops</code> including marketing / creators</td><td><span class="tag tag-ex">Existing</span></td></tr>
+      <tr><td>Creator CRM</td><td>Leads from <code>/influencers</code></td><td><span class="tag tag-ex">Existing</span></td></tr>
+      <tr><td>Promo codes</td><td>Attribution + host-funded creator share</td><td><span class="tag tag-pr">Proposed</span></td></tr>
+      <tr><td>CreatorCommission</td><td>Separate ledger from platform fee</td><td><span class="tag tag-pr">Proposed</span></td></tr>
+    </table>
+    <p>Booking lifecycle statuses today: <code>pending</code> | <code>confirmed</code> | <code>cancelled</code>. Creator pay must not mutate or “reuse” <code>platformFee</code>.</p>
+  </section>
+
+  <!-- 4 -->
+  <section class="sec" id="s4">
+    <p class="sec-num">Section 04</p>
+    <h2>Why Creator Partnerships</h2>
+    <div class="grid3">
+      <article class="card"><div class="k">Trust</div><h4>Audience belief</h4><p>Creators convert diaspora and travel audiences that paid ads struggle to reach authentically.</p></article>
+      <article class="card"><div class="k">Supply</div><h4>Host introductions</h4><p>Creators open doors to owners — the “bring a host, take a stay” path already pitched.</p></article>
+      <article class="card"><div class="k">Demand</div><h4>Qualifying bookings</h4><p>Promo codes attribute stays to creators; hosts fund commission only on performance.</p></article>
+    </div>
+    <div class="principle">
+      <div class="k">Governing principle</div>
+      <p><strong>Creator commission ≠ Isisel platform commission.</strong> Partnership economics must remain transparent to hosts: they keep most of the stay rate; they share a defined slice with the creator when attribution is proven — and Isisel’s platform fee is unchanged by that share.</p>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="sec" id="s5">
+    <p class="sec-num">Section 05</p>
+    <h2>Creator Compensation Model</h2>
+    <p class="lede">Two complementary tracks. A creator may use one or both under written terms.</p>
+    <table>
+      <tr><th>Track</th><th>Trigger</th><th>Creator receives</th><th>Host pays</th><th>Isisel</th></tr>
+      <tr>
+        <td><strong>Hosted stay</strong></td>
+        <td>Introduced host approved &amp; live</td>
+        <td>Complimentary nights (typical: 2)</td>
+        <td>Inventory nights, coordinated</td>
+        <td>Facilitation; no cash commission on stay gift</td>
+      </tr>
+      <tr>
+        <td><strong>Promo code</strong></td>
+        <td>Qualifying attributed booking completes</td>
+        <td>% of accommodation base (e.g. 10%)</td>
+        <td>Creator share from stay revenue</td>
+        <td>Platform fee separate; €0 of creator share by default</td>
+      </tr>
+    </table>
+    <ul class="tight">
+      <li><strong>Qualifying booking:</strong> attributed, not cancelled, stay completed (checkout date past), fraud checks clear.</li>
+      <li><strong>Rate:</strong> negotiated per campaign / creator (illustrative default 10% of accommodation base).</li>
+      <li><strong>Currency:</strong> follow booking <code>pricingSnapshot.currency</code>; settle in agreed payout rail.</li>
+    </ul>
+  </section>
+
+  <!-- 6 -->
+  <section class="sec" id="s6">
+    <p class="sec-num">Section 06</p>
+    <h2>Hosted Stay Model</h2>
+    <p>Marketing pitch already exists (<code>kama-mvp-influencer-stay</code>): creator introduces an owner; when that owner becomes an approved host, Isisel coordinates <strong>two complimentary nights</strong>.</p>
+    <div class="grid2">
+      <article class="card cream">
+        <div class="k">Rules</div>
+        <ul>
+          <li>Not transferable for cash</li>
+          <li>Unlocked only when host is approved</li>
+          <li>Dates follow host calendar</li>
+          <li>No mandatory post — content optional</li>
+        </ul>
+      </article>
+      <article class="card">
+        <div class="k">Ops linkage</div>
+        <p><span class="tag tag-ex">Existing</span> Lead stages: <code>new → contacted → discussing → proposed → negotiating → active → completed</code> / <code>not_fit</code>.</p>
+        <p><span class="tag tag-pr">Proposed</span> Attach “stay voucher” fulfillment record to <code>CreatorLead</code> / campaign when active.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="sec" id="s7">
+    <p class="sec-num">Section 07</p>
+    <h2>Influencer Promo Code Model</h2>
+    <p><span class="tag tag-ex">Existing</span> No promo codes in production today. <span class="tag tag-pr">Proposed</span> Unique codes per creator/campaign.</p>
+    <table>
+      <tr><th>Field</th><th>Intent</th></tr>
+      <tr><td><code>code</code></td><td>Human-readable token (e.g. <code>BINTA10</code>)</td></tr>
+      <tr><td><code>creatorId</code> / lead ref</td><td>Attribution owner</td></tr>
+      <tr><td><code>rateBps</code> or %</td><td>Creator share of accommodation base</td></tr>
+      <tr><td><code>hostScope</code></td><td>All hosts, property set, or campaign hosts</td></tr>
+      <tr><td><code>validFrom</code> / <code>validTo</code></td><td>Campaign window</td></tr>
+      <tr><td><code>status</code></td><td>draft | active | paused | expired</td></tr>
+    </table>
+    <div class="principle">
+      <div class="k">Governing principle</div>
+      <p>Hosts only pay when the creator generates a qualifying booking. A code applied without a completed stay creates <strong>no</strong> host liability and <strong>no</strong> creator accrual.</p>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="sec" id="s8">
+    <p class="sec-num">Section 08</p>
+    <h2>Host Economics</h2>
+    <p>Illustrative night: guest pays €250 accommodation. Creator rate 10%. Platform fee waived or zero on this example row so the creator math is visible in isolation.</p>
+    <table>
+      <tr><th>Line</th><th>Amount</th><th>Notes</th></tr>
+      <tr><td>Guest pays (accommodation)</td><td><strong>€250</strong></td><td>Per night illustration</td></tr>
+      <tr><td>Creator commission (10%)</td><td><strong>€25</strong></td><td>Host-funded; separate ledger</td></tr>
+      <tr><td>Host net (before other fees)</td><td><strong>€225</strong></td><td>€250 − €25</td></tr>
+      <tr><td>Isisel from creator share</td><td><strong>€0</strong></td><td>Default model — do not skim creator %</td></tr>
+      <tr><td>Isisel platform fee</td><td>Per existing rules</td><td><strong>Independent</strong> of creator line</td></tr>
+    </table>
+    <p class="note">When both platform fee and creator share apply, compute both from the snapshot independently; never reduce <code>platformFee</code> to “fund” the creator.</p>
+  </section>
+
+  <!-- 9 -->
+  <section class="sec" id="s9">
+    <p class="sec-num">Section 09</p>
+    <h2>Booking Flows — Standard vs Influencer</h2>
+    <div class="grid2">
+      <div>
+        <h3>Standard booking</h3>
+        <div class="flowbox"><span class="dim">Guest</span> → Search / listing
+     → Checkout (no code)
+     → Booking pending|confirmed
+     → Stay → checkout past
+<span class="dim">Host</span>  → Calendar / payout (platform rules)
+<span class="dim">Isisel</span>→ platformFee only</div>
+      </div>
+      <div>
+        <h3>Influencer booking</h3>
+        <div class="flowbox"><span class="dim">Guest</span> → Listing + promo code
+     → Attribution on Booking
+     → Booking pending|confirmed
+     → Stay → checkout past
+<span class="dim">Engine</span>→ CreatorCommission accrued
+<span class="dim">Host</span>  → Sees creator line in economics
+<span class="dim">Isisel</span>→ platformFee + ledger ops</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="sec" id="s10">
+    <p class="sec-num">Section 10</p>
+    <h2>Commission Flow (Post-Stay)</h2>
+    <div class="flowbox">Booking.confirmed
+  + attribution (creatorId, code)
+  + checkOut &lt; today
+  + status ≠ cancelled
+        │
+        ▼
+Commission Engine evaluates rules + fraud gates
+        │
+        ▼
+CreatorCommission  status: accrued → approved → payable → paid
+        │
+        ▼
+Payout batch (ops) → creator receives funds</div>
+    <div class="principle">
+      <div class="k">Governing principle</div>
+      <p><strong>Finalize after stay</strong> (checkout date past). Do not pay on <code>pending</code>. Cancelled or unlisted stays that never complete do not create payable commissions.</p>
+    </div>
+  </section>
+
+  <!-- 11–13 -->
+  <section class="sec" id="s11">
+    <p class="sec-num">Sections 11–13</p>
+    <h2>Journeys — Creator, Host, Guest &amp; Isisel Ops</h2>
+    <div class="grid2">
+      <article class="card cream">
+        <div class="k">11 · Creator</div>
+        <ol>
+          <li>Discovers <code>/influencers</code>, submits lead</li>
+          <li>Ops stages CRM → active agreement</li>
+          <li>Receives code / stay voucher</li>
+          <li>Publishes content; tracks dashboard KPIs</li>
+          <li>Receives payout after qualifying stays</li>
+        </ol>
+      </article>
+      <article class="card">
+        <div class="k">12 · Host</div>
+        <ol>
+          <li>Opts into campaign or accepts attributed booking</li>
+          <li>Sees transparent creator line in booking economics</li>
+          <li>Pays creator share only on qualifying stays</li>
+          <li>Retains relationship with guest; Isisel handles ledger</li>
+        </ol>
+      </article>
+      <article class="card">
+        <div class="k">13 · Guest</div>
+        <ol>
+          <li>Follows creator link / enters code</li>
+          <li>Books normally on isisel.com</li>
+          <li>Experiences stay; no commission UI required</li>
+        </ol>
+      </article>
+      <article class="card cream">
+        <div class="k">13b · Isisel ops</div>
+        <ol>
+          <li>Triage leads at <code>/ops/marketing/creators</code></li>
+          <li>Activate campaigns, codes, host scopes</li>
+          <li>Monitor fraud queues; approve payouts</li>
+          <li>Reconcile CreatorCommission vs bookings</li>
+        </ol>
+      </article>
+    </div>
+  </section>
+
+  <!-- 14 -->
+  <section class="sec" id="s14">
+    <p class="sec-num">Section 14</p>
+    <h2>Creator Dashboard — Wireframe</h2>
+    <p><span class="tag tag-pr">Proposed</span> Authenticated creator portal (or read-only ops share link for MVP).</p>
+    <div class="wire">
+      <div class="wire-bar"><span>Creator · Overview</span><span>Binta Lola Camara</span></div>
+      <div class="wire-body">
+        <div class="nav-mock">
+          <span class="on">Overview</span><span>Campaigns</span><span>Codes</span><span>Bookings</span><span>Payouts</span>
+        </div>
+        <div class="wire-row cols-4">
+          <div class="w-box"><div class="t">Clicks</div><div class="b"><strong>12.4k</strong><br />30 days</div></div>
+          <div class="w-box"><div class="t">Bookings</div><div class="b"><strong>20</strong><br />attributed</div></div>
+          <div class="w-box"><div class="t">Accrued</div><div class="b"><strong>€500</strong><br />creator share</div></div>
+          <div class="w-box"><div class="t">Paid</div><div class="b"><strong>€350</strong><br />settled</div></div>
+        </div>
+        <div class="wire-row cols-2">
+          <div class="w-box"><div class="t">Active code</div><div class="b"><strong>BINTA10</strong> · 10% · active<br />Valid campaign window + host scope</div></div>
+          <div class="w-box"><div class="t">Next payout</div><div class="b">3 bookings · <strong>€75</strong> payable<br />Batch: monthly ops run</div></div>
+        </div>
+        <div class="w-box"><div class="t">Recent attributed stays</div><div class="b">Table: property · nights · status · commission · payout state</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15 -->
+  <section class="sec" id="s15">
+    <p class="sec-num">Section 15</p>
+    <h2>Host Dashboard — Wireframe</h2>
+    <p><span class="tag tag-ex">Existing</span> Host console at <code>/host</code>. <span class="tag tag-pr">Proposed</span> Creator economics panel on reservation detail.</p>
+    <div class="wire">
+      <div class="wire-bar"><span>Host · Reservation detail</span><span>/host/reservations</span></div>
+      <div class="wire-body">
+        <div class="nav-mock">
+          <span>Home</span><span>Calendar</span><span class="on">Reservations</span><span>Listings</span>
+        </div>
+        <div class="wire-row cols-2">
+          <div class="w-box"><div class="t">Stay</div><div class="b"><strong>Villa Marigot · 2 nights</strong><br />Guest · confirmed · check-out past</div></div>
+          <div class="w-box"><div class="t">Economics</div><div class="b">Accommodation <strong>€500</strong><br />Creator (BINTA10) <strong>−€50</strong><br />Platform fee per snapshot<br />Host net after lines</div></div>
+        </div>
+        <div class="w-box"><div class="t">Attribution</div><div class="b">Creator commission is host-funded on qualifying stays only. Platform fee is separate. Status: accrued → payable.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16 -->
+  <section class="sec" id="s16">
+    <p class="sec-num">Section 16</p>
+    <h2>Admin / Ops Dashboard</h2>
+    <p><span class="tag tag-ex">Existing</span> <code>/ops/marketing/creators</code> lead inbox. <span class="tag tag-pr">Proposed</span> Campaign, code, fraud, and payout modules under ops.</p>
+    <div class="wire">
+      <div class="wire-bar"><span>Ops · Creator partnerships</span><span>/ops/marketing/creators</span></div>
+      <div class="wire-body">
+        <div class="nav-mock">
+          <span class="on">Leads</span><span>Campaigns</span><span>Codes</span><span>Commissions</span><span>Payouts</span><span>Fraud</span>
+        </div>
+        <div class="wire-row cols-3">
+          <div class="w-box"><div class="t">Pipeline</div><div class="b">Kanban by CRM stage<br />SLA · assignee</div></div>
+          <div class="w-box"><div class="t">Ledger</div><div class="b">Filter accrued / payable<br />Approve · hold · reverse</div></div>
+          <div class="w-box"><div class="t">Payout run</div><div class="b">Select payable rows<br />Export / mark paid</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 17 -->
+  <section class="sec" id="s17">
+    <p class="sec-num">Section 17</p>
+    <h2>Database Architecture</h2>
+    <h3>Existing entities</h3>
+    <table>
+      <tr><th>Entity</th><th>Relevance</th><th></th></tr>
+      <tr><td><code>User</code></td><td>Hosts, guests, ops identities</td><td><span class="tag tag-ex">Existing</span></td></tr>
+      <tr><td><code>Property</code></td><td>Listing inventory; host ownership</td><td><span class="tag tag-ex">Existing</span></td></tr>
+      <tr><td><code>Booking</code></td><td>Statuses <code>pending|confirmed|cancelled</code>; <code>pricingSnapshot</code> incl. <code>platformFee</code></td><td><span class="tag tag-ex">Existing</span></td></tr>
+      <tr><td><code>CreatorLead</code></td><td>CRM from <code>/influencers</code></td><td><span class="tag tag-ex">Existing</span></td></tr>
+      <tr><td><code>CreatorFunnelEvent</code></td><td>Funnel analytics</td><td><span class="tag tag-ex">Existing</span></td></tr>
+    </table>
+    <h3>Proposed entities</h3>
+    <table>
+      <tr><th>Entity</th><th>Purpose</th></tr>
+      <tr><td><code>CreatorProfile</code></td><td>Linked user/lead, payout details, status</td></tr>
+      <tr><td><code>CreatorCampaign</code></td><td>Terms, rate, window, host scope</td></tr>
+      <tr><td><code>PromoCode</code></td><td>Code ↔ campaign ↔ creator</td></tr>
+      <tr><td><code>Booking.attribution</code></td><td><code>{ creatorId, codeId, campaignId, capturedAt }</code></td></tr>
+      <tr><td><code>CreatorCommission</code></td><td><strong>Separate ledger</strong> — amount, currency, bookingId, status; never reuse <code>platformFee</code></td></tr>
+      <tr><td><code>CreatorPayout</code></td><td>Batch of commissions; rail reference</td></tr>
+    </table>
+    <p class="note">Attribution lives on <code>Booking</code>; financial truth for creator pay lives only in <code>CreatorCommission</code>.</p>
+  </section>
+
+  <!-- 18 -->
+  <section class="sec" id="s18">
+    <p class="sec-num">Section 18</p>
+    <h2>Technical Architecture / Integration Points</h2>
+    <table>
+      <tr><th>Surface</th><th>Integration</th><th></th></tr>
+      <tr><td><code>/influencers</code></td><td>Public funnel → <code>POST /api/creators/leads</code></td><td><span class="tag tag-ex">Existing</span></td></tr>
+      <tr><td><code>/ops/marketing/creators</code></td><td>Ops CRM panel</td><td><span class="tag tag-ex">Existing</span></td></tr>
+      <tr><td><code>/host</code></td><td>Show creator economics on stays</td><td><span class="tag tag-pr">Proposed</span></td></tr>
+      <tr><td>Checkout</td><td>Accept promo code; stamp attribution</td><td><span class="tag tag-pr">Proposed</span></td></tr>
+      <tr><td>Confirm booking</td><td>Preserve attribution; do not alter platformFee math for creator</td><td><span class="tag tag-pr">Proposed</span></td></tr>
+      <tr><td>Cron / job</td><td>Post-checkout commission finalization</td><td><span class="tag tag-pr">Proposed</span></td></tr>
+      <tr><td>Notify</td><td>Extend Resend templates for payout / code events</td><td><span class="tag tag-pr">Proposed</span></td></tr>
+    </table>
+    <div class="flowbox">Checkout → Booking(+attribution) → payments/webhook
+        → Host calendar (existing)
+        → Nightly job: finalize commissions
+        → Ops payout UI → rail</div>
+  </section>
+
+  <!-- 19 -->
+  <section class="sec" id="s19">
+    <p class="sec-num">Section 19</p>
+    <h2>Commission Engine</h2>
+    <ul class="tight">
+      <li><strong>Inputs:</strong> booking snapshot (accommodation base, nights, currency), campaign rate, attribution, stay completion, fraud flags.</li>
+      <li><strong>Output:</strong> one <code>CreatorCommission</code> row per qualifying booking (idempotent on <code>bookingId</code>).</li>
+      <li><strong>Formula (default):</strong> <code>amount = accommodationBase × creatorRate</code> (e.g. 10%).</li>
+      <li><strong>Non-goals:</strong> changing guest total solely to fund creator; writing creator amounts into <code>platformFee</code>.</li>
+      <li><strong>Reversals:</strong> if booking later cancelled post-accrual but pre-pay, mark <code>reversed</code>; after pay, ops clawback process.</li>
+    </ul>
+    <div class="principle">
+      <div class="k">Governing principle</div>
+      <p>Creator commission ≠ Isisel platform commission. The engine may <em>read</em> <code>pricingSnapshot</code> for bases; it must <em>write</em> only to <code>CreatorCommission</code>.</p>
+    </div>
+  </section>
+
+  <!-- 20 -->
+  <section class="sec" id="s20">
+    <p class="sec-num">Section 20</p>
+    <h2>Fraud Prevention</h2>
+    <div class="grid2">
+      <article class="card">
+        <div class="k">Attribution integrity</div>
+        <ul>
+          <li>Code required at checkout (or signed deep link)</li>
+          <li>Reject self-booking (creator = guest)</li>
+          <li>Velocity caps per code / IP / device</li>
+          <li>Host–creator collusion review queue</li>
+        </ul>
+      </article>
+      <article class="card cream">
+        <div class="k">Payout gates</div>
+        <ul>
+          <li>Pay only post-checkout + confirmed</li>
+          <li>Manual approve above threshold</li>
+          <li>Hold on dispute / chargeback</li>
+          <li>Audit log on status transitions</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- 21 -->
+  <section class="sec" id="s21">
+    <p class="sec-num">Section 21</p>
+    <h2>Payout Lifecycle Statuses</h2>
+    <table>
+      <tr><th>Status</th><th>Meaning</th></tr>
+      <tr><td><code>pending_stay</code></td><td>Attributed booking exists; checkout not yet past</td></tr>
+      <tr><td><code>accrued</code></td><td>Stay completed; amount computed; awaiting review</td></tr>
+      <tr><td><code>on_hold</code></td><td>Fraud / dispute hold</td></tr>
+      <tr><td><code>approved</code></td><td>Cleared for inclusion in payout batch</td></tr>
+      <tr><td><code>payable</code></td><td>In open payout batch</td></tr>
+      <tr><td><code>paid</code></td><td>Funds sent; rail reference stored</td></tr>
+      <tr><td><code>reversed</code></td><td>Voided before or after pay (clawback)</td></tr>
+    </table>
+  </section>
+
+  <!-- 22 -->
+  <section class="sec" id="s22">
+    <p class="sec-num">Section 22</p>
+    <h2>Campaign Analytics</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="v">CTR</div><div class="l">Link / code engagement</div></div>
+      <div class="kpi"><div class="v">CVR</div><div class="l">Click → booking</div></div>
+      <div class="kpi"><div class="v">GMV</div><div class="l">Attributed accommodation</div></div>
+      <div class="kpi"><div class="v">CAC%</div><div class="l">Creator cost / GMV</div></div>
+    </div>
+    <p>Ops views: per creator, per campaign, per host, cohort by content drop date. Funnel events (<span class="tag tag-ex">Existing</span> <code>CreatorFunnelEvent</code>) feed top-of-funnel; booking attribution feeds revenue.</p>
+  </section>
+
+  <!-- 23 -->
+  <section class="sec" id="s23">
+    <p class="sec-num">Section 23</p>
+    <h2>Creator CAC</h2>
+    <p>Treat creator commission as variable customer acquisition cost on attributed GMV.</p>
+    <table>
+      <tr><th>Metric</th><th>Example</th></tr>
+      <tr><td>Attributed GMV (accommodation)</td><td>€5,000</td></tr>
+      <tr><td>Creator commissions paid/accrued</td><td>€850</td></tr>
+      <tr><td><strong>Creator CAC</strong></td><td><strong>17%</strong> (€850 / €5,000)</td></tr>
+      <tr><td>Isisel platform fee (separate)</td><td>Per snapshot — not included in 17%</td></tr>
+    </table>
+    <p class="note">Target bands are commercial choices; 17% is an illustrative working example for partner conversations, not a committed rate card.</p>
+  </section>
+
+  <!-- 24 -->
+  <section class="sec" id="s24">
+    <p class="sec-num">Section 24</p>
+    <h2>Example — Binta Lola Camara</h2>
+    <p class="lede">Worked example for partner and host conversations. Figures are illustrative.</p>
+    <table>
+      <tr><th>Assumption</th><th>Value</th></tr>
+      <tr><td>Nightly rate</td><td>€250</td></tr>
+      <tr><td>Creator rate</td><td>10%</td></tr>
+      <tr><td>Per night — host</td><td>€225</td></tr>
+      <tr><td>Per night — creator</td><td>€25</td></tr>
+      <tr><td>Per night — Isisel from creator share</td><td>€0</td></tr>
+      <tr><td>Campaign bookings (1 night each)</td><td>20</td></tr>
+    </table>
+    <table>
+      <tr><th>Roll-up (20 × €250)</th><th>Amount</th></tr>
+      <tr><td>Gross accommodation (GMV)</td><td><strong>€5,000</strong></td></tr>
+      <tr><td>Creator total (10%)</td><td><strong>€500</strong></td></tr>
+      <tr><td>Hosts collective net (pre platform fee)</td><td><strong>€4,500</strong></td></tr>
+      <tr><td>Isisel skim of creator share</td><td><strong>€0</strong></td></tr>
+      <tr><td>Creator CAC on this campaign</td><td><strong>10%</strong> (commissions / GMV)</td></tr>
+    </table>
+    <div class="principle">
+      <div class="k">Governing principle</div>
+      <p>Hosts only pay when Binta generates qualifying bookings. No booking → no €25. Platform commission, if any, remains Isisel’s line — not Binta’s.</p>
+    </div>
+  </section>
+
+  <!-- 25 -->
+  <section class="sec" id="s25">
+    <p class="sec-num">Section 25</p>
+    <h2>Campaign Economics</h2>
+    <div class="grid2">
+      <article class="card cream">
+        <div class="k">Host view</div>
+        <p>Predictable share only on attributed demand. Optional campaign participation. Clear reservation-level math.</p>
+      </article>
+      <article class="card">
+        <div class="k">Isisel view</div>
+        <p>Platform fee intact. Growth lever without buying inefficient media. Ops cost = CRM + ledger + payouts.</p>
+      </article>
+    </div>
+    <table>
+      <tr><th>Scenario</th><th>Bookings</th><th>GMV</th><th>Creator @10%</th><th>Notes</th></tr>
+      <tr><td>Pilot</td><td>20</td><td>€5,000</td><td>€500</td><td>Binta illustration</td></tr>
+      <tr><td>Scale</td><td>100</td><td>€25,000</td><td>€2,500</td><td>Same rate card</td></tr>
+      <tr><td>Mixed rates</td><td>50</td><td>€18,000</td><td>varies</td><td>Tiered creators</td></tr>
+    </table>
+  </section>
+
+  <!-- 26 -->
+  <section class="sec" id="s26">
+    <p class="sec-num">Section 26</p>
+    <h2>Legal / Commercial Considerations</h2>
+    <ul class="tight">
+      <li><strong>Written agreement</strong> per creator/campaign: rate, scope, content expectations, payout schedule, termination.</li>
+      <li><strong>IP &amp; brand:</strong> existing legal content covers creator materials; commercial revenue share only via agreement.</li>
+      <li><strong>Tax / KYC:</strong> collect payout identity where required; creators responsible for their tax status.</li>
+      <li><strong>Host consent:</strong> campaign terms disclosed before attributed bookings bind economics.</li>
+      <li><strong>Disputes:</strong> chargebacks freeze payable rows; ops playbook for reversals.</li>
+      <li><strong>No exclusivity by default</strong> unless negotiated.</li>
+    </ul>
+  </section>
+
+  <!-- 27 -->
+  <section class="sec" id="s27">
+    <p class="sec-num">Section 27</p>
+    <h2>MVP Scope</h2>
+    <table>
+      <tr><th>In</th><th>Out (later)</th></tr>
+      <tr>
+        <td>
+          Promo codes + booking attribution<br />
+          CreatorCommission ledger + post-stay job<br />
+          Ops approve / payout mark-paid<br />
+          Host economics line on reservation<br />
+          Basic creator summary (ops or simple portal)
+        </td>
+        <td>
+          Full self-serve creator app<br />
+          Multi-currency auto FX<br />
+          Instant payouts<br />
+          Marketplace of creators for hosts<br />
+          Automated collusion ML
+        </td>
+      </tr>
+    </table>
+    <p>Build on existing CRM — do not rebuild <code>/influencers</code> as a second marketing site.</p>
+  </section>
+
+  <!-- 28 -->
+  <section class="sec" id="s28">
+    <p class="sec-num">Section 28</p>
+    <h2>Phase 2</h2>
+    <div class="grid3">
+      <article class="card"><div class="k">Product</div><ul><li>Creator self-serve dashboard</li><li>Deep links + QR</li><li>Tiered rates</li></ul></article>
+      <article class="card"><div class="k">Money</div><ul><li>Payout rails API</li><li>Multi-currency settle</li><li>Host invoicing export</li></ul></article>
+      <article class="card"><div class="k">Growth</div><ul><li>A/B creative kits</li><li>Cohort LTV</li><li>Host opt-in marketplace</li></ul></article>
+    </div>
+  </section>
+
+  <!-- 29 -->
+  <section class="sec" id="s29">
+    <p class="sec-num">Section 29</p>
+    <h2>Future Creator Marketplace</h2>
+    <p>Longer horizon: hosts discover vetted creators, propose collaborations, and fund campaigns inside Isisel — with the same ledger rules (separate commission, post-stay finalize, transparent host economics).</p>
+    <ul class="tight">
+      <li>Creator profiles with performance badges (anonymized CAC bands)</li>
+      <li>Structured briefs and escrowed campaign budgets</li>
+      <li>Isisel as trust &amp; settlement layer — not a generic influencer SaaS clone</li>
+    </ul>
+  </section>
+
+  <!-- 30 -->
+  <section class="sec" id="s30">
+    <p class="sec-num">Section 30</p>
+    <h2>Conclusion</h2>
+    <div class="close">
+      <h3>Partner with creators. Protect the fee. Pay on performance.</h3>
+      <p>
+        Isisel already has the public funnel and ops CRM. This system adds <strong>attribution</strong>,
+        a <strong>CreatorCommission ledger</strong>, and host-clear economics so influencers earn when
+        they deliver stays — without confusing creator pay with platform commission.
+      </p>
+    </div>
+    <div class="principle">
+      <div class="k">Governing principle — final reminder</div>
+      <p><strong>Creator commission ≠ Isisel platform commission.</strong> Hosts only pay when a creator generates a qualifying booking. Finalize after stay. Never reuse <code>platformFee</code> for creator pay.</p>
+    </div>
+    <p>www.isisel.com · <a href="https://www.isisel.com/influencers">/influencers</a> · Ops <code>/ops/marketing/creators</code></p>
+  </section>
+
+  <div class="foot-doc">
+    <span>Isisel · Creator Partnership &amp; Influencer Commission System · Product Specification</span>
+    <span>Confidential · Partner-ready</span>
+  </div>
+
+</div>
+</body>
+</html>
