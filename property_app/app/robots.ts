@@ -17,6 +17,7 @@ export default function robots(): MetadataRoute.Robots {
         "/founding-hosts",
         "/influencers",
         "/investors",
+        "/horizon",
         "/properties",
         "/host/onboarding",
       ],

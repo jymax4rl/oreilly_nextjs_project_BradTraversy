@@ -50,6 +50,7 @@ const Footer = ({ className = "" }) => {
               <FooterLink href="/founding-hosts">Founding Hosts</FooterLink>
               <FooterLink href="/influencers">{t("footer.forCreators")}</FooterLink>
               <FooterLink href="/investors">{t("footer.forInvestors")}</FooterLink>
+              <FooterLink href="/horizon">Horizon · Bijilo</FooterLink>
               <FooterLink href="/host/onboarding">{t("nav.becomeHost")}</FooterLink>
               <FooterLink href="/about">{t("footer.about")}</FooterLink>
               <FooterLink href="/careers">{t("footer.careers")}</FooterLink>

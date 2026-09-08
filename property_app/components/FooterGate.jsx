@@ -10,5 +10,6 @@ export default function FooterGate({ children }) {
   if (pathname === "/properties" || pathname.startsWith("/properties?")) {
     return null;
   }
+  if (pathname === "/horizon" || pathname.startsWith("/horizon/")) return null;
   return children;
 }
