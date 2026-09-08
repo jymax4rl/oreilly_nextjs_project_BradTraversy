@@ -6,9 +6,10 @@ import { FaWhatsapp } from "react-icons/fa";
 
 /**
  * Collects a WhatsApp-preferred guest phone before submitting a reservation.
- * When online checkout is on, paymentMethods offers:
- *   - geniuspay → Mobile Money (African currencies only — Wave / Orange / MTN)
- *   - creem → Card (EUR / USD / other non-African via Creem)
+ * When online checkout is on, paymentMethods offers (all via GeniusPay):
+ *   - geniuspay → Mobile Money (African currencies — Wave / Orange / MTN)
+ *   - geniuspayCard → Card (Visa / Mastercard via GeniusPay)
+ * Creem remains optional fallback only when GeniusPay is off.
  */
 export default function GuestPhoneModal({
   open,
@@ -19,9 +20,7 @@ export default function GuestPhoneModal({
   submitting = false,
   error = null,
   paymentMethods = null,
-  /** Guest currency selector — drives GeniusPay MoMo vs card/wallet copy */
   currencyCode = "USD",
-  /** When true, GeniusPay is the international card/wallet rail (not MoMo) */
   geniusPayInternational = false,
 }) {
   const titleId = useId();
@@ -29,12 +28,17 @@ export default function GuestPhoneModal({
   const inputRef = useRef(null);
 
   const international = Boolean(geniusPayInternational);
-  // When paying in EUR/USD/etc., only card (Creem) is offered — not MoMo.
-  const geniusEnabled =
-    Boolean(paymentMethods?.geniuspay) && !international;
-  const creemEnabled = Boolean(paymentMethods?.creem);
-  const showMethods = geniusEnabled || creemEnabled;
-  const bothMethods = geniusEnabled && creemEnabled;
+  const momoEnabled = Boolean(paymentMethods?.geniuspay) && !international;
+  const geniusCardEnabled = Boolean(
+    paymentMethods?.geniuspayCard ?? paymentMethods?.geniuspay,
+  );
+  const creemEnabled =
+    Boolean(paymentMethods?.creem) && !geniusCardEnabled && !momoEnabled;
+  const showMethods = momoEnabled || geniusCardEnabled || creemEnabled;
+  const bothMethods =
+    (momoEnabled && geniusCardEnabled) ||
+    (momoEnabled && creemEnabled) ||
+    (geniusCardEnabled && creemEnabled);
   const currency = String(currencyCode || "USD").trim().toUpperCase() || "USD";
 
   useEffect(() => {
@@ -55,11 +59,19 @@ export default function GuestPhoneModal({
 
   if (!open) return null;
 
-  const defaultMethod = geniusEnabled
-    ? "geniuspay"
-    : creemEnabled
-      ? "creem"
-      : undefined;
+  const defaultMethod = international
+    ? geniusCardEnabled
+      ? "geniuspay_card"
+      : creemEnabled
+        ? "creem"
+        : undefined
+    : momoEnabled
+      ? "geniuspay"
+      : geniusCardEnabled
+        ? "geniuspay_card"
+        : creemEnabled
+          ? "creem"
+          : undefined;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -67,13 +79,12 @@ export default function GuestPhoneModal({
     onConfirm?.(defaultMethod);
   };
 
-  const geniusTitle = "Mobile Money";
-  const geniusHint = "Wave, Orange Money, MTN MoMo, Moov — via GeniusPay";
-  const GeniusIcon = Smartphone;
-
   const phonePlaceholder = international
     ? "+33 6 XX XX XX XX"
     : "+225 07 XX XX XX XX";
+
+  const cardLabel = submitting ? "Starting…" : "Card";
+  const cardHint = "Visa / Mastercard — via GeniusPay";
 
   return (
     <div
@@ -123,7 +134,7 @@ export default function GuestPhoneModal({
               {showMethods
                 ? international
                   ? `Share a WhatsApp number, then pay by card${
-                      currency ? ` (${currency})` : ""
+                      currency ? ` (${currency} stay · charged in XOF)` : ""
                     }.`
                   : "Share a WhatsApp number, then choose how you want to pay."
                 : "Share a WhatsApp number so the host can reach you about your stay."}
@@ -170,44 +181,68 @@ export default function GuestPhoneModal({
                 <legend className="text-xs font-medium text-[var(--kama-ink-muted)]">
                   Payment method
                 </legend>
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => !submitting && onConfirm?.("geniuspay")}
-                  className="flex w-full items-start gap-3 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3.5 py-3 text-left transition hover:border-[var(--kama-accent)] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--kama-accent)]/10 text-[var(--kama-accent)]">
-                    <GeniusIcon size={18} aria-hidden />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-semibold text-[var(--kama-ink)]">
-                      {submitting ? "Starting…" : geniusTitle}
+                {momoEnabled ? (
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={() => !submitting && onConfirm?.("geniuspay")}
+                    className="flex w-full items-start gap-3 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3.5 py-3 text-left transition hover:border-[var(--kama-accent)] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--kama-accent)]/10 text-[var(--kama-accent)]">
+                      <Smartphone size={18} aria-hidden />
                     </span>
-                    <span className="mt-0.5 block text-xs leading-snug text-[var(--kama-ink-muted)]">
-                      {geniusHint}
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold text-[var(--kama-ink)]">
+                        {submitting ? "Starting…" : "Mobile Money"}
+                      </span>
+                      <span className="mt-0.5 block text-xs leading-snug text-[var(--kama-ink-muted)]">
+                        Wave, Orange Money, MTN MoMo, Moov — via GeniusPay
+                      </span>
                     </span>
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => !submitting && onConfirm?.("creem")}
-                  className="flex w-full items-start gap-3 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3.5 py-3 text-left transition hover:border-[var(--kama-accent)] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--kama-accent)]/10 text-[var(--kama-accent)]">
-                    <CreditCard size={18} aria-hidden />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-semibold text-[var(--kama-ink)]">
-                      {submitting ? "Starting…" : "Card"}
+                  </button>
+                ) : null}
+                {geniusCardEnabled ? (
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={() =>
+                      !submitting && onConfirm?.("geniuspay_card")
+                    }
+                    className="flex w-full items-start gap-3 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3.5 py-3 text-left transition hover:border-[var(--kama-accent)] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--kama-accent)]/10 text-[var(--kama-accent)]">
+                      <CreditCard size={18} aria-hidden />
                     </span>
-                    <span className="mt-0.5 block text-xs leading-snug text-[var(--kama-ink-muted)]">
-                      {international
-                        ? `Visa / Mastercard${currency ? ` · ${currency}` : ""} — via Creem`
-                        : "Visa / Mastercard — via Creem"}
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold text-[var(--kama-ink)]">
+                        {cardLabel}
+                      </span>
+                      <span className="mt-0.5 block text-xs leading-snug text-[var(--kama-ink-muted)]">
+                        {cardHint}
+                      </span>
                     </span>
-                  </span>
-                </button>
+                  </button>
+                ) : null}
+                {creemEnabled ? (
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={() => !submitting && onConfirm?.("creem")}
+                    className="flex w-full items-start gap-3 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3.5 py-3 text-left transition hover:border-[var(--kama-accent)] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--kama-accent)]/10 text-[var(--kama-accent)]">
+                      <CreditCard size={18} aria-hidden />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold text-[var(--kama-ink)]">
+                        {submitting ? "Starting…" : "Card"}
+                      </span>
+                      <span className="mt-0.5 block text-xs leading-snug text-[var(--kama-ink-muted)]">
+                        Visa / Mastercard — via Creem
+                      </span>
+                    </span>
+                  </button>
+                ) : null}
               </fieldset>
             ) : null}
           </div>
@@ -238,8 +273,8 @@ export default function GuestPhoneModal({
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--kama-accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {showMethods ? (
-                    geniusEnabled ? (
-                      <GeniusIcon size={16} aria-hidden />
+                    momoEnabled && !international ? (
+                      <Smartphone size={16} aria-hidden />
                     ) : (
                       <CreditCard size={16} aria-hidden />
                     )
@@ -249,10 +284,10 @@ export default function GuestPhoneModal({
                       ? "Starting…"
                       : "Requesting…"
                     : showMethods
-                      ? geniusEnabled
+                      ? momoEnabled && !international
                         ? "Pay with Mobile Money"
-                        : international
-                          ? `Pay with card${currency ? ` (${currency})` : ""}`
+                        : geniusCardEnabled
+                          ? "Pay with card"
                           : "Pay with card"
                       : "Confirm reservation"}
                 </button>

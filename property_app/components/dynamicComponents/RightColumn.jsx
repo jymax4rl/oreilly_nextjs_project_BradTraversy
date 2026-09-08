@@ -77,15 +77,13 @@ function RightColumn({ data }) {
   const paymentAllowed = canUseOnlineCheckout(session, data);
   const gatewayCheckout =
     isPaymentGatewayCheckoutEnabled() && paymentAllowed;
-  const creemCheckout = isCreemCheckoutEnabled() && paymentAllowed;
   const geniusPayPlan = resolveGeniusPayCheckoutPlan(selectedPayCurrency);
   const geniusPayInternational = geniusPayPlan.rail === "international";
-  // GeniusPay/Paystack on this merchant is XOF MoMo only — hide it for EUR/etc.
+  // Prefer GeniusPay for MoMo + card (Creem live may not be activated).
   const geniusPayCheckout =
-    isGeniusPayCheckoutEnabled() &&
-    paymentAllowed &&
-    geniusPayPlan.useGeniusPay !== false &&
-    !geniusPayInternational;
+    isGeniusPayCheckoutEnabled() && paymentAllowed;
+  const creemCheckout =
+    isCreemCheckoutEnabled() && paymentAllowed && !geniusPayCheckout;
   const checkInTimeLabel = formatClockTimeLabel(
     data.checkInTime,
     DEFAULT_CHECK_IN_TIME,
@@ -405,7 +403,7 @@ function RightColumn({ data }) {
     }
   };
 
-  const startGeniusPayCheckout = async (validation, phone) => {
+  const startGeniusPayCheckout = async (validation, phone, intent = "momo") => {
     setPhoneModalOpen(false);
     setPendingValidation(null);
     setSubmitting(true);
@@ -420,14 +418,14 @@ function RightColumn({ data }) {
           checkOut: validation.checkOut,
           guestPhone: phone,
           promoCode: promoCode.trim() || undefined,
-          // Propagate currency selector. Non-African → EUR/USD card/wallet rail.
           currency: selectedPayCurrency || paymentCurrency || "USD",
-          checkoutRail: geniusPayPlan.rail,
+          checkoutIntent: intent === "card" ? "card" : "momo",
+          checkoutRail:
+            intent === "card" ? "international" : geniusPayPlan.rail,
         }),
       });
       const payload = await res.json().catch(() => ({}));
       if (!res.ok || !payload?.data?.checkout_url) {
-        // International currencies must use Creem — server may return 409.
         if (payload?.use_creem && creemCheckout) {
           await startCreemCheckout(validation, phone);
           return;
@@ -454,24 +452,33 @@ function RightColumn({ data }) {
     }
   };
 
-  /** Route explicit guest choice: geniuspay = MoMo (Africa), creem = card. */
+  /** geniuspay = MoMo, geniuspay_card = GeniusPay card, creem = Creem fallback. */
   const startGatewayCheckout = (validation, phone, method) => {
-    // Non-African currencies never go through GeniusPay/Paystack (XOF-only).
-    if (geniusPayInternational && creemCheckout) {
-      void startCreemCheckout(validation, phone);
-      return;
-    }
     if (method === "creem" && creemCheckout) {
       void startCreemCheckout(validation, phone);
       return;
     }
-    if (method === "geniuspay" && geniusPayCheckout) {
-      void startGeniusPayCheckout(validation, phone);
+    if (
+      (method === "geniuspay_card" || method === "card") &&
+      geniusPayCheckout
+    ) {
+      void startGeniusPayCheckout(validation, phone, "card");
       return;
     }
-    // Fallback when only one provider is configured.
+    if (method === "geniuspay" && geniusPayCheckout) {
+      void startGeniusPayCheckout(
+        validation,
+        phone,
+        geniusPayInternational ? "card" : "momo",
+      );
+      return;
+    }
     if (geniusPayCheckout) {
-      void startGeniusPayCheckout(validation, phone);
+      void startGeniusPayCheckout(
+        validation,
+        phone,
+        geniusPayInternational ? "card" : "momo",
+      );
       return;
     }
     if (creemCheckout) {
@@ -481,9 +488,7 @@ function RightColumn({ data }) {
     setPaymentNotice({
       type: "error",
       title: "Online checkout unavailable",
-      message: geniusPayInternational
-        ? "Card checkout is required for this currency. Please try again or message the host."
-        : "Please request a reservation and arrange payment with the host.",
+      message: "Please request a reservation and arrange payment with the host.",
     });
   };
 
@@ -811,7 +816,9 @@ function RightColumn({ data }) {
         paymentMethods={
           gatewayCheckout
             ? {
-                geniuspay: geniusPayCheckout,
+                // MoMo only when currency is African; card always via GeniusPay.
+                geniuspay: geniusPayCheckout && !geniusPayInternational,
+                geniuspayCard: geniusPayCheckout,
                 creem: creemCheckout,
               }
             : null

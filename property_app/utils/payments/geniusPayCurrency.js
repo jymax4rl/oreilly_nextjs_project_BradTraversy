@@ -1,11 +1,13 @@
 /**
  * Shared GeniusPay currency / rail helpers (safe for client + server).
- * Charge currencies on create-payment: XOF, EUR, USD.
+ *
+ * This merchant settles through Paystack in XOF. Card and MoMo both charge
+ * whole-number XOF — never send fractional EUR/USD (Paystack rejects decimals).
  */
 
 export const GENIUSPAY_CHARGE_CURRENCIES = new Set(["XOF", "EUR", "USD"]);
 
-/** Currencies that stay on the African MoMo hosted checkout rail. */
+/** Currencies that unlock the African MoMo checkout option. */
 export const AFRICAN_MOMO_CURRENCIES = new Set([
   "XOF",
   "XAF",
@@ -31,35 +33,41 @@ export function isGeniusPayAfricanCurrency(code) {
 }
 
 /**
- * Map the guest currency selector to a GeniusPay charge plan.
- * - African MoMo currencies → XOF hosted checkout (Wave / Orange / MTN)
- * - Non-African currencies → GeniusPay cannot present EUR/USD on this
- *   merchant (Paystack converts to XOF). Callers should use Creem instead;
- *   this plan marks rail=international so the UI can hide GeniusPay.
+ * @param {string} selectedCurrency guest currency selector
+ * @param {"momo"|"card"|null|undefined} intent
+ *   - momo → hosted MoMo checkout (Africa)
+ *   - card → payment_method=card (Visa/Mastercard via GeniusPay/Paystack)
+ *   - omitted → infer from currency (Africa→momo, else→card)
  */
-export function resolveGeniusPayCheckoutPlan(selectedCurrency) {
+export function resolveGeniusPayCheckoutPlan(selectedCurrency, intent) {
   const selected = normalizeGeniusPayCurrency(selectedCurrency);
+  const african = isGeniusPayAfricanCurrency(selected);
+  const wantCard =
+    intent === "card" ||
+    intent === "geniuspay_card" ||
+    (!intent && !african);
+  const wantMomo = intent === "momo" || intent === "geniuspay" || (!intent && african);
 
-  if (isGeniusPayAfricanCurrency(selected)) {
+  if (wantCard || (!wantMomo && !african)) {
     return {
       selectedCurrency: selected,
+      /** Paystack settlement currency — must be a whole number */
       chargeCurrency: "XOF",
-      rail: "africa",
-      /** Hosted MoMo checkout — amount must be a whole XOF integer */
-      paymentMethod: null,
+      rail: "international",
+      paymentMethod: "card",
       allowedMethods: null,
       useGeniusPay: true,
+      intent: "card",
     };
   }
 
-  const chargeCurrency = selected === "EUR" ? "EUR" : "USD";
   return {
     selectedCurrency: selected,
-    chargeCurrency,
-    rail: "international",
+    chargeCurrency: "XOF",
+    rail: "africa",
     paymentMethod: null,
     allowedMethods: null,
-    /** Prefer Creem for international — GeniusPay/Paystack is XOF-only here */
-    useGeniusPay: false,
+    useGeniusPay: true,
+    intent: "momo",
   };
 }

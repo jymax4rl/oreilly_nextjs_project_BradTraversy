@@ -199,9 +199,9 @@ async function geniusPayFetch(path, { method = "GET", body } = {}) {
 
 /**
  * Create a GeniusPay payment / checkout session.
- * - Africa / XOF: omit payment_method → hosted checkout (MoMo + card)
- * - International EUR/USD: payment_method=card → Stripe gateway with that
- *   currency (Apple Pay / Google Pay / Visa), not the XOF-hosted page
+ * - MoMo: omit payment_method → hosted checkout (Wave / Orange / MTN)
+ * - Card: payment_method=card → card rail; still charge whole-number XOF
+ *   (Paystack rejects fractional amounts on this merchant)
  */
 export async function createGeniusPayPayment({
   amount,

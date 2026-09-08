@@ -36,13 +36,11 @@ import {
  * POST /api/payments/geniuspay/initialize
  *
  * Starts GeniusPay checkout.
- * Listing fees are priced in USD; we charge:
- *   - XOF for African / MoMo currencies → hosted GeniusPay (Wave / Orange / …)
- *   - EUR or USD for non-African selectors → payment_method=card (Stripe:
- *     Apple Pay / Google Pay / card in that currency)
+ * Listing fees are priced in USD; this merchant settles in whole-number XOF:
+ *   - MoMo (Africa) → hosted GeniusPay (Wave / Orange / MTN) without payment_method
+ *   - Card (EUR/USD or explicit card) → payment_method=card, still charged in XOF
  *
- * Important: GeniusPay's hosted checkout page always presents XOF, so
- * international must use the direct card gateway — not the hosted page.
+ * Creem is not used when GeniusPay is enabled (live Creem may be inactive).
  */
 export async function POST(req) {
   try {
@@ -178,38 +176,27 @@ export async function POST(req) {
     );
     const fees = calculateBookingFees(discount.discountedBase);
 
-    const plan = resolveGeniusPayCheckoutPlan(selectedCurrency);
-    if (checkoutRailHint === "international" || plan.rail === "international") {
-      // This GeniusPay merchant settles through Paystack in XOF. International
-      // guests must use Creem card checkout — never send EUR/USD here (Paystack
-      // converts to fractional XOF and errors: "No decimal places are allowed").
-      return NextResponse.json(
-        {
-          message:
-            "Mobile money is only available for African currencies. Use card checkout for EUR, USD, and other currencies.",
-          code: "GENIUSPAY_AFRICA_ONLY",
-          use_creem: true,
-        },
-        { status: 409 },
-      );
-    }
-    const fxRate = await resolveGeniusPayFxRate(plan.chargeCurrency);
-    const converted = convertUsdToGeniusPayAmount(
-      fees.total,
-      plan.chargeCurrency,
-      fxRate,
+    const plan = resolveGeniusPayCheckoutPlan(
+      selectedCurrency,
+      body.checkoutIntent || body.intent || checkoutRailHint || undefined,
     );
+    // Always charge whole XOF on this merchant (Paystack). Card uses
+    // payment_method=card; MoMo uses hosted checkout without a method.
+    const fxRate = await resolveGeniusPayFxRate("XOF");
+    const converted = convertUsdToGeniusPayAmount(fees.total, "XOF", fxRate);
     if (!converted) {
       return NextResponse.json(
         {
           message:
-            plan.rail === "international"
+            plan.intent === "card"
               ? "Stay total is too low for card checkout"
               : "Stay total is too low for mobile money checkout",
         },
         { status: 400 },
       );
     }
+    // Paystack hard-requires integer XOF.
+    converted.amount = Math.round(converted.amount);
 
     const nights = countNights(validation.checkIn, validation.checkOut);
     const requestId = `isisel_${propertyId}_${validation.checkIn}_${validation.checkOut}_${guestUserId}_${Date.now()}`;
