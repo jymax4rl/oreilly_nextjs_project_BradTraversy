@@ -32,12 +32,10 @@ export function isGeniusPayAfricanCurrency(code) {
 
 /**
  * Map the guest currency selector to a GeniusPay charge plan.
- * - African MoMo currencies → XOF, hosted checkout (MoMo + card)
- * - EUR → charge EUR via payment_method=card (Stripe wallets/card)
- * - Other non-African → charge USD via payment_method=card
- *
- * Hosted GeniusPay checkout always presents XOF, so international must use
- * the direct card gateway to keep Apple Pay / Google Pay / card in EUR/USD.
+ * - African MoMo currencies → XOF hosted checkout (Wave / Orange / MTN)
+ * - Non-African currencies → GeniusPay cannot present EUR/USD on this
+ *   merchant (Paystack converts to XOF). Callers should use Creem instead;
+ *   this plan marks rail=international so the UI can hide GeniusPay.
  */
 export function resolveGeniusPayCheckoutPlan(selectedCurrency) {
   const selected = normalizeGeniusPayCurrency(selectedCurrency);
@@ -47,8 +45,10 @@ export function resolveGeniusPayCheckoutPlan(selectedCurrency) {
       selectedCurrency: selected,
       chargeCurrency: "XOF",
       rail: "africa",
+      /** Hosted MoMo checkout — amount must be a whole XOF integer */
       paymentMethod: null,
       allowedMethods: null,
+      useGeniusPay: true,
     };
   }
 
@@ -57,7 +57,9 @@ export function resolveGeniusPayCheckoutPlan(selectedCurrency) {
     selectedCurrency: selected,
     chargeCurrency,
     rail: "international",
-    paymentMethod: "card",
+    paymentMethod: null,
     allowedMethods: null,
+    /** Prefer Creem for international — GeniusPay/Paystack is XOF-only here */
+    useGeniusPay: false,
   };
 }

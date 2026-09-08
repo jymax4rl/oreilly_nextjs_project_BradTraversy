@@ -179,13 +179,19 @@ export async function POST(req) {
     const fees = calculateBookingFees(discount.discountedBase);
 
     const plan = resolveGeniusPayCheckoutPlan(selectedCurrency);
-    // Client rail hint wins when currency mapping is ambiguous (e.g. USD can
-    // mean listing default). Prefer international when the guest UI said so.
-    if (checkoutRailHint === "international" && plan.rail !== "international") {
-      plan.rail = "international";
-      plan.chargeCurrency = selectedCurrency === "EUR" ? "EUR" : "USD";
-      plan.paymentMethod = "card";
-      plan.allowedMethods = null;
+    if (checkoutRailHint === "international" || plan.rail === "international") {
+      // This GeniusPay merchant settles through Paystack in XOF. International
+      // guests must use Creem card checkout — never send EUR/USD here (Paystack
+      // converts to fractional XOF and errors: "No decimal places are allowed").
+      return NextResponse.json(
+        {
+          message:
+            "Mobile money is only available for African currencies. Use card checkout for EUR, USD, and other currencies.",
+          code: "GENIUSPAY_AFRICA_ONLY",
+          use_creem: true,
+        },
+        { status: 409 },
+      );
     }
     const fxRate = await resolveGeniusPayFxRate(plan.chargeCurrency);
     const converted = convertUsdToGeniusPayAmount(

@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useId, useRef } from "react";
-import { CreditCard, Smartphone, Wallet, X } from "lucide-react";
+import { CreditCard, Smartphone, X } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 
 /**
  * Collects a WhatsApp-preferred guest phone before submitting a reservation.
  * When online checkout is on, paymentMethods offers:
- *   - geniuspay → MoMo (African currencies) or Apple Pay / Google Pay / card
- *     (non-African currencies) via GeniusPay
- *   - creem → Card via Creem
+ *   - geniuspay → Mobile Money (African currencies only — Wave / Orange / MTN)
+ *   - creem → Card (EUR / USD / other non-African via Creem)
  */
 export default function GuestPhoneModal({
   open,
@@ -29,12 +28,14 @@ export default function GuestPhoneModal({
   const inputId = useId();
   const inputRef = useRef(null);
 
-  const geniusEnabled = Boolean(paymentMethods?.geniuspay);
+  const international = Boolean(geniusPayInternational);
+  // When paying in EUR/USD/etc., only card (Creem) is offered — not MoMo.
+  const geniusEnabled =
+    Boolean(paymentMethods?.geniuspay) && !international;
   const creemEnabled = Boolean(paymentMethods?.creem);
   const showMethods = geniusEnabled || creemEnabled;
   const bothMethods = geniusEnabled && creemEnabled;
   const currency = String(currencyCode || "USD").trim().toUpperCase() || "USD";
-  const international = Boolean(geniusPayInternational);
 
   useEffect(() => {
     if (!open) return;
@@ -66,13 +67,9 @@ export default function GuestPhoneModal({
     onConfirm?.(defaultMethod);
   };
 
-  const geniusTitle = international
-    ? "Apple Pay / Google Pay / Card"
-    : "Mobile Money";
-  const geniusHint = international
-    ? `Pay in ${currency} — via GeniusPay`
-    : "Wave, Orange Money, MTN MoMo, Moov — via GeniusPay";
-  const GeniusIcon = international ? Wallet : Smartphone;
+  const geniusTitle = "Mobile Money";
+  const geniusHint = "Wave, Orange Money, MTN MoMo, Moov — via GeniusPay";
+  const GeniusIcon = Smartphone;
 
   const phonePlaceholder = international
     ? "+33 6 XX XX XX XX"
@@ -125,7 +122,9 @@ export default function GuestPhoneModal({
             <p className="text-sm leading-snug text-[var(--kama-ink-muted)]">
               {showMethods
                 ? international
-                  ? `Share a WhatsApp number, then pay in ${currency}.`
+                  ? `Share a WhatsApp number, then pay by card${
+                      currency ? ` (${currency})` : ""
+                    }.`
                   : "Share a WhatsApp number, then choose how you want to pay."
                 : "Share a WhatsApp number so the host can reach you about your stay."}
             </p>
@@ -203,7 +202,9 @@ export default function GuestPhoneModal({
                       {submitting ? "Starting…" : "Card"}
                     </span>
                     <span className="mt-0.5 block text-xs leading-snug text-[var(--kama-ink-muted)]">
-                      Visa / Mastercard — via Creem
+                      {international
+                        ? `Visa / Mastercard${currency ? ` · ${currency}` : ""} — via Creem`
+                        : "Visa / Mastercard — via Creem"}
                     </span>
                   </span>
                 </button>
@@ -249,10 +250,10 @@ export default function GuestPhoneModal({
                       : "Requesting…"
                     : showMethods
                       ? geniusEnabled
-                        ? international
-                          ? `Pay in ${currency}`
-                          : "Pay with Mobile Money"
-                        : "Pay with card"
+                        ? "Pay with Mobile Money"
+                        : international
+                          ? `Pay with card${currency ? ` (${currency})` : ""}`
+                          : "Pay with card"
                       : "Confirm reservation"}
                 </button>
               </div>

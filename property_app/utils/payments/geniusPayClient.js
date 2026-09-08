@@ -113,6 +113,7 @@ export function convertUsdToGeniusPayAmount(amountUsd, chargeCurrency, fxRate) {
       Number.isFinite(Number(fxRate)) && Number(fxRate) > 0
         ? Number(fxRate)
         : getUsdToXofRate();
+    // Paystack requires a whole-number XOF amount (no decimals).
     const amount = Math.round(usd * rate);
     return amount >= 200 ? { amount, rate } : null;
   }
@@ -224,6 +225,10 @@ export async function createGeniusPayPayment({
   if (!Number.isFinite(chargeAmount) || chargeAmount <= 0) {
     throw new Error("GeniusPay amount is invalid");
   }
+  // Paystack (GeniusPay's CI rail) rejects fractional XOF.
+  if (chargeCurrency === "XOF" && !Number.isInteger(chargeAmount)) {
+    throw new Error("GeniusPay XOF amount must be a whole number");
+  }
   if (chargeCurrency === "XOF" && chargeAmount < 200) {
     throw new Error("GeniusPay amount must be at least 200 XOF");
   }
@@ -235,14 +240,15 @@ export async function createGeniusPayPayment({
   }
 
   const payload = {
-    amount: chargeAmount,
+    // Always send an integer for XOF — Paystack: "No decimal places are allowed"
+    amount:
+      chargeCurrency === "XOF" ? Math.round(chargeAmount) : chargeAmount,
     currency: GENIUSPAY_CHARGE_CURRENCIES.has(chargeCurrency)
       ? chargeCurrency
       : "XOF",
     ...(paymentMethod ? { payment_method: String(paymentMethod) } : {}),
     ...(Array.isArray(allowedMethods) && allowedMethods.length
       ? {
-          // Flutter SDK uses allowedMethods; REST accepts snake_case equivalents.
           allowed_methods: allowedMethods.map((m) => String(m)),
         }
       : {}),

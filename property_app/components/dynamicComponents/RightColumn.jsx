@@ -78,9 +78,14 @@ function RightColumn({ data }) {
   const gatewayCheckout =
     isPaymentGatewayCheckoutEnabled() && paymentAllowed;
   const creemCheckout = isCreemCheckoutEnabled() && paymentAllowed;
-  const geniusPayCheckout = isGeniusPayCheckoutEnabled() && paymentAllowed;
   const geniusPayPlan = resolveGeniusPayCheckoutPlan(selectedPayCurrency);
   const geniusPayInternational = geniusPayPlan.rail === "international";
+  // GeniusPay/Paystack on this merchant is XOF MoMo only — hide it for EUR/etc.
+  const geniusPayCheckout =
+    isGeniusPayCheckoutEnabled() &&
+    paymentAllowed &&
+    geniusPayPlan.useGeniusPay !== false &&
+    !geniusPayInternational;
   const checkInTimeLabel = formatClockTimeLabel(
     data.checkInTime,
     DEFAULT_CHECK_IN_TIME,
@@ -422,6 +427,11 @@ function RightColumn({ data }) {
       });
       const payload = await res.json().catch(() => ({}));
       if (!res.ok || !payload?.data?.checkout_url) {
+        // International currencies must use Creem — server may return 409.
+        if (payload?.use_creem && creemCheckout) {
+          await startCreemCheckout(validation, phone);
+          return;
+        }
         setPaymentNotice({
           type: "error",
           title: "Could not start checkout",
@@ -444,8 +454,13 @@ function RightColumn({ data }) {
     }
   };
 
-  /** Route explicit guest choice: geniuspay = MoMo, creem = card. */
+  /** Route explicit guest choice: geniuspay = MoMo (Africa), creem = card. */
   const startGatewayCheckout = (validation, phone, method) => {
+    // Non-African currencies never go through GeniusPay/Paystack (XOF-only).
+    if (geniusPayInternational && creemCheckout) {
+      void startCreemCheckout(validation, phone);
+      return;
+    }
     if (method === "creem" && creemCheckout) {
       void startCreemCheckout(validation, phone);
       return;
@@ -466,7 +481,9 @@ function RightColumn({ data }) {
     setPaymentNotice({
       type: "error",
       title: "Online checkout unavailable",
-      message: "Please request a reservation and arrange payment with the host.",
+      message: geniusPayInternational
+        ? "Card checkout is required for this currency. Please try again or message the host."
+        : "Please request a reservation and arrange payment with the host.",
     });
   };
 
