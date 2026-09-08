@@ -137,10 +137,34 @@ export default function CreatorConsoleView({ initial }) {
         </p>
       ) : null}
 
+      {(data?.alerts || []).length > 0 ? (
+        <div className="mt-4 space-y-2">
+          {data.alerts.map((alert) => (
+            <div
+              key={alert.id || alert.code || alert.message}
+              className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-950"
+              role="status"
+            >
+              <p className="font-semibold">
+                {alert.type === "partner"
+                  ? "Partnership paused"
+                  : `Code paused${alert.code ? `: ${alert.code}` : ""}`}
+              </p>
+              <p className="mt-0.5 text-xs leading-relaxed text-amber-900/90">
+                {alert.message}
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
       <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           { label: "Active codes", value: summary.activeCodes ?? summary.codes },
-          { label: "Listings", value: summary.properties },
+          {
+            label: "Paused",
+            value: summary.pausedCodes || 0,
+          },
           { label: "Stays", value: summary.reservations },
           { label: "Paid", value: money(summary.paid) },
         ].map((card) => (
@@ -167,6 +191,9 @@ export default function CreatorConsoleView({ initial }) {
           <ul className="space-y-2">
             {(data?.properties || []).map((p) => {
               const active = selectedProperty?.id === p.id;
+              const paused =
+                Boolean(p.paused) ||
+                (!p.promotionActive && (p.pausedCodes?.length || 0) > 0);
               return (
                 <li key={p.id}>
                   <button
@@ -174,7 +201,9 @@ export default function CreatorConsoleView({ initial }) {
                     onClick={() => setSelectedPropertyId(p.id)}
                     className={`flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left transition ${
                       active
-                        ? "border-[var(--kama-accent)] bg-[var(--kama-accent-soft)]"
+                        ? paused
+                          ? "border-amber-400 bg-amber-50"
+                          : "border-[var(--kama-accent)] bg-[var(--kama-accent-soft)]"
                         : "border-[var(--kama-border)] bg-[var(--kama-surface)] hover:border-[var(--kama-border-strong)]"
                     }`}
                   >
@@ -183,7 +212,7 @@ export default function CreatorConsoleView({ initial }) {
                       <img
                         src={p.image}
                         alt=""
-                        className="h-12 w-12 shrink-0 rounded-xl object-cover"
+                        className={`h-12 w-12 shrink-0 rounded-xl object-cover ${paused ? "grayscale" : ""}`}
                       />
                     ) : (
                       <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--kama-field)] text-xs font-semibold text-[var(--kama-ink-muted)]">
@@ -191,8 +220,15 @@ export default function CreatorConsoleView({ initial }) {
                       </span>
                     )}
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-[var(--kama-ink)]">
-                        {p.name}
+                      <span className="flex items-center gap-2">
+                        <span className="block truncate text-sm font-semibold text-[var(--kama-ink)]">
+                          {p.name}
+                        </span>
+                        {paused ? (
+                          <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
+                            Paused
+                          </span>
+                        ) : null}
                       </span>
                       <span className="mt-0.5 block truncate text-xs text-[var(--kama-ink-muted)]">
                         {[p.city, p.country].filter(Boolean).join(", ") ||
@@ -227,29 +263,50 @@ export default function CreatorConsoleView({ initial }) {
                   {money(partnership.stats.accrued)}
                 </p>
                 <ul className="mt-3 space-y-2">
-                  {partnership.codes.map((code) => (
-                    <li
-                      key={code.id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--kama-border)] px-3 py-2"
-                    >
-                      <div>
-                        <p className="font-mono text-sm font-semibold tracking-wide text-[var(--kama-accent)]">
-                          {code.code}
-                        </p>
-                        <p className="text-xs text-[var(--kama-ink-muted)]">
-                          {code.property?.name} · {code.commissionPercent}% ·{" "}
-                          {code.status}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedPropertyId(code.propertyId)}
-                        className="text-xs font-semibold text-[var(--kama-accent)] hover:underline"
+                  {partnership.codes.map((code) => {
+                    const paused =
+                      code.effectiveStatus === "paused" ||
+                      code.status === "paused";
+                    return (
+                      <li
+                        key={code.id}
+                        className={`flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2 ${
+                          paused
+                            ? "border-amber-200 bg-amber-50/70"
+                            : "border-[var(--kama-border)]"
+                        }`}
                       >
-                        Calendar
-                      </button>
-                    </li>
-                  ))}
+                        <div>
+                          <p
+                            className={`font-mono text-sm font-semibold tracking-wide ${
+                              paused
+                                ? "text-amber-900"
+                                : "text-[var(--kama-accent)]"
+                            }`}
+                          >
+                            {code.code}
+                          </p>
+                          <p className="text-xs text-[var(--kama-ink-muted)]">
+                            {code.property?.name} · {code.commissionPercent}% ·{" "}
+                            {paused ? (
+                              <span className="font-semibold text-amber-800">
+                                paused by host
+                              </span>
+                            ) : (
+                              code.status
+                            )}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPropertyId(code.propertyId)}
+                          className="text-xs font-semibold text-[var(--kama-accent)] hover:underline"
+                        >
+                          Calendar
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             ))}
@@ -265,8 +322,9 @@ export default function CreatorConsoleView({ initial }) {
                     {selectedProperty.name}
                   </h2>
                   <p className="text-sm text-[var(--kama-ink-muted)]">
-                    Open nights you can promote in stories · codes{" "}
-                    {selectedProperty.codes.map((c) => c.code).join(", ")}
+                    {selectedProperty.promotionActive
+                      ? `Open nights you can promote · codes ${selectedProperty.codes.map((c) => c.code).join(", ")}`
+                      : `Promotion paused · ${selectedProperty.pausedCodes?.join(", ") || "code"} won’t earn until the host resumes`}
                   </p>
                 </div>
                 <Link
@@ -288,12 +346,24 @@ export default function CreatorConsoleView({ initial }) {
                   unavailableRanges={
                     availability?.unavailableRanges || []
                   }
+                  promotionPaused={
+                    !selectedProperty.promotionActive ||
+                    availability?.promotionActive === false
+                  }
+                  pausedCodes={
+                    selectedProperty.pausedCodes ||
+                    selectedProperty.codes
+                      ?.filter((c) => c.effectiveStatus === "paused")
+                      .map((c) => c.code) ||
+                    []
+                  }
                 />
               )}
 
               <p className="text-xs leading-relaxed text-[var(--kama-ink-muted)]">
-                Tip: promote dates that show as open. When a guest books with your
-                code, the stay appears in your earnings after checkout.
+                {selectedProperty.promotionActive
+                  ? "Tip: promote dates that show as open. When a guest books with your code, the stay appears in your earnings after checkout."
+                  : "While paused, open nights on Isisel are not for your stories — bookings won’t credit your promo until the host turns the code back on."}
               </p>
             </>
           ) : (

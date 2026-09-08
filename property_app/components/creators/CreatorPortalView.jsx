@@ -36,7 +36,7 @@ const STATUS_LABEL = {
 };
 
 export default function CreatorPortalView({ data, token }) {
-  const { creator, summary, codes, bookings, properties = [], joinPath } = data;
+  const { creator, summary, codes, bookings, properties = [], joinPath, alerts = [] } = data;
   const activeCode = useMemo(
     () => codes.find((c) => c.status === "active") || codes[0],
     [codes],

@@ -104,7 +104,7 @@ export async function assertCreatorPropertyAccess({
     propertyId,
     status: { $in: ["active", "paused"] },
   })
-    .select("code status commissionRate creatorPartnerId hostId")
+    .select("code status commissionRate creatorPartnerId hostId updatedAt")
     .lean();
 
   if (!code) {
@@ -115,7 +115,24 @@ export async function assertCreatorPropertyAccess({
     };
   }
 
-  return { ok: true, code, partners };
+  const partner = partners.find(
+    (p) => String(p._id) === String(code.creatorPartnerId),
+  );
+  const partnerPaused = partner?.status === "paused";
+  const promotionActive = !partnerPaused && code.status === "active";
+
+  return {
+    ok: true,
+    code,
+    partners,
+    partner,
+    promotionActive,
+    pauseReason: partnerPaused
+      ? "partnership"
+      : code.status === "paused"
+        ? "code"
+        : null,
+  };
 }
 
 /**
@@ -236,8 +253,11 @@ export async function buildCreatorConsole({ userId, email }) {
             country: "",
           },
           expiresAt: c.expiresAt ? new Date(c.expiresAt).toISOString() : null,
+          updatedAt: c.updatedAt ? new Date(c.updatedAt).toISOString() : null,
         };
       });
+
+    const partnerPaused = p.status === "paused";
 
     return {
       id: String(p._id),
@@ -247,7 +267,12 @@ export async function buildCreatorConsole({ userId, email }) {
       hostName: hostMap.get(String(p.hostId)) || "Host",
       hostId: p.hostId,
       claimed: Boolean(p.userId),
-      codes: partnerCodes,
+      paused: partnerPaused,
+      codes: partnerCodes.map((c) => ({
+        ...c,
+        // Partnership pause freezes every code for this creator
+        effectiveStatus: partnerPaused ? "paused" : c.status,
+      })),
       stats: {
         reservations: partnerStats.reservations,
         accrued: round2(partnerStats.accrued),
@@ -260,6 +285,8 @@ export async function buildCreatorConsole({ userId, email }) {
     };
   });
 
+  const partnerById = new Map(partnerships.map((p) => [p.id, p]));
+
   const propertyCards = propertyIds.map((id) => {
     const prop = propertyMap.get(id) || {
       id,
@@ -269,20 +296,68 @@ export async function buildCreatorConsole({ userId, email }) {
       country: "",
     };
     const related = codes.filter((c) => String(c.propertyId) === id);
-    return {
-      ...prop,
-      codes: related.map((c) => ({
+    const codeRows = related.map((c) => {
+      const partner = partnerById.get(String(c.creatorPartnerId));
+      const partnerPaused = partner?.paused || partner?.status === "paused";
+      const effectiveStatus = partnerPaused ? "paused" : c.status;
+      return {
         code: c.code,
         status: c.status,
+        effectiveStatus,
         commissionPercent: pctLabel(c.commissionRate),
         partnerId: String(c.creatorPartnerId),
-      })),
+        hostName: partner?.hostName || "Host",
+        updatedAt: c.updatedAt ? new Date(c.updatedAt).toISOString() : null,
+      };
+    });
+    const hasActive = codeRows.some((c) => c.effectiveStatus === "active");
+    const pausedCodes = codeRows.filter((c) => c.effectiveStatus === "paused");
+    return {
+      ...prop,
+      codes: codeRows,
+      promotionActive: hasActive,
+      paused: !hasActive && pausedCodes.length > 0,
+      pausedCodes: pausedCodes.map((c) => c.code),
     };
   });
 
+  const pausedAlerts = [];
+  for (const p of partnerships) {
+    if (p.paused) {
+      pausedAlerts.push({
+        type: "partner",
+        id: p.id,
+        hostName: p.hostName,
+        message: `${p.hostName} paused your partnership — do not promote their listings until they resume you.`,
+      });
+    }
+    for (const c of p.codes) {
+      if (c.effectiveStatus === "paused" && !p.paused) {
+        pausedAlerts.push({
+          type: "code",
+          id: c.id,
+          code: c.code,
+          propertyName: c.property?.name || "Listing",
+          hostName: p.hostName,
+          message: `${p.hostName} paused promo code ${c.code} on ${c.property?.name || "a listing"} — guests who book won’t attribute to you until it’s active again.`,
+          updatedAt: c.updatedAt,
+        });
+      }
+    }
+  }
+
   const summary = {
     codes: codes.length,
-    activeCodes: codes.filter((c) => c.status === "active").length,
+    activeCodes: partnerships.reduce(
+      (n, p) =>
+        n + p.codes.filter((c) => c.effectiveStatus === "active").length,
+      0,
+    ),
+    pausedCodes: partnerships.reduce(
+      (n, p) =>
+        n + p.codes.filter((c) => c.effectiveStatus === "paused").length,
+      0,
+    ),
     properties: propertyCards.length,
     reservations: partnerships.reduce((n, p) => n + p.stats.reservations, 0),
     accrued: round2(partnerships.reduce((n, p) => n + p.stats.accrued, 0)),
@@ -294,6 +369,7 @@ export async function buildCreatorConsole({ userId, email }) {
     summary,
     partnerships,
     properties: propertyCards,
+    alerts: pausedAlerts,
   };
 }
 
@@ -373,10 +449,28 @@ export async function enrichPortalWithAvailability(portal) {
 
   return {
     ...portal,
-    properties: propertyIds.map((id) => ({
-      ...(propertyMap.get(id) || { id, name: "Listing", image: null }),
-      codes: portal.codes.filter((c) => String(c.propertyId) === id),
-      unavailableRanges: availMap.get(id)?.unavailableRanges || [],
-    })),
+    properties: propertyIds.map((id) => {
+      const codesForProp = portal.codes.filter(
+        (c) => String(c.propertyId) === id,
+      );
+      const hasActive = codesForProp.some((c) => c.status === "active");
+      return {
+        ...(propertyMap.get(id) || { id, name: "Listing", image: null }),
+        codes: codesForProp,
+        unavailableRanges: availMap.get(id)?.unavailableRanges || [],
+        promotionActive: hasActive,
+        paused: !hasActive && codesForProp.some((c) => c.status === "paused"),
+        pausedCodes: codesForProp
+          .filter((c) => c.status === "paused")
+          .map((c) => c.code),
+      };
+    }),
+    alerts: (portal.codes || [])
+      .filter((c) => c.status === "paused")
+      .map((c) => ({
+        type: "code",
+        code: c.code,
+        message: `Promo code ${c.code} is paused by the host — do not promote until it’s active again.`,
+      })),
   };
 }

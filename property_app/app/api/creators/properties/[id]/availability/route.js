@@ -39,7 +39,10 @@ export async function GET(_request, { params }) {
         code: access.code.code,
         status: access.code.status,
         commissionRate: access.code.commissionRate,
+        updatedAt: access.code.updatedAt,
       },
+      promotionActive: access.promotionActive,
+      pauseReason: access.pauseReason,
     });
   } catch (error) {
     console.error("GET /api/creators/properties/[id]/availability:", error);
