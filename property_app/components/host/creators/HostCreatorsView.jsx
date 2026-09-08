@@ -83,7 +83,7 @@ function PulseRing({ label, value, color, delay = 0 }) {
 const emptyPartnerForm = {
   name: "",
   email: "",
-  platform: "instagram",
+  platform: "",
   profileUrl: "",
 };
 
@@ -411,12 +411,16 @@ export default function HostCreatorsView({ initial }) {
                 className="w-full rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2 text-sm outline-none focus:border-[var(--kama-accent)]"
               />
               <select
+                required
                 value={partnerForm.platform}
                 onChange={(e) =>
                   setPartnerForm((f) => ({ ...f, platform: e.target.value }))
                 }
                 className="w-full rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2 text-sm outline-none focus:border-[var(--kama-accent)]"
               >
+                <option value="" disabled>
+                  {t("hostConsole.creators.platformRequired")}
+                </option>
                 <option value="instagram">Instagram</option>
                 <option value="tiktok">TikTok</option>
                 <option value="youtube">YouTube</option>
@@ -428,6 +432,7 @@ export default function HostCreatorsView({ initial }) {
                 </option>
               </select>
               <input
+                required
                 value={partnerForm.profileUrl}
                 onChange={(e) =>
                   setPartnerForm((f) => ({ ...f, profileUrl: e.target.value }))

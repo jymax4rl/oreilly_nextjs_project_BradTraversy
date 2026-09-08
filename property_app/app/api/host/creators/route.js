@@ -11,8 +11,28 @@ const PLATFORMS = new Set([
   "youtube",
   "multiple",
   "other",
-  "",
 ]);
+
+function normalizeProfileUrl(raw) {
+  const value = String(raw || "").trim();
+  if (!value) return "";
+  if (/^https?:\/\//i.test(value)) return value.slice(0, 500);
+  if (/^[\w.-]+\.[\w.-]+/i.test(value) || value.startsWith("@")) {
+    return value.slice(0, 500);
+  }
+  return value.slice(0, 500);
+}
+
+function isUsableProfileUrl(value) {
+  const v = String(value || "").trim();
+  if (v.length < 2) return false;
+  // Accept @handles, bare domains/paths, or full URLs
+  return (
+    v.startsWith("@") ||
+    /^https?:\/\//i.test(v) ||
+    /[\w./@-]{2,}/i.test(v)
+  );
+}
 
 /**
  * GET /api/host/creators — program summary + partners + codes
@@ -55,7 +75,18 @@ export async function POST(request) {
 
     const platform = String(body.platform || "").trim().toLowerCase();
     if (!PLATFORMS.has(platform)) {
-      return Response.json({ error: "Invalid platform" }, { status: 400 });
+      return Response.json(
+        { error: "Select the creator’s platform" },
+        { status: 400 },
+      );
+    }
+
+    const profileUrl = normalizeProfileUrl(body.profileUrl);
+    if (!isUsableProfileUrl(profileUrl)) {
+      return Response.json(
+        { error: "Creator social profile / handle is required" },
+        { status: 400 },
+      );
     }
 
     const email = String(body.email || "")
@@ -70,7 +101,7 @@ export async function POST(request) {
       name: name.slice(0, 120),
       email: email.slice(0, 254),
       platform,
-      profileUrl: String(body.profileUrl || "").trim().slice(0, 500),
+      profileUrl,
       notes: String(body.notes || "").trim().slice(0, 2000),
       status: "active",
     });

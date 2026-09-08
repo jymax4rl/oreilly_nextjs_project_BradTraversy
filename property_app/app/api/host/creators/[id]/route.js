@@ -11,9 +11,22 @@ const PLATFORMS = new Set([
   "youtube",
   "multiple",
   "other",
-  "",
 ]);
 const STATUSES = new Set(["active", "paused", "archived"]);
+
+function normalizeProfileUrl(raw) {
+  return String(raw || "").trim().slice(0, 500);
+}
+
+function isUsableProfileUrl(value) {
+  const v = String(value || "").trim();
+  if (v.length < 2) return false;
+  return (
+    v.startsWith("@") ||
+    /^https?:\/\//i.test(v) ||
+    /[\w./@-]{2,}/i.test(v)
+  );
+}
 
 /**
  * PATCH /api/host/creators/[id] — update partner fields / status
@@ -59,12 +72,22 @@ export async function PATCH(request, { params }) {
     if (body.platform != null) {
       const platform = String(body.platform).trim().toLowerCase();
       if (!PLATFORMS.has(platform)) {
-        return Response.json({ error: "Invalid platform" }, { status: 400 });
+        return Response.json(
+          { error: "Select the creator’s platform" },
+          { status: 400 },
+        );
       }
       partner.platform = platform;
     }
     if (body.profileUrl != null) {
-      partner.profileUrl = String(body.profileUrl).trim().slice(0, 500);
+      const profileUrl = normalizeProfileUrl(body.profileUrl);
+      if (!isUsableProfileUrl(profileUrl)) {
+        return Response.json(
+          { error: "Creator social profile / handle is required" },
+          { status: 400 },
+        );
+      }
+      partner.profileUrl = profileUrl;
     }
     if (body.notes != null) {
       partner.notes = String(body.notes).trim().slice(0, 2000);
