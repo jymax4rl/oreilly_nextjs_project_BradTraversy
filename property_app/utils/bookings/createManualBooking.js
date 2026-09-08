@@ -23,6 +23,10 @@ import { resolveCommissionForProperty } from "@/utils/foundingHost/resolveCommis
 import { buildPricingCommissionFields } from "@/utils/foundingHost/logic";
 import { notifyHostNewReservation } from "@/utils/push/webPush";
 import { TRAINING_BOOKING_SOURCE } from "@/utils/opsTraining/constants";
+import {
+  buildCreatorBookingFields,
+  resolveOptionalPromoAttribution,
+} from "@/utils/creators/promoAttribution";
 
 /**
  * Create a pending reservation without a payment gateway.
@@ -42,6 +46,7 @@ export async function createManualBookingRequest({
   status,
   skipEmails = false,
   source,
+  promoCode,
 }) {
   if (!propertyId || !guestId || !checkIn || !checkOut) {
     return {
@@ -138,6 +143,25 @@ export async function createManualBookingRequest({
   const bookingStatus =
     createdByHost && status === "confirmed" ? "confirmed" : "pending";
 
+  const promoResult = await resolveOptionalPromoAttribution({
+    propertyId,
+    promoCode,
+    guestId,
+    guestEmail,
+    source,
+  });
+  if (!promoResult.ok) {
+    return {
+      ok: false,
+      status: 400,
+      error: promoResult.error || "Invalid promo code",
+    };
+  }
+  const creatorFields = buildCreatorBookingFields(
+    promoResult.attribution,
+    stayPricing.base,
+  );
+
   const booking = await Booking.create({
     propertyId: new mongoose.Types.ObjectId(propertyId),
     guestId: String(guestId),
@@ -153,6 +177,7 @@ export async function createManualBookingRequest({
     propertyName: property.name || undefined,
     version: 0,
     ...(source ? { source } : {}),
+    ...creatorFields,
     pricingSnapshot: {
       nightlyRate: stayPricing.base / Math.max(nights, 1),
       accommodationBase: stayPricing.base,

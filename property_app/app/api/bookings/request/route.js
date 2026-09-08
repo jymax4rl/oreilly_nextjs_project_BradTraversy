@@ -40,6 +40,7 @@ export async function POST(request) {
       guestPhone,
       currency,
       amount,
+      promoCode,
     } = body || {};
 
     let guestId = session.user.id ? String(session.user.id) : null;
@@ -72,6 +73,7 @@ export async function POST(request) {
       checkOut,
       currency,
       amountHint: amount,
+      promoCode,
     });
 
     if (!result.ok) {

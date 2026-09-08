@@ -62,6 +62,7 @@ function RightColumn({ data }) {
   const [phoneModalError, setPhoneModalError] = useState(null);
   const [pendingValidation, setPendingValidation] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
 
   const listingRates = normalizeRates(data.rates);
   const fx = resolveFxRate(rates, currencyCode);
@@ -267,6 +268,7 @@ function RightColumn({ data }) {
           guestPhone: phone,
           currency: paymentCurrency,
           amount: numericalTotal,
+          promoCode: promoCode.trim() || undefined,
         }),
       });
       const payload = await res.json().catch(() => ({}));
@@ -321,6 +323,7 @@ function RightColumn({ data }) {
                 amount: numericalTotal,
                 currency: paymentCurrency,
                 guest_phone: phone,
+                promo_code: promoCode.trim() || undefined,
               }),
             });
             const payload = await res.json().catch(() => ({}));
@@ -449,6 +452,22 @@ function RightColumn({ data }) {
                 {dateError}
               </p>
             )}
+
+            <label className="block">
+              <span className="mb-1.5 block text-[11px] font-medium tracking-wide text-[var(--kama-ink-muted)]">
+                Promo code <span className="font-normal">(optional)</span>
+              </span>
+              <input
+                type="text"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                placeholder="Creator code"
+                autoComplete="off"
+                spellCheck={false}
+                maxLength={32}
+                className="w-full rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2.5 text-sm font-semibold uppercase tracking-wide text-[var(--kama-ink)] outline-none transition placeholder:font-normal placeholder:normal-case placeholder:tracking-normal placeholder:text-[var(--kama-ink-muted)] focus:border-[var(--kama-accent)] focus:ring-2 focus:ring-[var(--kama-accent-soft)]"
+              />
+            </label>
 
             {paymentNotice && (
               <div
