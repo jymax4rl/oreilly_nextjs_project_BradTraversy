@@ -128,6 +128,39 @@ const BookingSchema = new mongoose.Schema(
     emailStatus: { type: EmailStatusSchema, default: () => ({}) },
     /** Set when confirmation emails have been dispatched (webhook/callback idempotency). */
     confirmationEmailsDispatchedAt: { type: Date },
+
+    /**
+     * Creator partnership attribution (host-funded marketing).
+     * Never reuse platformFee / commissionAmount for these amounts.
+     */
+    creatorPromoCode: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      maxlength: 32,
+      index: true,
+    },
+    creatorPromoCodeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CreatorPromoCode",
+      index: true,
+    },
+    creatorPartnerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CreatorPartner",
+      index: true,
+    },
+    creatorPartnerName: { type: String, trim: true, maxlength: 120 },
+    creatorCommissionRate: { type: Number, min: 0, max: 0.5 },
+    creatorCommissionBase: { type: Number, min: 0 },
+    creatorCommissionAmount: { type: Number, min: 0, default: 0 },
+    creatorHostId: { type: String, index: true },
+    creatorAttributionStatus: {
+      type: String,
+      enum: ["none", "attributed", "void"],
+      default: "none",
+      index: true,
+    },
   },
   {
     timestamps: true,
@@ -137,6 +170,7 @@ const BookingSchema = new mongoose.Schema(
 
 BookingSchema.index({ propertyId: 1, status: 1, checkIn: 1 });
 BookingSchema.index({ createdAt: 1, status: 1 });
+BookingSchema.index({ creatorHostId: 1, creatorPartnerId: 1 });
 
 const Booking =
   mongoose.models.Booking || mongoose.model("Booking", BookingSchema);

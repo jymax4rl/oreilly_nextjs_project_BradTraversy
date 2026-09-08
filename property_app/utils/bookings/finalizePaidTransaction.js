@@ -486,6 +486,7 @@ export async function attachBookingToTransaction(body, guestHint = {}) {
     amount: body.amount,
     currency: body.currency,
     propertyName: body.property_name,
+    promoCode: body.promo_code || body.promoCode,
   });
 
   if (!bookingResult.ok || !bookingResult.booking) {

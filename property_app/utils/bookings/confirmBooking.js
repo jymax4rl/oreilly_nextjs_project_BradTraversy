@@ -16,6 +16,10 @@ import {
 import { resolveCommissionForProperty } from "@/utils/foundingHost/resolveCommission";
 import { buildPricingCommissionFields } from "@/utils/foundingHost/logic";
 import { notifyHostNewReservation } from "@/utils/push/webPush";
+import {
+  buildCreatorBookingFields,
+  resolveOptionalPromoAttribution,
+} from "@/utils/creators/promoAttribution";
 
 async function buildGatewayPricingSnapshot({
   propertyId,
@@ -86,6 +90,7 @@ export async function confirmBookingFromPayment({
   amount,
   currency,
   propertyName,
+  promoCode,
 }) {
   if (!propertyId || !guestId || !checkIn || !checkOut) {
     return {
@@ -128,6 +133,27 @@ export async function confirmBookingFromPayment({
     currency,
   });
 
+  const promoResult = await resolveOptionalPromoAttribution({
+    propertyId,
+    promoCode,
+    guestId,
+    guestEmail,
+  });
+  // After payment, never block the stay on a bad promo — skip attribution instead.
+  const creatorFields = promoResult.ok
+    ? buildCreatorBookingFields(
+        promoResult.attribution,
+        pricingSnapshot?.accommodationBase ?? amount,
+      )
+    : {};
+
+  if (!promoResult.ok && promoCode) {
+    console.warn(
+      "[creator promo] ignored after payment:",
+      promoResult.error,
+    );
+  }
+
   const booking = await Booking.create({
     propertyId: new mongoose.Types.ObjectId(propertyId),
     guestId: String(guestId),
@@ -144,6 +170,7 @@ export async function confirmBookingFromPayment({
     propertyName: propertyName || property?.name || undefined,
     version: 0,
     pricingSnapshot,
+    ...creatorFields,
   });
 
   if (property?.owner) {
