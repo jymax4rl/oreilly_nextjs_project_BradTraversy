@@ -2,9 +2,18 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Megaphone, Link2, Pause, Play, Plus, RefreshCw } from "lucide-react";
+import {
+  Megaphone,
+  Link2,
+  Pause,
+  Pencil,
+  Play,
+  Plus,
+  RefreshCw,
+} from "lucide-react";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 import HostPageHeader from "@/components/host/HostPageHeader";
+import HostCreatorCodeModal from "@/components/host/creators/HostCreatorCodeModal";
 import "../home/host-home.css";
 
 const RING_R = 27;
@@ -78,14 +87,6 @@ const emptyPartnerForm = {
   profileUrl: "",
 };
 
-const emptyCodeForm = {
-  creatorPartnerId: "",
-  propertyId: "",
-  code: "",
-  commissionRatePercent: "10",
-  guestDiscountRatePercent: "10",
-};
-
 export default function HostCreatorsView({ initial }) {
   const { t, lang } = useLanguage();
   const router = useRouter();
@@ -94,11 +95,15 @@ export default function HostCreatorsView({ initial }) {
   const [properties] = useState(initial?.properties || []);
   const [selectedId, setSelectedId] = useState(creators[0]?.id || null);
   const [partnerForm, setPartnerForm] = useState(emptyPartnerForm);
-  const [codeForm, setCodeForm] = useState(emptyCodeForm);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [codeModal, setCodeModal] = useState({
+    open: false,
+    mode: "create",
+    code: null,
+  });
 
   const selected = useMemo(
     () => creators.find((c) => c.id === selectedId) || creators[0] || null,
@@ -142,37 +147,6 @@ export default function HostCreatorsView({ initial }) {
       setNotice(t("hostConsole.creators.partnerAdded"));
       await refreshProgram();
       if (data.id) setSelectedId(data.id);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy("");
-    }
-  }
-
-  async function addCode(e) {
-    e.preventDefault();
-    setBusy("code");
-    setError("");
-    setNotice("");
-    try {
-      const res = await fetch("/api/host/creators/codes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...codeForm,
-          creatorPartnerId: codeForm.creatorPartnerId || selected?.id,
-          commissionRatePercent: Number(codeForm.commissionRatePercent),
-          guestDiscountRatePercent: Number(codeForm.guestDiscountRatePercent),
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || t("hostConsole.creators.failed"));
-      setCodeForm({
-        ...emptyCodeForm,
-        creatorPartnerId: codeForm.creatorPartnerId || selected?.id || "",
-      });
-      setNotice(t("hostConsole.creators.codeAdded"));
-      await refreshProgram();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -227,6 +201,24 @@ export default function HostCreatorsView({ initial }) {
     } finally {
       setBusy("");
     }
+  }
+
+  function openAssignModal() {
+    setCodeModal({ open: true, mode: "create", code: null });
+  }
+
+  function openEditModal(code) {
+    setCodeModal({ open: true, mode: "edit", code });
+  }
+
+  async function onCodeModalSaved() {
+    setNotice(
+      codeModal.mode === "edit"
+        ? t("hostConsole.creators.codeUpdated")
+        : t("hostConsole.creators.codeAdded"),
+    );
+    setCodeModal({ open: false, mode: "create", code: null });
+    await refreshProgram();
   }
 
   return (
@@ -344,6 +336,11 @@ export default function HostCreatorsView({ initial }) {
             <ul className="space-y-2">
               {creators.map((c) => {
                 const active = selected?.id === c.id;
+                const rates = [
+                  ...new Set(
+                    (c.codes || []).map((code) => pct(code.commissionRate)),
+                  ),
+                ];
                 return (
                   <li key={c.id}>
                     <button
@@ -364,6 +361,9 @@ export default function HostCreatorsView({ initial }) {
                             {c.platform || t("hostConsole.creators.platformOther")}
                             {c.codes.length
                               ? ` · ${c.codes.length} ${t("hostConsole.creators.codesLabel")}`
+                              : ""}
+                            {rates.length
+                              ? ` · ${t("hostConsole.creators.commissionShort")} ${rates.join(", ")}`
                               : ""}
                           </p>
                         </div>
@@ -419,8 +419,12 @@ export default function HostCreatorsView({ initial }) {
                 <option value="instagram">Instagram</option>
                 <option value="tiktok">TikTok</option>
                 <option value="youtube">YouTube</option>
-                <option value="multiple">{t("hostConsole.creators.platformMultiple")}</option>
-                <option value="other">{t("hostConsole.creators.platformOther")}</option>
+                <option value="multiple">
+                  {t("hostConsole.creators.platformMultiple")}
+                </option>
+                <option value="other">
+                  {t("hostConsole.creators.platformOther")}
+                </option>
               </select>
               <input
                 value={partnerForm.profileUrl}
@@ -528,11 +532,22 @@ export default function HostCreatorsView({ initial }) {
               </div>
 
               <div className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] p-5">
-                <h3 className="text-sm font-semibold text-[var(--kama-ink)]">
-                  {t("hostConsole.creators.codesHeading")}
-                </h3>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold text-[var(--kama-ink)]">
+                    {t("hostConsole.creators.codesHeading")}
+                  </h3>
+                  <button
+                    type="button"
+                    disabled={properties.length === 0}
+                    onClick={openAssignModal}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[var(--kama-accent)] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[var(--kama-accent-hover)] disabled:opacity-60"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    {t("hostConsole.creators.assignCode")}
+                  </button>
+                </div>
                 {selected.codes.length === 0 ? (
-                  <p className="mt-2 text-sm text-[var(--kama-ink-muted)]">
+                  <p className="mt-3 text-sm text-[var(--kama-ink-muted)]">
                     {t("hostConsole.creators.noCodes")}
                   </p>
                 ) : (
@@ -540,126 +555,81 @@ export default function HostCreatorsView({ initial }) {
                     {selected.codes.map((code) => (
                       <li
                         key={code.id}
-                        className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--kama-border)] px-3 py-2.5"
+                        className="rounded-xl border border-[var(--kama-border)] px-3 py-3"
                       >
-                        <div className="min-w-0">
-                          <p className="font-mono text-sm font-semibold tracking-wide text-[var(--kama-ink)]">
-                            {code.code}
-                          </p>
-                          <p className="text-xs text-[var(--kama-ink-muted)]">
-                            {code.propertyName} · creator {pct(code.commissionRate)}
-                            {code.guestDiscountRate != null
-                              ? ` · guest −${pct(code.guestDiscountRate)}`
-                              : ""}{" "}
-                            · {code.status}
-                          </p>
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-mono text-sm font-semibold tracking-wide text-[var(--kama-ink)]">
+                              {code.code}
+                            </p>
+                            <p className="mt-0.5 text-xs text-[var(--kama-ink-muted)]">
+                              {code.propertyName} · {code.status}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => openEditModal(code)}
+                              className="inline-flex items-center gap-1 rounded-full border border-[var(--kama-border)] px-2.5 py-1 text-xs font-semibold text-[var(--kama-ink)] transition hover:border-[var(--kama-border-strong)]"
+                            >
+                              <Pencil className="h-3 w-3" />
+                              {t("hostConsole.creators.editCode")}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={busy === `code-${code.id}`}
+                              onClick={() => toggleCode(code)}
+                              className="inline-flex items-center gap-1 rounded-full border border-[var(--kama-border)] px-2.5 py-1 text-xs font-semibold text-[var(--kama-ink-muted)] transition hover:text-[var(--kama-ink)]"
+                            >
+                              {code.status === "active" ? (
+                                <>
+                                  <Pause className="h-3 w-3" />
+                                  {t("hostConsole.creators.pause")}
+                                </>
+                              ) : (
+                                <>
+                                  <Play className="h-3 w-3" />
+                                  {t("hostConsole.creators.resume")}
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          type="button"
-                          disabled={busy === `code-${code.id}`}
-                          onClick={() => toggleCode(code)}
-                          className="inline-flex items-center gap-1 rounded-full border border-[var(--kama-border)] px-2.5 py-1 text-xs font-semibold text-[var(--kama-ink-muted)] transition hover:text-[var(--kama-ink)]"
-                        >
-                          {code.status === "active" ? (
-                            <>
-                              <Pause className="h-3 w-3" />
-                              {t("hostConsole.creators.pause")}
-                            </>
-                          ) : (
-                            <>
-                              <Play className="h-3 w-3" />
-                              {t("hostConsole.creators.resume")}
-                            </>
-                          )}
-                        </button>
+                        <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                          <div className="rounded-lg bg-[var(--kama-field)] px-2.5 py-2">
+                            <dt className="text-[10px] font-medium uppercase tracking-wide text-[var(--kama-ink-muted)]">
+                              {t("hostConsole.creators.commissionLabel")}
+                            </dt>
+                            <dd className="mt-0.5 text-sm font-semibold tabular-nums text-[var(--kama-ink)]">
+                              {pct(code.commissionRate)}
+                            </dd>
+                          </div>
+                          <div className="rounded-lg bg-[var(--kama-field)] px-2.5 py-2">
+                            <dt className="text-[10px] font-medium uppercase tracking-wide text-[var(--kama-ink-muted)]">
+                              {t("hostConsole.creators.guestDiscountLabel")}
+                            </dt>
+                            <dd className="mt-0.5 text-sm font-semibold tabular-nums text-[var(--kama-ink)]">
+                              −
+                              {pct(
+                                code.guestDiscountRate != null
+                                  ? code.guestDiscountRate
+                                  : 0.1,
+                              )}
+                            </dd>
+                          </div>
+                          <div className="col-span-2 rounded-lg bg-[var(--kama-field)] px-2.5 py-2 sm:col-span-1">
+                            <dt className="text-[10px] font-medium uppercase tracking-wide text-[var(--kama-ink-muted)]">
+                              {t("hostConsole.creators.propertyLabel")}
+                            </dt>
+                            <dd className="mt-0.5 truncate text-sm font-semibold text-[var(--kama-ink)]">
+                              {code.propertyName}
+                            </dd>
+                          </div>
+                        </dl>
                       </li>
                     ))}
                   </ul>
                 )}
-
-                <form onSubmit={addCode} className="mt-4 space-y-3 border-t border-[var(--kama-border)] pt-4">
-                  <p className="text-sm font-semibold text-[var(--kama-ink)]">
-                    {t("hostConsole.creators.assignCode")}
-                  </p>
-                  <input type="hidden" value={selected.id} readOnly />
-                  <select
-                    required
-                    value={codeForm.propertyId}
-                    onChange={(e) =>
-                      setCodeForm((f) => ({ ...f, propertyId: e.target.value }))
-                    }
-                    className="w-full rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2 text-sm outline-none focus:border-[var(--kama-accent)]"
-                  >
-                    <option value="">{t("hostConsole.creators.selectProperty")}</option>
-                    {properties.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      required
-                      value={codeForm.code}
-                      onChange={(e) =>
-                        setCodeForm((f) => ({
-                          ...f,
-                          code: e.target.value.toUpperCase(),
-                          creatorPartnerId: selected.id,
-                        }))
-                      }
-                      placeholder={t("hostConsole.creators.codePh")}
-                      maxLength={32}
-                      className="rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2 font-mono text-sm uppercase outline-none focus:border-[var(--kama-accent)]"
-                    />
-                    <input
-                      required
-                      type="number"
-                      min={1}
-                      max={50}
-                      step={0.5}
-                      value={codeForm.commissionRatePercent}
-                      onChange={(e) =>
-                        setCodeForm((f) => ({
-                          ...f,
-                          commissionRatePercent: e.target.value,
-                          creatorPartnerId: selected.id,
-                        }))
-                      }
-                      placeholder={t("hostConsole.creators.ratePh")}
-                      className="rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2 text-sm outline-none focus:border-[var(--kama-accent)]"
-                    />
-                  </div>
-                  <label className="block text-xs text-[var(--kama-ink-muted)]">
-                    Guest discount %
-                    <input
-                      required
-                      type="number"
-                      min={0}
-                      max={50}
-                      step={0.5}
-                      value={codeForm.guestDiscountRatePercent}
-                      onChange={(e) =>
-                        setCodeForm((f) => ({
-                          ...f,
-                          guestDiscountRatePercent: e.target.value,
-                          creatorPartnerId: selected.id,
-                        }))
-                      }
-                      className="mt-1 w-full rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2 text-sm text-[var(--kama-ink)] outline-none focus:border-[var(--kama-accent)]"
-                    />
-                  </label>
-                  <button
-                    type="submit"
-                    disabled={busy === "code" || properties.length === 0}
-                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[var(--kama-accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--kama-accent-hover)] disabled:opacity-60"
-                  >
-                    <Plus className="h-4 w-4" />
-                    {busy === "code"
-                      ? t("hostConsole.creators.saving")
-                      : t("hostConsole.creators.assignCode")}
-                  </button>
-                </form>
               </div>
 
               <div className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] p-5">
@@ -675,10 +645,12 @@ export default function HostCreatorsView({ initial }) {
                       >
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium text-[var(--kama-ink)]">
-                            {b.guestName || t("hostConsole.guest")} · {b.propertyName}
+                            {b.guestName || t("hostConsole.guest")} ·{" "}
+                            {b.propertyName}
                           </p>
                           <p className="text-xs text-[var(--kama-ink-muted)]">
-                            {shortDate(b.checkIn, lang)} – {shortDate(b.checkOut, lang)}
+                            {shortDate(b.checkIn, lang)} –{" "}
+                            {shortDate(b.checkOut, lang)}
                             {b.promoCode ? ` · ${b.promoCode}` : ""} · {b.status}
                             {b.commissionStatus
                               ? ` · ${b.commissionStatus}`
@@ -705,6 +677,18 @@ export default function HostCreatorsView({ initial }) {
           )}
         </section>
       </div>
+
+      <HostCreatorCodeModal
+        open={codeModal.open}
+        mode={codeModal.mode}
+        partner={selected}
+        code={codeModal.code}
+        properties={properties}
+        onClose={() =>
+          setCodeModal({ open: false, mode: "create", code: null })
+        }
+        onSaved={onCodeModalSaved}
+      />
     </div>
   );
 }
