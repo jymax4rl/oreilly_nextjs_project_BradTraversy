@@ -483,6 +483,17 @@
   line-height: 1.55;
 }
 
+.creator-program__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.75rem;
+}
+
+.creator-program .creator-steps {
+  margin-top: 0.25rem;
+}
+
 .creator-final {
   padding: 4.5rem 0 7.5rem;
   text-align: left;
