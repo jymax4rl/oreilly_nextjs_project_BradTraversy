@@ -234,8 +234,8 @@
       <div class="cover-rule"></div>
       <p class="cover-body">
         How Isisel partners with creators and influencers to generate <strong>qualified bookings</strong>,
-        compensate them fairly from host economics — never by taxing Isisel’s own platform fee —
-        and operate the ledger, dashboards, and payouts end to end.
+        compensate them as a <strong>host-funded marketing expense</strong> — never by overloading
+        Isisel’s platform fee — and operate attribution, ledger, dashboards, and payouts end to end.
       </p>
       <div class="cover-badges">
         <span class="c-badge">Confidential</span>
@@ -291,11 +291,11 @@
     </p>
     <div class="principle">
       <div class="k">Governing principle</div>
-      <p><strong>Creator commission ≠ Isisel platform commission.</strong> Platform fee (<code>pricingSnapshot.platformFee</code> / commission) stays Isisel revenue. Creator pay is a separate host-funded line on a dedicated ledger. Hosts only pay when a creator generates a qualifying booking.</p>
+      <p><strong>Creator commission ≠ Isisel platform commission.</strong> Isisel does not charge hosts a standard platform commission for this creator marketing model. Hosts only share a percentage when they <strong>voluntarily opt in</strong> and the creator generates a qualifying booking. Creator pay is a marketing expense on a dedicated ledger — never reuse <code>pricingSnapshot.platformFee</code>.</p>
     </div>
     <div class="kpis">
-      <div class="kpi"><div class="v">2 tracks</div><div class="l">Hosted stay intro · Promo-code bookings</div></div>
-      <div class="kpi"><div class="v">0 fee</div><div class="l">Isisel take from creator share (model default)</div></div>
+      <div class="kpi"><div class="v">3 tracks</div><div class="l">Fixed fee · Hosted stay · Performance %</div></div>
+      <div class="kpi"><div class="v">Opt-in</div><div class="l">Hosts choose campaign participation</div></div>
       <div class="kpi"><div class="v">Post-stay</div><div class="l">Finalize commission after checkout past</div></div>
       <div class="kpi"><div class="v">CRM live</div><div class="l"><code>/influencers</code> + <code>/ops/marketing/creators</code></div></div>
     </div>
@@ -317,17 +317,18 @@
   <section class="sec" id="s3">
     <p class="sec-num">Section 03</p>
     <h2>Isisel Business Model</h2>
-    <p>Isisel connects travellers with vetted stays across Africa. Guests book; hosts manage inventory from <code>/host</code>. Revenue today is primarily <strong>platform commission</strong> captured in <code>pricingSnapshot</code> at booking time (gateway or manual).</p>
+    <p>Isisel connects travellers with vetted stays across Africa. Guests book; hosts manage inventory from <code>/host</code>. Today’s checkout fee engine uses <code>PLATFORM_COMMISSION_RATE = 0.07</code> stored as <code>pricingSnapshot.platformFee</code> / <code>commissionAmount</code> (Founding Host waivers possible). That ledger stays independent of creator marketing.</p>
     <table>
       <tr><th>Layer</th><th>Role</th><th>Status</th></tr>
       <tr><td>Marketplace</td><td>Listings, search, booking, payments</td><td><span class="tag tag-ex">Existing</span></td></tr>
       <tr><td>Host console</td><td><code>/host</code> calendar, reservations, listings</td><td><span class="tag tag-ex">Existing</span></td></tr>
       <tr><td>Ops console</td><td><code>/ops</code> including marketing / creators</td><td><span class="tag tag-ex">Existing</span></td></tr>
-      <tr><td>Creator CRM</td><td>Leads from <code>/influencers</code></td><td><span class="tag tag-ex">Existing</span></td></tr>
-      <tr><td>Promo codes</td><td>Attribution + host-funded creator share</td><td><span class="tag tag-pr">Proposed</span></td></tr>
-      <tr><td>CreatorCommission</td><td>Separate ledger from platform fee</td><td><span class="tag tag-pr">Proposed</span></td></tr>
+      <tr><td>Creator CRM</td><td>Leads from <code>/influencers</code> → <code>CreatorLead</code></td><td><span class="tag tag-ex">Existing</span></td></tr>
+      <tr><td>Platform fee engine</td><td><code>propertyRates.js</code> — guest checkout fee</td><td><span class="tag tag-ex">Existing</span></td></tr>
+      <tr><td>Promo codes + host opt-in</td><td>Attribution + voluntary host marketing share</td><td><span class="tag tag-pr">Proposed</span></td></tr>
+      <tr><td>CreatorCommission</td><td>Separate ledger — never reuse <code>platformFee</code></td><td><span class="tag tag-pr">Proposed</span></td></tr>
     </table>
-    <p>Booking lifecycle statuses today: <code>pending</code> | <code>confirmed</code> | <code>cancelled</code>. Creator pay must not mutate or “reuse” <code>platformFee</code>.</p>
+    <p>Booking statuses today: <code>pending</code> | <code>confirmed</code> | <code>cancelled</code>. No promo codes in production yet. Creator pay must not mutate or reuse <code>platformFee</code>.</p>
   </section>
 
   <!-- 4 -->
@@ -341,7 +342,7 @@
     </div>
     <div class="principle">
       <div class="k">Governing principle</div>
-      <p><strong>Creator commission ≠ Isisel platform commission.</strong> Partnership economics must remain transparent to hosts: they keep most of the stay rate; they share a defined slice with the creator when attribution is proven — and Isisel’s platform fee is unchanged by that share.</p>
+      <p><strong>Creator commission ≠ Isisel platform commission.</strong> Hosts only pay when they opt in and a creator generates a qualifying booking. Platform fee rules (including Founding Host waivers) remain untouched by creator share.</p>
     </div>
   </section>
 
@@ -349,28 +350,35 @@
   <section class="sec" id="s5">
     <p class="sec-num">Section 05</p>
     <h2>Creator Compensation Model</h2>
-    <p class="lede">Two complementary tracks. A creator may use one or both under written terms.</p>
+    <p class="lede">Three configurable tracks. Campaigns may stack fixed fee, hosted stay, and performance commission under written terms.</p>
     <table>
-      <tr><th>Track</th><th>Trigger</th><th>Creator receives</th><th>Host pays</th><th>Isisel</th></tr>
+      <tr><th>Track</th><th>Trigger</th><th>Creator receives</th><th>Who bears cost</th><th>Isisel</th></tr>
       <tr>
-        <td><strong>Hosted stay</strong></td>
-        <td>Introduced host approved &amp; live</td>
-        <td>Complimentary nights (typical: 2)</td>
-        <td>Inventory nights, coordinated</td>
-        <td>Facilitation; no cash commission on stay gift</td>
+        <td><strong>Fixed fee</strong></td>
+        <td>Contract / content live</td>
+        <td>Configurable cash (e.g. €200)</td>
+        <td>Campaign budget (Isisel or co-funded)</td>
+        <td>Ops-configured; not <code>platformFee</code></td>
       </tr>
       <tr>
-        <td><strong>Promo code</strong></td>
+        <td><strong>Hosted stay</strong></td>
+        <td>Partnership / intro terms</td>
+        <td>Complimentary nights (1–2 typical)</td>
+        <td>Host inventory and/or Isisel</td>
+        <td>Facilitation; stay COGS separate</td>
+      </tr>
+      <tr>
+        <td><strong>Performance</strong></td>
         <td>Qualifying attributed booking completes</td>
         <td>% of accommodation base (e.g. 10%)</td>
-        <td>Creator share from stay revenue</td>
-        <td>Platform fee separate; €0 of creator share by default</td>
+        <td><strong>Opted-in host</strong> marketing expense</td>
+        <td>Platform fee separate; €0 skim of creator %</td>
       </tr>
     </table>
     <ul class="tight">
-      <li><strong>Qualifying booking:</strong> attributed, not cancelled, stay completed (checkout date past), fraud checks clear.</li>
-      <li><strong>Rate:</strong> negotiated per campaign / creator (illustrative default 10% of accommodation base).</li>
-      <li><strong>Currency:</strong> follow booking <code>pricingSnapshot.currency</code>; settle in agreed payout rail.</li>
+      <li><strong>Qualifying booking:</strong> attributed, host opted in, not cancelled, checkout past, fraud checks clear.</li>
+      <li><strong>Rate:</strong> per <code>CreatorCampaign</code> / property assignment (illustrative default 10% of <code>accommodationBase</code>).</li>
+      <li><strong>Currency:</strong> follow booking <code>pricingSnapshot.currency</code>; settle on agreed payout rail.</li>
     </ul>
   </section>
 
@@ -421,16 +429,16 @@
   <section class="sec" id="s8">
     <p class="sec-num">Section 08</p>
     <h2>Host Economics</h2>
-    <p>Illustrative night: guest pays €250 accommodation. Creator rate 10%. Platform fee waived or zero on this example row so the creator math is visible in isolation.</p>
+    <p class="lede">Illustrative night when host has opted into a 10% creator campaign. Guest pays €250 accommodation.</p>
     <table>
       <tr><th>Line</th><th>Amount</th><th>Notes</th></tr>
       <tr><td>Guest pays (accommodation)</td><td><strong>€250</strong></td><td>Per night illustration</td></tr>
-      <tr><td>Creator commission (10%)</td><td><strong>€25</strong></td><td>Host-funded; separate ledger</td></tr>
+      <tr><td>Creator commission (10%)</td><td><strong>€25</strong></td><td>Host marketing expense; separate ledger</td></tr>
       <tr><td>Host net (before other fees)</td><td><strong>€225</strong></td><td>€250 − €25</td></tr>
-      <tr><td>Isisel from creator share</td><td><strong>€0</strong></td><td>Default model — do not skim creator %</td></tr>
-      <tr><td>Isisel platform fee</td><td>Per existing rules</td><td><strong>Independent</strong> of creator line</td></tr>
+      <tr><td>Isisel from creator share</td><td><strong>€0</strong></td><td>Creator % is not an Isisel take rate</td></tr>
+      <tr><td>Isisel platform fee</td><td>~7% default</td><td><strong>Independent</strong> — <code>PLATFORM_COMMISSION_RATE</code></td></tr>
     </table>
-    <p class="note">When both platform fee and creator share apply, compute both from the snapshot independently; never reduce <code>platformFee</code> to “fund” the creator.</p>
+    <p class="note">When both platform fee and creator share apply, compute both independently from the snapshot; never reduce <code>platformFee</code> to “fund” the creator. Non-opted-in hosts never owe creator share.</p>
   </section>
 
   <!-- 9 -->
@@ -501,10 +509,10 @@ Payout batch (ops) → creator receives funds</div>
       <article class="card">
         <div class="k">12 · Host</div>
         <ol>
-          <li>Opts into campaign or accepts attributed booking</li>
-          <li>Sees transparent creator line in booking economics</li>
-          <li>Pays creator share only on qualifying stays</li>
-          <li>Retains relationship with guest; Isisel handles ledger</li>
+          <li>Opts into campaign / property assignment</li>
+          <li>Sees transparent creator line on attributed stays</li>
+          <li>Pays creator share only on qualifying completions</li>
+          <li>Platform fee path unchanged vs normal bookings</li>
         </ol>
       </article>
       <article class="card">
@@ -610,13 +618,14 @@ Payout batch (ops) → creator receives funds</div>
     <table>
       <tr><th>Entity</th><th>Purpose</th></tr>
       <tr><td><code>CreatorProfile</code></td><td>Linked user/lead, payout details, status</td></tr>
-      <tr><td><code>CreatorCampaign</code></td><td>Terms, rate, window, host scope</td></tr>
-      <tr><td><code>PromoCode</code></td><td>Code ↔ campaign ↔ creator</td></tr>
-      <tr><td><code>Booking.attribution</code></td><td><code>{ creatorId, codeId, campaignId, capturedAt }</code></td></tr>
-      <tr><td><code>CreatorCommission</code></td><td><strong>Separate ledger</strong> — amount, currency, bookingId, status; never reuse <code>platformFee</code></td></tr>
-      <tr><td><code>CreatorPayout</code></td><td>Batch of commissions; rail reference</td></tr>
+      <tr><td><code>CreatorCampaign</code></td><td>Fixed fee, stay nights, rate, window, deliverables</td></tr>
+      <tr><td><code>CreatorPromoCode</code></td><td>Code ↔ campaign ↔ creator (attribution-first)</td></tr>
+      <tr><td><code>CreatorPropertyAssignment</code></td><td><strong>Host opt-in</strong> per property / campaign</td></tr>
+      <tr><td><code>Booking.creatorAttribution</code></td><td>Code, profile, campaign, rate snapshot</td></tr>
+      <tr><td><code>CreatorCommission</code></td><td><strong>Separate ledger</strong> — never reuse <code>platformFee</code></td></tr>
+      <tr><td><code>CreatorPayout</code> / <code>HostedStay</code></td><td>Batch settlement · stay fulfillment</td></tr>
     </table>
-    <p class="note">Attribution lives on <code>Booking</code>; financial truth for creator pay lives only in <code>CreatorCommission</code>.</p>
+    <p class="note">Attribution lives on <code>Booking</code>; financial truth for creator pay lives only in <code>CreatorCommission</code>. Founding Host / <code>commissionOverride</code> affect <strong>only</strong> the platform fee ledger.</p>
   </section>
 
   <!-- 18 -->
@@ -715,42 +724,52 @@ Payout batch (ops) → creator receives funds</div>
   <section class="sec" id="s23">
     <p class="sec-num">Section 23</p>
     <h2>Creator CAC</h2>
-    <p>Treat creator commission as variable customer acquisition cost on attributed GMV.</p>
+    <p>Treat total creator marketing cost (fixed + stay COGS + performance) as CAC against attributed GBV.</p>
     <table>
-      <tr><th>Metric</th><th>Example</th></tr>
-      <tr><td>Attributed GMV (accommodation)</td><td>€5,000</td></tr>
-      <tr><td>Creator commissions paid/accrued</td><td>€850</td></tr>
+      <tr><th>Metric</th><th>Binta-style example</th></tr>
+      <tr><td>Attributed GBV (accommodation)</td><td>€5,000 (20 × €250)</td></tr>
+      <tr><td>Performance commissions (10%)</td><td>€500</td></tr>
+      <tr><td>Fixed fee + hosted stay COGS</td><td>€200 + €150 = €350</td></tr>
+      <tr><td>Total creator marketing cost</td><td>€850</td></tr>
       <tr><td><strong>Creator CAC</strong></td><td><strong>17%</strong> (€850 / €5,000)</td></tr>
-      <tr><td>Isisel platform fee (separate)</td><td>Per snapshot — not included in 17%</td></tr>
+      <tr><td>Isisel platform fee (separate)</td><td>Per snapshot — not in the 17%</td></tr>
     </table>
-    <p class="note">Target bands are commercial choices; 17% is an illustrative working example for partner conversations, not a committed rate card.</p>
+    <p class="note">17% is an illustrative working example for partner conversations, not a committed rate card. CAC efficiency improves as attributed GBV scales against fixed components.</p>
   </section>
 
   <!-- 24 -->
   <section class="sec" id="s24">
     <p class="sec-num">Section 24</p>
     <h2>Example — Binta Lola Camara</h2>
-    <p class="lede">Worked example for partner and host conversations. Figures are illustrative.</p>
+    <p class="lede">Flagship partnership illustration for planning — not a live contract in code.</p>
     <table>
-      <tr><th>Assumption</th><th>Value</th></tr>
-      <tr><td>Nightly rate</td><td>€250</td></tr>
-      <tr><td>Creator rate</td><td>10%</td></tr>
-      <tr><td>Per night — host</td><td>€225</td></tr>
-      <tr><td>Per night — creator</td><td>€25</td></tr>
-      <tr><td>Per night — Isisel from creator share</td><td>€0</td></tr>
-      <tr><td>Campaign bookings (1 night each)</td><td>20</td></tr>
+      <tr><th>Package term</th><th>Value</th></tr>
+      <tr><td>Creator</td><td>Binta Lola Camara</td></tr>
+      <tr><td>Promo code</td><td><code>BINTA</code></td></tr>
+      <tr><td>Fixed fee</td><td>€200</td></tr>
+      <tr><td>Hosted stay</td><td>1 night (~€150 COGS)</td></tr>
+      <tr><td>Performance</td><td>10% of accommodation base · 90 days</td></tr>
+      <tr><td>Host participation</td><td>Opt-in only</td></tr>
     </table>
     <table>
-      <tr><th>Roll-up (20 × €250)</th><th>Amount</th></tr>
-      <tr><td>Gross accommodation (GMV)</td><td><strong>€5,000</strong></td></tr>
-      <tr><td>Creator total (10%)</td><td><strong>€500</strong></td></tr>
-      <tr><td>Hosts collective net (pre platform fee)</td><td><strong>€4,500</strong></td></tr>
-      <tr><td>Isisel skim of creator share</td><td><strong>€0</strong></td></tr>
-      <tr><td>Creator CAC on this campaign</td><td><strong>10%</strong> (commissions / GMV)</td></tr>
+      <tr><th>Per night (opted-in host)</th><th>Amount</th></tr>
+      <tr><td>Nightly accommodation</td><td><strong>€250</strong></td></tr>
+      <tr><td>Creator commission (10%)</td><td><strong>€25</strong></td></tr>
+      <tr><td>Host net (pre platform fee)</td><td><strong>€225</strong></td></tr>
+      <tr><td>Isisel from creator share</td><td><strong>€0</strong></td></tr>
+    </table>
+    <table>
+      <tr><th>Campaign roll-up (20 bookings × €250)</th><th>Amount</th></tr>
+      <tr><td>Attributed GBV</td><td><strong>€5,000</strong></td></tr>
+      <tr><td>Performance commissions (10%)</td><td><strong>€500</strong></td></tr>
+      <tr><td>Fixed fee + stay COGS</td><td><strong>€350</strong></td></tr>
+      <tr><td>Total creator marketing cost</td><td><strong>€850</strong></td></tr>
+      <tr><td>Creator cash (€200 + €500)</td><td><strong>€700</strong> (+ stay)</td></tr>
+      <tr><td><strong>Creator CAC / GBV</strong></td><td><strong>17%</strong></td></tr>
     </table>
     <div class="principle">
       <div class="k">Governing principle</div>
-      <p>Hosts only pay when Binta generates qualifying bookings. No booking → no €25. Platform commission, if any, remains Isisel’s line — not Binta’s.</p>
+      <p>Hosts only pay the €25/night when Binta generates a qualifying booking on an opted-in property. No booking → no performance commission. Platform fee remains Isisel’s separate line.</p>
     </div>
   </section>
 
@@ -761,18 +780,26 @@ Payout batch (ops) → creator receives funds</div>
     <div class="grid2">
       <article class="card cream">
         <div class="k">Host view</div>
-        <p>Predictable share only on attributed demand. Optional campaign participation. Clear reservation-level math.</p>
+        <p>Opt-in only. Predictable share on attributed demand. Platform fee path unchanged vs non-creator bookings.</p>
       </article>
       <article class="card">
         <div class="k">Isisel view</div>
-        <p>Platform fee intact. Growth lever without buying inefficient media. Ops cost = CRM + ledger + payouts.</p>
+        <p>Platform fee intact. Growth without coercive host take. Ops cost = CRM + ledger + payouts.</p>
       </article>
     </div>
     <table>
-      <tr><th>Scenario</th><th>Bookings</th><th>GMV</th><th>Creator @10%</th><th>Notes</th></tr>
-      <tr><td>Pilot</td><td>20</td><td>€5,000</td><td>€500</td><td>Binta illustration</td></tr>
-      <tr><td>Scale</td><td>100</td><td>€25,000</td><td>€2,500</td><td>Same rate card</td></tr>
-      <tr><td>Mixed rates</td><td>50</td><td>€18,000</td><td>varies</td><td>Tiered creators</td></tr>
+      <tr><th>Attributed GBV</th><th>Commission 10%</th><th>Fixed+Stay</th><th>Total CAC</th><th>CAC/GBV</th></tr>
+      <tr><td>€2,000</td><td>€200</td><td>€350</td><td>€550</td><td>27.5%</td></tr>
+      <tr><td>€5,000</td><td>€500</td><td>€350</td><td>€850</td><td><strong>17.0%</strong></td></tr>
+      <tr><td>€10,000</td><td>€1,000</td><td>€350</td><td>€1,350</td><td>13.5%</td></tr>
+    </table>
+    <table>
+      <tr><th></th><th>Platform fee (Existing)</th><th>Creator commission (Proposed)</th></tr>
+      <tr><td>Purpose</td><td>Marketplace checkout fee</td><td>Marketing attribution reward</td></tr>
+      <tr><td>Default</td><td>7%</td><td>Campaign-configured (e.g. 10%)</td></tr>
+      <tr><td>Storage</td><td><code>pricingSnapshot.platformFee</code></td><td><code>CreatorCommission</code></td></tr>
+      <tr><td>Host mandatory?</td><td>Checkout fee policy</td><td><strong>Opt-in only</strong></td></tr>
+      <tr><td>Finalized</td><td>At booking fee calc</td><td>After stay</td></tr>
     </table>
   </section>
 
@@ -795,21 +822,22 @@ Payout batch (ops) → creator receives funds</div>
     <p class="sec-num">Section 27</p>
     <h2>MVP Scope</h2>
     <table>
-      <tr><th>In</th><th>Out (later)</th></tr>
+      <tr><th>In MVP</th><th>Out (later)</th></tr>
       <tr>
         <td>
           Promo codes + booking attribution<br />
+          Host property opt-in assignments<br />
           CreatorCommission ledger + post-stay job<br />
-          Ops approve / payout mark-paid<br />
+          Ops approve / mark-paid under creators CRM<br />
           Host economics line on reservation<br />
-          Basic creator summary (ops or simple portal)
+          Keep <code>platformFee</code> engine untouched
         </td>
         <td>
-          Full self-serve creator app<br />
-          Multi-currency auto FX<br />
-          Instant payouts<br />
-          Marketplace of creators for hosts<br />
-          Automated collusion ML
+          Full self-serve creator marketplace<br />
+          Multi-touch / deep-link graph<br />
+          Instant multi-country payouts<br />
+          Guest-funded discount pools<br />
+          Merging creator amounts into <code>platformFee</code> — <strong>never</strong>
         </td>
       </tr>
     </table>
@@ -846,14 +874,14 @@ Payout batch (ops) → creator receives funds</div>
     <div class="close">
       <h3>Partner with creators. Protect the fee. Pay on performance.</h3>
       <p>
-        Isisel already has the public funnel and ops CRM. This system adds <strong>attribution</strong>,
-        a <strong>CreatorCommission ledger</strong>, and host-clear economics so influencers earn when
-        they deliver stays — without confusing creator pay with platform commission.
+        Isisel already has the public funnel and ops CRM. This system adds <strong>host opt-in</strong>,
+        <strong>attribution</strong>, a <strong>CreatorCommission ledger</strong>, and clear economics so
+        influencers earn when they deliver stays — without confusing creator pay with platform commission.
       </p>
     </div>
     <div class="principle">
       <div class="k">Governing principle — final reminder</div>
-      <p><strong>Creator commission ≠ Isisel platform commission.</strong> Hosts only pay when a creator generates a qualifying booking. Finalize after stay. Never reuse <code>platformFee</code> for creator pay.</p>
+      <p><strong>Creator commission ≠ Isisel platform commission.</strong> Isisel does not charge hosts a standard platform commission for this creator marketing model. Hosts only share when they opt in and a creator generates a qualifying booking. Finalize after stay. Never reuse <code>platformFee</code> for creator pay.</p>
     </div>
     <p>www.isisel.com · <a href="https://www.isisel.com/influencers">/influencers</a> · Ops <code>/ops/marketing/creators</code></p>
   </section>
