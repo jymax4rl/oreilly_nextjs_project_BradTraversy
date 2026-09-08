@@ -212,8 +212,9 @@ export default function HostCreatorsView({ initial }) {
   }
 
   async function onCodeModalSaved() {
+    const wasEdit = codeModal.mode === "edit";
     setNotice(
-      codeModal.mode === "edit"
+      wasEdit
         ? t("hostConsole.creators.codeUpdated")
         : t("hostConsole.creators.codeAdded"),
     );
