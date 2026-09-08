@@ -121,7 +121,7 @@ export async function POST(req) {
       return NextResponse.json(
         {
           message:
-            "Online card checkout is limited to ops and partner listings right now. Request a reservation to arrange payment with the host.",
+            "Online card checkout is limited to ops right now. Request a reservation to arrange payment with the host.",
         },
         { status: 403 },
       );

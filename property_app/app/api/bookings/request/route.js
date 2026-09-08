@@ -13,8 +13,8 @@ import { canBrowseListingCatalog } from "@/utils/listings/catalogBeta";
  * Guest creates a pending reservation without paying online.
  * Host sees guest phone and arranges payment via messaging / call / WhatsApp.
  *
- * When the gateway soft-launch applies to this guest/listing (ops or partner
- * Sadio Diallo), force them through online Reserve instead.
+ * Ops staff (when gateway is on) must use online Reserve instead of this
+ * manual request path — guests always request and pay via the host.
  */
 export async function POST(request) {
   try {

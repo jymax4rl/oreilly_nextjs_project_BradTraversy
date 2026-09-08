@@ -73,7 +73,7 @@ function RightColumn({ data }) {
   // Prefer the guest's selector (not FX fallback) for GeniusPay rail/currency.
   const selectedPayCurrency = normalizeCurrencyCode(currencyCode) || paymentCurrency;
   const isOwner = session?.user?.id === data.owner;
-  // Soft launch: online checkout for ops, partner Sadio Diallo, or his listings.
+  // Online MoMo/card checkout is ops-only; guests arrange payment with the host.
   const paymentAllowed = canUseOnlineCheckout(session, data);
   const gatewayCheckout =
     isPaymentGatewayCheckoutEnabled() && paymentAllowed;
