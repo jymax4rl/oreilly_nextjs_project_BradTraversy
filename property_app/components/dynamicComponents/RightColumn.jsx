@@ -39,6 +39,7 @@ import {
 } from "@/utils/bookings/paymentMode";
 import { canUseOnlineCheckout } from "@/utils/payments/paymentAccess";
 import GuestPhoneModal from "@/components/bookings/GuestPhoneModal";
+import { resolveGeniusPayCheckoutPlan } from "@/utils/payments/geniusPayCurrency";
 
 function RightColumn({ data }) {
   const { currencyCode, rates } = useCurrency();
@@ -69,6 +70,8 @@ function RightColumn({ data }) {
   const listingRates = normalizeRates(data.rates);
   const fx = resolveFxRate(rates, currencyCode);
   const paymentCurrency = normalizeCurrencyCode(fx.currencyCode);
+  // Prefer the guest's selector (not FX fallback) for GeniusPay rail/currency.
+  const selectedPayCurrency = normalizeCurrencyCode(currencyCode) || paymentCurrency;
   const isOwner = session?.user?.id === data.owner;
   // Soft launch: online checkout for ops, partner Sadio Diallo, or his listings.
   const paymentAllowed = canUseOnlineCheckout(session, data);
@@ -76,6 +79,8 @@ function RightColumn({ data }) {
     isPaymentGatewayCheckoutEnabled() && paymentAllowed;
   const creemCheckout = isCreemCheckoutEnabled() && paymentAllowed;
   const geniusPayCheckout = isGeniusPayCheckoutEnabled() && paymentAllowed;
+  const geniusPayPlan = resolveGeniusPayCheckoutPlan(selectedPayCurrency);
+  const geniusPayInternational = geniusPayPlan.rail === "international";
   const checkInTimeLabel = formatClockTimeLabel(
     data.checkInTime,
     DEFAULT_CHECK_IN_TIME,
@@ -410,9 +415,9 @@ function RightColumn({ data }) {
           checkOut: validation.checkOut,
           guestPhone: phone,
           promoCode: promoCode.trim() || undefined,
-          // Propagate currency selector so GeniusPay charges EUR/USD (card /
-          // Apple Pay / Google Pay) instead of always forcing XOF MoMo.
-          currency: paymentCurrency,
+          // Propagate currency selector. Non-African → EUR/USD card/wallet rail.
+          currency: selectedPayCurrency || paymentCurrency || "USD",
+          checkoutRail: geniusPayPlan.rail,
         }),
       });
       const payload = await res.json().catch(() => ({}));
@@ -784,6 +789,8 @@ function RightColumn({ data }) {
         onConfirm={handlePhoneConfirm}
         submitting={submitting}
         error={phoneModalError}
+        currencyCode={selectedPayCurrency}
+        geniusPayInternational={geniusPayInternational}
         paymentMethods={
           gatewayCheckout
             ? {

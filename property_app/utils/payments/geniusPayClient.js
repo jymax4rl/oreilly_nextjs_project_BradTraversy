@@ -2,33 +2,22 @@
  * GeniusPay merchant API client (Wave / Orange / MTN / Moov / card / wallets).
  * Docs: https://geniuspay.ci/docs/api
  * Base: https://geniuspay.ci/api/v1/merchant
- *
- * Charge currencies supported by GeniusPay create-payment: XOF, EUR, USD.
- * African MoMo selectors → XOF + full checkout.
- * Non-African selectors → EUR or USD + card/wallet rail (Apple Pay / Google Pay / card).
  */
 
+import {
+  GENIUSPAY_CHARGE_CURRENCIES,
+  resolveGeniusPayCheckoutPlan,
+} from "@/utils/payments/geniusPayCurrency";
+
+export {
+  GENIUSPAY_CHARGE_CURRENCIES,
+  AFRICAN_MOMO_CURRENCIES,
+  isGeniusPayAfricanCurrency,
+  normalizeGeniusPayCurrency,
+  resolveGeniusPayCheckoutPlan,
+} from "@/utils/payments/geniusPayCurrency";
+
 const DEFAULT_BASE = "https://geniuspay.ci/api/v1/merchant";
-
-/** GeniusPay create-payment accepts these charge currencies. */
-export const GENIUSPAY_CHARGE_CURRENCIES = new Set(["XOF", "EUR", "USD"]);
-
-/** Currencies that should stay on the African MoMo checkout rail. */
-const AFRICAN_MOMO_CURRENCIES = new Set([
-  "XOF",
-  "XAF",
-  "GHS",
-  "KES",
-  "NGN",
-  "ZAR",
-  "UGX",
-  "RWF",
-  "ZMW",
-  "GMD",
-  "MAD",
-  "CDF",
-  "SLE",
-]);
 
 function assertLatin1Env(name, value) {
   for (let i = 0; i < value.length; i += 1) {
@@ -108,41 +97,6 @@ export function usdToXof(amountUsd, rate = getUsdToXofRate()) {
   if (!Number.isFinite(usd) || usd <= 0) return null;
   const xof = Math.round(usd * rate);
   return xof >= 200 ? xof : null;
-}
-
-/**
- * Map the guest currency selector to a GeniusPay charge plan.
- * - African MoMo currencies → XOF, open checkout (MoMo + card)
- * - EUR → charge EUR, card/wallet rail only
- * - Everything else international → charge USD, card/wallet rail only
- */
-export function resolveGeniusPayCheckoutPlan(selectedCurrency) {
-  const selected = String(selectedCurrency || "USD")
-    .trim()
-    .toUpperCase() || "USD";
-
-  const african = AFRICAN_MOMO_CURRENCIES.has(selected);
-
-  if (african) {
-    return {
-      selectedCurrency: selected,
-      chargeCurrency: "XOF",
-      rail: "africa",
-      // Hosted checkout — guest picks Wave / Orange / MTN / card
-      paymentMethod: null,
-      allowedMethods: null,
-    };
-  }
-
-  const chargeCurrency = selected === "EUR" ? "EUR" : "USD";
-  return {
-    selectedCurrency: selected,
-    chargeCurrency,
-    rail: "international",
-    // Card rail surfaces Visa/Mastercard + Apple Pay / Google Pay on Stripe
-    paymentMethod: null,
-    allowedMethods: ["card"],
-  };
 }
 
 /**
@@ -243,10 +197,10 @@ async function geniusPayFetch(path, { method = "GET", body } = {}) {
 }
 
 /**
- * Create a hosted checkout.
- * - Africa / XOF: omit payment_method → MoMo + card chooser
- * - International EUR/USD: pass allowed_methods=["card"] so checkout
- *   offers card + Apple Pay / Google Pay (Stripe rail), not Wave/Orange/MTN
+ * Create a GeniusPay payment / checkout session.
+ * - Africa / XOF: omit payment_method → hosted checkout (MoMo + card)
+ * - International EUR/USD: payment_method=card → Stripe gateway with that
+ *   currency (Apple Pay / Google Pay / Visa), not the XOF-hosted page
  */
 export async function createGeniusPayPayment({
   amount,

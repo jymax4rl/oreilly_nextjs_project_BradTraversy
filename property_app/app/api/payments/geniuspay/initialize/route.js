@@ -24,9 +24,9 @@ import {
   convertUsdToGeniusPayAmount,
   createGeniusPayPayment,
   isGeniusPayConfigured,
-  resolveGeniusPayCheckoutPlan,
   resolveGeniusPayFxRate,
 } from "@/utils/payments/geniusPayClient";
+import { resolveGeniusPayCheckoutPlan } from "@/utils/payments/geniusPayCurrency";
 import {
   applyGuestPromoDiscount,
   resolveOptionalPromoAttribution,
@@ -35,11 +35,14 @@ import {
 /**
  * POST /api/payments/geniuspay/initialize
  *
- * Starts GeniusPay hosted checkout.
+ * Starts GeniusPay checkout.
  * Listing fees are priced in USD; we charge:
- *   - XOF for African / MoMo currencies (Wave / Orange / MTN / …)
- *   - EUR or USD for non-African selectors (card / Apple Pay / Google Pay)
- * Guest currency selector is propagated via `currency` on the GeniusPay payment.
+ *   - XOF for African / MoMo currencies → hosted GeniusPay (Wave / Orange / …)
+ *   - EUR or USD for non-African selectors → payment_method=card (Stripe:
+ *     Apple Pay / Google Pay / card in that currency)
+ *
+ * Important: GeniusPay's hosted checkout page always presents XOF, so
+ * international must use the direct card gateway — not the hosted page.
  */
 export async function POST(req) {
   try {
@@ -84,6 +87,9 @@ export async function POST(req) {
     )
       .trim()
       .toUpperCase();
+    const checkoutRailHint = String(body.checkoutRail || body.rail || "")
+      .trim()
+      .toLowerCase();
 
     if (!propertyId || !checkIn || !checkOut) {
       return NextResponse.json(
@@ -173,6 +179,14 @@ export async function POST(req) {
     const fees = calculateBookingFees(discount.discountedBase);
 
     const plan = resolveGeniusPayCheckoutPlan(selectedCurrency);
+    // Client rail hint wins when currency mapping is ambiguous (e.g. USD can
+    // mean listing default). Prefer international when the guest UI said so.
+    if (checkoutRailHint === "international" && plan.rail !== "international") {
+      plan.rail = "international";
+      plan.chargeCurrency = selectedCurrency === "EUR" ? "EUR" : "USD";
+      plan.paymentMethod = "card";
+      plan.allowedMethods = null;
+    }
     const fxRate = await resolveGeniusPayFxRate(plan.chargeCurrency);
     const converted = convertUsdToGeniusPayAmount(
       fees.total,
@@ -238,6 +252,7 @@ export async function POST(req) {
         selected_currency: plan.selectedCurrency,
         currency: plan.chargeCurrency,
         rail: plan.rail,
+        payment_method: plan.paymentMethod || "",
         amount_total_usd: String(fees.total),
         amount_charged: String(converted.amount),
         amount_xof:
@@ -253,7 +268,9 @@ export async function POST(req) {
       },
     });
 
-    const checkoutUrl = payment.checkout_url || payment.payment_url;
+    // Direct card gateway may return payment_url (Stripe) instead of checkout_url.
+    const checkoutUrl =
+      payment.checkout_url || payment.payment_url || payment.redirect_url;
     if (!checkoutUrl) {
       return NextResponse.json(
         { message: "GeniusPay did not return a checkout URL" },

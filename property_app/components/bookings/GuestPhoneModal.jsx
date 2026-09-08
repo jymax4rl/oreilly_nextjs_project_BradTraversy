@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useId, useRef } from "react";
-import { CreditCard, Smartphone, X } from "lucide-react";
+import { CreditCard, Smartphone, Wallet, X } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 
 /**
  * Collects a WhatsApp-preferred guest phone before submitting a reservation.
  * When online checkout is on, paymentMethods offers:
- *   - geniuspay → Mobile Money (Wave / Orange / MTN / Moov)
- *   - creem → Card (Visa / Mastercard via Creem)
+ *   - geniuspay → MoMo (African currencies) or Apple Pay / Google Pay / card
+ *     (non-African currencies) via GeniusPay
+ *   - creem → Card via Creem
  */
 export default function GuestPhoneModal({
   open,
@@ -19,6 +20,10 @@ export default function GuestPhoneModal({
   submitting = false,
   error = null,
   paymentMethods = null,
+  /** Guest currency selector — drives GeniusPay MoMo vs card/wallet copy */
+  currencyCode = "USD",
+  /** When true, GeniusPay is the international card/wallet rail (not MoMo) */
+  geniusPayInternational = false,
 }) {
   const titleId = useId();
   const inputId = useId();
@@ -28,6 +33,8 @@ export default function GuestPhoneModal({
   const creemEnabled = Boolean(paymentMethods?.creem);
   const showMethods = geniusEnabled || creemEnabled;
   const bothMethods = geniusEnabled && creemEnabled;
+  const currency = String(currencyCode || "USD").trim().toUpperCase() || "USD";
+  const international = Boolean(geniusPayInternational);
 
   useEffect(() => {
     if (!open) return;
@@ -58,6 +65,18 @@ export default function GuestPhoneModal({
     if (submitting) return;
     onConfirm?.(defaultMethod);
   };
+
+  const geniusTitle = international
+    ? "Apple Pay / Google Pay / Card"
+    : "Mobile Money";
+  const geniusHint = international
+    ? `Pay in ${currency} — via GeniusPay`
+    : "Wave, Orange Money, MTN MoMo, Moov — via GeniusPay";
+  const GeniusIcon = international ? Wallet : Smartphone;
+
+  const phonePlaceholder = international
+    ? "+33 6 XX XX XX XX"
+    : "+225 07 XX XX XX XX";
 
   return (
     <div
@@ -105,7 +124,9 @@ export default function GuestPhoneModal({
           <div className="space-y-4 overflow-y-auto px-5 py-4">
             <p className="text-sm leading-snug text-[var(--kama-ink-muted)]">
               {showMethods
-                ? "Share a WhatsApp number, then choose how you want to pay."
+                ? international
+                  ? `Share a WhatsApp number, then pay in ${currency}.`
+                  : "Share a WhatsApp number, then choose how you want to pay."
                 : "Share a WhatsApp number so the host can reach you about your stay."}
             </p>
 
@@ -125,7 +146,7 @@ export default function GuestPhoneModal({
                 inputMode="tel"
                 required
                 disabled={submitting}
-                placeholder="+225 07 XX XX XX XX"
+                placeholder={phonePlaceholder}
                 value={phone}
                 onChange={(e) => onPhoneChange?.(e.target.value)}
                 className="w-full rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2.5 text-sm text-[var(--kama-ink)] outline-none ring-[var(--kama-accent)] placeholder:text-[var(--kama-ink-muted)] focus:ring-2 disabled:opacity-60"
@@ -157,14 +178,14 @@ export default function GuestPhoneModal({
                   className="flex w-full items-start gap-3 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3.5 py-3 text-left transition hover:border-[var(--kama-accent)] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--kama-accent)]/10 text-[var(--kama-accent)]">
-                    <Smartphone size={18} aria-hidden />
+                    <GeniusIcon size={18} aria-hidden />
                   </span>
                   <span className="min-w-0">
                     <span className="block text-sm font-semibold text-[var(--kama-ink)]">
-                      {submitting ? "Starting…" : "Mobile Money"}
+                      {submitting ? "Starting…" : geniusTitle}
                     </span>
                     <span className="mt-0.5 block text-xs leading-snug text-[var(--kama-ink-muted)]">
-                      Wave, Orange Money, MTN MoMo, Moov — via GeniusPay
+                      {geniusHint}
                     </span>
                   </span>
                 </button>
@@ -217,7 +238,7 @@ export default function GuestPhoneModal({
                 >
                   {showMethods ? (
                     geniusEnabled ? (
-                      <Smartphone size={16} aria-hidden />
+                      <GeniusIcon size={16} aria-hidden />
                     ) : (
                       <CreditCard size={16} aria-hidden />
                     )
@@ -228,7 +249,9 @@ export default function GuestPhoneModal({
                       : "Requesting…"
                     : showMethods
                       ? geniusEnabled
-                        ? "Pay with Mobile Money"
+                        ? international
+                          ? `Pay in ${currency}`
+                          : "Pay with Mobile Money"
                         : "Pay with card"
                       : "Confirm reservation"}
                 </button>
