@@ -782,6 +782,7 @@ export async function finalizeFromCreemCheckout(checkout) {
     check_out: meta.check_out,
     nights: meta.nights != null ? Number(meta.nights) : undefined,
     guest_phone: meta.guest_phone,
+    promo_code: meta.promo_code || meta.promoCode || undefined,
   };
 
   const result = await finalizePaidTransaction(body, {
@@ -881,6 +882,7 @@ export async function finalizeFromGeniusPayPayment(payment) {
     check_out: meta.check_out,
     nights: meta.nights != null ? Number(meta.nights) : undefined,
     guest_phone: meta.guest_phone || customer.phone || payment?.customer_phone,
+    promo_code: meta.promo_code || meta.promoCode || undefined,
   };
 
   const result = await finalizePaidTransaction(body, {

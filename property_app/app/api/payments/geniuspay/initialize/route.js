@@ -26,6 +26,10 @@ import {
   isGeniusPayConfigured,
   usdToXof,
 } from "@/utils/payments/geniusPayClient";
+import {
+  applyGuestPromoDiscount,
+  resolveOptionalPromoAttribution,
+} from "@/utils/creators/promoAttribution";
 
 /**
  * POST /api/payments/geniuspay/initialize
@@ -70,6 +74,7 @@ export async function POST(req) {
     const guestPhone = normalizeGuestPhone(
       body.guestPhone || body.guest_phone,
     );
+    const promoCode = body.promoCode || body.promo_code || "";
 
     if (!propertyId || !checkIn || !checkOut) {
       return NextResponse.json(
@@ -139,7 +144,24 @@ export async function POST(req) {
       );
     }
 
-    const fees = calculateBookingFees(stay.base);
+    const promoResult = await resolveOptionalPromoAttribution({
+      propertyId,
+      promoCode,
+      guestId: guestUserId,
+      guestEmail,
+    });
+    if (!promoResult.ok) {
+      return NextResponse.json(
+        { message: promoResult.error || "Invalid promo code" },
+        { status: 400 },
+      );
+    }
+    const attribution = promoResult.attribution;
+    const discount = applyGuestPromoDiscount(
+      stay.base,
+      attribution?.guestDiscountRate || 0,
+    );
+    const fees = calculateBookingFees(discount.discountedBase);
     const fxRate = getUsdToXofRate();
     const amountXof = usdToXof(fees.total, fxRate);
     if (!amountXof) {
@@ -154,6 +176,7 @@ export async function POST(req) {
 
     const hostPayoutUsd =
       Math.round((fees.base + fees.cleaningFee) * 100) / 100;
+    const hostId = String(property.owner?._id || property.owner || "");
 
     const successUrl = appUrl(
       `/bookings/payment-success?provider=geniuspay&property=${encodeURIComponent(String(propertyId))}`,
@@ -180,7 +203,7 @@ export async function POST(req) {
         request_id: requestId,
         property_id: String(propertyId),
         property_name: property.name || "Property",
-        host_id: String(property.owner || ""),
+        host_id: hostId,
         host_name: property.seller_info?.name || "",
         host_email: property.seller_info?.email || "",
         check_in: validation.checkIn,
@@ -197,6 +220,10 @@ export async function POST(req) {
         platform_fee_usd: String(fees.commission),
         cleaning_fee_usd: String(fees.cleaningFee),
         host_payout_usd: String(hostPayoutUsd),
+        promo_code: attribution?.creatorPromoCode || "",
+        guest_discount_rate: String(discount.guestDiscountRate || 0),
+        guest_discount_usd: String(discount.guestDiscountAmount || 0),
+        accommodation_base_usd: String(discount.discountedBase),
       },
     });
 
