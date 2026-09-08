@@ -78,6 +78,23 @@ export default function CreatorPortalView({ data, token }) {
           </p>
         </div>
 
+        {alerts.length > 0 ? (
+          <div className="mt-4 space-y-2">
+            {alerts.map((alert) => (
+              <div
+                key={alert.code || alert.message}
+                className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-950"
+                role="status"
+              >
+                <p className="font-semibold">
+                  Code paused{alert.code ? `: ${alert.code}` : ""}
+                </p>
+                <p className="mt-0.5 text-xs text-amber-900/90">{alert.message}</p>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
         <section className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
             { label: "Bookings", value: summary.reservations },
@@ -139,11 +156,14 @@ export default function CreatorPortalView({ data, token }) {
               <CreatorAvailabilityCalendar
                 propertyName={selected.name}
                 unavailableRanges={selected.unavailableRanges || []}
+                promotionPaused={Boolean(selected.paused) || !selected.promotionActive}
+                pausedCodes={selected.pausedCodes || []}
               />
             ) : null}
             <p className="text-xs text-[var(--kama-ink-muted)]">
-              Green nights are open on Isisel — good dates to feature in stories
-              with your promo code.
+              {selected?.paused || selected?.promotionActive === false
+                ? "Your promo is paused — open nights are not for stories until the host resumes the code."
+                : "Green nights are open on Isisel — good dates to feature in stories with your promo code."}
             </p>
           </section>
         ) : null}

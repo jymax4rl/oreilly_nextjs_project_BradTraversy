@@ -83,6 +83,13 @@ export async function resolveCreatorPromoAttribution({
     return { ok: false, error: "Invalid commission rate on this promo" };
   }
 
+  let guestDiscountRate = Number(promo.guestDiscountRate);
+  if (!Number.isFinite(guestDiscountRate) || guestDiscountRate < 0) {
+    // Legacy codes created before guestDiscountRate existed
+    guestDiscountRate = 0.1;
+  }
+  guestDiscountRate = Math.min(0.5, guestDiscountRate);
+
   return {
     ok: true,
     attribution: {
@@ -92,7 +99,29 @@ export async function resolveCreatorPromoAttribution({
       creatorPartnerName: partner.name || "",
       creatorCommissionRate: rate,
       creatorHostId: String(promo.hostId),
+      guestDiscountRate,
     },
+  };
+}
+
+/**
+ * Apply guest promo discount to accommodation base (USD).
+ */
+export function applyGuestPromoDiscount(accommodationBase, guestDiscountRate) {
+  const originalBase = Math.max(0, Math.round((Number(accommodationBase) || 0) * 100) / 100);
+  const rate = Math.min(
+    0.5,
+    Math.max(0, Number(guestDiscountRate) || 0),
+  );
+  const guestDiscountAmount =
+    Math.round(originalBase * rate * 100) / 100;
+  const discountedBase =
+    Math.round((originalBase - guestDiscountAmount) * 100) / 100;
+  return {
+    originalBase,
+    guestDiscountRate: rate,
+    guestDiscountAmount,
+    discountedBase,
   };
 }
 

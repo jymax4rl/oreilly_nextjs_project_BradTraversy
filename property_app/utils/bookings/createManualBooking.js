@@ -26,6 +26,7 @@ import { TRAINING_BOOKING_SOURCE } from "@/utils/opsTraining/constants";
 import {
   buildCreatorBookingFields,
   resolveOptionalPromoAttribution,
+  applyGuestPromoDiscount,
 } from "@/utils/creators/promoAttribution";
 import { upsertCommissionForBooking } from "@/utils/creators/commissionEngine";
 
@@ -130,19 +131,7 @@ export async function createManualBookingRequest({
   }
 
   const resolved = await resolveCommissionForProperty(property);
-  const { cleaningFee, commission, total: totalUsd } = calculateBookingFees(
-    stayPricing.base,
-    { commissionRate: resolved.commissionRate },
-  );
   const nights = countNights(validation.checkIn, validation.checkOut);
-  const amount =
-    amountHint != null && Number.isFinite(Number(amountHint))
-      ? Number(amountHint)
-      : totalUsd;
-  const currencyCode = (currency || "USD").toUpperCase();
-
-  const bookingStatus =
-    createdByHost && status === "confirmed" ? "confirmed" : "pending";
 
   const promoResult = await resolveOptionalPromoAttribution({
     propertyId,
@@ -158,9 +147,30 @@ export async function createManualBookingRequest({
       error: promoResult.error || "Invalid promo code",
     };
   }
+
+  const discount = applyGuestPromoDiscount(
+    stayPricing.base,
+    promoResult.attribution?.guestDiscountRate || 0,
+  );
+  const pricedBase = discount.discountedBase;
+  const { cleaningFee, commission, total: totalUsd } = calculateBookingFees(
+    pricedBase,
+    { commissionRate: resolved.commissionRate },
+  );
+
+  const amount =
+    amountHint != null && Number.isFinite(Number(amountHint))
+      ? Number(amountHint)
+      : totalUsd;
+  const currencyCode = (currency || "USD").toUpperCase();
+
+  const bookingStatus =
+    createdByHost && status === "confirmed" ? "confirmed" : "pending";
+
+  // Creator commission on the accommodation the guest actually pays
   const creatorFields = buildCreatorBookingFields(
     promoResult.attribution,
-    stayPricing.base,
+    pricedBase,
   );
 
   const booking = await Booking.create({
@@ -180,12 +190,20 @@ export async function createManualBookingRequest({
     ...(source ? { source } : {}),
     ...creatorFields,
     pricingSnapshot: {
-      nightlyRate: stayPricing.base / Math.max(nights, 1),
-      accommodationBase: stayPricing.base,
+      nightlyRate: pricedBase / Math.max(nights, 1),
+      accommodationBase: pricedBase,
+      accommodationBeforePromo: discount.originalBase,
       cleaningFee,
       total: totalUsd,
       nights,
       currency: "USD",
+      ...(discount.guestDiscountAmount > 0
+        ? {
+            promoCode: promoResult.attribution?.creatorPromoCode,
+            promoDiscountRate: discount.guestDiscountRate,
+            promoDiscountAmount: discount.guestDiscountAmount,
+          }
+        : {}),
       ...buildPricingCommissionFields({ commission, resolved }),
     },
   });

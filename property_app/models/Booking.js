@@ -14,6 +14,11 @@ const PricingSnapshotSchema = new mongoose.Schema(
     total: { type: Number },
     nights: { type: Number },
     currency: { type: String, default: "USD" },
+    /** Guest promo discount (creator code) — never mixed into platformFee. */
+    promoCode: { type: String },
+    promoDiscountRate: { type: Number },
+    promoDiscountAmount: { type: Number },
+    accommodationBeforePromo: { type: Number },
   },
   { _id: false },
 );

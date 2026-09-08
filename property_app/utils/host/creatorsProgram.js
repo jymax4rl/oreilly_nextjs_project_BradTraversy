@@ -83,6 +83,8 @@ export async function buildHostCreatorsProgram(hostId) {
           id: String(code._id),
           code: code.code,
           commissionRate: code.commissionRate,
+          guestDiscountRate:
+            code.guestDiscountRate != null ? code.guestDiscountRate : 0.1,
           status: code.status,
           propertyId: String(code.propertyId),
           propertyName: prop?.name || "Listing",

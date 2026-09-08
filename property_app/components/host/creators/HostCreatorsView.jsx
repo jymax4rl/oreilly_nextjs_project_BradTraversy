@@ -83,6 +83,7 @@ const emptyCodeForm = {
   propertyId: "",
   code: "",
   commissionRatePercent: "10",
+  guestDiscountRatePercent: "10",
 };
 
 export default function HostCreatorsView({ initial }) {
@@ -161,6 +162,7 @@ export default function HostCreatorsView({ initial }) {
           ...codeForm,
           creatorPartnerId: codeForm.creatorPartnerId || selected?.id,
           commissionRatePercent: Number(codeForm.commissionRatePercent),
+          guestDiscountRatePercent: Number(codeForm.guestDiscountRatePercent),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -545,8 +547,11 @@ export default function HostCreatorsView({ initial }) {
                             {code.code}
                           </p>
                           <p className="text-xs text-[var(--kama-ink-muted)]">
-                            {code.propertyName} · {pct(code.commissionRate)} ·{" "}
-                            {code.status}
+                            {code.propertyName} · creator {pct(code.commissionRate)}
+                            {code.guestDiscountRate != null
+                              ? ` · guest −${pct(code.guestDiscountRate)}`
+                              : ""}{" "}
+                            · {code.status}
                           </p>
                         </div>
                         <button
@@ -625,6 +630,25 @@ export default function HostCreatorsView({ initial }) {
                       className="rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2 text-sm outline-none focus:border-[var(--kama-accent)]"
                     />
                   </div>
+                  <label className="block text-xs text-[var(--kama-ink-muted)]">
+                    Guest discount %
+                    <input
+                      required
+                      type="number"
+                      min={0}
+                      max={50}
+                      step={0.5}
+                      value={codeForm.guestDiscountRatePercent}
+                      onChange={(e) =>
+                        setCodeForm((f) => ({
+                          ...f,
+                          guestDiscountRatePercent: e.target.value,
+                          creatorPartnerId: selected.id,
+                        }))
+                      }
+                      className="mt-1 w-full rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2 text-sm text-[var(--kama-ink)] outline-none focus:border-[var(--kama-accent)]"
+                    />
+                  </label>
                   <button
                     type="submit"
                     disabled={busy === "code" || properties.length === 0}

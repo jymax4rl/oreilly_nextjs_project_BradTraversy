@@ -64,6 +64,8 @@ function RightColumn({ data }) {
   const [submitting, setSubmitting] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [promoHint, setPromoHint] = useState(null);
+  /** Validated promo — drives live price update */
+  const [appliedPromo, setAppliedPromo] = useState(null);
 
   const listingRates = normalizeRates(data.rates);
   const fx = resolveFxRate(rates, currencyCode);
@@ -119,7 +121,12 @@ function RightColumn({ data }) {
       : null;
   const primaryRate = getPrimaryDisplayRate(listingRates);
 
-  const basePriceUsd = stayPricing?.base ?? primaryRate?.amount ?? 0;
+  const rawBasePriceUsd = stayPricing?.base ?? primaryRate?.amount ?? 0;
+  const promoDiscountRate = appliedPromo?.guestDiscountRate || 0;
+  const promoDiscountAmount =
+    Math.round(rawBasePriceUsd * promoDiscountRate * 100) / 100;
+  const basePriceUsd =
+    Math.round((rawBasePriceUsd - promoDiscountAmount) * 100) / 100;
   const { cleaningFee, commission, total: totalUsd } =
     calculateBookingFees(basePriceUsd, {
       commissionRate: platformCommissionRate,
@@ -132,9 +139,15 @@ function RightColumn({ data }) {
   const numericalTotal = parseFloat((totalUsd * fx.rate).toFixed(2));
 
   const priceDisplay = stayPricing
-    ? formatListingPrice(stayPricing.base, rates, currencyCode)
+    ? formatListingPrice(basePriceUsd, rates, currencyCode)
     : primaryRate
-      ? formatListingPrice(primaryRate.amount, rates, currencyCode)
+      ? formatListingPrice(
+          Math.round(
+            (primaryRate.amount * (1 - promoDiscountRate)) * 100,
+          ) / 100,
+          rates,
+          currencyCode,
+        )
       : "—";
 
   const periodLabel = stayPricing
@@ -407,6 +420,7 @@ function RightColumn({ data }) {
           <div className="min-w-0">
             <p className="text-[11px] font-medium tracking-wide text-[var(--kama-ink-muted)]">
               {stayPricing ? "Stay total" : "From"}
+              {promoDiscountAmount > 0 ? " · promo applied" : ""}
             </p>
             <p className="mt-0.5 text-[1.65rem] font-semibold leading-none tabular-nums tracking-tight text-[var(--kama-ink)] sm:text-[1.85rem]">
               {priceDisplay}
@@ -416,6 +430,11 @@ function RightColumn({ data }) {
                 </span>
               ) : null}
             </p>
+            {promoDiscountAmount > 0 && stayPricing ? (
+              <p className="mt-1 text-xs text-[var(--kama-ink-muted)] line-through tabular-nums">
+                {formatListingPrice(rawBasePriceUsd, rates, currencyCode)}
+              </p>
+            ) : null}
           </div>
           <div className="mb-0.5 flex shrink-0 items-center gap-1 rounded-full bg-[var(--kama-field)] px-2.5 py-1 text-xs font-semibold text-[var(--kama-ink)]">
             <Star
@@ -464,11 +483,13 @@ function RightColumn({ data }) {
                 onChange={(e) => {
                   setPromoCode(e.target.value.toUpperCase());
                   setPromoHint(null);
+                  setAppliedPromo(null);
                 }}
                 onBlur={async () => {
                   const code = promoCode.trim();
                   if (!code) {
                     setPromoHint(null);
+                    setAppliedPromo(null);
                     return;
                   }
                   try {
@@ -480,29 +501,49 @@ function RightColumn({ data }) {
                         promoCode: code,
                         guestEmail: session?.user?.email,
                         guestId: session?.user?.id,
+                        accommodationBase: stayPricing?.base ?? rawBasePriceUsd,
                       }),
                     });
                     const payload = await res.json().catch(() => ({}));
                     if (!res.ok) {
+                      setAppliedPromo(null);
                       setPromoHint({ ok: false, text: "Could not check code" });
                       return;
                     }
                     if (payload.valid) {
+                      const rate = Number(payload.guestDiscountRate) || 0;
+                      setAppliedPromo({
+                        code: payload.code,
+                        creatorName: payload.creatorName,
+                        guestDiscountRate: rate,
+                        guestDiscountPercent: payload.guestDiscountPercent,
+                      });
+                      const pct = payload.guestDiscountPercent ?? Math.round(rate * 1000) / 10;
                       setPromoHint({
                         ok: true,
-                        text: payload.creatorName
-                          ? `Code applied for ${payload.creatorName}`
-                          : "Promo code looks good",
+                        text:
+                          pct > 0
+                            ? `${pct}% off applied${
+                                payload.creatorName
+                                  ? ` · ${payload.creatorName}`
+                                  : ""
+                              }`
+                            : payload.creatorName
+                              ? `Code applied for ${payload.creatorName}`
+                              : "Promo code applied",
                       });
                     } else if (!payload.empty) {
+                      setAppliedPromo(null);
                       setPromoHint({
                         ok: false,
                         text: payload.error || "Invalid promo code",
                       });
                     } else {
+                      setAppliedPromo(null);
                       setPromoHint(null);
                     }
                   } catch {
+                    setAppliedPromo(null);
                     setPromoHint(null);
                   }
                 }}
@@ -625,9 +666,23 @@ function RightColumn({ data }) {
             <div className="flex justify-between gap-3">
               <span>{stayPricing ? stayPricing.label : "Base"}</span>
               <span className="tabular-nums">
-                {formatListingPrice(basePriceUsd, rates, currencyCode)}
+                {formatListingPrice(rawBasePriceUsd, rates, currencyCode)}
               </span>
             </div>
+            {promoDiscountAmount > 0 ? (
+              <div className="flex justify-between gap-3 text-[var(--kama-accent)]">
+                <span>
+                  Promo
+                  {appliedPromo?.code ? ` (${appliedPromo.code})` : ""}
+                  {appliedPromo?.guestDiscountPercent != null
+                    ? ` −${appliedPromo.guestDiscountPercent}%`
+                    : ""}
+                </span>
+                <span className="tabular-nums">
+                  −{formatListingPrice(promoDiscountAmount, rates, currencyCode)}
+                </span>
+              </div>
+            ) : null}
             <div className="flex justify-between gap-3">
               <span>Cleaning (15%)</span>
               <span className="tabular-nums">

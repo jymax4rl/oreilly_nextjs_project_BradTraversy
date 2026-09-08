@@ -2,7 +2,7 @@ import { Schema, models, model } from "mongoose";
 
 /**
  * Host-assigned promo code for one property + one creator partner.
- * Attribution-only in MVP (no guest discount).
+ * Guest discount updates checkout price; creator commission is separate.
  */
 const CreatorPromoCodeSchema = new Schema(
   {
@@ -26,12 +26,22 @@ const CreatorPromoCodeSchema = new Schema(
       uppercase: true,
       maxlength: 32,
     },
-    /** Fraction of accommodation base, e.g. 0.1 = 10%. */
+    /** Fraction of accommodation base paid to the creator, e.g. 0.1 = 10%. */
     commissionRate: {
       type: Number,
       required: true,
       min: 0,
       max: 0.5,
+    },
+    /**
+     * Fraction off accommodation for the guest at checkout, e.g. 0.1 = 10% off.
+     * Independent of creator commissionRate.
+     */
+    guestDiscountRate: {
+      type: Number,
+      min: 0,
+      max: 0.5,
+      default: 0.1,
     },
     status: {
       type: String,

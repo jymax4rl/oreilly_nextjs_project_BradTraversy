@@ -35,6 +35,16 @@ export async function POST(request) {
       commissionRate = ratePct / 100;
     }
 
+    let guestDiscountRate = 0.1;
+    if (
+      body.guestDiscountRatePercent != null ||
+      body.guestDiscountRate != null
+    ) {
+      let d = Number(body.guestDiscountRatePercent ?? body.guestDiscountRate);
+      if (Number.isFinite(d) && d > 1) d = d / 100;
+      guestDiscountRate = d;
+    }
+
     if (!isValidPromoCodeFormat(code)) {
       return Response.json(
         {
@@ -57,6 +67,16 @@ export async function POST(request) {
     ) {
       return Response.json(
         { error: "Commission must be between 1% and 50%" },
+        { status: 400 },
+      );
+    }
+    if (
+      !Number.isFinite(guestDiscountRate) ||
+      guestDiscountRate < 0 ||
+      guestDiscountRate > 0.5
+    ) {
+      return Response.json(
+        { error: "Guest discount must be between 0% and 50%" },
         { status: 400 },
       );
     }
@@ -96,6 +116,7 @@ export async function POST(request) {
       propertyId,
       code,
       commissionRate: Math.round(commissionRate * 10000) / 10000,
+      guestDiscountRate: Math.round(guestDiscountRate * 10000) / 10000,
       status: "active",
       expiresAt,
       notes: String(body.notes || "").trim().slice(0, 500),
@@ -106,6 +127,7 @@ export async function POST(request) {
         id: String(promo._id),
         code: promo.code,
         commissionRate: promo.commissionRate,
+        guestDiscountRate: promo.guestDiscountRate,
         status: promo.status,
         propertyId: String(promo.propertyId),
         propertyName: property.name || "Listing",
