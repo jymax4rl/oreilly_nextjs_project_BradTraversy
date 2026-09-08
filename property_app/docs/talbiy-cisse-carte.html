@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Talbiy Cisse — Carte de visite · Swami India</title>
+  <style>
+    @font-face { font-family: Inter; src: url("pdf-assets/fonts/Inter-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; }
+    @font-face { font-family: Inter; src: url("pdf-assets/fonts/Inter-Medium.ttf") format("truetype"); font-weight: 500; font-style: normal; }
+    @font-face { font-family: Inter; src: url("pdf-assets/fonts/Inter-SemiBold.ttf") format("truetype"); font-weight: 600; font-style: normal; }
+    @font-face { font-family: Inter; src: url("pdf-assets/fonts/Inter-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; }
+    @font-face { font-family: Display; src: url("pdf-assets/fonts/NotoSerifDisplay-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; }
+    @font-face { font-family: Display; src: url("pdf-assets/fonts/NotoSerifDisplay-Italic.ttf") format("truetype"); font-weight: 400; font-style: italic; }
+    @font-face { font-family: Display; src: url("pdf-assets/fonts/NotoSerifDisplay-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; }
+
+    :root {
+      --ink: #f6f0e4;
+      --gold: #e4c891;
+      --gold-dim: #c4a46d;
+      --muted: #c9b89a;
+    }
+
+    @page { size: 85mm 55mm; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; background: #07080a; color: var(--ink);
+      font-family: Inter, "Segoe UI", sans-serif;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    p { margin: 0; }
+
+    .card {
+      width: 85mm; height: 55mm; overflow: hidden; position: relative;
+      page-break-after: always; break-after: page;
+    }
+    .card:last-child { page-break-after: auto; break-after: auto; }
+    .bg { position: absolute; inset: 0; }
+    .bg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .veil {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 48%, rgba(7,8,10,0.18) 0%, rgba(7,8,10,0.42) 72%, rgba(7,8,10,0.22) 100%);
+    }
+    .inner {
+      position: relative; z-index: 2; height: 100%;
+      padding: 6.4mm 9.2mm 5.8mm;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+    }
+
+    .brand {
+      font-size: 6.1pt; font-weight: 600; letter-spacing: 0.38em; text-transform: uppercase; color: var(--gold);
+    }
+    .name {
+      font-family: Display, Georgia, serif; font-weight: 400;
+      font-size: 15.6pt; letter-spacing: 0.04em; line-height: 1; color: #f8f2e8;
+    }
+    .role {
+      font-size: 6.4pt; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
+    }
+    .rule {
+      width: 18mm; height: 0.28mm; background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      border: 0; margin: 0;
+    }
+    .phone {
+      font-family: Display, Georgia, serif; font-size: 11pt; letter-spacing: 0.12em; color: var(--gold);
+    }
+    .foot {
+      font-size: 5.5pt; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold-dim);
+    }
+    .mono {
+      width: 9.2mm; height: 9.2mm; border: 0.28mm solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-family: Display, Georgia, serif; font-size: 8.2pt; color: var(--gold); letter-spacing: 0.08em;
+    }
+    .tag {
+      font-family: Display, Georgia, serif; font-style: italic; font-size: 10.5pt; color: var(--gold);
+    }
+    .horizon {
+      font-family: Display, Georgia, serif; font-size: 16pt; letter-spacing: 0.16em; color: #f8f2e8;
+    }
+  </style>
+</head>
+<body>
+  <section class="card" id="recto">
+    <div class="bg"><img src="pdf-assets/cartes/card-ornament-front.jpg" alt="" /></div>
+    <div class="veil"></div>
+    <div class="inner">
+      <p class="brand">Swami India</p>
+      <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.1mm; width:100%">
+        <p class="name">Talbiy Cisse</p>
+        <p class="role">Commercial · Relations France</p>
+        <hr class="rule" />
+        <p class="phone">06 23 71 81 71</p>
+      </div>
+      <p class="foot">The Horizon · Bijilo Park</p>
+    </div>
+  </section>
+
+  <section class="card" id="verso">
+    <div class="bg"><img src="pdf-assets/cartes/card-ornament-back.jpg" alt="" /></div>
+    <div class="veil"></div>
+    <div class="inner">
+      <p class="brand">Swami India</p>
+      <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.4mm; width:100%">
+        <div class="mono">TC</div>
+        <p class="horizon">THE HORIZON</p>
+        <p class="tag">Sable. Ciel. Sérénité.</p>
+      </div>
+      <p class="foot">Commercial · Relations France</p>
+    </div>
+  </section>
+</body>
+</html>
