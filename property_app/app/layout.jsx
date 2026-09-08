@@ -101,6 +101,10 @@ export const viewport = {
   themeColor: "#1b5c57",
   width: "device-width",
   initialScale: 1,
+  /* Keep scale locked so focus on fields never zooms the “app” surface.
+     Form fields also use ≥16px on mobile (globals.css) for iOS Safari. */
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
 };
 

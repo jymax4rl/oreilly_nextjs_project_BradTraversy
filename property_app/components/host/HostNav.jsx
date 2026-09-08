@@ -9,6 +9,7 @@ import {
   CalendarCheck,
   CalendarRange,
   LayoutDashboard,
+  Megaphone,
   MessageSquare,
   Plus,
 } from "lucide-react";
@@ -24,6 +25,7 @@ const NAV = [
   { href: "/host/reservations", labelKey: "hostConsole.reservations", Icon: CalendarCheck },
   { href: "/host/calendar", labelKey: "hostConsole.resCal.nav", Icon: CalendarRange },
   { href: "/host/listings", labelKey: "hostConsole.listings", Icon: Building2 },
+  { href: "/host/creators", labelKey: "hostConsole.creators.nav", Icon: Megaphone },
   { href: "/host/messages", labelKey: "hostConsole.inbox", Icon: MessageSquare },
 ];
 

@@ -67,7 +67,7 @@ export function CreatorHero({ page }) {
         <p className="creator-hero__lede">{page.lede}</p>
         <div className="creator-hero__actions">
           <DiscussButton source="hero">{page.primaryCta}</DiscussButton>
-          <a className="creator-btn creator-btn--ghost" href="#work-together">
+          <a className="creator-btn creator-btn--ghost" href="#host-codes">
             {page.secondaryCta}
           </a>
         </div>
@@ -162,6 +162,35 @@ export function CreatorPartnerships({ page }) {
               <p>{item.body}</p>
             </article>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function CreatorProgram({ page }) {
+  const s = page.program;
+  if (!s) return null;
+  return (
+    <section className="creator-section creator-program" id={s.id}>
+      <div className="creator-wrap">
+        {s.kicker ? <p className="creator-kicker">{s.kicker}</p> : null}
+        <h2>{s.h2}</h2>
+        <p className="creator-lead">{s.body}</p>
+        <ol className="creator-steps">
+          {s.steps.map((step) => (
+            <li className="creator-step" key={step.n}>
+              <span className="creator-step__n">{step.n}</span>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </li>
+          ))}
+        </ol>
+        <div className="creator-program__actions">
+          <DiscussButton source="program">{s.ctaDiscuss}</DiscussButton>
+          <Link className="creator-btn creator-btn--ghost" href={s.consoleHref}>
+            {s.ctaConsole}
+          </Link>
         </div>
       </div>
     </section>
@@ -270,7 +299,14 @@ export function CreatorFinal({ page }) {
       <div className="creator-wrap">
         <h2>{s.h2}</h2>
         <p className="creator-lead">{s.body}</p>
-        <DiscussButton source="final">{s.cta}</DiscussButton>
+        <div className="creator-program__actions">
+          <DiscussButton source="final">{s.cta}</DiscussButton>
+          {s.ctaConsole && s.consoleHref ? (
+            <Link className="creator-btn creator-btn--ghost" href={s.consoleHref}>
+              {s.ctaConsole}
+            </Link>
+          ) : null}
+        </div>
       </div>
     </section>
   );
@@ -295,6 +331,7 @@ export default function CreatorLanding({ seo, page }) {
         <CreatorBenefits page={page} />
         <CreatorTypes page={page} />
         <CreatorPartnerships page={page} />
+        <CreatorProgram page={page} />
         <CreatorBigIdea page={page} />
         <CreatorWhy page={page} />
         <CreatorJourney page={page} />

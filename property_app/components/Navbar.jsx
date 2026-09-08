@@ -21,6 +21,7 @@ import {
   LogOut,
   MessageSquare,
   CalendarCheck,
+  Megaphone,
 } from "lucide-react";
 import LoginNavButton from "./LoginNavBtn";
 import { usePathname } from "next/navigation";
@@ -378,6 +379,18 @@ const Navbar = () => {
                   >
                     <LayoutList />
                     <span>{t("nav.hostConsole")}</span>
+                  </Link>
+                )}
+
+                {session?.user && (
+                  <Link
+                    href="/creators/console"
+                    className={profileItemClass}
+                    role="menuitem"
+                    onClick={() => setIsProfileOpen(false)}
+                  >
+                    <Megaphone />
+                    <span>{t("menu.creatorConsole")}</span>
                   </Link>
                 )}
 

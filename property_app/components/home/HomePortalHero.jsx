@@ -35,6 +35,43 @@ export default function HomePortalHero({ catalogOpen = true }) {
     return () => ctx.revert();
   }, []);
 
+  /* Lock mobile hero to the visible phone screen (visual viewport). */
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || typeof window === "undefined") return;
+
+    const mq = window.matchMedia("(max-width: 1023px)");
+
+    const sync = () => {
+      if (!mq.matches) {
+        root.style.removeProperty("--home-hero-height");
+        return;
+      }
+      const vv = window.visualViewport?.height;
+      const layout = window.innerHeight || 0;
+      /* Prefer the larger measure so browser chrome collapse never
+         leaves a cream strip under the photograph. */
+      const height = Math.max(layout, vv || 0, 0);
+      if (height > 0) {
+        root.style.setProperty("--home-hero-height", `${Math.round(height)}px`);
+      }
+    };
+
+    sync();
+    window.addEventListener("resize", sync);
+    window.visualViewport?.addEventListener("resize", sync);
+    window.visualViewport?.addEventListener("scroll", sync);
+    mq.addEventListener?.("change", sync);
+
+    return () => {
+      window.removeEventListener("resize", sync);
+      window.visualViewport?.removeEventListener("resize", sync);
+      window.visualViewport?.removeEventListener("scroll", sync);
+      mq.removeEventListener?.("change", sync);
+      root.style.removeProperty("--home-hero-height");
+    };
+  }, []);
+
   return (
     <section
       ref={rootRef}

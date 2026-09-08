@@ -62,6 +62,11 @@ function RightColumn({ data }) {
   const [phoneModalError, setPhoneModalError] = useState(null);
   const [pendingValidation, setPendingValidation] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoHint, setPromoHint] = useState(null);
+  const [promoCalculating, setPromoCalculating] = useState(false);
+  /** Validated promo — drives live price update only after Calculate */
+  const [appliedPromo, setAppliedPromo] = useState(null);
 
   const listingRates = normalizeRates(data.rates);
   const fx = resolveFxRate(rates, currencyCode);
@@ -117,7 +122,12 @@ function RightColumn({ data }) {
       : null;
   const primaryRate = getPrimaryDisplayRate(listingRates);
 
-  const basePriceUsd = stayPricing?.base ?? primaryRate?.amount ?? 0;
+  const rawBasePriceUsd = stayPricing?.base ?? primaryRate?.amount ?? 0;
+  const promoDiscountRate = appliedPromo?.guestDiscountRate || 0;
+  const promoDiscountAmount =
+    Math.round(rawBasePriceUsd * promoDiscountRate * 100) / 100;
+  const basePriceUsd =
+    Math.round((rawBasePriceUsd - promoDiscountAmount) * 100) / 100;
   const { cleaningFee, commission, total: totalUsd } =
     calculateBookingFees(basePriceUsd, {
       commissionRate: platformCommissionRate,
@@ -130,14 +140,93 @@ function RightColumn({ data }) {
   const numericalTotal = parseFloat((totalUsd * fx.rate).toFixed(2));
 
   const priceDisplay = stayPricing
-    ? formatListingPrice(stayPricing.base, rates, currencyCode)
+    ? formatListingPrice(basePriceUsd, rates, currencyCode)
     : primaryRate
-      ? formatListingPrice(primaryRate.amount, rates, currencyCode)
+      ? formatListingPrice(
+          Math.round(
+            (primaryRate.amount * (1 - promoDiscountRate)) * 100,
+          ) / 100,
+          rates,
+          currencyCode,
+        )
       : "—";
 
   const periodLabel = stayPricing
     ? `for ${nights} night${nights !== 1 ? "s" : ""}`
     : primaryRate?.suffix || "";
+
+  const calculatePromo = useCallback(async () => {
+    const code = promoCode.trim();
+    if (!code) {
+      setPromoHint(null);
+      setAppliedPromo(null);
+      return;
+    }
+    setPromoCalculating(true);
+    setPromoHint(null);
+    try {
+      const res = await fetch("/api/creators/promo/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          propertyId: data._id,
+          promoCode: code,
+          guestEmail: session?.user?.email,
+          guestId: session?.user?.id,
+          accommodationBase: stayPricing?.base ?? rawBasePriceUsd,
+        }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAppliedPromo(null);
+        setPromoHint({ ok: false, text: "Could not check code" });
+        return;
+      }
+      if (payload.valid) {
+        const rate = Number(payload.guestDiscountRate) || 0;
+        setAppliedPromo({
+          code: payload.code,
+          creatorName: payload.creatorName,
+          guestDiscountRate: rate,
+          guestDiscountPercent: payload.guestDiscountPercent,
+        });
+        const pct =
+          payload.guestDiscountPercent ?? Math.round(rate * 1000) / 10;
+        setPromoHint({
+          ok: true,
+          text:
+            pct > 0
+              ? `${pct}% off applied${
+                  payload.creatorName ? ` · ${payload.creatorName}` : ""
+                }`
+              : payload.creatorName
+                ? `Code applied for ${payload.creatorName}`
+                : "Promo code applied",
+        });
+      } else if (!payload.empty) {
+        setAppliedPromo(null);
+        setPromoHint({
+          ok: false,
+          text: payload.error || "Invalid promo code",
+        });
+      } else {
+        setAppliedPromo(null);
+        setPromoHint(null);
+      }
+    } catch {
+      setAppliedPromo(null);
+      setPromoHint({ ok: false, text: "Could not check code" });
+    } finally {
+      setPromoCalculating(false);
+    }
+  }, [
+    promoCode,
+    data._id,
+    session?.user?.email,
+    session?.user?.id,
+    stayPricing?.base,
+    rawBasePriceUsd,
+  ]);
 
   const config = {
     public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY,
@@ -267,6 +356,7 @@ function RightColumn({ data }) {
           guestPhone: phone,
           currency: paymentCurrency,
           amount: numericalTotal,
+          promoCode: promoCode.trim() || undefined,
         }),
       });
       const payload = await res.json().catch(() => ({}));
@@ -321,6 +411,7 @@ function RightColumn({ data }) {
                 amount: numericalTotal,
                 currency: paymentCurrency,
                 guest_phone: phone,
+                promo_code: promoCode.trim() || undefined,
               }),
             });
             const payload = await res.json().catch(() => ({}));
@@ -403,6 +494,7 @@ function RightColumn({ data }) {
           <div className="min-w-0">
             <p className="text-[11px] font-medium tracking-wide text-[var(--kama-ink-muted)]">
               {stayPricing ? "Stay total" : "From"}
+              {promoDiscountAmount > 0 ? " · promo applied" : ""}
             </p>
             <p className="mt-0.5 text-[1.65rem] font-semibold leading-none tabular-nums tracking-tight text-[var(--kama-ink)] sm:text-[1.85rem]">
               {priceDisplay}
@@ -412,6 +504,11 @@ function RightColumn({ data }) {
                 </span>
               ) : null}
             </p>
+            {promoDiscountAmount > 0 && stayPricing ? (
+              <p className="mt-1 text-xs text-[var(--kama-ink-muted)] line-through tabular-nums">
+                {formatListingPrice(rawBasePriceUsd, rates, currencyCode)}
+              </p>
+            ) : null}
           </div>
           <div className="mb-0.5 flex shrink-0 items-center gap-1 rounded-full bg-[var(--kama-field)] px-2.5 py-1 text-xs font-semibold text-[var(--kama-ink)]">
             <Star
@@ -449,6 +546,51 @@ function RightColumn({ data }) {
                 {dateError}
               </p>
             )}
+
+            <label className="block">
+              <span className="mb-1.5 block text-[11px] font-medium tracking-wide text-[var(--kama-ink-muted)]">
+                Promo code <span className="font-normal">(optional)</span>
+              </span>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => {
+                    setPromoCode(e.target.value.toUpperCase());
+                    setPromoHint(null);
+                    setAppliedPromo(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (!promoCalculating) void calculatePromo();
+                    }
+                  }}
+                  placeholder="Creator code"
+                  autoComplete="off"
+                  spellCheck={false}
+                  maxLength={32}
+                  className="min-w-0 flex-1 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-2.5 text-sm font-semibold uppercase tracking-wide text-[var(--kama-ink)] outline-none transition placeholder:font-normal placeholder:normal-case placeholder:tracking-normal placeholder:text-[var(--kama-ink-muted)] focus:border-[var(--kama-accent)] focus:ring-2 focus:ring-[var(--kama-accent-soft)]"
+                />
+                <button
+                  type="button"
+                  onClick={() => void calculatePromo()}
+                  disabled={promoCalculating || !promoCode.trim()}
+                  className="shrink-0 rounded-xl border border-[var(--kama-border)] bg-[var(--kama-surface,white)] px-3.5 py-2.5 text-sm font-semibold text-[var(--kama-ink)] transition hover:border-[var(--kama-accent)] hover:text-[var(--kama-accent)] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {promoCalculating ? "…" : "Calculate"}
+                </button>
+              </div>
+              {promoHint ? (
+                <p
+                  className={`mt-1.5 text-xs ${
+                    promoHint.ok ? "text-[var(--kama-accent)]" : "text-red-700"
+                  }`}
+                >
+                  {promoHint.text}
+                </p>
+              ) : null}
+            </label>
 
             {paymentNotice && (
               <div
@@ -552,9 +694,23 @@ function RightColumn({ data }) {
             <div className="flex justify-between gap-3">
               <span>{stayPricing ? stayPricing.label : "Base"}</span>
               <span className="tabular-nums">
-                {formatListingPrice(basePriceUsd, rates, currencyCode)}
+                {formatListingPrice(rawBasePriceUsd, rates, currencyCode)}
               </span>
             </div>
+            {promoDiscountAmount > 0 ? (
+              <div className="flex justify-between gap-3 text-[var(--kama-accent)]">
+                <span>
+                  Promo
+                  {appliedPromo?.code ? ` (${appliedPromo.code})` : ""}
+                  {appliedPromo?.guestDiscountPercent != null
+                    ? ` −${appliedPromo.guestDiscountPercent}%`
+                    : ""}
+                </span>
+                <span className="tabular-nums">
+                  −{formatListingPrice(promoDiscountAmount, rates, currencyCode)}
+                </span>
+              </div>
+            ) : null}
             <div className="flex justify-between gap-3">
               <span>Cleaning (15%)</span>
               <span className="tabular-nums">

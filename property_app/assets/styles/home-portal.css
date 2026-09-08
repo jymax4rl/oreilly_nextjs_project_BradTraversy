@@ -53,7 +53,24 @@
 
 @media (max-width: 1023px) {
   .home-hero--photo {
+    /* Fill the real phone screen: large viewport so chrome show/hide
+       never leaves a cream band under the photograph. */
+    width: 100%;
+    min-height: 100svh;
+    min-height: 100dvh;
+    min-height: 100lvh;
+    height: 100svh;
+    height: 100dvh;
+    height: 100lvh;
+    height: var(--home-hero-height, 100lvh);
+    min-height: var(--home-hero-height, 100lvh);
+    max-height: none;
+    box-sizing: border-box;
     padding-bottom: max(1.75rem, calc(env(safe-area-inset-bottom, 0px) + 1.15rem));
+  }
+
+  .home-hero--photo .home-portal-bg {
+    min-height: 100%;
   }
 }
 

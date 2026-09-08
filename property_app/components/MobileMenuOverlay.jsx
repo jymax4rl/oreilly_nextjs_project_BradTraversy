@@ -20,6 +20,7 @@ import {
   X,
   Info,
   Mail,
+  Megaphone,
 } from "lucide-react";
 import { LuUserRound } from "react-icons/lu";
 import BrandLogo from "@/components/BrandLogo";
@@ -205,6 +206,17 @@ export default function MobileMenuOverlay({
                         aria-hidden
                       />
                       {t("menu.myBookings")}
+                    </Link>
+                    <Link
+                      href="/creators/console"
+                      onClick={close}
+                      className={rowClass("/creators/console")}
+                    >
+                      <Megaphone
+                        className="kama-menu-row-icon"
+                        aria-hidden
+                      />
+                      {t("menu.creatorConsole")}
                     </Link>
                     <Link
                       href="/messages"
