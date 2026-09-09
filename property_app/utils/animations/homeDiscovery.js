@@ -14,14 +14,34 @@ export function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+function shellFlipTargets(shellEl) {
+  if (!shellEl) return [];
+  const map = shellEl.querySelector("[data-search-shell-map]");
+  const widgets = shellEl.querySelector("[data-search-shell-widgets]");
+  return [shellEl, map, widgets].filter(Boolean);
+}
+
+function notifyMapContainerResized(shellEl) {
+  if (typeof window === "undefined") return;
+  // Google Maps only reflows when the canvas size changes — nudge after Flip.
+  window.dispatchEvent(new Event("resize"));
+  const canvas = shellEl?.querySelector?.(".pem-canvas");
+  if (canvas) {
+    canvas.dispatchEvent(new Event("pem-container-resize"));
+  }
+}
+
 /**
  * Capture Flip state before React toggles compact ↔ expanded classes.
+ * Includes the map node so height/width morph with the shell (map-dominant layout).
  */
 export function captureSearchShellFlipState(shellEl) {
   ensureGsapPlugins();
   if (!shellEl || prefersReducedMotion()) return null;
-  return Flip.getState(shellEl, {
-    props: "borderRadius,padding,width,maxWidth,height",
+  const targets = shellFlipTargets(shellEl);
+  if (!targets.length) return null;
+  return Flip.getState(targets, {
+    props: "borderRadius,padding,width,maxWidth,height,margin,boxShadow",
   });
 }
 
@@ -35,21 +55,26 @@ export function runSearchShellExpand({ shellEl, flipState, onComplete }) {
     return () => {};
   }
 
+  const finish = () => {
+    notifyMapContainerResized(shellEl);
+    onComplete?.();
+  };
+
   if (prefersReducedMotion() || !flipState) {
     const map = shellEl.querySelector("[data-search-shell-map]");
     const widgets = shellEl.querySelector("[data-search-shell-widgets]");
     if (map) gsap.set(map, { clearProps: "opacity,transform" });
     if (widgets) gsap.set(widgets, { clearProps: "opacity,transform" });
-    onComplete?.();
+    finish();
     return () => {};
   }
 
   const tween = Flip.from(flipState, {
-    duration: 0.55,
+    duration: 0.58,
     ease: "power2.inOut",
     absolute: false,
     nested: true,
-    onComplete: () => onComplete?.(),
+    onComplete: finish,
   });
 
   const map = shellEl.querySelector("[data-search-shell-map]");
@@ -57,15 +82,15 @@ export function runSearchShellExpand({ shellEl, flipState, onComplete }) {
   if (map) {
     gsap.fromTo(
       map,
-      { opacity: 0, y: 12 },
-      { opacity: 1, y: 0, duration: 0.42, delay: 0.1, ease: "power2.out" },
+      { opacity: 0.35 },
+      { opacity: 1, duration: 0.4, delay: 0.06, ease: "power2.out" },
     );
   }
   if (widgets) {
     gsap.fromTo(
       widgets,
-      { opacity: 0, y: 10 },
-      { opacity: 1, y: 0, duration: 0.36, delay: 0.16, ease: "power2.out" },
+      { opacity: 0, y: 14 },
+      { opacity: 1, y: 0, duration: 0.4, delay: 0.18, ease: "power2.out" },
     );
   }
 
@@ -88,7 +113,7 @@ export function runSearchShellCollapse({ shellEl, flipState, onComplete }) {
   }
 
   const tween = Flip.from(flipState, {
-    duration: 0.48,
+    duration: 0.5,
     ease: "power2.inOut",
     absolute: false,
     nested: true,

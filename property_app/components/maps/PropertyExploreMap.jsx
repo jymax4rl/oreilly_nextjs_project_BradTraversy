@@ -305,6 +305,32 @@ export default function PropertyExploreMap({
     fitOnPinsChange,
   ]);
 
+  // Reflow tiles when the shell Flip changes the canvas size.
+  useEffect(() => {
+    if (!mapReady || !mapRef.current || !containerRef.current) return undefined;
+    const google = googleRef.current;
+    const map = mapRef.current;
+    const el = containerRef.current;
+
+    const triggerResize = () => {
+      google?.maps?.event?.trigger?.(map, "resize");
+    };
+
+    const ro =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => triggerResize())
+        : null;
+    ro?.observe(el);
+    el.addEventListener("pem-container-resize", triggerResize);
+    window.addEventListener("resize", triggerResize);
+
+    return () => {
+      ro?.disconnect();
+      el.removeEventListener("pem-container-resize", triggerResize);
+      window.removeEventListener("resize", triggerResize);
+    };
+  }, [mapReady]);
+
   return (
     <div className={`pem-root ${className}`.trim()}>
       <div ref={containerRef} className="pem-canvas" role="application" aria-label="Stays map" />

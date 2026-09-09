@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import PropertyCard from "@/components/PropertyCard";
 import PropertyExploreMap from "@/components/maps/PropertyExploreMap";
-import PriceRangeSlider from "@/components/search/PriceRangeSlider";
 import LocationSuggestInput from "@/components/search/LocationSuggestInput";
 import HomePropertyPreviewModal, {
   captureCardFlipState,
@@ -38,8 +37,6 @@ import {
   PROPERTY_TYPE_VALUES,
   propertyTypeMessageKey,
 } from "@/lib/i18n/messages";
-import { formatListingPrice } from "@/utils/currencyUtils";
-import { useCurrency } from "@/utils/CurrencyContext";
 import "@/components/maps/property-explore-map.css";
 
 const PROPERTY_TYPES = PROPERTY_TYPE_VALUES;
@@ -99,7 +96,8 @@ function pinToCardProperty(pin) {
 }
 
 /**
- * Search bar is the button. Click → expands into map (top) + search widgets (bottom).
+ * Search pill expands into a map-dominant shell (Flip) with floating widgets.
+ * Price markers open the property preview modal directly.
  */
 export default function HomeMapDiscovery({ seedProperties = [] }) {
   const { t } = useLanguage();
@@ -114,20 +112,10 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
     clearSearch,
     setSelectedPropertyId,
   } = useHomeDiscovery();
-  const { currencyCode, rates } = useCurrency();
 
   const [location, setLocation] = useState(filters.location || "");
   const [propertyType, setPropertyType] = useState(
     filters.type || "All Properties",
-  );
-  const [minPrice, setMinPrice] = useState(
-    filters.minPrice != null ? String(filters.minPrice) : "0",
-  );
-  const [maxPrice, setMaxPrice] = useState(
-    filters.maxPrice != null ? String(filters.maxPrice) : "1000",
-  );
-  const [priceTouched, setPriceTouched] = useState(
-    filters.minPrice != null || filters.maxPrice != null,
   );
   const [typeOpen, setTypeOpen] = useState(false);
 
@@ -155,9 +143,7 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
   useEffect(() => {
     setLocation(filters.location || "");
     setPropertyType(filters.type || "All Properties");
-    if (filters.minPrice != null) setMinPrice(String(filters.minPrice));
-    if (filters.maxPrice != null) setMaxPrice(String(filters.maxPrice));
-  }, [filters.location, filters.type, filters.minPrice, filters.maxPrice]);
+  }, [filters.location, filters.type]);
 
   useEffect(() => {
     const onDoc = (e) => {
@@ -202,6 +188,12 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
     pendingFlip.current = captureSearchShellFlipState(shellRef.current);
     setMapReady(true);
     expandSearch();
+    requestAnimationFrame(() => {
+      document.getElementById("discover")?.scrollIntoView?.({
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+        block: "start",
+      });
+    });
   }, [expandSearch]);
 
   const closeSearchShell = useCallback(() => {
@@ -303,16 +295,6 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
     [fetchPins, mapReady],
   );
 
-  const handleSelect = useCallback(
-    (id) => {
-      const sid = String(id);
-      // Toggle only — keep the map viewport and list scroll where they are.
-      // The floating map card is enough affordance to open the preview.
-      setSelectedPropertyId((prev) => (String(prev) === sid ? null : sid));
-    },
-    [setSelectedPropertyId],
-  );
-
   const openPropertyPreview = useCallback(
     (property, cardEl) => {
       const id = String(property?._id || property?.id || "");
@@ -343,6 +325,16 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
     [setSelectedPropertyId],
   );
 
+  const handleSelect = useCallback(
+    (id) => {
+      const pin = pins.find((p) => String(p.id) === String(id));
+      if (!pin) return;
+      const cardEl = cardRefs.current.get(String(pin.id));
+      openPropertyPreview(pinToCardProperty(pin), cardEl || null);
+    },
+    [pins, openPropertyPreview],
+  );
+
   const closePropertyPreview = useCallback(() => {
     setPreviewId(null);
     setPreviewSeed(null);
@@ -361,12 +353,6 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
       checkIn: "",
       checkOut: "",
     };
-    if (priceTouched) {
-      const minN = Number(minPrice);
-      const maxN = Number(maxPrice);
-      if (Number.isFinite(minN) && minN > 0) next.minPrice = minN;
-      if (Number.isFinite(maxN) && maxN < 1000) next.maxPrice = maxN;
-    }
 
     const shellEl = shellRef.current;
     const map = shellEl?.querySelector?.("[data-search-shell-map]");
@@ -401,7 +387,6 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
     return [];
   }, [pins, seedProperties, hasSearched]);
 
-  const selectedPin = pins.find((p) => p.id === String(selectedPropertyId));
   const title = filters.location
     ? `Stays in ${filters.location}`
     : hasSearched
@@ -413,7 +398,9 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
   return (
     <section
       id="discover"
-      className="home-map-discovery"
+      className={`home-map-discovery${
+        searchExpanded ? " home-map-discovery--expanded" : ""
+      }`}
       aria-label="Search discovery"
     >
       <div
@@ -450,7 +437,7 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
           </span>
         </button>
 
-        {/* Expanded body — map on top, widgets below */}
+        {/* Expanded body — tall map + floating search card */}
         <div className="home-search-shell__panel" aria-hidden={!searchExpanded}>
           <div className="home-search-shell__map" data-search-shell-map>
             {mapReady ? (
@@ -462,70 +449,6 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
                 loading={loading}
                 className="home-search-shell__map-el"
               />
-            ) : null}
-            {selectedPin && searchExpanded ? (
-              <button
-                type="button"
-                className="home-map-preview"
-                onClick={(e) => {
-                  const cardEl = cardRefs.current.get(String(selectedPin.id));
-                  openPropertyPreview(
-                    {
-                      _id: selectedPin.id,
-                      id: selectedPin.id,
-                      slug: selectedPin.slug,
-                      name: selectedPin.title,
-                      title: selectedPin.title,
-                      type: selectedPin.type,
-                      beds: selectedPin.beds,
-                      baths: selectedPin.baths,
-                      city: selectedPin.city,
-                      country: selectedPin.country,
-                      priceUsd: selectedPin.priceUsd,
-                      thumbnail: selectedPin.thumbnail,
-                      images: selectedPin.thumbnail
-                        ? [selectedPin.thumbnail]
-                        : [],
-                    },
-                    cardEl || e.currentTarget,
-                  );
-                }}
-              >
-                {selectedPin.thumbnail ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={selectedPin.thumbnail}
-                    alt=""
-                    className="home-map-preview__img"
-                    data-home-prop-flip
-                  />
-                ) : (
-                  <div
-                    className="home-map-preview__img home-map-preview__img--empty"
-                    data-home-prop-flip
-                  />
-                )}
-                <div className="home-map-preview__body">
-                  <p className="home-map-preview__title">{selectedPin.title}</p>
-                  <p className="home-map-preview__meta">
-                    {[selectedPin.city, selectedPin.country]
-                      .filter(Boolean)
-                      .join(", ")}
-                  </p>
-                  <p className="home-map-preview__price">
-                    {selectedPin.priceUsd != null
-                      ? formatListingPrice(
-                          selectedPin.priceUsd,
-                          rates,
-                          currencyCode,
-                        )
-                      : "View stay"}
-                    {selectedPin.priceUsd != null ? (
-                      <span> / night</span>
-                    ) : null}
-                  </p>
-                </div>
-              </button>
             ) : null}
           </div>
 
@@ -594,21 +517,6 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
                   </ul>
                 ) : null}
               </div>
-            </div>
-
-            <div className="home-search-price home-search-price--shell">
-              <PriceRangeSlider
-                min={0}
-                max={1000}
-                step={10}
-                valueMin={Number(minPrice) || 0}
-                valueMax={Number(maxPrice) || 1000}
-                onChange={({ min, max }) => {
-                  setMinPrice(String(min));
-                  setMaxPrice(String(max));
-                  setPriceTouched(true);
-                }}
-              />
             </div>
 
             <div className="home-search-shell__actions">
