@@ -284,12 +284,15 @@ export default function PropertyExploreMap({
   return (
     <div className={`pem-root ${className}`.trim()}>
       <div ref={containerRef} className="pem-canvas" role="application" aria-label="Stays map" />
-      {(booting || loading) && (
-        <div className="pem-loading" aria-live="polite">
-          <span className="pem-loading__dot" />
-          {booting ? "Loading map…" : "Updating stays…"}
-        </div>
-      )}
+      <div
+        className={`pem-progress${booting || loading ? " pem-progress--active" : ""}`}
+        aria-hidden={!booting && !loading}
+      >
+        <span className="pem-progress__bar" />
+      </div>
+      <span className="pem-sr-only" aria-live="polite">
+        {booting ? "Loading map" : loading ? "Updating stays for this map area" : ""}
+      </span>
       {errorInfo ? (
         <div className="pem-error" role="alert">
           <p className="font-semibold">{errorInfo.title || "Map unavailable"}</p>

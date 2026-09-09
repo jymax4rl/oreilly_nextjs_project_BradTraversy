@@ -53,7 +53,7 @@ const HomeProperties = ({
     minBaths != null;
 
   return (
-    <section className="min-h-screen bg-[var(--kama-canvas-soft)] pb-16 pt-4 md:py-16 overflow-x-hidden">
+    <section className="min-h-screen overflow-x-clip bg-[var(--kama-canvas-soft)] pb-16 pt-4 md:py-16">
       <div className="container mx-auto px-4">
         {!hideSearchToolbar && (
           <div className="mb-12 hidden w-full text-center md:block">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Map as MapIcon, List, X } from "lucide-react";
 import PropertyCard from "@/components/PropertyCard";
@@ -8,6 +9,7 @@ import PropertyExploreMap from "@/components/maps/PropertyExploreMap";
 import { formatListingPrice } from "@/utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
+import "@/components/maps/property-explore-map.css";
 
 function buildQueryFromFilters(filters, bounds) {
   const params = new URLSearchParams();
@@ -36,7 +38,6 @@ function buildQueryFromFilters(filters, bounds) {
 }
 
 function pinToCardProperty(pin) {
-  // Prefer map pin priceUsd so cards match markers (incl. date-aware averages).
   const displayNightly =
     pin.priceUsd != null && Number.isFinite(Number(pin.priceUsd))
       ? Number(pin.priceUsd)
@@ -88,7 +89,11 @@ export default function PropertyExploreExperience({
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return undefined;
     const mq = window.matchMedia("(min-width: 768px)");
-    const sync = () => setIsDesktop(mq.matches);
+    const sync = () => {
+      const desktop = mq.matches;
+      setIsDesktop(desktop);
+      if (desktop) setMobileMapOpen(false);
+    };
     sync();
     mq.addEventListener?.("change", sync);
     return () => mq.removeEventListener?.("change", sync);
@@ -99,6 +104,19 @@ export default function PropertyExploreExperience({
       abortRef.current?.abort?.();
     };
   }, []);
+
+  useEffect(() => {
+    if (!mobileMapOpen) return undefined;
+    document.body.classList.add("pem-map-open");
+    const onKey = (e) => {
+      if (e.key === "Escape") setMobileMapOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.classList.remove("pem-map-open");
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [mobileMapOpen]);
 
   const filterKey = useMemo(
     () =>
@@ -176,7 +194,6 @@ export default function PropertyExploreExperience({
 
   const listProperties = useMemo(() => {
     if (pins.length) return pins.map(pinToCardProperty);
-    // First paint before map idle: show SSR properties that have coordinates.
     return (initialProperties || []).filter(
       (p) =>
         Number.isFinite(Number(p?.location?.lat)) &&
@@ -186,18 +203,89 @@ export default function PropertyExploreExperience({
 
   const selectedPin = pins.find((p) => p.id === String(selectedId));
 
+  const mobileSheet =
+    mobileMapOpen && !isDesktop && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            className="pem-mobile-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Map view"
+          >
+            <div className="pem-mobile-sheet__bar">
+              <button
+                type="button"
+                className="pem-explore__map-toggle"
+                onClick={() => setMobileMapOpen(false)}
+              >
+                <List className="h-4 w-4" aria-hidden />
+                List
+              </button>
+            </div>
+            <PropertyExploreMap
+              pins={pins}
+              selectedId={selectedId}
+              onSelect={handleSelect}
+              onBoundsChange={handleBoundsChange}
+              loading={loading}
+              className="pem-mobile-sheet__map"
+            />
+            {selectedPin ? (
+              <Link
+                href={propertyPublicPath(selectedPin)}
+                className="pem-mobile-sheet__card"
+              >
+                {selectedPin.thumbnail ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={selectedPin.thumbnail}
+                    alt=""
+                    className="pem-mobile-sheet__card-img"
+                  />
+                ) : (
+                  <div className="pem-mobile-sheet__card-img" />
+                )}
+                <div className="pem-mobile-sheet__card-body">
+                  <p className="pem-mobile-sheet__card-title">
+                    {selectedPin.title}
+                  </p>
+                  <p className="pem-mobile-sheet__card-meta">
+                    {[selectedPin.city, selectedPin.country]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </p>
+                  <p className="pem-mobile-sheet__card-price">
+                    {selectedPin.priceUsd != null
+                      ? formatListingPrice(
+                          selectedPin.priceUsd,
+                          rates,
+                          currencyCode,
+                        )
+                      : "View stay"}
+                    {selectedPin.priceUsd != null ? (
+                      <span> / night</span>
+                    ) : null}
+                  </p>
+                </div>
+              </Link>
+            ) : null}
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
     <div className={`pem-explore ${compact ? "pem-explore--compact" : ""}`}>
-      <div className="pem-explore__toolbar md:hidden">
+      {!mobileMapOpen ? (
         <button
           type="button"
-          className="pem-explore__map-toggle"
+          className="pem-explore__fab md:hidden"
           onClick={() => setMobileMapOpen(true)}
         >
           <MapIcon className="h-4 w-4" aria-hidden />
           Map
         </button>
-      </div>
+      ) : null}
 
       <div className="pem-explore__split">
         <div className="pem-explore__list" aria-live="polite">
@@ -206,10 +294,8 @@ export default function PropertyExploreExperience({
               {error}
             </p>
           ) : null}
-          <p className="mb-3 text-sm text-[var(--kama-ink-muted)]">
-            {loading
-              ? "Updating stays for this map area…"
-              : `${listProperties.length} stay${listProperties.length === 1 ? "" : "s"} in view`}
+          <p className="pem-explore__count">
+            {`${listProperties.length} stay${listProperties.length === 1 ? "" : "s"} in view`}
           </p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
             {listProperties.map((property) => {
@@ -223,9 +309,7 @@ export default function PropertyExploreExperience({
                     else cardRefs.current.delete(id);
                   }}
                   className={`rounded-2xl transition ring-offset-2 ${
-                    selected
-                      ? "ring-2 ring-[var(--kama-accent)]"
-                      : "ring-0"
+                    selected ? "ring-2 ring-[var(--kama-accent)]" : "ring-0"
                   }`}
                   onMouseEnter={() => setSelectedId(id)}
                   onFocus={() => setSelectedId(id)}
@@ -257,10 +341,9 @@ export default function PropertyExploreExperience({
                 onSelect={handleSelect}
                 onBoundsChange={handleBoundsChange}
                 loading={loading}
-                className="h-[min(70vh,40rem)] min-h-[28rem]"
               />
             ) : (
-              <div className="h-[min(70vh,40rem)] min-h-[28rem] rounded-[1.25rem] bg-[#e8eef0]" />
+              <div className="h-full min-h-[28rem] rounded-[1.25rem] bg-[#e8eef0]" />
             )}
             {selectedPin ? (
               <div className="pem-preview">
@@ -312,42 +395,7 @@ export default function PropertyExploreExperience({
         </div>
       </div>
 
-      {mobileMapOpen && !isDesktop ? (
-        <div className="pem-mobile-sheet md:hidden" role="dialog" aria-modal="true">
-          <div className="pem-mobile-sheet__bar">
-            <button
-              type="button"
-              className="pem-explore__map-toggle"
-              onClick={() => setMobileMapOpen(false)}
-            >
-              <List className="h-4 w-4" aria-hidden />
-              List
-            </button>
-          </div>
-          <PropertyExploreMap
-            pins={pins}
-            selectedId={selectedId}
-            onSelect={(id) => {
-              handleSelect(id);
-            }}
-            onBoundsChange={handleBoundsChange}
-            loading={loading}
-            className="pem-mobile-sheet__map"
-          />
-          {selectedPin ? (
-            <div className="pem-mobile-sheet__card">
-              <Link href={propertyPublicPath(selectedPin)} className="block">
-                <p className="font-semibold">{selectedPin.title}</p>
-                <p className="text-sm text-[var(--kama-ink-muted)]">
-                  {selectedPin.priceUsd != null
-                    ? `${formatListingPrice(selectedPin.priceUsd, rates, currencyCode)} / night`
-                    : "View stay"}
-                </p>
-              </Link>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+      {mobileSheet}
     </div>
   );
 }
