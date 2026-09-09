@@ -442,19 +442,18 @@
   flex: 1 1 14rem;
   min-width: 12rem;
   max-width: 18rem;
-  border-radius: 999px;
-  border: 1px solid var(--kama-border, #e5e7eb);
-  background: var(--kama-field, #f7f9f8);
-  padding: 0.2rem 0.85rem 0.35rem;
+  border: 0;
+  background: transparent;
+  padding: 0.1rem 0.35rem 0.15rem;
 }
 
 .pem-catalog-search__slider .price-range-slider__labels {
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.1rem;
   font-size: 0.68rem;
 }
 
 .pem-catalog-search__slider .price-range-slider__track {
-  height: 1.35rem;
+  height: 1.5rem;
 }
 
 .pem-catalog-search__select {

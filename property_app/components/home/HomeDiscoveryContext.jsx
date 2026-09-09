@@ -9,17 +9,10 @@ import {
 } from "react";
 
 /**
- * Homepage UI stages (cinematic discovery, not separate pages):
- * - hero: photograph + large search + teaser stays
- * - results: compressed hero + compact search + list|map explore
+ * Homepage discovery:
+ * - searchExpanded: compact overlay vs expanded search card
+ * - filters drive map bounds query + property list
  */
-export const HOME_STAGE = {
-  HERO: "hero",
-  RESULTS: "results",
-};
-
-const HomeDiscoveryContext = createContext(null);
-
 export function emptyHomeFilters() {
   return {
     location: "",
@@ -52,67 +45,71 @@ export function filtersToQueryString(filters) {
   return params.toString();
 }
 
+const HomeDiscoveryContext = createContext(null);
+
 export function HomeDiscoveryProvider({ children }) {
-  const [stage, setStage] = useState(HOME_STAGE.HERO);
   const [filters, setFilters] = useState(emptyHomeFilters);
-  const [transitioning, setTransitioning] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [selectedPropertyId, setSelectedPropertyId] = useState(null);
 
-  const syncUrl = useCallback((nextFilters, nextStage) => {
+  const syncUrl = useCallback((nextFilters, searched) => {
     if (typeof window === "undefined") return;
     const qs = filtersToQueryString(nextFilters || emptyHomeFilters());
-    const path =
-      nextStage === HOME_STAGE.RESULTS
-        ? qs
-          ? `/?${qs}`
-          : "/?discover=1"
-        : "/";
+    const path = searched
+      ? qs
+        ? `/?${qs}`
+        : "/?discover=1"
+      : "/";
     window.history.replaceState(window.history.state, "", path);
   }, []);
 
-  const enterResults = useCallback(
+  const expandSearch = useCallback(() => setSearchExpanded(true), []);
+  const collapseSearch = useCallback(() => setSearchExpanded(false), []);
+
+  const applySearch = useCallback(
     (nextFilters) => {
       const merged = { ...emptyHomeFilters(), ...nextFilters };
       setFilters(merged);
-      setTransitioning(true);
-      setStage(HOME_STAGE.RESULTS);
-      syncUrl(merged, HOME_STAGE.RESULTS);
+      setHasSearched(true);
+      setSearchExpanded(false);
+      setSelectedPropertyId(null);
+      syncUrl(merged, true);
     },
     [syncUrl],
   );
 
-  const resetToHero = useCallback(() => {
-    setTransitioning(true);
+  const clearSearch = useCallback(() => {
+    setFilters(emptyHomeFilters());
+    setHasSearched(false);
+    setSearchExpanded(false);
     setSelectedPropertyId(null);
-    setStage(HOME_STAGE.HERO);
-    syncUrl(emptyHomeFilters(), HOME_STAGE.HERO);
+    syncUrl(emptyHomeFilters(), false);
   }, [syncUrl]);
-
-  const markTransitionDone = useCallback(() => {
-    setTransitioning(false);
-  }, []);
 
   const value = useMemo(
     () => ({
-      stage,
       filters,
-      transitioning,
+      searchExpanded,
+      hasSearched,
       selectedPropertyId,
-      isResults: stage === HOME_STAGE.RESULTS,
-      enterResults,
-      resetToHero,
+      expandSearch,
+      collapseSearch,
+      applySearch,
+      clearSearch,
       setFilters,
       setSelectedPropertyId,
-      markTransitionDone,
+      setSearchExpanded,
     }),
     [
-      stage,
       filters,
-      transitioning,
+      searchExpanded,
+      hasSearched,
       selectedPropertyId,
-      enterResults,
-      resetToHero,
-      markTransitionDone,
+      expandSearch,
+      collapseSearch,
+      applySearch,
+      clearSearch,
     ],
   );
 
@@ -134,3 +131,6 @@ export function useHomeDiscovery() {
 export function useHomeDiscoveryOptional() {
   return useContext(HomeDiscoveryContext);
 }
+
+/** @deprecated — kept for any leftover imports during migration */
+export const HOME_STAGE = { HERO: "hero", RESULTS: "results" };
