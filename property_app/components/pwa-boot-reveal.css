@@ -192,3 +192,65 @@ html.pwa-booting .kama-route-loading {
     animation: none !important;
   }
 }
+
+/* Guest phone / WhatsApp modal — portaled above PWA chrome */
+.guest-phone-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  isolation: isolate;
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .guest-phone-modal {
+    align-items: center;
+    padding: 1rem;
+  }
+}
+
+.guest-phone-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  background: rgba(12, 18, 18, 0.5);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.guest-phone-modal__sheet {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  max-height: min(92dvh, 40rem);
+  width: 100%;
+  max-width: 28rem;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--kama-border, rgba(12, 26, 26, 0.08));
+  border-radius: 1.25rem 1.25rem 0 0;
+  background: var(--kama-surface, #fff);
+  box-shadow: 0 28px 64px rgba(12, 26, 26, 0.28);
+  /* Keep above home indicator / dock when PWA is edge-to-edge */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (min-width: 640px) {
+  .guest-phone-modal__sheet {
+    border-radius: 1.25rem;
+    padding-bottom: 0;
+  }
+}
+
+html[data-guest-phone-open] .kama-tabbar,
+html[data-guest-phone-open] [data-property-sticky-cta] {
+  transform: translate3d(0, calc(100% + 1.25rem), 0) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

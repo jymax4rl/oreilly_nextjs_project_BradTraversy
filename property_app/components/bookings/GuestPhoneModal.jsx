@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { CreditCard, Smartphone, X } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 
 /**
  * Collects a WhatsApp-preferred guest phone before submitting a reservation.
- * When online checkout is on, paymentMethods offers (all via GeniusPay):
- *   - geniuspay → Mobile Money (African currencies — Wave / Orange / MTN)
- *   - geniuspayCard → Card (Visa / Mastercard via GeniusPay)
- * Creem remains optional fallback only when GeniusPay is off.
+ * Portaled to document.body so PWA / overflow / sticky ancestors cannot clip
+ * or trap the sheet (backdrop-only bug on mobile standalone).
  */
 export default function GuestPhoneModal({
   open,
@@ -26,6 +25,7 @@ export default function GuestPhoneModal({
   const titleId = useId();
   const inputId = useId();
   const inputRef = useRef(null);
+  const [mounted, setMounted] = useState(false);
 
   const international = Boolean(geniusPayInternational);
   const momoEnabled = Boolean(paymentMethods?.geniuspay) && !international;
@@ -42,7 +42,11 @@ export default function GuestPhoneModal({
   const currency = String(currencyCode || "USD").trim().toUpperCase() || "USD";
 
   useEffect(() => {
-    if (!open) return;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return undefined;
     const t = setTimeout(() => inputRef.current?.focus(), 50);
     const onKey = (e) => {
       if (e.key === "Escape" && !submitting) onCancel?.();
@@ -50,14 +54,16 @@ export default function GuestPhoneModal({
     document.addEventListener("keydown", onKey);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.documentElement.setAttribute("data-guest-phone-open", "true");
     return () => {
       clearTimeout(t);
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
+      document.documentElement.removeAttribute("data-guest-phone-open");
     };
   }, [open, submitting, onCancel]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
   const defaultMethod = international
     ? geniusCardEnabled
@@ -86,22 +92,22 @@ export default function GuestPhoneModal({
   const cardLabel = submitting ? "Starting…" : "Card";
   const cardHint = "Visa / Mastercard — via GeniusPay";
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[300] flex items-end justify-center sm:items-center sm:p-4"
+      className="guest-phone-modal"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
     >
       <button
         type="button"
-        className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+        className="guest-phone-modal__backdrop"
         aria-label="Close dialog"
         disabled={submitting}
         onClick={() => !submitting && onCancel?.()}
       />
 
-      <div className="relative z-10 flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-t-2xl border border-[var(--kama-border)] bg-[var(--kama-surface)] shadow-2xl sm:rounded-2xl">
+      <div className="guest-phone-modal__sheet">
         <div className="flex items-start justify-between gap-3 border-b border-[var(--kama-border)] px-5 py-4">
           <div className="flex min-w-0 items-center gap-3">
             <span
@@ -128,7 +134,7 @@ export default function GuestPhoneModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-col">
           <div className="space-y-4 overflow-y-auto px-5 py-4">
             <p className="text-sm leading-snug text-[var(--kama-ink-muted)]">
               {showMethods
@@ -247,7 +253,7 @@ export default function GuestPhoneModal({
             ) : null}
           </div>
 
-          <div className="flex flex-col gap-2 border-t border-[var(--kama-border)] px-5 py-4">
+          <div className="guest-phone-modal__actions flex flex-col gap-2 border-t border-[var(--kama-border)] px-5 py-4">
             {bothMethods ? (
               <button
                 type="button"
@@ -296,6 +302,7 @@ export default function GuestPhoneModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
