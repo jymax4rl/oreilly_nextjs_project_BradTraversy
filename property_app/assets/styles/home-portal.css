@@ -1046,7 +1046,7 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-rows: minmax(12rem, 38vh) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   width: min(34rem, 100%);
   max-height: min(94dvh, 46rem);
   overflow: hidden;
@@ -1076,7 +1076,6 @@
   height: 2.35rem;
   border: 0;
   border-radius: 999px;
-  opacity: 0;
   background: rgba(255, 255, 255, 0.92);
   color: var(--portal-ink, #0c1a1a);
   box-shadow: 0 8px 18px rgba(12, 26, 26, 0.16);
@@ -1085,12 +1084,12 @@
 
 .home-prop-preview__hero {
   position: relative;
+  height: clamp(12.5rem, 38vh, 18rem);
   overflow: hidden;
   background: #dfe6e4;
   border-radius: inherit;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
-  will-change: transform;
 }
 
 .home-prop-preview__nav {
@@ -1144,7 +1143,6 @@
   overflow: auto;
   padding: 1rem 1.1rem 1.15rem;
   -webkit-overflow-scrolling: touch;
-  opacity: 0;
 }
 
 .home-prop-preview__topline {

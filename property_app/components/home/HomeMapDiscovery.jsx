@@ -136,7 +136,7 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
   const [mapReady, setMapReady] = useState(false);
   const [previewId, setPreviewId] = useState(null);
   const [previewSeed, setPreviewSeed] = useState(null);
-  const previewFlipRef = useRef(null);
+  const previewRectRef = useRef(null);
 
   const abortRef = useRef(null);
   const seqRef = useRef(0);
@@ -317,7 +317,7 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
       const id = String(property?._id || property?.id || "");
       if (!id) return;
       setSelectedPropertyId(id);
-      previewFlipRef.current = captureCardFlipState(cardEl);
+      previewRectRef.current = captureCardFlipState(cardEl);
       setPreviewSeed({
         id,
         name: property.name || property.title,
@@ -345,7 +345,7 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
   const closePropertyPreview = useCallback(() => {
     setPreviewId(null);
     setPreviewSeed(null);
-    previewFlipRef.current = null;
+    previewRectRef.current = null;
   }, []);
 
   const handleSubmit = (e) => {
@@ -702,7 +702,7 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
         <HomePropertyPreviewModal
           propertyId={previewId}
           seed={previewSeed}
-          flipState={previewFlipRef.current}
+          sourceRect={previewRectRef.current}
           onClose={closePropertyPreview}
         />
       ) : null}

@@ -26,7 +26,7 @@ import { useCurrency } from "@/utils/CurrencyContext";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { propertyImageUrl } from "@/utils/propertyImageUrl";
 import {
-  captureFlipState,
+  captureElementRect,
   runModalMorphClose,
   runModalMorphOpen,
 } from "@/utils/animations/flipUi";
@@ -47,7 +47,7 @@ function focusablesIn(root) {
 export default function HomePropertyPreviewModal({
   propertyId,
   seed = null,
-  flipState = null,
+  sourceRect = null,
   onClose,
 }) {
   const { t } = useLanguage();
@@ -163,22 +163,28 @@ export default function HomePropertyPreviewModal({
     if (!open || !panelRef.current) return undefined;
     animCleanup.current?.();
     setEntered(false);
+    rootRef.current?.classList?.add("is-morphing");
 
+    // One shot — do not re-run when detail/images hydrate
     animCleanup.current = runModalMorphOpen({
-      flipState,
-      heroEl: heroRef.current,
+      sourceRect,
       panelEl: panelRef.current,
       backdropEl: backdropRef.current,
       bodyEl: bodyRef.current,
       chromeEls: [closeRef.current],
       onComplete: () => {
+        rootRef.current?.classList?.remove("is-morphing");
         setEntered(true);
         closeRef.current?.focus?.();
       },
     });
 
-    return () => animCleanup.current?.();
-  }, [open, flipState]);
+    return () => {
+      animCleanup.current?.();
+      rootRef.current?.classList?.remove("is-morphing");
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, propertyId]);
 
   const handleClose = useCallback(async () => {
     if (closingRef.current) return;
@@ -249,8 +255,6 @@ export default function HomePropertyPreviewModal({
         <div
           ref={heroRef}
           className="home-prop-preview__hero"
-          data-home-prop-flip
-          data-flip-id={propertyId ? `home-prop-${propertyId}` : undefined}
           onTouchStart={(e) => {
             touchX.current = e.changedTouches?.[0]?.clientX ?? null;
           }}
@@ -409,11 +413,11 @@ export default function HomePropertyPreviewModal({
   );
 }
 
-/** Helper for parents: capture card media Flip state before opening. */
+/** Capture card media rect before opening (FLIP morph source). */
 export function captureCardFlipState(cardEl) {
   const media =
     cardEl?.querySelector?.("[data-home-prop-flip]") ||
     cardEl?.querySelector?.("img")?.parentElement ||
     cardEl;
-  return captureFlipState(media, "borderRadius,width,height");
+  return captureElementRect(media);
 }

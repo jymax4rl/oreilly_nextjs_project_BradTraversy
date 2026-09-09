@@ -110,7 +110,6 @@ const PropertyCard = ({
 
   const listingHref = propertyPublicPath(property);
   const usePreview = typeof onPreview === "function" && !locked;
-  const propertyKey = String(_id || property?.id || "");
 
   const openPreview = (e) => {
     e.preventDefault();
@@ -125,7 +124,6 @@ const PropertyCard = ({
   const media = (
     <div
       data-home-prop-flip={usePreview ? "" : undefined}
-      data-flip-id={usePreview && propertyKey ? `home-prop-${propertyKey}` : undefined}
       className={`relative h-72 overflow-hidden rounded-[1.35rem] ${locked ? "" : "cursor-pointer"}`}
     >
       <Image

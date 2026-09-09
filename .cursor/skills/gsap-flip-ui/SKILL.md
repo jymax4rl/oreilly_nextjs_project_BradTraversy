@@ -63,13 +63,12 @@ runFlipFrom({
 
 ## Card → property preview modal (homepage pattern)
 
-1. Card media marked with `data-home-prop-flip` + matching `data-flip-id`.
-2. Capture Flip state **before** `setState` (`captureCardFlipState`).
-3. Portal the modal to `document.body` (escape stacking contexts / bottom nav).
-4. `runModalMorphOpen` — Flip shared photo (`scale: true`) **and** expand the panel in one timeline.
-5. Set `html[data-home-preview-open]` so `.kama-tabbar` slides down behind the modal.
-6. Gallery slides use local tweens; **Reserve** → `propertyPublicPath`.
-7. Close with `runModalMorphClose`, then clear the html attribute.
+1. Capture **media rect** with `captureElementRect` / `captureCardFlipState` before `setState`.
+2. Portal modal to `document.body` (escape stacking contexts / bottom nav).
+3. `runModalMorphOpen` — FLIP-math expand of the **panel** from the card rect (no `absolute` Flip on shared IDs — that breaks the card).
+4. Set `html[data-home-preview-open]` so `.kama-tabbar` slides down.
+5. Always settle opacity/transform if the tween is killed mid-flight.
+6. **Reserve** → `propertyPublicPath`. Close with `runModalMorphClose`.
 
 ## Anti-patterns
 
