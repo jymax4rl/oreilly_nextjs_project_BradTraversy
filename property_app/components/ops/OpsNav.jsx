@@ -15,11 +15,13 @@ import {
   Award,
   BarChart3,
   MessageSquare,
+  BookOpen,
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 
 const NAV = [
   { href: "/ops", label: "Home", exact: true, Icon: Home },
+  { href: "/documentation", label: "Docs", Icon: BookOpen },
   { href: "/ops/analytics", label: "Analytics", Icon: BarChart3 },
   { href: "/ops/users", label: "Users", Icon: Users },
   { href: "/ops/messages", label: "Messages", Icon: MessageSquare },
