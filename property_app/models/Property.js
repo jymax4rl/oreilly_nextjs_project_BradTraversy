@@ -109,6 +109,14 @@ const PropertySchema = new mongoose.Schema(
 );
 
 PropertySchema.index({ createdAt: 1 });
+/** Catalog map viewport queries on numeric lat/lng (not GeoJSON yet). */
+PropertySchema.index({
+  listed: 1,
+  status: 1,
+  "location.lat": 1,
+  "location.lng": 1,
+});
+PropertySchema.index({ listingPrice: 1, "location.lat": 1, "location.lng": 1 });
 
 const Property =
   mongoose.models.Property || mongoose.model("Property", PropertySchema);

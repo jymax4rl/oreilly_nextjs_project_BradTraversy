@@ -106,6 +106,11 @@ export const messages = {
       perNight: "/ night",
       catalogTitle: "Vacation rentals in Africa",
       availableIn: "Available stays in {place}",
+      suggestions: "Search suggestions",
+      suggestCountry: "Country",
+      suggestCity: "City",
+      suggestStay: "Stay",
+      suggestLoading: "Looking for matches…",
     },
     propertyTypes: {
       all: "All Properties",
@@ -137,6 +142,12 @@ export const messages = {
       moreFromHost: "More from {name}",
       moreFromHostFallback: "More from this host",
       moreStays: "{count} more stays",
+    },
+    preview: {
+      amenities: "Amenities",
+      reserve: "Reserve",
+      keepBrowsing: "Keep browsing",
+      close: "Close",
     },
     empty: {
       noListings: "No listings yet",
@@ -978,6 +989,11 @@ export const messages = {
       perNight: "/ nuit",
       catalogTitle: "Locations de vacances en Afrique",
       availableIn: "Séjours disponibles à {place}",
+      suggestions: "Suggestions de recherche",
+      suggestCountry: "Pays",
+      suggestCity: "Ville",
+      suggestStay: "Séjour",
+      suggestLoading: "Recherche…",
     },
     propertyTypes: {
       all: "Tous les logements",
@@ -1009,6 +1025,12 @@ export const messages = {
       moreFromHost: "Autres logements de {name}",
       moreFromHostFallback: "Autres logements de cet hôte",
       moreStays: "{count} autres séjours",
+    },
+    preview: {
+      amenities: "Équipements",
+      reserve: "Réserver",
+      keepBrowsing: "Continuer",
+      close: "Fermer",
     },
     empty: {
       noListings: "Aucun logement pour l’instant",

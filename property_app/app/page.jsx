@@ -1,8 +1,6 @@
 import React from "react";
 import HomeImmersive from "@/components/home/HomeImmersive";
-import HomeStaysHeading from "@/components/home/HomeStaysHeading";
 import ComingSoonStays from "@/components/home/ComingSoonStays";
-import PropertiesPage from "./properties/page";
 import connectToDatabase from "@/config/database";
 import { getOrCreateProgramSettings } from "@/utils/foundingHost/settings";
 import { serializeProgramPublicStats } from "@/utils/foundingHost/serialize";
@@ -33,7 +31,6 @@ export const metadata = {
   },
 };
 
-// Home embeds live listings; keep dynamic so Docker builds need no MONGODB_URI.
 export const dynamic = "force-dynamic";
 
 const HomePage = async () => {
@@ -53,16 +50,11 @@ const HomePage = async () => {
 
   return (
     <HomeImmersive foundingStats={foundingStats} catalogOpen={catalogOpen}>
-      <div id="stays" className="home-listings-bridge relative z-[2]">
-        {catalogOpen ? (
-          <>
-            <HomeStaysHeading />
-            <PropertiesPage hideSearchToolbar maxProperties={11} />
-          </>
-        ) : (
+      {!catalogOpen ? (
+        <div id="stays" className="home-listings-bridge relative z-[2]">
           <ComingSoonStays variant="home" />
-        )}
-      </div>
+        </div>
+      ) : null}
     </HomeImmersive>
   );
 };

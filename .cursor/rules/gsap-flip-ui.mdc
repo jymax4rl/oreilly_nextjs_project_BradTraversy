@@ -1,0 +1,15 @@
+---
+description: Prefer GSAP Flip for coherent UI layout morphs in property_app
+globs: property_app/components/**/*.{jsx,tsx,js,ts},property_app/utils/animations/**
+alwaysApply: false
+---
+
+# GSAP Flip UI standard
+
+For layout morphs (search shell, card→modal, shared-element handoffs), follow the project skill:
+
+`.cursor/skills/gsap-flip-ui/SKILL.md`
+
+Helpers: `property_app/utils/animations/flipUi.js`, `homeDiscovery.js`.
+
+Do not invent unrelated fade/slide stacks for structural transitions.

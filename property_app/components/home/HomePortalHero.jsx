@@ -106,14 +106,14 @@ export default function HomePortalHero({ catalogOpen = true }) {
 
         <a
           data-hero-fade
-          href={catalogOpen ? "#search" : "#stays"}
+          href={catalogOpen ? "#discover" : "#stays"}
           className="home-scroll-line mt-8 sm:mt-10"
           aria-label={
             catalogOpen ? t("home.browseStays") : t("home.comingSoon.kicker")
           }
           onClick={(event) => {
             const target = document.getElementById(
-              catalogOpen ? "search" : "stays",
+              catalogOpen ? "discover" : "stays",
             );
             if (!target) return;
             event.preventDefault();

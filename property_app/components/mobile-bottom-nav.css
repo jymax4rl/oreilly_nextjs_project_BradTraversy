@@ -26,6 +26,20 @@
   pointer-events: none;
 }
 
+/* Property preview modal — slide the dock away / keep it behind */
+html[data-home-preview-open] .kama-tabbar {
+  transform: translate3d(0, calc(100% + 1.25rem), 0) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: 40;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-home-preview-open] .kama-tabbar {
+    transition: none !important;
+  }
+}
+
 .kama-tabbar__dock {
   position: relative;
   display: flex;
