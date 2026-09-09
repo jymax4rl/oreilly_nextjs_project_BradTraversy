@@ -251,7 +251,7 @@ export function runModalMorphOpen({
   return () => {
     tl.kill();
     // Never leave the modal invisible if the tween is interrupted
-    finish();
+    finish(false);
   };
 }
 
