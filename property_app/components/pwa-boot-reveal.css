@@ -1,0 +1,99 @@
+/* PWA cold-start brand hold + reveal */
+
+.pwa-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+  isolation: isolate;
+}
+
+.pwa-boot__veil {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1.35rem;
+  background:
+    radial-gradient(
+      ellipse 70% 55% at 50% 42%,
+      color-mix(in srgb, #1b5c57 22%, #1a2428) 0%,
+      #1a2428 58%,
+      #12181c 100%
+    );
+  will-change: transform;
+}
+
+.pwa-boot__glow {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(18rem, 70vw);
+  height: min(18rem, 70vw);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, #1b5c57 38%, transparent) 0%,
+    transparent 68%
+  );
+  opacity: 0.32;
+  pointer-events: none;
+  filter: blur(2px);
+}
+
+.pwa-boot__mark {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity, filter;
+}
+
+.pwa-boot__logo {
+  width: min(11.5rem, 52vw);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.28));
+}
+
+.pwa-boot__line-wrap {
+  position: relative;
+  z-index: 1;
+  width: min(5.5rem, 28vw);
+  height: 1px;
+  overflow: visible;
+}
+
+.pwa-boot__line {
+  display: block;
+  width: 100%;
+  height: 1px;
+  transform-origin: 50% 50%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, #1b5c57 75%, #f7f4ee) 50%,
+    transparent 100%
+  );
+  opacity: 0.55;
+}
+
+/* Hide chrome interaction under the boot veil */
+html.pwa-booting {
+  overflow: hidden;
+}
+
+html.pwa-booting .pwa-boot {
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pwa-boot__glow,
+  .pwa-boot__line,
+  .pwa-boot__mark {
+    animation: none !important;
+  }
+}
