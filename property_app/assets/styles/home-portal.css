@@ -49,6 +49,7 @@
   min-height: 100svh;
   min-height: 100dvh;
   height: 100dvh;
+  padding-top: 5.5rem;
 }
 
 @media (max-width: 1023px) {
@@ -67,6 +68,10 @@
     max-height: none;
     box-sizing: border-box;
     padding-bottom: max(1.75rem, calc(env(safe-area-inset-bottom, 0px) + 1.15rem));
+    /* Keep copy below status widgets; photo fills edge-to-edge via absolute bg */
+    padding-top: calc(
+      5.5rem + max(0px, var(--kama-safe-top, env(safe-area-inset-top, 0px)))
+    );
   }
 
   .home-hero--photo .home-portal-bg {
@@ -355,6 +360,17 @@
   box-shadow: none;
 }
 
+/* Map / hero paint through the status strip; keep controls below system icons */
+@media (max-width: 1023px) {
+  .home-glass-nav {
+    border-bottom-color: rgba(247, 244, 238, 0.12);
+  }
+
+  html:has(.home-map-discovery--expanded) .home-glass-nav {
+    border-bottom: 0;
+  }
+}
+
 @media (min-width: 1024px) {
   .home-glass-nav.home-glass-nav--desktop {
     top: 0;
@@ -485,6 +501,14 @@
   pointer-events: none;
 }
 
+/* Avoid cream flashing in the status-bar strip while the map owns the top */
+@media (max-width: 1023px) {
+  html:has(.home-map-discovery--expanded),
+  html:has(.home-map-discovery--expanded) body {
+    background: #e8eef0;
+  }
+}
+
 .home-map-discovery {
   position: relative;
   z-index: 2;
@@ -498,6 +522,8 @@
   padding-top: 0;
   padding-left: 0;
   padding-right: 0;
+  /* Flush under the fixed glass chrome / status bar — no cream strip above the map */
+  scroll-margin-top: 0;
 }
 
 @media (min-width: 1024px) {
@@ -635,6 +661,19 @@
   /* Never inherit a stuck GSAP opacity from a prior tween */
   opacity: 1;
   visibility: visible;
+}
+
+@media (max-width: 1023px) {
+  .home-search-shell--expanded .home-search-shell__map {
+    /* Paint into the status-bar strip (viewport-fit=cover); chrome stays padded */
+    height: calc(
+      clamp(17.5rem, 52vh, 34rem) +
+        max(0px, var(--kama-safe-top, env(safe-area-inset-top, 0px)))
+    );
+    min-height: calc(
+      17.5rem + max(0px, var(--kama-safe-top, env(safe-area-inset-top, 0px)))
+    );
+  }
 }
 
 .home-search-shell__map .pem-root,
@@ -887,7 +926,13 @@
   }
 
   .home-search-shell--expanded .home-search-shell__map {
-    height: clamp(16.5rem, 48vh, 28rem);
+    height: calc(
+      clamp(16.5rem, 48vh, 28rem) +
+        max(0px, var(--kama-safe-top, env(safe-area-inset-top, 0px)))
+    );
+    min-height: calc(
+      16.5rem + max(0px, var(--kama-safe-top, env(safe-area-inset-top, 0px)))
+    );
   }
 
   .home-search-shell--expanded .home-search-shell__widgets {

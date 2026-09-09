@@ -195,10 +195,14 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
     pendingFlip.current = captureSearchShellFlipState(shellRef.current);
     setMapReady(true);
     expandSearch();
+    // Flush map to the top edge (no scroll-margin cream strip under status bar).
     requestAnimationFrame(() => {
-      document.getElementById("discover")?.scrollIntoView?.({
+      const el = document.getElementById("discover");
+      if (!el) return;
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({
+        top: Math.max(0, top),
         behavior: prefersReducedMotion() ? "auto" : "smooth",
-        block: "start",
       });
     });
   }, [expandSearch]);

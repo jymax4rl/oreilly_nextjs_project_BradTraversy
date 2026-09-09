@@ -71,7 +71,7 @@ export default function MobileTopChrome() {
           : "translate3d(0, calc(-100% + max(0.75rem, var(--kama-safe-top), env(safe-area-inset-top, 0px))), 0)",
       }}
     >
-      <div className="[padding-top:max(0.75rem,var(--kama-safe-top),env(safe-area-inset-top,0px))] [padding-left:max(0px,var(--kama-safe-left),env(safe-area-inset-left,0px))] [padding-right:max(0px,var(--kama-safe-right),env(safe-area-inset-right,0px))]">
+      <div className="[padding-top:max(0.85rem,var(--kama-safe-top),env(safe-area-inset-top,0px))] [padding-left:max(0px,var(--kama-safe-left),env(safe-area-inset-left,0px))] [padding-right:max(0px,var(--kama-safe-right),env(safe-area-inset-right,0px))]">
         <div className="flex items-center gap-2 px-3 py-2.5 pb-3">
           <BrandLogo
             className="h-9 w-auto"
