@@ -12,6 +12,7 @@ import {
   Award,
   BarChart3,
   MessageSquare,
+  BookOpen,
 } from "lucide-react";
 import OpsShell from "@/components/ops/OpsShell";
 import OpsOverviewPanel from "@/components/ops/OpsOverviewPanel";
@@ -23,6 +24,13 @@ export const metadata = {
 };
 
 const TOOLS = [
+  {
+    href: "/documentation",
+    title: "Documentation",
+    description:
+      "Internal knowledge base — how Isisel works, where code lives, and how to troubleshoot.",
+    Icon: BookOpen,
+  },
   {
     href: "/ops/analytics",
     title: "Analytics",
