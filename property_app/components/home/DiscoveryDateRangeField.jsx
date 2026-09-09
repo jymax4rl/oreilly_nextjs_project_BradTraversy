@@ -111,7 +111,12 @@ export default function DiscoveryDateRangeField({
         <CalendarDays className="discovery-search-card__cell-icon" aria-hidden />
         <span className="discovery-search-card__cell-copy">
           <span className="discovery-search-card__cell-label">
-            {t("search.checkInOut")}
+            <span className="discovery-search-card__label-full">
+              {t("search.checkInOut")}
+            </span>
+            <span className="discovery-search-card__label-short">
+              {t("search.dates")}
+            </span>
           </span>
           <span
             className={`discovery-search-card__cell-value${

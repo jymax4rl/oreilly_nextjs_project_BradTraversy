@@ -883,6 +883,10 @@
   text-overflow: ellipsis;
 }
 
+.discovery-search-card__label-short {
+  display: none;
+}
+
 .discovery-search-card__cell-value {
   display: inline-flex;
   align-items: center;
@@ -1352,7 +1356,15 @@
   }
 
   .discovery-search-card__meta {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr) auto;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.9fr) auto;
+  }
+
+  .discovery-search-card__label-full {
+    display: none;
+  }
+
+  .discovery-search-card__label-short {
+    display: inline;
   }
 
   .discovery-search-card__cell {
