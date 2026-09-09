@@ -794,6 +794,10 @@
   pointer-events: none;
 }
 
+.home-map-stage--searching .home-map-stage__frame {
+  filter: saturate(0.92) brightness(0.94);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .home-map-stage--searching .home-map-stage__frame {
     filter: none;
