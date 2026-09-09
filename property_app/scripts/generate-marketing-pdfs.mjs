@@ -20,10 +20,18 @@ const jobs = [
     html: join(appRoot, "docs", "kama-mvp-influencer-stay.html"),
     pdf: join(appRoot, "docs", "kama-mvp-influencer-stay.pdf"),
   },
+  {
+    html: join(appRoot, "docs", "isisel-promoter-pitch.html"),
+    pdf: join(appRoot, "docs", "isisel-promoter-pitch.pdf"),
+  },
 ];
 
 const browsers = [
   process.env.CHROME_PATH,
+  "/usr/local/bin/google-chrome",
+  "/usr/bin/google-chrome",
+  "/usr/bin/chromium-browser",
+  "/usr/bin/chromium",
   "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
   "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
   "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",

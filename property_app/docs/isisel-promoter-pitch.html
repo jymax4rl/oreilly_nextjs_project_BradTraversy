@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Isisel for property promoters — grow stays with creators &amp; Mobile Money</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --teal: #1b5c57;
+      --teal-deep: #0f3d3a;
+      --ink: #121212;
+      --muted: #5a5854;
+      --cream: #f4f1ea;
+      --paper: #fbfaf6;
+      --sand: #c4a574;
+      --line: rgba(27, 92, 87, 0.14);
+    }
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; background: #ddd9d0; color: var(--ink);
+      font-family: Outfit, "Segoe UI", sans-serif;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .sheet {
+      width: 210mm; height: 297mm; margin: 0 auto 12px; overflow: hidden;
+      position: relative; page-break-after: always; break-after: page; background: var(--paper);
+    }
+    .sheet:last-child { page-break-after: auto; margin-bottom: 0; }
+    .mark { width: 36px; height: 34px; display: block; }
+    .cover {
+      color: #f7f4ee;
+      display: flex; flex-direction: column;
+      padding: 14mm 16mm 12mm;
+      background:
+        linear-gradient(180deg, rgba(8,16,16,0.32) 0%, rgba(8,16,16,0.22) 40%, rgba(8,16,16,0.9) 100%),
+        url("pdf-assets/stay-cover.jpg") center 38% / cover no-repeat #123f3c;
+    }
+    .cover-top { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 10px; letter-spacing: 0.22em; font-size: 9.5pt; font-weight: 600; text-transform: uppercase; }
+    .cover-url { font-size: 9pt; opacity: 0.9; text-align: right; line-height: 1.45; }
+    .cover-url a { color: #e8d7b5; text-decoration: none; font-weight: 600; }
+    .cover-hero { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 0 6mm; }
+    .eyebrow { font-size: 8.5pt; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; color: var(--sand); margin-bottom: 5mm; }
+    .cover h1 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 34pt; font-weight: 600; line-height: 0.96; margin: 0 0 5mm; max-width: 175mm; }
+    .cover h1 em { font-style: italic; color: #e8d7b5; }
+    .lede { font-size: 12.5pt; font-weight: 300; line-height: 1.42; max-width: 165mm; opacity: 0.94; margin: 0 0 6mm; }
+    .cover-rule { width: 26mm; height: 2px; background: var(--sand); margin: 0 0 6mm; }
+    .cover-body { font-size: 10.5pt; font-weight: 300; line-height: 1.5; max-width: 162mm; opacity: 0.92; }
+    .cover-body strong { font-weight: 600; color: #fff; }
+    .arc {
+      display: flex; gap: 2.5mm; flex-wrap: wrap; margin-top: 7mm;
+    }
+    .arc span {
+      border: 1px solid rgba(232, 215, 181, 0.35);
+      background: rgba(8,16,16,0.35);
+      color: #e8d7b5;
+      font-size: 7.5pt; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 2mm 3.5mm;
+    }
+    .wa-pill {
+      display: inline-block; margin-top: 7mm; background: var(--sand); color: var(--ink);
+      text-decoration: none; font-size: 10pt; font-weight: 700; letter-spacing: 0.08em;
+      padding: 3.6mm 6.5mm;
+    }
+    .inner { padding: 11mm 14mm 12mm; display: flex; flex-direction: column; }
+    .inner-head { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 4.5mm; border-bottom: 1px solid var(--line); margin-bottom: 5mm; }
+    .brand-mini { font-size: 8.5pt; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--teal); }
+    .folio { font-size: 8.5pt; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+    h2 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 23pt; font-weight: 600; line-height: 1.08; margin: 0 0 2.5mm; color: var(--ink); }
+    .section-intro { font-size: 10.5pt; color: var(--muted); line-height: 1.5; max-width: 178mm; margin: 0 0 5.5mm; }
+    h3 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 13.5pt; font-weight: 600; margin: 0 0 1.5mm; color: var(--teal); }
+    p { margin: 0; }
+    .ladder { display: grid; gap: 3.2mm; }
+    .rung {
+      display: grid; grid-template-columns: 18mm 1fr; gap: 4mm;
+      border: 1px solid var(--line); background: #fff; padding: 4.2mm 5mm;
+    }
+    .rung-low { background: var(--cream); }
+    .rung-mid { background: #fff; }
+    .rung-high {
+      background: linear-gradient(135deg, rgba(27,92,87,0.08), rgba(196,165,116,0.12));
+      border-color: rgba(27,92,87,0.28);
+    }
+    .rung-peak {
+      background: var(--teal); color: #f7f4ee; border-color: var(--teal);
+    }
+    .rung-peak h3 { color: #e8d7b5; }
+    .rung-peak p { color: rgba(247,244,238,0.88); }
+    .rung-peak strong { color: #fff; }
+    .level {
+      font-size: 7pt; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--sand); padding-top: 1mm;
+    }
+    .rung-peak .level { color: #e8d7b5; }
+    .rung p { font-size: 9.4pt; color: var(--muted); line-height: 1.42; }
+    .rung p strong { color: var(--ink); font-weight: 600; }
+    .talk {
+      margin-top: 5mm; padding: 4mm 5mm; border-left: 3px solid var(--sand); background: var(--cream);
+      font-size: 9.5pt; color: var(--muted); line-height: 1.45;
+    }
+    .talk strong { color: var(--ink); }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3.5mm; margin-bottom: 5mm; }
+    .card { background: var(--cream); border: 1px solid var(--line); padding: 4.5mm 5mm; }
+    .card p { font-size: 9.4pt; color: var(--muted); line-height: 1.42; }
+    .card p strong { color: var(--ink); font-weight: 600; }
+    .num { font-size: 7.5pt; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--sand); margin-bottom: 1.8mm; }
+    .flow { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 2.8mm; margin: 0 0 5.5mm; }
+    .flow article { border: 1px solid var(--line); background: #fff; padding: 4mm; }
+    .flow p { font-size: 8.8pt; color: var(--muted); line-height: 1.4; }
+    .band { height: 48mm; overflow: hidden; margin: 0 0 5.5mm; }
+    .band img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .chips { display: flex; flex-wrap: wrap; gap: 2mm; margin: 0 0 5mm; }
+    .chip { border: 1px solid var(--line); background: #fff; color: var(--teal); font-size: 8.2pt; font-weight: 500; padding: 1.8mm 3.4mm; border-radius: 999px; }
+    .split { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 4mm; margin-bottom: 5mm; }
+    .quote {
+      background: var(--teal-deep); color: #f7f4ee; padding: 6mm 6mm;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .quote p { font-family: "Cormorant Garamond", Georgia, serif; font-size: 15pt; font-weight: 500; line-height: 1.25; margin: 0 0 3mm; }
+    .quote span { font-size: 8pt; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sand); font-weight: 600; }
+    .checklist { display: grid; gap: 2.5mm; }
+    .check {
+      display: grid; grid-template-columns: 7mm 1fr; gap: 2.5mm; align-items: start;
+      font-size: 9.5pt; color: var(--muted); line-height: 1.4;
+    }
+    .check i {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 5.5mm; height: 5.5mm; border-radius: 999px; background: rgba(27,92,87,0.12);
+      color: var(--teal); font-style: normal; font-size: 8pt; font-weight: 700; margin-top: 0.4mm;
+    }
+    .check strong { color: var(--ink); }
+    .cta {
+      margin-top: auto; background: var(--teal); color: #f7f4ee; padding: 7mm 8mm;
+      display: flex; justify-content: space-between; align-items: center; gap: 8mm;
+    }
+    .cta h2 { color: #f7f4ee; font-size: 21pt; margin: 0 0 2mm; }
+    .cta p { font-size: 10pt; opacity: 0.9; font-weight: 300; }
+    .cta a { color: #e8d7b5; }
+    .cta-btn {
+      display: inline-block; background: var(--sand); color: var(--ink); text-decoration: none;
+      font-size: 9pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; padding: 4mm 6.5mm;
+    }
+    .cta-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 3mm; }
+    .legal { margin-top: 3mm; font-size: 7.2pt; color: var(--muted); line-height: 1.4; }
+    .note { font-size: 8.2pt; color: var(--muted); line-height: 1.4; margin-top: 3mm; }
+    @media print { html, body { background: none; } .sheet { margin: 0; box-shadow: none; } }
+  </style>
+</head>
+<body>
+  <!-- 01 COVER -->
+  <section class="sheet cover">
+    <div class="cover-top">
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 551 519" fill="none" aria-hidden="true">
+          <path d="M238.24 278C229.74 332.5 245.74 393.5 245.74 393.5C245.74 393.5 235.581 401.468 231.74 408.5C227.515 416.232 226.74 430.5 226.74 430.5V517H37.2395C37.2395 517 18.6308 518 6.2395 499C-6.15182 480 3.7395 459 3.7395 459L68.2395 331H205.24C209.74 354.5 229.74 379 229.74 379C229.74 379 219.74 347 226.24 278C232.74 209 274.24 172 274.24 172C274.24 172 246.74 223.5 238.24 278Z" fill="#E8D7B5"/>
+          <path d="M324.24 430.5V517L501.24 519C501.24 519 521.662 516.854 531.74 509.5C540.983 502.755 546.329 497.066 549.24 486C551.678 476.73 548.425 467.5 546.74 463.5C545.054 459.5 536.74 442 536.74 442L480.24 331L329.24 330.5L333.24 325L338.74 316L472.74 314.5L420.74 216H356.74L357.24 205.5L356.74 199H414.74L333.74 48.5C333.74 48.5 309.24 1.53901e-05 274.24 0C239.24 -1.53901e-05 214.24 48.5 214.24 48.5L135.24 199H209.24C209.24 199 234.74 138.5 254.74 114C274.74 89.5 295.74 77 319.74 84C343.74 91 343.74 131 343.74 131C343.74 131 342.863 174.782 326.74 195C315.559 209.02 289.24 221.5 289.24 221.5C289.24 221.5 309.921 219.477 321.74 214C332.161 209.171 345.74 197 345.74 197C345.74 197 349.401 222.094 345.74 237.5C341.394 255.786 333.464 265.159 319.74 278C304.499 292.26 272.24 302.5 272.24 302.5C272.24 302.5 291.49 301.404 303.24 298C317.165 293.966 336.74 282 336.74 282C336.74 282 332.74 315.5 312.24 331C291.74 346.5 298.44 341.372 289.24 347.5C281.574 352.606 273.74 356.5 269.24 360C264.74 363.5 259.24 366.5 256.74 370C254.24 373.5 253.74 374 254.24 379C254.74 384 256.74 387 256.74 387C256.74 387 269.24 383.301 279.24 384C292.24 384.909 301.857 390 306.24 393.5C310.622 397 315.981 402.657 319.74 411C323.268 418.833 324.24 430.5 324.24 430.5Z" fill="#E8D7B5"/>
+        </svg>
+        Isisel
+      </div>
+      <div class="cover-url">www.isisel.com<br /><a href="https://wa.me/33784672083">WhatsApp +33 7 84 67 20 83</a></div>
+    </div>
+    <div class="cover-hero">
+      <div class="eyebrow">Briefing note · Property promoters &amp; hosts</div>
+      <h1>Turn apartments into<br />demand engines — with<br /><em>creators</em> and Mobile Money</h1>
+      <p class="lede">A short presentation for property promoters: how Isisel helps you fill stays, recruit influencers with promo codes, and open African guest payment rails.</p>
+      <div class="cover-rule"></div>
+      <p class="cover-body">
+        Read low → high. Start with the console and guest flow, then the
+        <strong>influencer commission program</strong>, then the reason the platform exists:
+        <strong>Mobile Money for an intra-African short-term rental economy</strong>.
+      </p>
+      <div class="arc">
+        <span>01 Console</span>
+        <span>02 Guest flow</span>
+        <span>03 Creators</span>
+        <span>04 Mobile Money</span>
+      </div>
+      <a class="wa-pill" href="https://wa.me/33784672083">WhatsApp Jimmeh · +33 7 84 67 20 83</a>
+    </div>
+  </section>
+
+  <!-- 02 LOW → HIGH MAP -->
+  <section class="sheet inner">
+    <div class="inner-head">
+      <span class="brand-mini">Isisel</span>
+      <span class="folio">Talking path · 02</span>
+    </div>
+    <h2>From useful today → category-defining</h2>
+    <p class="section-intro">Use this ladder in the room. Each rung is stronger than the last. End on Mobile Money — that is why Isisel was built.</p>
+    <div class="ladder">
+      <article class="rung rung-low">
+        <div class="level">Low</div>
+        <div>
+          <h3>A serious place for African stays</h3>
+          <p>Your apartments sit in a marketplace designed for the continent — not buried as leftover inventory on a global board. Guests find <strong>place</strong>, not noise.</p>
+        </div>
+      </article>
+      <article class="rung rung-low">
+        <div class="level">Low+</div>
+        <div>
+          <h3>You stay in control</h3>
+          <p>Guests <strong>request dates</strong>. You approve. WhatsApp keeps hospitality human. Nothing books itself behind your back.</p>
+        </div>
+      </article>
+      <article class="rung rung-mid">
+        <div class="level">Mid</div>
+        <div>
+          <h3>One host console</h3>
+          <p>Listings, calendar, reservations, arrivals and departures — and Creators — in one place so promoters can run inventory without spreadsheet chaos.</p>
+        </div>
+      </article>
+      <article class="rung rung-high">
+        <div class="level">High</div>
+        <div>
+          <h3>Influencer program that pays for content</h3>
+          <p>Assign a creator to a specific apartment. Issue a promo code. Set their <strong>commission %</strong> and the <strong>guest discount %</strong>. Pause anytime. They earn when their code books — so they keep posting for that stay.</p>
+        </div>
+      </article>
+      <article class="rung rung-peak">
+        <div class="level">Peak</div>
+        <div>
+          <h3>Mobile Money opens the African guest market</h3>
+          <p>The founding reason for Isisel: payment rails that meet how Africans already pay — Wave, Orange Money, MTN MoMo, Moov, plus cards — so short-term rentals can circulate <strong>inside Africa</strong>, not only via foreign cards.</p>
+        </div>
+      </article>
+    </div>
+    <p class="talk"><strong>Presenter tip:</strong> Spend the least time on “another listing site.” Spend the most on creators + Mobile Money — those are the promoter’s growth levers.</p>
+  </section>
+
+  <!-- 03 PLATFORM USEFULNESS -->
+  <section class="sheet inner">
+    <div class="inner-head">
+      <span class="brand-mini">Isisel</span>
+      <span class="folio">Why it helps you · 03</span>
+    </div>
+    <h2>What Isisel does for a property promoter</h2>
+    <p class="section-intro">Before creators and payments — the everyday usefulness that makes the platform worth listing on.</p>
+    <div class="band">
+      <img src="pdf-assets/recent-3.jpg" alt="Stay exterior" />
+    </div>
+    <div class="grid2">
+      <article class="card">
+        <div class="num">01 · Visibility</div>
+        <h3>African catalog, not a side shelf</h3>
+        <p>Travelers browsing Isisel expect Dakar, Abidjan, Accra, Nairobi — not a random global feed. Your inventory is the product.</p>
+      </article>
+      <article class="card">
+        <div class="num">02 · Operations</div>
+        <h3>Console for every apartment</h3>
+        <p>Publish listings, manage open nights on the calendar, track reservations, create walk-in stays, and see who arrives today.</p>
+      </article>
+      <article class="card">
+        <div class="num">03 · Hospitality</div>
+        <h3>Requests + WhatsApp</h3>
+        <p>Guests leave a phone number. You speak like a host, not a call center. Approvals stay intentional — useful when you manage many units.</p>
+      </article>
+      <article class="card">
+        <div class="num">04 · Economics</div>
+        <h3>You set the night</h3>
+        <p>Founding hosts keep the night while the catalog scales. Platform fees stay separate from any creator commission you choose to fund.</p>
+      </article>
+    </div>
+    <div class="chips">
+      <span class="chip">Apartments</span>
+      <span class="chip">Villas</span>
+      <span class="chip">Guesthouses</span>
+      <span class="chip">Lodges</span>
+      <span class="chip">Studios</span>
+      <span class="chip">Family homes</span>
+    </div>
+    <p class="note">Talking line: “Isisel is the operating layer for African short stays — list, calendar, requests — then we layer growth tools on top.”</p>
+  </section>
+
+  <!-- 04 INFLUENCER PROGRAM -->
+  <section class="sheet inner">
+    <div class="inner-head">
+      <span class="brand-mini">Isisel</span>
+      <span class="folio">Creators · 04</span>
+    </div>
+    <h2>Make influencers work for a specific apartment</h2>
+    <p class="section-intro">The promoter’s growth product: turn creators into paid partners for one listing at a time — with rules you control from your host console.</p>
+
+    <div class="flow">
+      <article>
+        <div class="num">01</div>
+        <h3>Add a creator</h3>
+        <p>Name, platform (Instagram, TikTok, YouTube…), profile URL. Invite them with a portal link.</p>
+      </article>
+      <article>
+        <div class="num">02</div>
+        <h3>Assign a stay</h3>
+        <p>Attach them to one apartment with a unique promo code guests can enter when they book.</p>
+      </article>
+      <article>
+        <div class="num">03</div>
+        <h3>Set the money</h3>
+        <p>Choose creator commission % and guest discount %. Both are yours to tune (up to 50%).</p>
+      </article>
+      <article>
+        <div class="num">04</div>
+        <h3>Pause anytime</h3>
+        <p>Pause a code or a partnership when the push is done. Attribution stops; you stay in charge.</p>
+      </article>
+    </div>
+
+    <div class="split">
+      <div class="checklist">
+        <div class="check"><i>✓</i><span><strong>Commission you fund</strong> — paid on attributed accommodation when their code converts. Separate from any Isisel platform fee.</span></div>
+        <div class="check"><i>✓</i><span><strong>Discount you choose</strong> — give followers a reason to book that apartment now.</span></div>
+        <div class="check"><i>✓</i><span><strong>Motivation loop</strong> — creators see codes, calendar availability, and earnings in their console, so they keep producing content for the stay you assigned.</span></div>
+        <div class="check"><i>✓</i><span><strong>Promoter visibility</strong> — see active codes, attributed stays, booking value, and commissions from Host → Creators.</span></div>
+        <div class="check"><i>✓</i><span><strong>Stop when you want</strong> — Pause / Resume on the code; archive or pause the partner when the campaign ends.</span></div>
+      </div>
+      <aside class="quote">
+        <p>“You don’t hope an influencer posts. You give them a code, a cut, and a reason to keep filming that apartment.”</p>
+        <span>Presenter line · Creators</span>
+      </aside>
+    </div>
+    <p class="talk"><strong>Money story:</strong> Guest books with code → stays → creator commission accrues after checkout. You only pay performance that filled the night — not vanity metrics.</p>
+  </section>
+
+  <!-- 05 MOBILE MONEY / PEAK -->
+  <section class="sheet inner">
+    <div class="inner-head">
+      <span class="brand-mini">Isisel</span>
+      <span class="folio">The founding reason · 05</span>
+    </div>
+    <h2>Mobile Money is why Isisel exists</h2>
+    <p class="section-intro">Global OTAs assume a foreign card. Most African travelers already pay with Mobile Money. Bridging that gap is the door to an intra-African short-term rental economy.</p>
+
+    <div class="band">
+      <img src="pdf-assets/recent-2.jpg" alt="African coastal city" />
+    </div>
+
+    <div class="grid2">
+      <article class="card">
+        <div class="num">The problem</div>
+        <h3>Demand is local. Rails were not.</h3>
+        <p>A guest in Abidjan or Accra who can pay Wave or MoMo should not be locked out of a Dakar apartment because the only checkout is a foreign card network.</p>
+      </article>
+      <article class="card">
+        <div class="num">The build</div>
+        <h3>GeniusPay on Isisel</h3>
+        <p>Payment integration for African Mobile Money (Wave, Orange Money, MTN MoMo, Moov) and cards — so settlement can follow how the continent already moves money.</p>
+      </article>
+      <article class="card">
+        <div class="num">The effect</div>
+        <h3>Intra-African circulation</h3>
+        <p>More African guests can book African stays. More nights fill. Promoters unlock a market that international platforms under-serve.</p>
+      </article>
+      <article class="card">
+        <div class="num">The present</div>
+        <h3>Human first, rails ready</h3>
+        <p>Guests request stays and reach you on WhatsApp today. Online MoMo/card rails are built into the platform so checkout can open as you scale — without rebuilding payments later.</p>
+      </article>
+    </div>
+
+    <p class="talk"><strong>Close the pitch here:</strong> “Creators fill the feed. Mobile Money fills the wallet gap. Together they let African stays grow with African money.”</p>
+  </section>
+
+  <!-- 06 CTA / ONE-PAGER REMINDER -->
+  <section class="sheet inner">
+    <div class="inner-head">
+      <span class="brand-mini">Isisel</span>
+      <span class="folio">Leave-behind · 06</span>
+    </div>
+    <h2>What to remember after the meeting</h2>
+    <p class="section-intro">One page for the promoter’s pocket. Low to high, same order you presented.</p>
+
+    <div class="ladder">
+      <article class="rung rung-low">
+        <div class="level">1</div>
+        <div>
+          <h3>List &amp; run stays on Isisel</h3>
+          <p>African catalog + host console (listings, calendar, reservations, WhatsApp requests).</p>
+        </div>
+      </article>
+      <article class="rung rung-high">
+        <div class="level">2</div>
+        <div>
+          <h3>Grow with the influencer program</h3>
+          <p>Assign creators to apartments → promo codes → set commission &amp; discount → pause anytime → they keep creating because they earn.</p>
+        </div>
+      </article>
+      <article class="rung rung-peak">
+        <div class="level">3</div>
+        <div>
+          <h3>Win on Mobile Money</h3>
+          <p>The platform was built so African guests can pay the African way — unlocking intra-African short-term rental demand.</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="cta" style="margin-top: 8mm;">
+      <div>
+        <h2>Let’s put your units on Isisel.</h2>
+        <p>Onboard at <a href="https://www.isisel.com/host/onboarding">www.isisel.com/host/onboarding</a> · WhatsApp Jimmeh <a href="https://wa.me/33784672083">+33 7 84 67 20 83</a>.</p>
+      </div>
+      <div class="cta-actions">
+        <a class="cta-btn" href="https://www.isisel.com">www.isisel.com</a>
+        <a class="cta-wa" href="https://wa.me/33784672083" style="color:#e8d7b5;font-size:10pt;font-weight:600;text-decoration:none;">WhatsApp</a>
+      </div>
+    </div>
+    <p class="legal">
+      Creator commissions are set and funded by the host/promoter and are separate from Isisel platform fees.
+      Commission applies to attributed accommodation when an active promo code converts. Guest discounts and creator rates are configured in Host → Creators.
+      Mobile Money and card checkout run through GeniusPay integration; guest experience may use request + WhatsApp settlement while live online checkout is rolled out.
+      © Isisel · www.isisel.com
+    </p>
+  </section>
+</body>
+</html>
