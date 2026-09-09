@@ -16,6 +16,7 @@ import {
   Award,
   BarChart3,
   MessageSquare,
+  BookOpen,
   Ellipsis,
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
@@ -39,6 +40,12 @@ const NAV = [
     label: "Reservations",
     Icon: CalendarCheck,
     mobile: "tab",
+  },
+  {
+    href: "/documentation",
+    label: "Docs",
+    Icon: BookOpen,
+    mobile: "more",
   },
   { href: "/ops/users", label: "Users", Icon: Users, mobile: "more" },
   {
