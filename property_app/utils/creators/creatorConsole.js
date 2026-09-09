@@ -405,7 +405,25 @@ export async function getCreatorPropertyAvailability(propertyId) {
  * Enrich token portal with property availability for assigned codes.
  */
 export async function enrichPortalWithAvailability(portal) {
-  if (!portal?.codes?.length) return portal;
+  if (!portal) return portal;
+
+  // Partnership pause blocks attribution even if individual codes stay "active".
+  const partnerPaused = portal.creator?.status === "paused";
+  const partnerAlerts = partnerPaused
+    ? [
+        {
+          type: "partner",
+          message:
+            "Your host paused this partnership — do not promote listings until they resume you.",
+        },
+      ]
+    : [];
+
+  if (!portal.codes?.length) {
+    return partnerAlerts.length
+      ? { ...portal, alerts: [...partnerAlerts, ...(portal.alerts || [])] }
+      : portal;
+  }
 
   const propertyIds = [
     ...new Set(portal.codes.map((c) => String(c.propertyId)).filter(Boolean)),
@@ -447,30 +465,34 @@ export async function enrichPortalWithAvailability(portal) {
   );
   const availMap = new Map(availSettled);
 
+  const codeAlerts = (portal.codes || [])
+    .filter((c) => c.status === "paused" && !partnerPaused)
+    .map((c) => ({
+      type: "code",
+      code: c.code,
+      message: `Promo code ${c.code} is paused by the host — do not promote until it’s active again.`,
+    }));
+
   return {
     ...portal,
     properties: propertyIds.map((id) => {
       const codesForProp = portal.codes.filter(
         (c) => String(c.propertyId) === id,
       );
-      const hasActive = codesForProp.some((c) => c.status === "active");
+      const hasActiveCode = codesForProp.some((c) => c.status === "active");
+      const promotionActive = !partnerPaused && hasActiveCode;
+      const pausedCodes = partnerPaused
+        ? codesForProp.map((c) => c.code)
+        : codesForProp.filter((c) => c.status === "paused").map((c) => c.code);
       return {
         ...(propertyMap.get(id) || { id, name: "Listing", image: null }),
         codes: codesForProp,
         unavailableRanges: availMap.get(id)?.unavailableRanges || [],
-        promotionActive: hasActive,
-        paused: !hasActive && codesForProp.some((c) => c.status === "paused"),
-        pausedCodes: codesForProp
-          .filter((c) => c.status === "paused")
-          .map((c) => c.code),
+        promotionActive,
+        paused: !promotionActive && (partnerPaused || pausedCodes.length > 0),
+        pausedCodes,
       };
     }),
-    alerts: (portal.codes || [])
-      .filter((c) => c.status === "paused")
-      .map((c) => ({
-        type: "code",
-        code: c.code,
-        message: `Promo code ${c.code} is paused by the host — do not promote until it’s active again.`,
-      })),
+    alerts: [...partnerAlerts, ...codeAlerts],
   };
 }

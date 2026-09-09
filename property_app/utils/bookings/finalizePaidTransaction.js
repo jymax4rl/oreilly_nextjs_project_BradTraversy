@@ -116,6 +116,14 @@ function mergeTxBody(existingTx, override = {}) {
       override.customer_name,
       existingTx.customer_name,
     ),
+    // Gateway webhooks store these on the finalize body; keep them through merge.
+    guest_phone: firstNonEmpty(override.guest_phone, existingTx.guest_phone),
+    promo_code: firstNonEmpty(
+      override.promo_code,
+      override.promoCode,
+      existingTx.promo_code,
+      existingTx.promoCode,
+    ),
   };
 }
 
@@ -653,6 +661,8 @@ export async function finalizePaidTransaction(
       currency: newTransaction.currency,
       customer_email: newTransaction.customer_email,
       customer_name: newTransaction.customer_name,
+      guest_phone: body.guest_phone,
+      promo_code: body.promo_code || body.promoCode,
     },
     guestHint,
   );
