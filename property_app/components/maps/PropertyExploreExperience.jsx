@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { Map as MapIcon, List, X } from "lucide-react";
+import { Map as MapIcon, List, X, RefreshCw } from "lucide-react";
 import PropertyCard from "@/components/PropertyCard";
 import PropertyExploreMap from "@/components/maps/PropertyExploreMap";
 import { formatListingPrice } from "@/utils/currencyUtils";
@@ -309,9 +309,23 @@ export default function PropertyExploreExperience({
         <div className="pem-catalog-shell__list" aria-live="polite">
           {listHeader}
           {error ? (
-            <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
-              {error}
-            </p>
+            <div className="mb-3 flex items-center justify-between gap-3 rounded-xl bg-[var(--kama-field)] px-3 py-2">
+              <p className="text-sm text-[var(--kama-ink-muted)]">
+                Stays didn&apos;t load
+              </p>
+              <button
+                type="button"
+                onClick={() => bounds && void fetchPins(bounds)}
+                disabled={loading || !bounds}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--kama-accent)] px-2.5 py-1.5 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
+              >
+                <RefreshCw
+                  className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}
+                  aria-hidden
+                />
+                {loading ? "Refreshing…" : "Refresh"}
+              </button>
+            </div>
           ) : null}
           <p className="pem-explore__count">
             {`${listProperties.length} stay${listProperties.length === 1 ? "" : "s"} in view`}

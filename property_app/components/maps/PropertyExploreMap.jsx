@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { RefreshCw } from "lucide-react";
 import {
   loadGoogleMapsApi,
   hasGoogleMapsApiKey,
@@ -116,6 +117,7 @@ export default function PropertyExploreMap({
   );
   const [mapReady, setMapReady] = useState(false);
   const [booting, setBooting] = useState(() => hasGoogleMapsApiKey());
+  const [bootKey, setBootKey] = useState(0);
 
   useEffect(() => {
     onBoundsChangeRef.current = onBoundsChange;
@@ -124,6 +126,32 @@ export default function PropertyExploreMap({
   useEffect(() => {
     onSelectRef.current = onSelect;
   }, [onSelect]);
+
+  const clearMapInstance = () => {
+    if (idleListenerRef.current) {
+      idleListenerRef.current.remove?.();
+      idleListenerRef.current = null;
+    }
+    for (const overlay of overlaysRef.current.values()) {
+      overlay.setMap?.(null);
+    }
+    overlaysRef.current.clear();
+    const map = mapRef.current;
+    if (map?.__pemIdleTimer) {
+      window.clearTimeout(map.__pemIdleTimer);
+    }
+    mapRef.current = null;
+    googleRef.current = null;
+    setMapReady(false);
+  };
+
+  const handleRefreshMap = () => {
+    if (booting) return;
+    clearMapInstance();
+    setErrorInfo(null);
+    setBooting(true);
+    setBootKey((k) => k + 1);
+  };
 
   const validPins = useMemo(() => {
     const out = [];
@@ -154,10 +182,14 @@ export default function PropertyExploreMap({
     onBoundsChangeRef.current?.(payload);
   };
 
-  // Boot map once.
+  // Boot map (re-runs when user taps Refresh).
   useEffect(() => {
     if (!containerRef.current) return undefined;
     if (!hasGoogleMapsApiKey()) {
+      setBooting(false);
+      setErrorInfo(
+        describeGoogleMapsError("Google Maps API key is not configured"),
+      );
       return undefined;
     }
     if (mapRef.current) return undefined;
@@ -218,7 +250,7 @@ export default function PropertyExploreMap({
         idleListenerRef.current = null;
       }
     };
-  }, []);
+  }, [bootKey]);
 
   // Sync overlays when pins / currency / selection change.
   useEffect(() => {
@@ -295,10 +327,18 @@ export default function PropertyExploreMap({
       </span>
       {errorInfo ? (
         <div className="pem-error" role="alert">
-          <p className="font-semibold">{errorInfo.title || "Map unavailable"}</p>
-          <p className="text-sm opacity-80">
-            {errorInfo.detail || "Search still works in the list."}
-          </p>
+          <button
+            type="button"
+            className="pem-error__refresh"
+            onClick={handleRefreshMap}
+            disabled={booting}
+          >
+            <RefreshCw
+              className={`pem-error__refresh-icon${booting ? " pem-error__refresh-icon--spin" : ""}`}
+              aria-hidden
+            />
+            {booting ? "Loading map…" : "Refresh map"}
+          </button>
         </div>
       ) : null}
       {!loading && !booting && !errorInfo && validPins.length === 0 ? (
