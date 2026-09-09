@@ -112,7 +112,7 @@
   box-shadow: 0 6px 18px rgba(27, 92, 87, 0.35);
 }
 
-/* ---------- Catalog shell (Airbnb-style desktop lock) ---------- */
+/* ---------- Catalog shell (Airbnb-style — /properties only) ---------- */
 .pem-catalog-shell {
   position: relative;
   background: #fff;
@@ -155,12 +155,12 @@
   display: block;
 }
 
+/* Mobile: never show the desktop map column */
+.pem-catalog-shell__map {
+  display: none;
+}
+
 @media (min-width: 768px) {
-  /*
-   * Airbnb-style explore:
-   * fixed under navbar (+1em), full-width compact search strip,
-   * then list | map grid. Only the list column scrolls.
-   */
   .pem-catalog-shell--locked {
     position: fixed;
     top: calc(8vh + 1em);
@@ -174,6 +174,10 @@
     max-height: calc(100dvh - 8vh - 1em);
     overflow: hidden;
     background: #fff;
+  }
+
+  .pem-catalog-top {
+    flex: 0 0 auto;
   }
 
   .pem-catalog-top__inner {
@@ -201,32 +205,25 @@
     background: #fff;
   }
 
-  .pem-catalog-shell--locked .pem-catalog-shell__map {
+  .pem-catalog-shell__map {
+    display: flex;
+    flex-direction: column;
     min-width: 0;
     min-height: 0;
     height: 100%;
     padding: 0;
-    display: flex;
-    flex-direction: column;
     border-left: 1px solid var(--kama-border, #e5e7eb);
   }
 
-  .pem-catalog-shell--locked .pem-explore__map {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    min-height: 0;
-  }
-
-  .pem-catalog-shell--locked .pem-explore__map-panel {
+  .pem-catalog-shell__map .pem-explore__map-panel {
     position: relative;
     flex: 1 1 auto;
     min-height: 0;
     height: 100%;
   }
 
-  .pem-catalog-shell--locked .pem-explore__map .pem-root,
-  .pem-catalog-shell--locked .pem-explore__map .pem-canvas {
+  .pem-catalog-shell__map .pem-root,
+  .pem-catalog-shell__map .pem-canvas {
     height: 100%;
     min-height: 0;
     border: 0;
@@ -681,4 +678,9 @@
 body.pem-map-open,
 body.pem-catalog-locked {
   overflow: hidden;
+}
+
+body.pem-catalog-locked footer,
+body.pem-catalog-locked .site-footer {
+  display: none !important;
 }

@@ -66,14 +66,13 @@ function pinToCardProperty(pin) {
 }
 
 /**
- * Synchronized list + map explore experience.
- * When `locked`, desktop uses a viewport grid: scrollable list | fixed map.
+ * Airbnb-style catalog explore for `/properties` only:
+ * - Desktop: fixed viewport grid — scrollable list | fixed map
+ * - Mobile: list + Map sheet
  */
 export default function PropertyExploreExperience({
   initialProperties = [],
   filters = {},
-  compact = false,
-  locked = false,
   topChrome = null,
   listHeader = null,
 }) {
@@ -103,9 +102,7 @@ export default function PropertyExploreExperience({
   }, []);
 
   useEffect(() => {
-    return () => {
-      abortRef.current?.abort?.();
-    };
+    return () => abortRef.current?.abort?.();
   }, []);
 
   useEffect(() => {
@@ -122,10 +119,10 @@ export default function PropertyExploreExperience({
   }, [mobileMapOpen]);
 
   useEffect(() => {
-    if (!(locked && isDesktop)) return undefined;
+    if (!isDesktop) return undefined;
     document.body.classList.add("pem-catalog-locked");
     return () => document.body.classList.remove("pem-catalog-locked");
-  }, [locked, isDesktop]);
+  }, [isDesktop]);
 
   const filterKey = useMemo(
     () =>
@@ -179,7 +176,7 @@ export default function PropertyExploreExperience({
       void fetchPins(bounds);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps -- refetch on filter change using latest bounds
+  }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleBoundsChange = useCallback(
     (payload) => {
@@ -197,8 +194,9 @@ export default function PropertyExploreExperience({
 
   const handleSelect = useCallback((id) => {
     setSelectedId(String(id));
-    const el = cardRefs.current.get(String(id));
-    el?.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
+    cardRefs.current
+      .get(String(id))
+      ?.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
   }, []);
 
   const listProperties = useMemo(() => {
@@ -211,135 +209,6 @@ export default function PropertyExploreExperience({
   }, [pins, initialProperties]);
 
   const selectedPin = pins.find((p) => p.id === String(selectedId));
-  const useLockedGrid = locked && !compact;
-
-  const listColumn = (
-    <div
-      className={
-        useLockedGrid ? "pem-catalog-shell__list" : "pem-explore__list"
-      }
-      aria-live="polite"
-    >
-      {listHeader}
-      {error ? (
-        <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
-        </p>
-      ) : null}
-      <p className="pem-explore__count">
-        {`${listProperties.length} stay${listProperties.length === 1 ? "" : "s"} in view`}
-      </p>
-      <div
-        className={
-          useLockedGrid
-            ? "grid grid-cols-1 gap-4 sm:grid-cols-2"
-            : "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2"
-        }
-      >
-        {listProperties.map((property) => {
-          const id = String(property._id);
-          const selected = selectedId === id;
-          return (
-            <div
-              key={id}
-              ref={(node) => {
-                if (node) cardRefs.current.set(id, node);
-                else cardRefs.current.delete(id);
-              }}
-              className={`rounded-2xl transition ring-offset-2 ${
-                selected ? "ring-2 ring-[var(--kama-accent)]" : "ring-0"
-              }`}
-              onMouseEnter={() => setSelectedId(id)}
-              onFocus={() => setSelectedId(id)}
-              onClick={() => setSelectedId(id)}
-            >
-              <PropertyCard property={property} />
-            </div>
-          );
-        })}
-      </div>
-      {!loading && listProperties.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[var(--kama-border)] bg-white/70 px-4 py-10 text-center">
-          <p className="font-semibold text-[var(--kama-ink)]">
-            No stays found in this area
-          </p>
-          <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
-            Zoom out on the map or clear filters.
-          </p>
-        </div>
-      ) : null}
-    </div>
-  );
-
-  const mapColumn = (
-    <div
-      className={
-        useLockedGrid
-          ? "pem-catalog-shell__map pem-explore__map hidden md:flex"
-          : "pem-explore__map hidden md:block"
-      }
-    >
-      <div className="pem-explore__map-panel">
-        {isDesktop ? (
-          <PropertyExploreMap
-            pins={pins}
-            selectedId={selectedId}
-            onSelect={handleSelect}
-            onBoundsChange={handleBoundsChange}
-            loading={loading}
-          />
-        ) : (
-          <div className="h-full min-h-[28rem] rounded-[1.25rem] bg-[#e8eef0]" />
-        )}
-        {selectedPin ? (
-          <div className="pem-preview">
-            <button
-              type="button"
-              className="pem-preview__close"
-              aria-label="Clear selection"
-              onClick={() => setSelectedId(null)}
-            >
-              <X className="h-4 w-4" />
-            </button>
-            {selectedPin.thumbnail ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={selectedPin.thumbnail}
-                alt=""
-                className="pem-preview__img"
-              />
-            ) : (
-              <div className="pem-preview__img pem-preview__img--empty" />
-            )}
-            <div className="pem-preview__body">
-              <p className="pem-preview__title">{selectedPin.title}</p>
-              <p className="pem-preview__meta">
-                {[selectedPin.city, selectedPin.country]
-                  .filter(Boolean)
-                  .join(", ")}
-              </p>
-              <p className="pem-preview__price">
-                {selectedPin.priceUsd != null
-                  ? formatListingPrice(
-                      selectedPin.priceUsd,
-                      rates,
-                      currencyCode,
-                    )
-                  : "—"}
-                <span> / night</span>
-              </p>
-              <Link
-                href={propertyPublicPath(selectedPin)}
-                className="pem-preview__link"
-              >
-                View stay
-              </Link>
-            </div>
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
 
   const mobileSheet =
     mobileMapOpen && !isDesktop && typeof document !== "undefined"
@@ -412,31 +281,10 @@ export default function PropertyExploreExperience({
         )
       : null;
 
-  if (useLockedGrid) {
-    return (
-      <div className="pem-catalog-shell pem-catalog-shell--locked">
-        {topChrome}
-        {!mobileMapOpen ? (
-          <button
-            type="button"
-            className="pem-explore__fab md:hidden"
-            onClick={() => setMobileMapOpen(true)}
-          >
-            <MapIcon className="h-4 w-4" aria-hidden />
-            Map
-          </button>
-        ) : null}
-        <div className="pem-catalog-body">
-          {listColumn}
-          {mapColumn}
-        </div>
-        {mobileSheet}
-      </div>
-    );
-  }
-
   return (
-    <div className={`pem-explore ${compact ? "pem-explore--compact" : ""}`}>
+    <div className="pem-catalog-shell pem-catalog-shell--locked">
+      {topChrome}
+
       {!mobileMapOpen ? (
         <button
           type="button"
@@ -448,9 +296,111 @@ export default function PropertyExploreExperience({
         </button>
       ) : null}
 
-      <div className="pem-explore__split">
-        {listColumn}
-        {mapColumn}
+      <div className="pem-catalog-body">
+        <div className="pem-catalog-shell__list" aria-live="polite">
+          {listHeader}
+          {error ? (
+            <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </p>
+          ) : null}
+          <p className="pem-explore__count">
+            {`${listProperties.length} stay${listProperties.length === 1 ? "" : "s"} in view`}
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {listProperties.map((property) => {
+              const id = String(property._id);
+              const selected = selectedId === id;
+              return (
+                <div
+                  key={id}
+                  ref={(node) => {
+                    if (node) cardRefs.current.set(id, node);
+                    else cardRefs.current.delete(id);
+                  }}
+                  className={`rounded-2xl transition ring-offset-2 ${
+                    selected ? "ring-2 ring-[var(--kama-accent)]" : "ring-0"
+                  }`}
+                  onMouseEnter={() => setSelectedId(id)}
+                  onFocus={() => setSelectedId(id)}
+                  onClick={() => setSelectedId(id)}
+                >
+                  <PropertyCard property={property} />
+                </div>
+              );
+            })}
+          </div>
+          {!loading && listProperties.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-[var(--kama-border)] bg-white/70 px-4 py-10 text-center">
+              <p className="font-semibold text-[var(--kama-ink)]">
+                No stays found in this area
+              </p>
+              <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
+                Zoom out on the map or clear filters.
+              </p>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="pem-catalog-shell__map">
+          <div className="pem-explore__map-panel">
+            {isDesktop ? (
+              <PropertyExploreMap
+                pins={pins}
+                selectedId={selectedId}
+                onSelect={handleSelect}
+                onBoundsChange={handleBoundsChange}
+                loading={loading}
+              />
+            ) : null}
+            {isDesktop && selectedPin ? (
+              <div className="pem-preview">
+                <button
+                  type="button"
+                  className="pem-preview__close"
+                  aria-label="Clear selection"
+                  onClick={() => setSelectedId(null)}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                {selectedPin.thumbnail ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={selectedPin.thumbnail}
+                    alt=""
+                    className="pem-preview__img"
+                  />
+                ) : (
+                  <div className="pem-preview__img pem-preview__img--empty" />
+                )}
+                <div className="pem-preview__body">
+                  <p className="pem-preview__title">{selectedPin.title}</p>
+                  <p className="pem-preview__meta">
+                    {[selectedPin.city, selectedPin.country]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </p>
+                  <p className="pem-preview__price">
+                    {selectedPin.priceUsd != null
+                      ? formatListingPrice(
+                          selectedPin.priceUsd,
+                          rates,
+                          currencyCode,
+                        )
+                      : "—"}
+                    <span> / night</span>
+                  </p>
+                  <Link
+                    href={propertyPublicPath(selectedPin)}
+                    className="pem-preview__link"
+                  >
+                    View stay
+                  </Link>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
       </div>
 
       {mobileSheet}
