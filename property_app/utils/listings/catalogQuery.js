@@ -76,6 +76,9 @@ export function buildCatalogMongoQuery(params = {}) {
 
   if (minBeds != null) mongoQuery.beds = { $gte: minBeds };
   if (minBaths != null) mongoQuery.baths = { $gte: minBaths };
+  if (params.guests != null) {
+    mongoQuery["listing.maxGuests"] = { $gte: params.guests };
+  }
 
   const hasFilters = Boolean(
     locationQuery ||
@@ -84,6 +87,7 @@ export function buildCatalogMongoQuery(params = {}) {
       maxPrice != null ||
       minBeds != null ||
       minBaths != null ||
+      params.guests != null ||
       bounds,
   );
   // Preserve existing browse quirk: unfiltered catalog excludes featured.

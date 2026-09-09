@@ -196,6 +196,7 @@ export async function searchMapProperties(rawParams) {
     maxPrice: params.maxPrice,
     minBeds: params.minBeds,
     minBaths: params.minBaths,
+    guests: params.guests,
     bounds: params.bounds,
     requireCoordinates: true,
   });

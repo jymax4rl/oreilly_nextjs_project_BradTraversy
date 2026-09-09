@@ -23,6 +23,7 @@ export function emptyHomeFilters() {
     minBaths: null,
     checkIn: "",
     checkOut: "",
+    guests: 1,
   };
 }
 
@@ -42,6 +43,9 @@ export function filtersToQueryString(filters) {
   if (filters.minBaths) params.set("minBaths", String(filters.minBaths));
   if (filters.checkIn) params.set("checkIn", filters.checkIn);
   if (filters.checkOut) params.set("checkOut", filters.checkOut);
+  if (filters.guests != null && Number(filters.guests) > 1) {
+    params.set("guests", String(filters.guests));
+  }
   return params.toString();
 }
 

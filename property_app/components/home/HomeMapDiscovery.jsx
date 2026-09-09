@@ -12,14 +12,11 @@ import gsap from "gsap";
 import {
   MapPin,
   Search,
-  X,
-  ChevronDown,
-  Home,
   RefreshCw,
 } from "lucide-react";
 import PropertyCard from "@/components/PropertyCard";
 import PropertyExploreMap from "@/components/maps/PropertyExploreMap";
-import LocationSuggestInput from "@/components/search/LocationSuggestInput";
+import HomeDiscoverySearchCard from "@/components/home/HomeDiscoverySearchCard";
 import HomePropertyPreviewModal, {
   captureCardFlipState,
 } from "@/components/home/HomePropertyPreviewModal";
@@ -33,13 +30,7 @@ import {
   runSearchShellExpand,
 } from "@/utils/animations/homeDiscovery";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
-import {
-  PROPERTY_TYPE_VALUES,
-  propertyTypeMessageKey,
-} from "@/lib/i18n/messages";
 import "@/components/maps/property-explore-map.css";
-
-const PROPERTY_TYPES = PROPERTY_TYPE_VALUES;
 
 function buildQueryFromFilters(filters, bounds) {
   const params = new URLSearchParams();
@@ -55,6 +46,7 @@ function buildQueryFromFilters(filters, bounds) {
   }
   if (filters.minBeds) params.set("minBeds", String(filters.minBeds));
   if (filters.minBaths) params.set("minBaths", String(filters.minBaths));
+  if (filters.guests) params.set("guests", String(filters.guests));
   if (filters.checkIn) params.set("checkIn", filters.checkIn);
   if (filters.checkOut) params.set("checkOut", filters.checkOut);
   if (bounds) {
@@ -114,10 +106,11 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
   } = useHomeDiscovery();
 
   const [location, setLocation] = useState(filters.location || "");
-  const [propertyType, setPropertyType] = useState(
-    filters.type || "All Properties",
+  const [checkIn, setCheckIn] = useState(filters.checkIn || "");
+  const [checkOut, setCheckOut] = useState(filters.checkOut || "");
+  const [guests, setGuests] = useState(
+    filters.guests != null ? Number(filters.guests) || 1 : 1,
   );
-  const [typeOpen, setTypeOpen] = useState(false);
 
   const [pins, setPins] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -134,7 +127,6 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
   const shellRef = useRef(null);
   const listRef = useRef(null);
   const inputRef = useRef(null);
-  const typeRef = useRef(null);
   const prevSearched = useRef(hasSearched);
   const animCleanup = useRef(null);
   const pendingFlip = useRef(null);
@@ -142,18 +134,10 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
 
   useEffect(() => {
     setLocation(filters.location || "");
-    setPropertyType(filters.type || "All Properties");
-  }, [filters.location, filters.type]);
-
-  useEffect(() => {
-    const onDoc = (e) => {
-      if (typeRef.current && !typeRef.current.contains(e.target)) {
-        setTypeOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, []);
+    setCheckIn(filters.checkIn || "");
+    setCheckOut(filters.checkOut || "");
+    if (filters.guests != null) setGuests(Number(filters.guests) || 1);
+  }, [filters.location, filters.checkIn, filters.checkOut, filters.guests]);
 
   useLayoutEffect(() => {
     if (!shellMounted.current) {
@@ -180,7 +164,6 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
       animCleanup.current = runSearchShellCollapse({
         shellEl,
         flipState,
-        onComplete: () => setTypeOpen(false),
       });
     }
     return () => animCleanup.current?.();
@@ -240,6 +223,9 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
         maxPrice: filters.maxPrice ?? "",
         minBeds: filters.minBeds ?? "",
         minBaths: filters.minBaths ?? "",
+        checkIn: filters.checkIn || "",
+        checkOut: filters.checkOut || "",
+        guests: filters.guests ?? "",
       }),
     [filters],
   );
@@ -356,13 +342,14 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
     e.preventDefault();
     applySearch({
       location: location.trim(),
-      type: propertyType,
-      minPrice: null,
-      maxPrice: null,
-      minBeds: null,
-      minBaths: null,
-      checkIn: "",
-      checkOut: "",
+      type: filters.type || "",
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      minBeds: filters.minBeds,
+      minBaths: filters.minBaths,
+      checkIn: checkIn || "",
+      checkOut: checkOut || "",
+      guests: Math.max(1, Number(guests) || 1),
     });
   };
 
@@ -384,7 +371,7 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
       ? "Stays in view"
       : "Discover stays";
   const triggerLabel =
-    location.trim() || filters.location || t("search.locationPlaceholder");
+    location.trim() || filters.location || t("search.whereToPh");
 
   return (
     <section
@@ -417,7 +404,7 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
           />
           <span className="home-search-shell__trigger-copy">
             <span className="home-search-shell__trigger-label">
-              {t("search.location")}
+              {t("search.whereTo")}
             </span>
             <span className="home-search-shell__trigger-value">
               {triggerLabel}
@@ -443,88 +430,21 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
             ) : null}
           </div>
 
-          <form
-            className="home-search-shell__widgets"
-            data-search-shell-widgets
-            role="search"
-            aria-label={t("search.aria")}
+          <HomeDiscoverySearchCard
+            location={location}
+            onLocationChange={setLocation}
+            inputRef={inputRef}
+            checkIn={checkIn}
+            checkOut={checkOut}
+            onDatesChange={({ checkIn: nextIn, checkOut: nextOut }) => {
+              setCheckIn(nextIn || "");
+              setCheckOut(nextOut || "");
+            }}
+            guests={guests}
+            onGuestsChange={setGuests}
+            onClose={closeSearchShell}
             onSubmit={handleSubmit}
-          >
-            <div className="home-search-shell__row">
-              <label className="relative min-w-0 flex-1">
-                <span className="sr-only">{t("search.location")}</span>
-                <LocationSuggestInput
-                  inputRef={inputRef}
-                  value={location}
-                  onChange={setLocation}
-                  placeholder={t("search.locationPlaceholder")}
-                  className="home-search-field w-full rounded-xl py-2.5 pl-9 pr-3 text-[14px] outline-none"
-                />
-              </label>
-
-              <div className="home-search-shell__type relative w-[9.5rem] shrink-0" ref={typeRef}>
-                <Home
-                  className="pointer-events-none absolute left-2.5 top-1/2 z-10 h-3.5 w-3.5 -translate-y-1/2 text-[var(--portal-ink-muted)]"
-                  aria-hidden
-                />
-                <button
-                  type="button"
-                  className="home-search-field flex min-h-[42px] w-full items-center justify-between rounded-xl py-2.5 pl-8 pr-2 text-left text-[13px]"
-                  aria-haspopup="listbox"
-                  aria-expanded={typeOpen}
-                  onClick={() => setTypeOpen((o) => !o)}
-                >
-                  <span className="block truncate">
-                    {t(propertyTypeMessageKey(propertyType))}
-                  </span>
-                  <ChevronDown
-                    className={`h-3.5 w-3.5 shrink-0 opacity-60 transition-transform ${typeOpen ? "rotate-180" : ""}`}
-                    aria-hidden
-                  />
-                </button>
-                {typeOpen ? (
-                  <ul
-                    role="listbox"
-                    className="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-xl border border-[var(--portal-border)] bg-white py-1 shadow-xl"
-                  >
-                    {PROPERTY_TYPES.map((type) => (
-                      <li key={type} role="option" aria-selected={propertyType === type}>
-                        <button
-                          type="button"
-                          className={`w-full px-3 py-2 text-left text-sm ${
-                            propertyType === type
-                              ? "bg-[var(--portal-accent-soft)] text-[var(--portal-accent)]"
-                              : "hover:bg-[var(--portal-field)]"
-                          }`}
-                          onClick={() => {
-                            setPropertyType(type);
-                            setTypeOpen(false);
-                          }}
-                        >
-                          {t(propertyTypeMessageKey(type))}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="home-search-shell__actions">
-              <button
-                type="button"
-                className="home-search-shell__close"
-                aria-label="Close"
-                onClick={closeSearchShell}
-              >
-                <X className="h-4 w-4" />
-              </button>
-              <button type="submit" className="home-search-cta home-search-shell__submit">
-                <Search className="h-4 w-4" aria-hidden />
-                {t("search.search")}
-              </button>
-            </div>
-          </form>
+          />
         </div>
       </div>
 

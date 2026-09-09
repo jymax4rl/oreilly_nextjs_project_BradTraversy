@@ -17,6 +17,13 @@ function readFiltersFromUrl() {
   const maxPrice = params.get("maxPrice");
   const minBeds = params.get("minBeds");
   const minBaths = params.get("minBaths");
+  const checkIn = params.get("checkIn") || "";
+  const checkOut = params.get("checkOut") || "";
+  const guestsRaw = params.get("guests");
+  const guests =
+    guestsRaw != null && guestsRaw !== ""
+      ? Math.max(1, Number(guestsRaw) || 1)
+      : 1;
   const hasQuery =
     discover === "1" ||
     location ||
@@ -24,7 +31,10 @@ function readFiltersFromUrl() {
     minPrice ||
     maxPrice ||
     minBeds ||
-    minBaths;
+    minBaths ||
+    checkIn ||
+    checkOut ||
+    (guestsRaw != null && guestsRaw !== "");
   if (!hasQuery) return null;
   return {
     ...emptyHomeFilters(),
@@ -34,6 +44,9 @@ function readFiltersFromUrl() {
     maxPrice: maxPrice != null && maxPrice !== "" ? Number(maxPrice) : null,
     minBeds: minBeds || null,
     minBaths: minBaths || null,
+    checkIn,
+    checkOut,
+    guests,
   };
 }
 
