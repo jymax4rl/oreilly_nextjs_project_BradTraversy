@@ -97,3 +97,98 @@ html.pwa-booting .pwa-boot {
     animation: none !important;
   }
 }
+
+/* Route loading — logo only (replaces indigo spinner). Hidden under PWA boot. */
+html.pwa-booting .kama-route-loading {
+  display: none !important;
+}
+
+.kama-route-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1.25rem;
+  background:
+    radial-gradient(
+      ellipse 70% 55% at 50% 42%,
+      color-mix(in srgb, #1b5c57 18%, #1a2428) 0%,
+      #1a2428 58%,
+      #12181c 100%
+    );
+}
+
+.kama-route-loading__glow {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(16rem, 65vw);
+  height: min(16rem, 65vw);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, #1b5c57 34%, transparent) 0%,
+    transparent 68%
+  );
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.kama-route-loading__logo {
+  position: relative;
+  z-index: 1;
+  width: min(10.5rem, 48vw);
+  height: auto;
+  object-fit: contain;
+  animation: kama-route-logo-breathe 1.6s ease-in-out infinite;
+}
+
+.kama-route-loading__line {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: min(5rem, 26vw);
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, #1b5c57 75%, #f7f4ee) 50%,
+    transparent 100%
+  );
+  transform-origin: 50% 50%;
+  animation: kama-route-line-pulse 1.25s ease-in-out infinite;
+}
+
+@keyframes kama-route-logo-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.92;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
+}
+
+@keyframes kama-route-line-pulse {
+  0%,
+  100% {
+    transform: scaleX(0.35);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kama-route-loading__logo,
+  .kama-route-loading__line {
+    animation: none !important;
+  }
+}
