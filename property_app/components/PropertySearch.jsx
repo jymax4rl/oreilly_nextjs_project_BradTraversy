@@ -20,10 +20,11 @@ const MIN_COUNT_OPTIONS = [
   { value: "4", label: "4+" },
 ];
 
-const PropertySearch = () => {
+const PropertySearch = ({ variant = "default" }) => {
   const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isCatalog = variant === "catalog";
 
   const [location, setLocation] = useState(searchParams.get("location") || "");
   const [propertyType, setPropertyType] = useState(
@@ -99,6 +100,147 @@ const PropertySearch = () => {
     minBaths ||
     checkIn ||
     checkOut;
+
+  if (isCatalog) {
+    return (
+      <form
+        onSubmit={handleSubmit}
+        className="pem-catalog-search"
+        role="search"
+        aria-label={t("search.aria")}
+      >
+        <div className="pem-catalog-search__pill">
+          <label className="pem-catalog-search__cell pem-catalog-search__cell--grow">
+            <span className="pem-catalog-search__label">{t("search.location")}</span>
+            <span className="pem-catalog-search__field">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--kama-ink-muted)]" aria-hidden />
+              <input
+                ref={inputRef}
+                type="search"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder={t("search.locationPlaceholder")}
+                className="pem-catalog-search__input"
+              />
+            </span>
+          </label>
+
+          <div className="pem-catalog-search__divider" aria-hidden />
+
+          <label className="pem-catalog-search__cell">
+            <span className="pem-catalog-search__label">Check-in</span>
+            <input
+              type="date"
+              value={checkIn}
+              onChange={(e) => setCheckIn(e.target.value)}
+              className="pem-catalog-search__input"
+            />
+          </label>
+
+          <div className="pem-catalog-search__divider" aria-hidden />
+
+          <label className="pem-catalog-search__cell">
+            <span className="pem-catalog-search__label">Check-out</span>
+            <input
+              type="date"
+              value={checkOut}
+              onChange={(e) => setCheckOut(e.target.value)}
+              className="pem-catalog-search__input"
+            />
+          </label>
+
+          <div className="pem-catalog-search__divider" aria-hidden />
+
+          <div className="pem-catalog-search__cell" ref={dropdownRef}>
+            <span className="pem-catalog-search__label">{t("search.propertyType")}</span>
+            <button
+              type="button"
+              onClick={() => setIsDropdownOpen((o) => !o)}
+              className="pem-catalog-search__type"
+            >
+              <span className="truncate">{t(propertyTypeMessageKey(propertyType))}</span>
+              <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden />
+            </button>
+            {isDropdownOpen ? (
+              <div className="pem-catalog-search__menu">
+                {PROPERTY_TYPES.map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    className={
+                      propertyType === type
+                        ? "pem-catalog-search__option pem-catalog-search__option--active"
+                        : "pem-catalog-search__option"
+                    }
+                    onClick={() => {
+                      setPropertyType(type);
+                      setIsDropdownOpen(false);
+                    }}
+                  >
+                    {t(propertyTypeMessageKey(type))}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <button type="submit" className="pem-catalog-search__submit" aria-label={t("search.search")}>
+            <Search className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
+
+        <div className="pem-catalog-search__filters">
+          <div className="pem-catalog-search__slider">
+            <PriceRangeSlider
+              min={0}
+              max={PRICE_SLIDER_MAX}
+              step={10}
+              valueMin={minPrice}
+              valueMax={maxPrice}
+              onChange={({ min, max }) => {
+                setMinPrice(min);
+                setMaxPrice(max);
+                setPriceTouched(true);
+              }}
+            />
+          </div>
+          <select
+            value={minBeds}
+            onChange={(e) => setMinBeds(e.target.value)}
+            aria-label={t("search.minBeds")}
+            className="pem-catalog-search__select"
+          >
+            {MIN_COUNT_OPTIONS.map((opt) => (
+              <option key={`beds-${opt.value || "any"}`} value={opt.value}>
+                {opt.value
+                  ? t("search.bedsN", { n: opt.label.replace("+", "") })
+                  : t("search.beds")}
+              </option>
+            ))}
+          </select>
+          <select
+            value={minBaths}
+            onChange={(e) => setMinBaths(e.target.value)}
+            aria-label={t("search.minBaths")}
+            className="pem-catalog-search__select"
+          >
+            {MIN_COUNT_OPTIONS.map((opt) => (
+              <option key={`baths-${opt.value || "any"}`} value={opt.value}>
+                {opt.value
+                  ? t("search.bathsN", { n: opt.label.replace("+", "") })
+                  : t("search.baths")}
+              </option>
+            ))}
+          </select>
+          {hasActiveFilters ? (
+            <button type="button" onClick={clearSearch} className="pem-catalog-search__clear">
+              {t("search.clear")}
+            </button>
+          ) : null}
+        </div>
+      </form>
+    );
+  }
 
   return (
     <section className="relative z-20 mx-auto mb-12 mt-[12vh] max-w-7xl px-4 sm:px-6 lg:px-8">

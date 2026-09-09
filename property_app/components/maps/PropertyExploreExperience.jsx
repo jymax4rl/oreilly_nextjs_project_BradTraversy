@@ -74,6 +74,7 @@ export default function PropertyExploreExperience({
   filters = {},
   compact = false,
   locked = false,
+  topChrome = null,
   listHeader = null,
 }) {
   const { currencyCode, rates } = useCurrency();
@@ -414,6 +415,7 @@ export default function PropertyExploreExperience({
   if (useLockedGrid) {
     return (
       <div className="pem-catalog-shell pem-catalog-shell--locked">
+        {topChrome}
         {!mobileMapOpen ? (
           <button
             type="button"
@@ -424,11 +426,9 @@ export default function PropertyExploreExperience({
             Map
           </button>
         ) : null}
-        <div className="pem-explore pem-explore--locked">
-          <div className="pem-explore__split">
-            {listColumn}
-            {mapColumn}
-          </div>
+        <div className="pem-catalog-body">
+          {listColumn}
+          {mapColumn}
         </div>
         {mobileSheet}
       </div>

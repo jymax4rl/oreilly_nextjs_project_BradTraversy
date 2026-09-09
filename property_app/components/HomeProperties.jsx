@@ -52,10 +52,24 @@ const HomeProperties = ({
     minBaths != null;
 
   const useMapExplore = !hostListingsView && !isSavedView;
+  const locked = useMapExplore && !hideSearchToolbar;
 
-  const catalogChrome = (
+  const topChrome = locked ? (
+    <div className="pem-catalog-top">
+      <div className="pem-catalog-top__inner">
+        <Suspense fallback={null}>
+          <PropertySearch variant="catalog" />
+        </Suspense>
+        <div className="pem-catalog-top__currency hidden md:flex">
+          <Currency />
+        </div>
+      </div>
+    </div>
+  ) : null;
+
+  const listHeader = (
     <div className="pem-catalog-chrome">
-      {!hideSearchToolbar ? (
+      {!locked && !hideSearchToolbar ? (
         <div className="mb-4 hidden w-full md:block">
           <div className="flex items-start gap-4">
             <div className="min-w-0 flex-1">
@@ -71,7 +85,7 @@ const HomeProperties = ({
         </div>
       ) : null}
 
-      {!hideSearchToolbar ? (
+      {!locked && !hideSearchToolbar ? (
         <div className="mb-3 flex items-center justify-end pr-1 md:hidden">
           <div className="flex flex-col items-end gap-0.5">
             <Currency />
@@ -81,7 +95,7 @@ const HomeProperties = ({
       ) : null}
 
       {!hideSearchToolbar && !hasSearch ? (
-        <h1 className="mb-4 text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
+        <h1 className="mb-3 text-xl font-bold tracking-tight text-gray-900 md:text-2xl">
           {t("search.catalogTitle")}
         </h1>
       ) : null}
@@ -91,14 +105,14 @@ const HomeProperties = ({
       ) : null}
 
       {hasSearch ? (
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 md:text-2xl">
+            <h2 className="text-lg font-semibold text-gray-900 md:text-xl">
               {searchQuery
                 ? t("search.availableIn", { place: searchQuery })
                 : t("search.catalogTitle")}
             </h2>
-            <p className="mt-1 flex flex-wrap items-center gap-2 text-gray-500">
+            <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-500">
               {searchQuery ? (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--kama-accent-soft)] px-3 py-1 text-sm font-medium text-[var(--kama-accent)]">
                   <MapPin className="h-3.5 w-3.5" />
@@ -146,8 +160,9 @@ const HomeProperties = ({
     return (
       <PropertyExploreExperience
         compact={hideSearchToolbar}
-        locked={!hideSearchToolbar}
-        listHeader={catalogChrome}
+        locked={locked}
+        topChrome={topChrome}
+        listHeader={listHeader}
         initialProperties={properties}
         filters={{
           location: searchQuery || "",
@@ -166,7 +181,7 @@ const HomeProperties = ({
   return (
     <section className="min-h-screen overflow-x-clip bg-[var(--kama-canvas-soft)] pb-16 pt-4 md:py-16">
       <div className="container mx-auto px-4">
-        {catalogChrome}
+        {listHeader}
 
         {displayProperties.length === 0 ? (
           <div className="col-span-full flex flex-col items-center justify-center rounded-3xl border border-gray-100 bg-white px-4 py-24 text-center shadow-sm">
