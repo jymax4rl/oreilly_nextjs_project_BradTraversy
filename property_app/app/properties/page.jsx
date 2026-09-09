@@ -67,7 +67,13 @@ function renderPropertiesList({
   }
 
   return (
-    <div className="min-h-screen min-w-full overflow-x-hidden md:pt-[10vh]">
+    <div
+      className={
+        hideSearchToolbar
+          ? "min-h-screen min-w-full overflow-x-clip"
+          : "min-w-full overflow-x-clip md:min-h-0"
+      }
+    >
       <HomeProperties
         key={`${locationQuery || "all"}-${typeQuery || "all"}-${minPrice ?? ""}-${maxPrice ?? ""}-${minBeds ?? ""}-${minBaths ?? ""}-${checkIn || ""}-${checkOut || ""}`}
         initialProperties={list}

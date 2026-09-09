@@ -112,6 +112,114 @@
   box-shadow: 0 6px 18px rgba(27, 92, 87, 0.35);
 }
 
+/* ---------- Catalog shell (desktop lock) ---------- */
+.pem-catalog-shell {
+  position: relative;
+  background: var(--kama-canvas-soft, #f2f6f5);
+}
+
+.pem-catalog-shell--locked {
+  min-height: 100%;
+}
+
+.pem-catalog-shell__list {
+  padding: 1rem 1rem 6rem;
+}
+
+@media (min-width: 768px) {
+  /*
+   * Viewport-locked explore:
+   * map sits 1em below the 8vh navbar and never scrolls;
+   * only the list column scrolls.
+   */
+  .pem-catalog-shell--locked {
+    position: fixed;
+    top: calc(8vh + 1em);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(22rem, 0.95fr);
+    grid-template-rows: 100%;
+    height: calc(100dvh - 8vh - 1em);
+    max-height: calc(100dvh - 8vh - 1em);
+    overflow: hidden;
+    background: var(--kama-canvas-soft, #f2f6f5);
+  }
+
+  .pem-catalog-shell--locked .pem-catalog-shell__list {
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 1rem 1.25rem 2rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pem-catalog-shell--locked .pem-catalog-shell__map {
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    padding: 0 1rem 1rem 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pem-catalog-shell--locked .pem-explore {
+    display: contents;
+  }
+
+  .pem-catalog-shell--locked .pem-explore__split {
+    display: contents;
+  }
+
+  .pem-catalog-shell--locked .pem-explore__list {
+    display: contents;
+  }
+
+  .pem-catalog-shell--locked .pem-explore__map {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .pem-catalog-shell--locked .pem-explore__map-panel {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+  }
+
+  .pem-catalog-shell--locked .pem-explore__map .pem-root,
+  .pem-catalog-shell--locked .pem-explore__map .pem-canvas {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .pem-catalog-shell--locked .pem-catalog-chrome {
+    margin-bottom: 1rem;
+  }
+
+  .pem-catalog-shell--locked .pem-catalog-chrome section {
+    margin-top: 0 !important;
+    margin-bottom: 0.75rem !important;
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+@media (min-width: 1280px) {
+  .pem-catalog-shell--locked {
+    grid-template-columns: minmax(0, 1.1fr) minmax(26rem, 0.9fr);
+  }
+}
+
+/* Mobile / compact explore (non-locked) */
 .pem-explore {
   position: relative;
 }
@@ -119,41 +227,6 @@
 .pem-explore__split {
   display: grid;
   gap: 1.25rem;
-}
-
-@media (min-width: 768px) {
-  .pem-explore__split {
-    grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.95fr);
-    align-items: start;
-  }
-
-  .pem-explore__map {
-    position: sticky;
-    top: calc(8vh + 1rem);
-    align-self: start;
-    height: calc(100dvh - 8vh - 2rem);
-    max-height: calc(100dvh - 8vh - 2rem);
-  }
-
-  .pem-explore__map-sticky {
-    position: relative;
-    height: 100%;
-  }
-
-  .pem-explore__map .pem-root {
-    height: 100%;
-    min-height: 100%;
-  }
-
-  .pem-explore__map .pem-canvas {
-    min-height: 100%;
-  }
-}
-
-@media (min-width: 1280px) {
-  .pem-explore__split {
-    grid-template-columns: minmax(0, 1.05fr) minmax(24rem, 0.95fr);
-  }
 }
 
 .pem-explore__count {
@@ -193,6 +266,12 @@
   font-weight: 650;
   padding: 0.55rem 0.95rem;
   box-shadow: 0 8px 20px rgba(12, 26, 26, 0.18);
+}
+
+.pem-explore__map-panel {
+  position: relative;
+  height: 100%;
+  min-height: 0;
 }
 
 .pem-preview {
@@ -265,7 +344,7 @@
   background: transparent;
 }
 
-/* Immersive mobile map — portals to body, sits above tab bar */
+/* Immersive mobile map — portals to body */
 .pem-mobile-sheet {
   position: fixed;
   inset: 0;
@@ -273,7 +352,6 @@
   background: #0f1717;
   display: flex;
   flex-direction: column;
-  /* Keep content clear of home indicator; tab bar is covered while map is open */
   padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -387,6 +465,7 @@
   border: 0;
 }
 
-body.pem-map-open {
+body.pem-map-open,
+body.pem-catalog-locked {
   overflow: hidden;
 }
