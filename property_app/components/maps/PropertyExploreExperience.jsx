@@ -197,10 +197,8 @@ export default function PropertyExploreExperience({
   );
 
   const handleSelect = useCallback((id) => {
-    setSelectedId(String(id));
-    cardRefs.current
-      .get(String(id))
-      ?.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
+    const sid = String(id);
+    setSelectedId((prev) => (String(prev) === sid ? null : sid));
   }, []);
 
   const listProperties = useMemo(() => {

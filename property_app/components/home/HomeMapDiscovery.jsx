@@ -306,10 +306,9 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
   const handleSelect = useCallback(
     (id) => {
       const sid = String(id);
-      setSelectedPropertyId(sid);
-      cardRefs.current
-        .get(sid)
-        ?.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
+      // Toggle only — keep the map viewport and list scroll where they are.
+      // The floating map card is enough affordance to open the preview.
+      setSelectedPropertyId((prev) => (String(prev) === sid ? null : sid));
     },
     [setSelectedPropertyId],
   );

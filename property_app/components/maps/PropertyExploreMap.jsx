@@ -305,14 +305,6 @@ export default function PropertyExploreMap({
     fitOnPinsChange,
   ]);
 
-  // Pan to selected pin.
-  useEffect(() => {
-    if (!selectedId || !mapRef.current || !mapReady) return;
-    const pin = validPins.find((p) => p.id === String(selectedId));
-    if (!pin) return;
-    mapRef.current.panTo({ lat: pin.lat, lng: pin.lng });
-  }, [selectedId, validPins, mapReady]);
-
   return (
     <div className={`pem-root ${className}`.trim()}>
       <div ref={containerRef} className="pem-canvas" role="application" aria-label="Stays map" />
