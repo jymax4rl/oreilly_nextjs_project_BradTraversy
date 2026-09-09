@@ -72,7 +72,9 @@ export function HomeDiscoveryProvider({ children }) {
       const merged = { ...emptyHomeFilters(), ...nextFilters };
       setFilters(merged);
       setHasSearched(true);
-      setSearchExpanded(false);
+      // Keep the map-dominant shell open — collapsing + fading the map
+      // left Google Maps stuck blank (opacity/height inline styles).
+      setSearchExpanded(true);
       setSelectedPropertyId(null);
       syncUrl(merged, true);
     },

@@ -629,8 +629,12 @@
 .home-search-shell--expanded .home-search-shell__map {
   /* Map-dominant: ~half viewport, edge-to-edge under chrome */
   height: clamp(17.5rem, 52vh, 34rem);
+  min-height: 17.5rem;
   margin: 0;
   border-radius: 0;
+  /* Never inherit a stuck GSAP opacity from a prior tween */
+  opacity: 1;
+  visibility: visible;
 }
 
 .home-search-shell__map .pem-root,

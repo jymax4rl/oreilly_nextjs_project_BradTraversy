@@ -14,16 +14,29 @@ export function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-function shellFlipTargets(shellEl) {
-  if (!shellEl) return [];
+function clearShellMotionProps(shellEl) {
+  if (!shellEl) return;
+  // Flip / fade tweens can leave inline opacity/height that hide the map.
+  gsap.set(shellEl, {
+    clearProps:
+      "transform,width,height,maxWidth,padding,borderRadius,boxShadow,margin,opacity",
+  });
   const map = shellEl.querySelector("[data-search-shell-map]");
   const widgets = shellEl.querySelector("[data-search-shell-widgets]");
-  return [shellEl, map, widgets].filter(Boolean);
+  if (map) {
+    gsap.set(map, {
+      clearProps: "all",
+    });
+  }
+  if (widgets) {
+    gsap.set(widgets, {
+      clearProps: "all",
+    });
+  }
 }
 
 function notifyMapContainerResized(shellEl) {
   if (typeof window === "undefined") return;
-  // Google Maps only reflows when the canvas size changes — nudge after Flip.
   window.dispatchEvent(new Event("resize"));
   const canvas = shellEl?.querySelector?.(".pem-canvas");
   if (canvas) {
@@ -33,15 +46,14 @@ function notifyMapContainerResized(shellEl) {
 
 /**
  * Capture Flip state before React toggles compact ↔ expanded classes.
- * Includes the map node so height/width morph with the shell (map-dominant layout).
+ * Shell only — flipping the nested map/widgets left stuck height/opacity
+ * after Google Maps mounted into a collapsing panel.
  */
 export function captureSearchShellFlipState(shellEl) {
   ensureGsapPlugins();
   if (!shellEl || prefersReducedMotion()) return null;
-  const targets = shellFlipTargets(shellEl);
-  if (!targets.length) return null;
-  return Flip.getState(targets, {
-    props: "borderRadius,padding,width,maxWidth,height,margin,boxShadow",
+  return Flip.getState(shellEl, {
+    props: "borderRadius,padding,width,maxWidth,height,boxShadow",
   });
 }
 
@@ -56,45 +68,47 @@ export function runSearchShellExpand({ shellEl, flipState, onComplete }) {
   }
 
   const finish = () => {
-    notifyMapContainerResized(shellEl);
+    clearShellMotionProps(shellEl);
+    // Double rAF so layout settles before Maps measures the canvas.
+    requestAnimationFrame(() => {
+      notifyMapContainerResized(shellEl);
+      requestAnimationFrame(() => notifyMapContainerResized(shellEl));
+    });
     onComplete?.();
   };
 
   if (prefersReducedMotion() || !flipState) {
-    const map = shellEl.querySelector("[data-search-shell-map]");
-    const widgets = shellEl.querySelector("[data-search-shell-widgets]");
-    if (map) gsap.set(map, { clearProps: "opacity,transform" });
-    if (widgets) gsap.set(widgets, { clearProps: "opacity,transform" });
+    clearShellMotionProps(shellEl);
     finish();
     return () => {};
   }
 
+  const map = shellEl.querySelector("[data-search-shell-map]");
+  const widgets = shellEl.querySelector("[data-search-shell-widgets]");
+  // Ensure we never inherit a leftover opacity:0 from a prior submit fade.
+  if (map) gsap.set(map, { opacity: 1, y: 0, clearProps: "transform" });
+  if (widgets) gsap.set(widgets, { opacity: 1, y: 0, clearProps: "transform" });
+
   const tween = Flip.from(flipState, {
-    duration: 0.58,
+    duration: 0.55,
     ease: "power2.inOut",
     absolute: false,
     nested: true,
     onComplete: finish,
   });
 
-  const map = shellEl.querySelector("[data-search-shell-map]");
-  const widgets = shellEl.querySelector("[data-search-shell-widgets]");
-  if (map) {
-    gsap.fromTo(
-      map,
-      { opacity: 0.35 },
-      { opacity: 1, duration: 0.4, delay: 0.06, ease: "power2.out" },
-    );
-  }
   if (widgets) {
     gsap.fromTo(
       widgets,
-      { opacity: 0, y: 14 },
-      { opacity: 1, y: 0, duration: 0.4, delay: 0.18, ease: "power2.out" },
+      { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.36, delay: 0.14, ease: "power2.out" },
     );
   }
 
-  return () => tween.kill();
+  return () => {
+    tween.kill();
+    clearShellMotionProps(shellEl);
+  };
 }
 
 /**
@@ -107,20 +121,28 @@ export function runSearchShellCollapse({ shellEl, flipState, onComplete }) {
     return () => {};
   }
 
-  if (prefersReducedMotion() || !flipState) {
+  const finish = () => {
+    clearShellMotionProps(shellEl);
     onComplete?.();
+  };
+
+  if (prefersReducedMotion() || !flipState) {
+    finish();
     return () => {};
   }
 
   const tween = Flip.from(flipState, {
-    duration: 0.5,
+    duration: 0.48,
     ease: "power2.inOut",
     absolute: false,
     nested: true,
-    onComplete: () => onComplete?.(),
+    onComplete: finish,
   });
 
-  return () => tween.kill();
+  return () => {
+    tween.kill();
+    clearShellMotionProps(shellEl);
+  };
 }
 
 /** @deprecated aliases */

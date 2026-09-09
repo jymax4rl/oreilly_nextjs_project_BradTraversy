@@ -314,6 +314,11 @@ export default function PropertyExploreMap({
 
     const triggerResize = () => {
       google?.maps?.event?.trigger?.(map, "resize");
+      // Blank grey canvas happens when Maps booted at 0×0 during Flip —
+      // an idle nudge refreshes tiles + pin bounds after the shell settles.
+      window.setTimeout(() => {
+        google?.maps?.event?.trigger?.(map, "idle");
+      }, 60);
     };
 
     const ro =

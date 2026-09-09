@@ -158,6 +158,8 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
   useLayoutEffect(() => {
     if (!shellMounted.current) {
       shellMounted.current = true;
+      // URL boot may already expand via applySearch — mount the map.
+      if (searchExpanded) setMapReady(true);
       return undefined;
     }
 
@@ -182,6 +184,11 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
       });
     }
     return () => animCleanup.current?.();
+  }, [searchExpanded]);
+
+  // Deep-link / applySearch can expand without openSearchShell.
+  useEffect(() => {
+    if (searchExpanded) setMapReady(true);
   }, [searchExpanded]);
 
   const openSearchShell = useCallback(() => {
@@ -343,7 +350,7 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const next = {
+    applySearch({
       location: location.trim(),
       type: propertyType,
       minPrice: null,
@@ -352,27 +359,7 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
       minBaths: null,
       checkIn: "",
       checkOut: "",
-    };
-
-    const shellEl = shellRef.current;
-    const map = shellEl?.querySelector?.("[data-search-shell-map]");
-    const widgets = shellEl?.querySelector?.("[data-search-shell-widgets]");
-    const finish = () => {
-      pendingFlip.current = captureSearchShellFlipState(shellEl);
-      applySearch(next);
-    };
-
-    if (!prefersReducedMotion() && searchExpanded && (map || widgets)) {
-      gsap.to([map, widgets].filter(Boolean), {
-        opacity: 0,
-        y: 6,
-        duration: 0.16,
-        ease: "power1.in",
-        onComplete: finish,
-      });
-      return;
-    }
-    finish();
+    });
   };
 
   const listProperties = useMemo(() => {
