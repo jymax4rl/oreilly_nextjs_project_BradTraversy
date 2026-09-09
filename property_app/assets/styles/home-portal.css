@@ -470,6 +470,201 @@
   background: #1a1410;
 }
 
+/* ---------- Homepage discovery morph (hero → search → results) ---------- */
+
+.home-discovery-hero-slot {
+  position: relative;
+}
+
+.home-hero--compressed.home-hero--photo,
+.home-hero--compressed .home-hero--photo {
+  min-height: 0 !important;
+  max-height: none;
+  height: clamp(5.25rem, 11vh, 6.75rem) !important;
+  padding-top: calc(8vh + 0.35rem) !important;
+  padding-bottom: 0.35rem !important;
+  justify-content: center;
+}
+
+.home-hero--compressed .home-hero-cities,
+.home-hero--compressed .home-scroll-line {
+  opacity: 0 !important;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.home-hero--compressed h1 {
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem) !important;
+  letter-spacing: -0.02em;
+}
+
+.home-hero--compressed .home-hero-tagline {
+  display: none;
+}
+
+.home-search-morph {
+  position: relative;
+  z-index: 4;
+}
+
+.home-search-morph--compact .home-search-band {
+  position: sticky;
+  top: calc(8vh + 1em);
+  z-index: 25;
+  padding: 0.55rem 0 0.65rem;
+  background: color-mix(in srgb, var(--portal-canvas) 92%, transparent);
+  backdrop-filter: blur(12px) saturate(1.05);
+  -webkit-backdrop-filter: blur(12px) saturate(1.05);
+  border-bottom: 1px solid var(--portal-border);
+  scroll-margin-top: 0;
+}
+
+.home-search-morph--compact .home-glass-search {
+  max-width: 56rem;
+  margin-inline: auto;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  box-shadow:
+    0 10px 28px rgba(12, 26, 26, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+
+.home-search-morph--compact .home-search-heading {
+  display: none;
+}
+
+.home-search-morph--compact .home-search-body {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.home-search-morph--compact .home-search-primary {
+  flex: 1 1 14rem;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.home-search-morph--compact .home-search-desktop-filters {
+  display: none !important;
+}
+
+.home-search-morph--compact .home-search-mobile-filters {
+  display: flex !important;
+  align-items: center;
+  gap: 0.45rem;
+  position: relative;
+}
+
+.home-search-morph--compact .home-search-mobile-filters > div.mt-4 {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  z-index: 40;
+  width: min(22rem, calc(100vw - 2rem));
+  margin-top: 0;
+  padding: 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid var(--portal-border);
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(12, 26, 26, 0.12);
+}
+
+.home-search-morph--compact .home-search-cta--mobile {
+  display: inline-flex !important;
+  width: auto;
+  min-height: 2.5rem;
+  margin-top: 0;
+  padding-inline: 1rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+}
+
+.home-search-morph--compact .home-search-field,
+.home-search-morph--compact .home-type-trigger {
+  border-radius: 999px;
+  min-height: 2.5rem;
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+  font-size: 0.8125rem;
+}
+
+.home-discovery-results {
+  position: relative;
+  z-index: 2;
+  background: #fff;
+  min-height: min(70dvh, calc(100dvh - 12rem));
+}
+
+.home-discovery-teaser[hidden] {
+  display: none !important;
+}
+
+body.home-discovery-active {
+  overflow: hidden;
+}
+
+body.home-discovery-active .home-portal--discovery {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body.home-discovery-active .home-portal-content {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body.home-discovery-active .home-discovery-results {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 767px) {
+  .home-search-morph--compact .home-search-band {
+    top: 0;
+    padding-top: max(0.45rem, env(safe-area-inset-top));
+  }
+
+  .home-search-morph--compact .home-search-body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .home-search-morph--compact .home-search-primary {
+    flex-direction: column;
+  }
+
+  .home-search-morph--compact .home-search-cta--mobile {
+    width: 100%;
+  }
+
+  body.home-discovery-active {
+    overflow: auto;
+  }
+
+  body.home-discovery-active .home-portal--discovery,
+  body.home-discovery-active .home-portal-content {
+    height: auto;
+    overflow: visible;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero--compressed.home-hero--photo,
+  .home-hero--compressed .home-hero--photo,
+  .home-search-morph--compact .home-glass-search {
+    transition: none !important;
+  }
+}
+
 .stays-coming-soon {
   position: relative;
   isolation: isolate;

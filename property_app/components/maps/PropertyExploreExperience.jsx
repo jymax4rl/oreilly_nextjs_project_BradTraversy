@@ -66,16 +66,19 @@ function pinToCardProperty(pin) {
 }
 
 /**
- * Airbnb-style catalog explore for `/properties` only:
- * - Desktop: fixed viewport grid — scrollable list | fixed map
- * - Mobile: list + Map sheet
+ * Catalog explore:
+ * - `locked` (/properties): fixed viewport under navbar — list | map
+ * - `embedded` (homepage discovery): fills remaining home viewport after morph
+ * Mobile: list + full-screen Map sheet (never a shrunk desktop split)
  */
 export default function PropertyExploreExperience({
   initialProperties = [],
   filters = {},
   topChrome = null,
   listHeader = null,
+  variant = "locked",
 }) {
+  const embedded = variant === "embedded";
   const { currencyCode, rates } = useCurrency();
   const [pins, setPins] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -119,10 +122,10 @@ export default function PropertyExploreExperience({
   }, [mobileMapOpen]);
 
   useEffect(() => {
-    if (!isDesktop) return undefined;
+    if (!isDesktop || embedded) return undefined;
     document.body.classList.add("pem-catalog-locked");
     return () => document.body.classList.remove("pem-catalog-locked");
-  }, [isDesktop]);
+  }, [isDesktop, embedded]);
 
   const filterKey = useMemo(
     () =>
@@ -282,7 +285,13 @@ export default function PropertyExploreExperience({
       : null;
 
   return (
-    <div className="pem-catalog-shell pem-catalog-shell--locked">
+    <div
+      className={`pem-catalog-shell${
+        embedded
+          ? " pem-catalog-shell--embedded"
+          : " pem-catalog-shell--locked"
+      }`}
+    >
       {topChrome}
 
       {!mobileMapOpen ? (
@@ -314,6 +323,7 @@ export default function PropertyExploreExperience({
               return (
                 <div
                   key={id}
+                  data-discovery-card
                   ref={(node) => {
                     if (node) cardRefs.current.set(id, node);
                     else cardRefs.current.delete(id);
@@ -342,7 +352,7 @@ export default function PropertyExploreExperience({
           ) : null}
         </div>
 
-        <div className="pem-catalog-shell__map">
+        <div className="pem-catalog-shell__map" data-discovery-map>
           <div className="pem-explore__map-panel">
             {isDesktop ? (
               <PropertyExploreMap

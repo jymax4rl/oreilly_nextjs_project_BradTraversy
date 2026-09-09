@@ -122,7 +122,7 @@ const HomeProperties = ({
   if (useMapExplore) {
     return (
       <PropertyExploreExperience
-        locked
+        variant="locked"
         topChrome={
           <div className="pem-catalog-top">
             <div className="pem-catalog-top__inner">

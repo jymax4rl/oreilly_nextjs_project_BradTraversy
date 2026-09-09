@@ -76,7 +76,9 @@ function RoomFields({ minBeds, minBaths, setMinBeds, setMinBaths, t }) {
         >
           {MIN_COUNT_OPTIONS.map((opt) => (
             <option key={`beds-${opt.value || "any"}`} value={opt.value}>
-              {opt.value ? t("search.bedsN", { n: opt.label.replace("+", "") }) : t("search.beds")}
+              {opt.value
+                ? t("search.bedsN", { n: opt.label.replace("+", "") })
+                : t("search.beds")}
             </option>
           ))}
         </select>
@@ -96,7 +98,9 @@ function RoomFields({ minBeds, minBaths, setMinBeds, setMinBaths, t }) {
         >
           {MIN_COUNT_OPTIONS.map((opt) => (
             <option key={`baths-${opt.value || "any"}`} value={opt.value}>
-              {opt.value ? t("search.bathsN", { n: opt.label.replace("+", "") }) : t("search.baths")}
+              {opt.value
+                ? t("search.bathsN", { n: opt.label.replace("+", "") })
+                : t("search.baths")}
             </option>
           ))}
         </select>
@@ -106,19 +110,60 @@ function RoomFields({ minBeds, minBaths, setMinBeds, setMinBaths, t }) {
 }
 
 /**
- * Airy home search: location + type first; price/beds/baths behind Filters on mobile.
- * Desktop keeps filters inline with more room.
+ * Stable DOM search card — CSS under `.home-search-morph--compact` compresses
+ * it for Flip morphs. `onSearch` keeps the homepage in-place discovery flow.
  */
-export default function HomePortalSearch() {
+function seedFromUrlOrProps(initialFilters) {
+  if (initialFilters?.location || initialFilters?.type) return initialFilters;
+  if (typeof window === "undefined") return initialFilters;
+  const params = new URLSearchParams(window.location.search);
+  const location = params.get("location") || "";
+  const type = params.get("type") || "";
+  if (!location && !type && !params.get("discover")) return initialFilters;
+  return {
+    location,
+    type: type || "All Properties",
+    minPrice: params.get("minPrice"),
+    maxPrice: params.get("maxPrice"),
+    minBeds: params.get("minBeds") || "",
+    minBaths: params.get("minBaths") || "",
+  };
+}
+
+export default function HomePortalSearch({
+  onSearch = null,
+  initialFilters = null,
+}) {
   const { t } = useLanguage();
   const router = useRouter();
-  const [location, setLocation] = useState("");
-  const [propertyType, setPropertyType] = useState("All Properties");
-  const [minPrice, setMinPrice] = useState("0");
-  const [maxPrice, setMaxPrice] = useState("1000");
-  const [priceTouched, setPriceTouched] = useState(false);
-  const [minBeds, setMinBeds] = useState("");
-  const [minBaths, setMinBaths] = useState("");
+  const seeded = seedFromUrlOrProps(initialFilters);
+  const [location, setLocation] = useState(seeded?.location || "");
+  const [propertyType, setPropertyType] = useState(
+    seeded?.type || "All Properties",
+  );
+  const [minPrice, setMinPrice] = useState(
+    seeded?.minPrice != null && seeded.minPrice !== ""
+      ? String(seeded.minPrice)
+      : "0",
+  );
+  const [maxPrice, setMaxPrice] = useState(
+    seeded?.maxPrice != null && seeded.maxPrice !== ""
+      ? String(seeded.maxPrice)
+      : "1000",
+  );
+  const [priceTouched, setPriceTouched] = useState(
+    Boolean(
+      seeded &&
+        ((seeded.minPrice != null && seeded.minPrice !== "") ||
+          (seeded.maxPrice != null && seeded.maxPrice !== "")),
+    ),
+  );
+  const [minBeds, setMinBeds] = useState(
+    seeded?.minBeds != null ? String(seeded.minBeds) : "",
+  );
+  const [minBaths, setMinBaths] = useState(
+    seeded?.minBaths != null ? String(seeded.minBaths) : "",
+  );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -140,21 +185,42 @@ export default function HomePortalSearch() {
     minBaths,
   ].filter(Boolean).length;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const params = new URLSearchParams();
-    if (location.trim()) params.set("location", location.trim());
-    if (propertyType && propertyType !== "All Properties") {
-      params.set("type", propertyType);
-    }
+  const buildFilters = () => {
+    const next = {
+      location: location.trim(),
+      type: propertyType,
+      minPrice: null,
+      maxPrice: null,
+      minBeds: minBeds || null,
+      minBaths: minBaths || null,
+      checkIn: "",
+      checkOut: "",
+    };
     if (priceTouched) {
       const minN = Number(minPrice);
       const maxN = Number(maxPrice);
-      if (Number.isFinite(minN) && minN > 0) params.set("minPrice", String(minN));
-      if (Number.isFinite(maxN) && maxN < 1000) params.set("maxPrice", String(maxN));
+      if (Number.isFinite(minN) && minN > 0) next.minPrice = minN;
+      if (Number.isFinite(maxN) && maxN < 1000) next.maxPrice = maxN;
     }
-    if (minBeds) params.set("minBeds", minBeds);
-    if (minBaths) params.set("minBaths", minBaths);
+    return next;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const next = buildFilters();
+    if (typeof onSearch === "function") {
+      onSearch(next);
+      return;
+    }
+    const params = new URLSearchParams();
+    if (next.location) params.set("location", next.location);
+    if (next.type && next.type !== "All Properties") {
+      params.set("type", next.type);
+    }
+    if (next.minPrice != null) params.set("minPrice", String(next.minPrice));
+    if (next.maxPrice != null) params.set("maxPrice", String(next.maxPrice));
+    if (next.minBeds) params.set("minBeds", String(next.minBeds));
+    if (next.minBaths) params.set("minBaths", String(next.minBaths));
     const queryString = params.toString();
     router.push(`/properties${queryString ? `?${queryString}` : ""}`);
     router.refresh();
@@ -168,17 +234,18 @@ export default function HomePortalSearch() {
       role="search"
       aria-label={t("search.aria")}
       onSubmit={handleSubmit}
-      className="home-glass-search mx-auto w-full max-w-xl rounded-[1.5rem] px-5 py-6 sm:max-w-2xl sm:px-6 sm:py-7 lg:max-w-5xl lg:px-7 lg:py-6"
+      data-home-search-card
+      className="home-glass-search relative mx-auto w-full max-w-xl rounded-[1.5rem] px-5 py-6 sm:max-w-2xl sm:px-6 sm:py-7 lg:max-w-5xl lg:px-7 lg:py-6"
     >
-      <div className="mb-5 flex items-center justify-between gap-3 sm:mb-6">
+      <div className="home-search-heading mb-5 flex items-center justify-between gap-3 sm:mb-6">
         <p className="text-left text-[12px] font-medium tracking-wide text-[var(--portal-ink-muted)]">
           {t("search.findStay")}
         </p>
         <Currency variant="portal" />
       </div>
 
-      <div className="flex flex-col gap-4 lg:gap-3.5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-3">
+      <div className="home-search-body flex flex-col gap-4 lg:gap-3.5">
+        <div className="home-search-primary flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-3">
           <label className="relative min-w-0 flex-1 lg:flex-[2.2]">
             <span className="sr-only">{t("search.location")}</span>
             <MapPin
@@ -214,7 +281,9 @@ export default function HomePortalSearch() {
               aria-expanded={isDropdownOpen}
               onClick={() => setIsDropdownOpen((o) => !o)}
             >
-              <span className="block truncate">{t(propertyTypeMessageKey(propertyType))}</span>
+              <span className="block truncate">
+                {t(propertyTypeMessageKey(propertyType))}
+              </span>
               <ChevronDown
                 className={`h-3.5 w-3.5 shrink-0 text-[var(--portal-ink-muted)] transition-transform sm:h-4 sm:w-4 ${isDropdownOpen ? "rotate-180" : ""}`}
                 aria-hidden
@@ -253,8 +322,7 @@ export default function HomePortalSearch() {
           </div>
         </div>
 
-        {/* Mobile: progressive disclosure */}
-        <div className="lg:hidden">
+        <div className="home-search-mobile-filters lg:hidden">
           <button
             type="button"
             onClick={() => setFiltersOpen((o) => !o)}
@@ -295,8 +363,7 @@ export default function HomePortalSearch() {
           ) : null}
         </div>
 
-        {/* Desktop: filters + search inline */}
-        <div className="hidden lg:flex lg:flex-row lg:items-stretch lg:gap-3">
+        <div className="home-search-desktop-filters hidden lg:flex lg:flex-row lg:items-stretch lg:gap-3">
           <div className="min-w-0 flex-1">
             <PriceFields
               minPrice={minPrice}
@@ -318,7 +385,7 @@ export default function HomePortalSearch() {
           </div>
           <button
             type="submit"
-            className="home-search-cta inline-flex min-h-[44px] min-w-[8.5rem] items-center justify-center gap-2 rounded-2xl px-6 text-[15px] font-semibold transition active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--portal-accent)]"
+            className="home-search-cta home-search-cta--desktop inline-flex min-h-[44px] min-w-[8.5rem] items-center justify-center gap-2 rounded-2xl px-6 text-[15px] font-semibold transition active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--portal-accent)]"
           >
             <Search className="h-4 w-4" aria-hidden />
             {t("search.search")}
@@ -327,7 +394,7 @@ export default function HomePortalSearch() {
 
         <button
           type="submit"
-          className="home-search-cta mt-1 inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-2xl px-6 text-[15px] font-semibold transition active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--portal-accent)] lg:hidden"
+          className="home-search-cta home-search-cta--mobile mt-1 inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-2xl px-6 text-[15px] font-semibold transition active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--portal-accent)] lg:hidden"
         >
           <Search className="h-4 w-4" aria-hidden />
           {t("search.search")}

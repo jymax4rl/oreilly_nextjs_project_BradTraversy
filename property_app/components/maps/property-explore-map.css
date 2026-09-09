@@ -122,6 +122,17 @@
   min-height: 100%;
 }
 
+/* Homepage embedded explore — fills remaining discovery viewport */
+.pem-catalog-shell--embedded {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: min(68dvh, calc(100dvh - 11.5rem));
+  height: 100%;
+  background: #fff;
+}
+
 .pem-catalog-shell__list {
   padding: 1rem 1rem 6rem;
 }
@@ -174,6 +185,58 @@
     max-height: calc(100dvh - 8vh - 1em);
     overflow: hidden;
     background: #fff;
+  }
+
+  .pem-catalog-shell--embedded {
+    min-height: 0;
+    height: 100%;
+    max-height: none;
+    overflow: hidden;
+  }
+
+  .pem-catalog-shell--embedded .pem-catalog-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr);
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .pem-catalog-shell--embedded .pem-catalog-shell__list {
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 1rem 1.25rem 2rem;
+    -webkit-overflow-scrolling: touch;
+    background: #fff;
+  }
+
+  .pem-catalog-shell--embedded .pem-catalog-shell__map {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    padding: 0;
+    border-left: 1px solid var(--kama-border, #e5e7eb);
+  }
+
+  .pem-catalog-shell--embedded .pem-catalog-shell__map .pem-explore__map-panel {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+  }
+
+  .pem-catalog-shell--embedded .pem-catalog-shell__map .pem-root,
+  .pem-catalog-shell--embedded .pem-catalog-shell__map .pem-canvas {
+    height: 100%;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
   }
 
   .pem-catalog-top {
