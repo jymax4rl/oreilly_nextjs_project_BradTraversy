@@ -126,7 +126,7 @@ const PropertyCard = ({
     <div
       data-home-prop-flip={usePreview ? "" : undefined}
       data-flip-id={usePreview && propertyKey ? `home-prop-${propertyKey}` : undefined}
-      className={`relative h-72 overflow-hidden ${locked ? "" : "cursor-pointer"}`}
+      className={`relative h-72 overflow-hidden rounded-[1.35rem] ${locked ? "" : "cursor-pointer"}`}
     >
       <Image
         loading="eager"

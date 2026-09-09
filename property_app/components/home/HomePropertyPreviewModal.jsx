@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -26,10 +27,8 @@ import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { propertyImageUrl } from "@/utils/propertyImageUrl";
 import {
   captureFlipState,
-  fadeInUi,
-  fadeOutUi,
-  prefersReducedMotion,
-  runFlipFrom,
+  runModalMorphClose,
+  runModalMorphOpen,
 } from "@/utils/animations/flipUi";
 
 function focusablesIn(root) {
@@ -42,7 +41,7 @@ function focusablesIn(root) {
 }
 
 /**
- * Homepage property preview — Flip from card media into a modal with
+ * Homepage property preview — Flip-morph from card into a modal with
  * gallery, capacity, amenities, then Reserve → full listing page.
  */
 export default function HomePropertyPreviewModal({
@@ -56,13 +55,16 @@ export default function HomePropertyPreviewModal({
   const { currencyCode, rates } = useCurrency();
   const titleId = useId();
   const rootRef = useRef(null);
+  const backdropRef = useRef(null);
   const panelRef = useRef(null);
   const heroRef = useRef(null);
   const bodyRef = useRef(null);
   const closeRef = useRef(null);
   const animCleanup = useRef(null);
   const touchX = useRef(null);
+  const closingRef = useRef(false);
 
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [detail, setDetail] = useState(seed);
@@ -72,12 +74,17 @@ export default function HomePropertyPreviewModal({
   const open = Boolean(propertyId);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     if (!propertyId) return undefined;
     let cancelled = false;
     const controller = new AbortController();
     setLoading(true);
     setError(null);
     setIndex(0);
+    closingRef.current = false;
 
     (async () => {
       try {
@@ -106,8 +113,10 @@ export default function HomePropertyPreviewModal({
 
   useEffect(() => {
     if (!open) return undefined;
-    const prev = document.body.style.overflow;
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.documentElement.setAttribute("data-home-preview-open", "true");
+
     const onKey = (e) => {
       if (e.key === "Escape") {
         e.preventDefault();
@@ -116,14 +125,15 @@ export default function HomePropertyPreviewModal({
       }
       if (e.key === "ArrowRight") {
         setIndex((i) => {
-          const len = detail?.images?.length || 1;
-          return (i + 1) % len;
+          const len = detail?.images?.length || seed?.images?.length || 1;
+          return (i + 1) % Math.max(len, 1);
         });
       }
       if (e.key === "ArrowLeft") {
         setIndex((i) => {
-          const len = detail?.images?.length || 1;
-          return (i - 1 + len) % len;
+          const len = detail?.images?.length || seed?.images?.length || 1;
+          const n = Math.max(len, 1);
+          return (i - 1 + n) % n;
         });
       }
       if (e.key === "Tab" && panelRef.current) {
@@ -142,40 +152,52 @@ export default function HomePropertyPreviewModal({
     };
     document.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = prevOverflow;
+      document.documentElement.removeAttribute("data-home-preview-open");
       document.removeEventListener("keydown", onKey);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, detail?.images?.length]);
+  }, [open, detail?.images?.length, seed?.images?.length]);
 
   useLayoutEffect(() => {
-    if (!open || !heroRef.current) return undefined;
+    if (!open || !panelRef.current) return undefined;
     animCleanup.current?.();
-    animCleanup.current = runFlipFrom({
+    setEntered(false);
+
+    animCleanup.current = runModalMorphOpen({
       flipState,
-      duration: 0.55,
-      absolute: true,
+      heroEl: heroRef.current,
+      panelEl: panelRef.current,
+      backdropEl: backdropRef.current,
+      bodyEl: bodyRef.current,
+      chromeEls: [closeRef.current],
       onComplete: () => {
         setEntered(true);
-        fadeInUi([bodyRef.current, closeRef.current], { delay: 0.05 });
         closeRef.current?.focus?.();
       },
     });
-    if (!flipState || prefersReducedMotion()) {
-      setEntered(true);
-      fadeInUi([bodyRef.current, closeRef.current], { delay: 0 });
-      closeRef.current?.focus?.();
-    }
+
     return () => animCleanup.current?.();
   }, [open, flipState]);
 
   const handleClose = useCallback(async () => {
-    await fadeOutUi([bodyRef.current, panelRef.current]);
+    if (closingRef.current) return;
+    closingRef.current = true;
+    animCleanup.current?.();
+    await runModalMorphClose({
+      panelEl: panelRef.current,
+      backdropEl: backdropRef.current,
+      bodyEl: bodyRef.current,
+      chromeEls: [closeRef.current],
+    });
+    document.documentElement.removeAttribute("data-home-preview-open");
     onClose?.();
   }, [onClose]);
 
   const images = (detail?.images?.length ? detail.images : seed?.images || [])
-    .map((entry) => (typeof entry === "string" ? entry : propertyImageUrl(entry)))
+    .map((entry) =>
+      typeof entry === "string" ? entry : propertyImageUrl(entry),
+    )
     .filter(Boolean);
   const activeImage = images[index] || images[0] || "/properties/a1.jpg";
   const display = detail || seed;
@@ -187,12 +209,13 @@ export default function HomePropertyPreviewModal({
   const goReserve = () => {
     const href = detail?.href;
     if (!href) return;
+    document.documentElement.removeAttribute("data-home-preview-open");
     router.push(href);
   };
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  return createPortal(
     <div
       ref={rootRef}
       className="home-prop-preview"
@@ -201,13 +224,18 @@ export default function HomePropertyPreviewModal({
       aria-labelledby={titleId}
     >
       <button
+        ref={backdropRef}
         type="button"
         className="home-prop-preview__backdrop"
         aria-label={t("preview.close")}
         onClick={() => void handleClose()}
       />
 
-      <div ref={panelRef} className="home-prop-preview__panel" data-home-prop-preview-panel>
+      <div
+        ref={panelRef}
+        className="home-prop-preview__panel"
+        data-home-prop-preview-panel
+      >
         <button
           ref={closeRef}
           type="button"
@@ -285,7 +313,9 @@ export default function HomePropertyPreviewModal({
           className={`home-prop-preview__body ${entered ? "is-ready" : ""}`}
         >
           {loading && !display ? (
-            <p className="home-prop-preview__status">{t("search.suggestLoading")}</p>
+            <p className="home-prop-preview__status">
+              {t("search.suggestLoading")}
+            </p>
           ) : null}
           {error ? (
             <p className="home-prop-preview__status home-prop-preview__status--error">
@@ -374,7 +404,8 @@ export default function HomePropertyPreviewModal({
           ) : null}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -384,5 +415,5 @@ export function captureCardFlipState(cardEl) {
     cardEl?.querySelector?.("[data-home-prop-flip]") ||
     cardEl?.querySelector?.("img")?.parentElement ||
     cardEl;
-  return captureFlipState(media);
+  return captureFlipState(media, "borderRadius,width,height");
 }
