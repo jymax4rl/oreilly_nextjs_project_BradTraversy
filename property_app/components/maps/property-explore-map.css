@@ -14,6 +14,15 @@
   min-height: 22rem;
 }
 
+/* Homepage compact map stage must never inherit the 22rem floor */
+.home-map-stage .pem-root,
+.home-map-stage .pem-canvas {
+  min-height: 0 !important;
+  height: 100% !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
 /* Thin indeterminate progress — map updates only */
 .pem-progress {
   position: absolute;

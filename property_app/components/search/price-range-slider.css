@@ -1,8 +1,8 @@
 .price-range-slider {
   width: 100%;
   --prs-track: 2px;
-  --prs-thumb: 12px;
-  --prs-hit: 28px;
+  --prs-thumb: 10px;
+  --prs-hit: 22px;
 }
 
 .price-range-slider__labels {
