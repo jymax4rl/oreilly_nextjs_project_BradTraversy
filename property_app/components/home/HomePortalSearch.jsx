@@ -18,6 +18,7 @@ import {
   propertyTypeMessageKey,
 } from "@/lib/i18n/messages";
 import PriceRangeSlider from "@/components/search/PriceRangeSlider";
+import LocationSuggestInput from "@/components/search/LocationSuggestInput";
 import {
   runSearchCollapseTransition,
   runSearchExpandTransition,
@@ -310,19 +311,11 @@ export default function HomePortalSearch({
             <div className="flex flex-col gap-2.5 sm:flex-row sm:items-stretch">
               <label className="relative min-w-0 flex-1">
                 <span className="sr-only">{t("search.location")}</span>
-                <MapPin
-                  className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--portal-accent)]"
-                  aria-hidden
-                />
-                <input
-                  ref={inputRef}
-                  type="search"
-                  name="location"
+                <LocationSuggestInput
+                  inputRef={inputRef}
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={setLocation}
                   placeholder={t("search.locationPlaceholder")}
-                  autoComplete="off"
-                  enterKeyHint="search"
                   className="home-search-field w-full rounded-xl py-2.5 pl-9 pr-3 text-[14px] outline-none"
                 />
               </label>

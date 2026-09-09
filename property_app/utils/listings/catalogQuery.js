@@ -1,5 +1,6 @@
 import { withApprovedListingFilter } from "@/utils/listingApproval";
 import { applyLatLngBounds, parseMapBounds, parseOptionalNumber } from "@/utils/listings/mapBounds";
+import { buildLocationOrClauses } from "@/utils/listings/suggestSearch";
 
 /**
  * Shared catalog Mongo filter for SSR `/properties` and map search API.
@@ -45,16 +46,10 @@ export function buildCatalogMongoQuery(params = {}) {
   const mongoQuery = {};
 
   if (locationQuery) {
-    const escaped = locationQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(escaped, "i");
-    mongoQuery.$or = [
-      { "location.city": regex },
-      { "location.state": regex },
-      { "location.country": regex },
-      { "location.street": regex },
-      { "location.zipcode": regex },
-      { name: regex },
-    ];
+    const locationOr = buildLocationOrClauses(locationQuery);
+    if (locationOr?.length) {
+      mongoQuery.$or = locationOr;
+    }
   }
 
   if (typeQuery && typeQuery !== "All Properties") {

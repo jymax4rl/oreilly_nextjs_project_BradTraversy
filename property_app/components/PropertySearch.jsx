@@ -8,6 +8,7 @@ import {
   propertyTypeMessageKey,
 } from "@/lib/i18n/messages";
 import PriceRangeSlider from "@/components/search/PriceRangeSlider";
+import LocationSuggestInput from "@/components/search/LocationSuggestInput";
 
 const PROPERTY_TYPES = PROPERTY_TYPE_VALUES;
 const PRICE_SLIDER_MAX = 1000;
@@ -114,11 +115,11 @@ const PropertySearch = ({ variant = "default" }) => {
             <span className="pem-catalog-search__label">{t("search.location")}</span>
             <span className="pem-catalog-search__field">
               <MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--kama-ink-muted)]" aria-hidden />
-              <input
-                ref={inputRef}
-                type="search"
+              <LocationSuggestInput
+                showIcon={false}
+                inputRef={inputRef}
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={setLocation}
                 placeholder={t("search.locationPlaceholder")}
                 className="pem-catalog-search__input"
               />
@@ -248,14 +249,10 @@ const PropertySearch = ({ variant = "default" }) => {
         <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
           <div className="flex w-full flex-col items-center justify-center gap-4 md:flex-row">
             <div className="group relative w-full md:flex-[2]">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <MapPin className="h-5 w-5 text-gray-400 transition-colors group-focus-within:text-[var(--kama-accent)]" />
-              </div>
-              <input
-                ref={inputRef}
-                type="text"
+              <LocationSuggestInput
+                inputRef={inputRef}
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={setLocation}
                 placeholder={t("search.locationLong")}
                 className="w-full rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-field)] py-4 pl-12 pr-10 text-[var(--kama-ink)] shadow-sm placeholder-[var(--kama-ink-muted)] transition-all duration-200 focus:border-[var(--kama-accent)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20"
               />
@@ -263,7 +260,7 @@ const PropertySearch = ({ variant = "default" }) => {
                 <button
                   type="button"
                   onClick={() => setLocation("")}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 z-20 flex items-center pr-3 text-gray-400 hover:text-gray-600"
                 >
                   <X className="h-4 w-4" />
                 </button>

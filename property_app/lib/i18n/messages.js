@@ -106,6 +106,11 @@ export const messages = {
       perNight: "/ night",
       catalogTitle: "Vacation rentals in Africa",
       availableIn: "Available stays in {place}",
+      suggestions: "Search suggestions",
+      suggestCountry: "Country",
+      suggestCity: "City",
+      suggestStay: "Stay",
+      suggestLoading: "Looking for matches…",
     },
     propertyTypes: {
       all: "All Properties",
@@ -978,6 +983,11 @@ export const messages = {
       perNight: "/ nuit",
       catalogTitle: "Locations de vacances en Afrique",
       availableIn: "Séjours disponibles à {place}",
+      suggestions: "Suggestions de recherche",
+      suggestCountry: "Pays",
+      suggestCity: "Ville",
+      suggestStay: "Séjour",
+      suggestLoading: "Recherche…",
     },
     propertyTypes: {
       all: "Tous les logements",
