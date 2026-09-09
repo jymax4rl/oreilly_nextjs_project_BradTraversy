@@ -15,40 +15,57 @@ export function prefersReducedMotion() {
 }
 
 /**
- * Expand compact search overlay → full search card (Flip).
+ * Capture Flip state before React toggles compact ↔ expanded classes.
  */
-export function runSearchExpandTransition({ cardEl, onComplete }) {
+export function captureSearchShellFlipState(shellEl) {
   ensureGsapPlugins();
-  if (!cardEl) {
+  if (!shellEl || prefersReducedMotion()) return null;
+  return Flip.getState(shellEl, {
+    props: "borderRadius,padding,width,maxWidth,height",
+  });
+}
+
+/**
+ * Animate after React has applied the expanded shell classes.
+ */
+export function runSearchShellExpand({ shellEl, flipState, onComplete }) {
+  ensureGsapPlugins();
+  if (!shellEl) {
     onComplete?.();
     return () => {};
   }
 
-  if (prefersReducedMotion()) {
-    cardEl.classList.add("home-search-card--expanded");
-    cardEl.classList.remove("home-search-card--compact");
+  if (prefersReducedMotion() || !flipState) {
+    const map = shellEl.querySelector("[data-search-shell-map]");
+    const widgets = shellEl.querySelector("[data-search-shell-widgets]");
+    if (map) gsap.set(map, { clearProps: "opacity,transform" });
+    if (widgets) gsap.set(widgets, { clearProps: "opacity,transform" });
     onComplete?.();
     return () => {};
   }
 
-  const state = Flip.getState(cardEl);
-  cardEl.classList.add("home-search-card--expanded");
-  cardEl.classList.remove("home-search-card--compact");
-
-  const tween = Flip.from(state, {
-    duration: 0.45,
+  const tween = Flip.from(flipState, {
+    duration: 0.55,
     ease: "power2.inOut",
     absolute: false,
     nested: true,
     onComplete: () => onComplete?.(),
   });
 
-  const panel = cardEl.querySelector("[data-search-expand-panel]");
-  if (panel) {
+  const map = shellEl.querySelector("[data-search-shell-map]");
+  const widgets = shellEl.querySelector("[data-search-shell-widgets]");
+  if (map) {
     gsap.fromTo(
-      panel,
-      { opacity: 0, y: 8 },
-      { opacity: 1, y: 0, duration: 0.32, delay: 0.12, ease: "power2.out" },
+      map,
+      { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.42, delay: 0.1, ease: "power2.out" },
+    );
+  }
+  if (widgets) {
+    gsap.fromTo(
+      widgets,
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.36, delay: 0.16, ease: "power2.out" },
     );
   }
 
@@ -56,28 +73,22 @@ export function runSearchExpandTransition({ cardEl, onComplete }) {
 }
 
 /**
- * Collapse expanded search → compact overlay (Flip).
+ * Animate after React has applied the compact pill classes.
  */
-export function runSearchCollapseTransition({ cardEl, onComplete }) {
+export function runSearchShellCollapse({ shellEl, flipState, onComplete }) {
   ensureGsapPlugins();
-  if (!cardEl) {
+  if (!shellEl) {
     onComplete?.();
     return () => {};
   }
 
-  if (prefersReducedMotion()) {
-    cardEl.classList.remove("home-search-card--expanded");
-    cardEl.classList.add("home-search-card--compact");
+  if (prefersReducedMotion() || !flipState) {
     onComplete?.();
     return () => {};
   }
 
-  const state = Flip.getState(cardEl);
-  cardEl.classList.remove("home-search-card--expanded");
-  cardEl.classList.add("home-search-card--compact");
-
-  const tween = Flip.from(state, {
-    duration: 0.4,
+  const tween = Flip.from(flipState, {
+    duration: 0.48,
     ease: "power2.inOut",
     absolute: false,
     nested: true,
@@ -87,18 +98,18 @@ export function runSearchCollapseTransition({ cardEl, onComplete }) {
   return () => tween.kill();
 }
 
-/**
- * After search submit: subtle map dim recovery + results enter.
- */
-export function runDiscoveryResultsEnter({
-  mapStageEl,
-  listEl,
-  onComplete,
-}) {
-  ensureGsapPlugins();
+/** @deprecated aliases */
+export function runSearchExpandTransition({ cardEl, onComplete }) {
+  return runSearchShellExpand({ shellEl: cardEl, flipState: null, onComplete });
+}
 
+export function runSearchCollapseTransition({ cardEl, onComplete }) {
+  return runSearchShellCollapse({ shellEl: cardEl, flipState: null, onComplete });
+}
+
+export function runDiscoveryResultsEnter({ listEl, onComplete }) {
+  ensureGsapPlugins();
   if (prefersReducedMotion()) {
-    if (mapStageEl) gsap.set(mapStageEl, { clearProps: "opacity,transform" });
     if (listEl) gsap.set(listEl, { clearProps: "opacity,transform" });
     onComplete?.();
     return () => {};
@@ -109,23 +120,13 @@ export function runDiscoveryResultsEnter({
     onComplete: () => onComplete?.(),
   });
 
-  if (mapStageEl) {
-    tl.fromTo(
-      mapStageEl,
-      { scale: 0.985 },
-      { scale: 1, duration: 0.45 },
-      0,
-    );
-  }
-
   if (listEl) {
     tl.fromTo(
       listEl,
-      { opacity: 0, y: 14 },
-      { opacity: 1, y: 0, duration: 0.45 },
-      0.08,
+      { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.4 },
+      0,
     );
-
     const cards = listEl.querySelectorAll("[data-discovery-card]");
     if (cards.length) {
       gsap.set(cards, { opacity: 0, y: 10 });
@@ -134,11 +135,11 @@ export function runDiscoveryResultsEnter({
         {
           opacity: 1,
           y: 0,
-          duration: 0.32,
-          stagger: 0.035,
+          duration: 0.3,
+          stagger: 0.03,
           ease: "power2.out",
         },
-        0.16,
+        0.1,
       );
     }
   }
@@ -146,10 +147,8 @@ export function runDiscoveryResultsEnter({
   return () => tl.kill();
 }
 
-/** @deprecated kept for reset paths that still import discover/reset */
 export function runHomeDiscoverTransition(opts) {
   return runDiscoveryResultsEnter({
-    mapStageEl: opts?.resultsEl?.querySelector?.("[data-home-map-stage]"),
     listEl: opts?.resultsEl?.querySelector?.("[data-home-discovery-list]"),
     onComplete: opts?.onComplete,
   });

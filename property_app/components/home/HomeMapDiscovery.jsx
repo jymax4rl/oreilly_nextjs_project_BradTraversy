@@ -1,16 +1,44 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
+import gsap from "gsap";
+import {
+  MapPin,
+  Search,
+  X,
+  ChevronDown,
+  Home,
+} from "lucide-react";
 import PropertyCard from "@/components/PropertyCard";
 import PropertyExploreMap from "@/components/maps/PropertyExploreMap";
-import HomePortalSearch from "@/components/home/HomePortalSearch";
+import PriceRangeSlider from "@/components/search/PriceRangeSlider";
 import { useHomeDiscovery } from "@/components/home/HomeDiscoveryContext";
-import { runDiscoveryResultsEnter } from "@/utils/animations/homeDiscovery";
+import {
+  captureSearchShellFlipState,
+  prefersReducedMotion,
+  runDiscoveryResultsEnter,
+  runSearchShellCollapse,
+  runSearchShellExpand,
+} from "@/utils/animations/homeDiscovery";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import {
+  PROPERTY_TYPE_VALUES,
+  propertyTypeMessageKey,
+} from "@/lib/i18n/messages";
 import { formatListingPrice } from "@/utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
 import "@/components/maps/property-explore-map.css";
+
+const PROPERTY_TYPES = PROPERTY_TYPE_VALUES;
 
 function buildQueryFromFilters(filters, bounds) {
   const params = new URLSearchParams();
@@ -67,10 +95,10 @@ function pinToCardProperty(pin) {
 }
 
 /**
- * Compact map discovery: ~30–40vh map + search overlay + results below.
- * Not a side-by-side dashboard.
+ * Search bar is the button. Click → expands into map (top) + search widgets (bottom).
  */
 export default function HomeMapDiscovery({ seedProperties = [] }) {
+  const { t } = useLanguage();
   const {
     filters,
     searchExpanded,
@@ -84,17 +112,114 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
   } = useHomeDiscovery();
   const { currencyCode, rates } = useCurrency();
 
+  const [location, setLocation] = useState(filters.location || "");
+  const [propertyType, setPropertyType] = useState(
+    filters.type || "All Properties",
+  );
+  const [minPrice, setMinPrice] = useState(
+    filters.minPrice != null ? String(filters.minPrice) : "0",
+  );
+  const [maxPrice, setMaxPrice] = useState(
+    filters.maxPrice != null ? String(filters.maxPrice) : "1000",
+  );
+  const [priceTouched, setPriceTouched] = useState(
+    filters.minPrice != null || filters.maxPrice != null,
+  );
+  const [typeOpen, setTypeOpen] = useState(false);
+
   const [pins, setPins] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [bounds, setBounds] = useState(null);
+  const [mapReady, setMapReady] = useState(false);
+
   const abortRef = useRef(null);
   const seqRef = useRef(0);
   const cardRefs = useRef(new Map());
-  const mapStageRef = useRef(null);
+  const shellRef = useRef(null);
   const listRef = useRef(null);
+  const inputRef = useRef(null);
+  const typeRef = useRef(null);
   const prevSearched = useRef(hasSearched);
   const animCleanup = useRef(null);
+  const pendingFlip = useRef(null);
+  const shellMounted = useRef(false);
+
+  useEffect(() => {
+    setLocation(filters.location || "");
+    setPropertyType(filters.type || "All Properties");
+    if (filters.minPrice != null) setMinPrice(String(filters.minPrice));
+    if (filters.maxPrice != null) setMaxPrice(String(filters.maxPrice));
+  }, [filters.location, filters.type, filters.minPrice, filters.maxPrice]);
+
+  useEffect(() => {
+    const onDoc = (e) => {
+      if (typeRef.current && !typeRef.current.contains(e.target)) {
+        setTypeOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!shellMounted.current) {
+      shellMounted.current = true;
+      return undefined;
+    }
+
+    const shellEl = shellRef.current;
+    const flipState = pendingFlip.current;
+    pendingFlip.current = null;
+    if (!shellEl) return undefined;
+
+    animCleanup.current?.();
+    if (searchExpanded) {
+      setMapReady(true);
+      animCleanup.current = runSearchShellExpand({
+        shellEl,
+        flipState,
+        onComplete: () => inputRef.current?.focus?.(),
+      });
+    } else {
+      animCleanup.current = runSearchShellCollapse({
+        shellEl,
+        flipState,
+        onComplete: () => setTypeOpen(false),
+      });
+    }
+    return () => animCleanup.current?.();
+  }, [searchExpanded]);
+
+  const openSearchShell = useCallback(() => {
+    pendingFlip.current = captureSearchShellFlipState(shellRef.current);
+    setMapReady(true);
+    expandSearch();
+  }, [expandSearch]);
+
+  const closeSearchShell = useCallback(() => {
+    const shellEl = shellRef.current;
+    const map = shellEl?.querySelector?.("[data-search-shell-map]");
+    const widgets = shellEl?.querySelector?.("[data-search-shell-widgets]");
+
+    const finish = () => {
+      pendingFlip.current = captureSearchShellFlipState(shellEl);
+      collapseSearch();
+    };
+
+    if (!prefersReducedMotion() && (map || widgets)) {
+      gsap.to([map, widgets].filter(Boolean), {
+        opacity: 0,
+        y: 6,
+        duration: 0.16,
+        ease: "power1.in",
+        stagger: 0.02,
+        onComplete: finish,
+      });
+      return;
+    }
+    finish();
+  }, [collapseSearch]);
 
   const filterKey = useMemo(
     () =>
@@ -105,8 +230,6 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
         maxPrice: filters.maxPrice ?? "",
         minBeds: filters.minBeds ?? "",
         minBaths: filters.minBaths ?? "",
-        checkIn: filters.checkIn || "",
-        checkOut: filters.checkOut || "",
       }),
     [filters],
   );
@@ -145,25 +268,18 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
   useEffect(() => () => abortRef.current?.abort?.(), []);
 
   useEffect(() => {
-    if (!bounds) return undefined;
-    const timer = window.setTimeout(() => {
-      void fetchPins(bounds);
-    }, 0);
+    if (!bounds || !mapReady) return undefined;
+    const timer = window.setTimeout(() => void fetchPins(bounds), 0);
     return () => window.clearTimeout(timer);
-  }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filterKey, mapReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (prevSearched.current === hasSearched) return;
     prevSearched.current = hasSearched;
     if (!hasSearched) return;
-    animCleanup.current?.();
     requestAnimationFrame(() => {
-      animCleanup.current = runDiscoveryResultsEnter({
-        mapStageEl: mapStageRef.current,
-        listEl: listRef.current,
-      });
+      runDiscoveryResultsEnter({ listEl: listRef.current });
     });
-    return () => animCleanup.current?.();
   }, [hasSearched]);
 
   const handleBoundsChange = useCallback(
@@ -175,9 +291,9 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
         west: payload.west,
       };
       setBounds(next);
-      void fetchPins(next);
+      if (mapReady) void fetchPins(next);
     },
-    [fetchPins],
+    [fetchPins, mapReady],
   );
 
   const handleSelect = useCallback(
@@ -190,6 +306,46 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
     },
     [setSelectedPropertyId],
   );
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const next = {
+      location: location.trim(),
+      type: propertyType,
+      minPrice: null,
+      maxPrice: null,
+      minBeds: null,
+      minBaths: null,
+      checkIn: "",
+      checkOut: "",
+    };
+    if (priceTouched) {
+      const minN = Number(minPrice);
+      const maxN = Number(maxPrice);
+      if (Number.isFinite(minN) && minN > 0) next.minPrice = minN;
+      if (Number.isFinite(maxN) && maxN < 1000) next.maxPrice = maxN;
+    }
+
+    const shellEl = shellRef.current;
+    const map = shellEl?.querySelector?.("[data-search-shell-map]");
+    const widgets = shellEl?.querySelector?.("[data-search-shell-widgets]");
+    const finish = () => {
+      pendingFlip.current = captureSearchShellFlipState(shellEl);
+      applySearch(next);
+    };
+
+    if (!prefersReducedMotion() && searchExpanded && (map || widgets)) {
+      gsap.to([map, widgets].filter(Boolean), {
+        opacity: 0,
+        y: 6,
+        duration: 0.16,
+        ease: "power1.in",
+        onComplete: finish,
+      });
+      return;
+    }
+    finish();
+  };
 
   const listProperties = useMemo(() => {
     if (pins.length) return pins.map(pinToCardProperty);
@@ -209,75 +365,205 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
     : hasSearched
       ? "Stays in view"
       : "Discover stays";
+  const triggerLabel =
+    location.trim() || filters.location || t("search.locationPlaceholder");
 
   return (
     <section
       id="discover"
       className="home-map-discovery"
-      aria-label="Map discovery"
+      aria-label="Search discovery"
     >
       <div
-        ref={mapStageRef}
-        className={`home-map-stage${searchExpanded ? " home-map-stage--searching" : ""}`}
-        data-home-map-stage
+        ref={shellRef}
+        className={`home-search-shell ${
+          searchExpanded
+            ? "home-search-shell--expanded"
+            : "home-search-shell--compact"
+        }`}
+        data-home-search-shell
       >
-        <div className="home-map-stage__frame">
-          <PropertyExploreMap
-            pins={pins}
-            selectedId={selectedPropertyId}
-            onSelect={handleSelect}
-            onBoundsChange={handleBoundsChange}
-            loading={loading}
-            className="home-map-stage__map"
+        {/* Compact face — the button */}
+        <button
+          type="button"
+          className="home-search-shell__trigger"
+          onClick={openSearchShell}
+          aria-expanded={searchExpanded}
+          hidden={searchExpanded}
+        >
+          <MapPin
+            className="h-4 w-4 shrink-0 text-[var(--portal-accent)]"
+            aria-hidden
           />
-          {selectedPin ? (
-            <Link
-              href={propertyPublicPath(selectedPin)}
-              className="home-map-preview"
-            >
-              {selectedPin.thumbnail ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={selectedPin.thumbnail}
-                  alt=""
-                  className="home-map-preview__img"
-                />
-              ) : (
-                <div className="home-map-preview__img home-map-preview__img--empty" />
-              )}
-              <div className="home-map-preview__body">
-                <p className="home-map-preview__title">{selectedPin.title}</p>
-                <p className="home-map-preview__meta">
-                  {[selectedPin.city, selectedPin.country]
-                    .filter(Boolean)
-                    .join(", ")}
-                </p>
-                <p className="home-map-preview__price">
-                  {selectedPin.priceUsd != null
-                    ? formatListingPrice(
-                        selectedPin.priceUsd,
-                        rates,
-                        currencyCode,
-                      )
-                    : "View stay"}
-                  {selectedPin.priceUsd != null ? (
-                    <span> / night</span>
-                  ) : null}
-                </p>
-              </div>
-            </Link>
-          ) : null}
-        </div>
+          <span className="home-search-shell__trigger-copy">
+            <span className="home-search-shell__trigger-label">
+              {t("search.location")}
+            </span>
+            <span className="home-search-shell__trigger-value">
+              {triggerLabel}
+            </span>
+          </span>
+          <span className="home-search-shell__trigger-cta" aria-hidden>
+            <Search className="h-3.5 w-3.5" />
+          </span>
+        </button>
 
-        <div className="home-search-overlay">
-          <HomePortalSearch
-            variant="overlay"
-            expanded={searchExpanded}
-            onExpandRequest={expandSearch}
-            onCollapseRequest={collapseSearch}
-            onSearch={applySearch}
-            initialFilters={filters}
-          />
+        {/* Expanded body — map on top, widgets below */}
+        <div className="home-search-shell__panel" aria-hidden={!searchExpanded}>
+          <div className="home-search-shell__map" data-search-shell-map>
+            {mapReady ? (
+              <PropertyExploreMap
+                pins={pins}
+                selectedId={selectedPropertyId}
+                onSelect={handleSelect}
+                onBoundsChange={handleBoundsChange}
+                loading={loading}
+                className="home-search-shell__map-el"
+              />
+            ) : null}
+            {selectedPin && searchExpanded ? (
+              <Link
+                href={propertyPublicPath(selectedPin)}
+                className="home-map-preview"
+              >
+                {selectedPin.thumbnail ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={selectedPin.thumbnail}
+                    alt=""
+                    className="home-map-preview__img"
+                  />
+                ) : (
+                  <div className="home-map-preview__img home-map-preview__img--empty" />
+                )}
+                <div className="home-map-preview__body">
+                  <p className="home-map-preview__title">{selectedPin.title}</p>
+                  <p className="home-map-preview__meta">
+                    {[selectedPin.city, selectedPin.country]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </p>
+                  <p className="home-map-preview__price">
+                    {selectedPin.priceUsd != null
+                      ? formatListingPrice(
+                          selectedPin.priceUsd,
+                          rates,
+                          currencyCode,
+                        )
+                      : "View stay"}
+                    {selectedPin.priceUsd != null ? (
+                      <span> / night</span>
+                    ) : null}
+                  </p>
+                </div>
+              </Link>
+            ) : null}
+          </div>
+
+          <form
+            className="home-search-shell__widgets"
+            data-search-shell-widgets
+            role="search"
+            aria-label={t("search.aria")}
+            onSubmit={handleSubmit}
+          >
+            <div className="home-search-shell__row">
+              <label className="relative min-w-0 flex-1">
+                <span className="sr-only">{t("search.location")}</span>
+                <MapPin
+                  className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--portal-accent)]"
+                  aria-hidden
+                />
+                <input
+                  ref={inputRef}
+                  type="search"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder={t("search.locationPlaceholder")}
+                  autoComplete="off"
+                  enterKeyHint="search"
+                  className="home-search-field w-full rounded-xl py-2.5 pl-9 pr-3 text-[14px] outline-none"
+                />
+              </label>
+
+              <div className="home-search-shell__type relative w-[9.5rem] shrink-0" ref={typeRef}>
+                <Home
+                  className="pointer-events-none absolute left-2.5 top-1/2 z-10 h-3.5 w-3.5 -translate-y-1/2 text-[var(--portal-ink-muted)]"
+                  aria-hidden
+                />
+                <button
+                  type="button"
+                  className="home-search-field flex min-h-[42px] w-full items-center justify-between rounded-xl py-2.5 pl-8 pr-2 text-left text-[13px]"
+                  aria-haspopup="listbox"
+                  aria-expanded={typeOpen}
+                  onClick={() => setTypeOpen((o) => !o)}
+                >
+                  <span className="block truncate">
+                    {t(propertyTypeMessageKey(propertyType))}
+                  </span>
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 shrink-0 opacity-60 transition-transform ${typeOpen ? "rotate-180" : ""}`}
+                    aria-hidden
+                  />
+                </button>
+                {typeOpen ? (
+                  <ul
+                    role="listbox"
+                    className="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-xl border border-[var(--portal-border)] bg-white py-1 shadow-xl"
+                  >
+                    {PROPERTY_TYPES.map((type) => (
+                      <li key={type} role="option" aria-selected={propertyType === type}>
+                        <button
+                          type="button"
+                          className={`w-full px-3 py-2 text-left text-sm ${
+                            propertyType === type
+                              ? "bg-[var(--portal-accent-soft)] text-[var(--portal-accent)]"
+                              : "hover:bg-[var(--portal-field)]"
+                          }`}
+                          onClick={() => {
+                            setPropertyType(type);
+                            setTypeOpen(false);
+                          }}
+                        >
+                          {t(propertyTypeMessageKey(type))}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="home-search-price home-search-price--shell">
+              <PriceRangeSlider
+                min={0}
+                max={1000}
+                step={10}
+                valueMin={Number(minPrice) || 0}
+                valueMax={Number(maxPrice) || 1000}
+                onChange={({ min, max }) => {
+                  setMinPrice(String(min));
+                  setMaxPrice(String(max));
+                  setPriceTouched(true);
+                }}
+              />
+            </div>
+
+            <div className="home-search-shell__actions">
+              <button
+                type="button"
+                className="home-search-shell__close"
+                aria-label="Close"
+                onClick={closeSearchShell}
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <button type="submit" className="home-search-cta home-search-shell__submit">
+                <Search className="h-4 w-4" aria-hidden />
+                {t("search.search")}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
@@ -337,13 +623,13 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
           })}
         </div>
 
-        {!loading && listProperties.length === 0 ? (
+        {!loading && listProperties.length === 0 && hasSearched ? (
           <div className="home-discovery-list__empty">
             <p className="font-semibold text-[var(--kama-ink)]">
               No stays found in this area
             </p>
             <p className="mt-1 text-sm text-[var(--kama-ink-muted)]">
-              Move the map or clear filters to discover more.
+              Open search and explore the map to find stays.
             </p>
           </div>
         ) : null}

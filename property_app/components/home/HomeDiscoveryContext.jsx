@@ -10,7 +10,7 @@ import {
 
 /**
  * Homepage discovery:
- * - searchExpanded: compact overlay vs expanded search card
+ * - searchExpanded: compact search pill vs expanded shell (map + widgets)
  * - filters drive map bounds query + property list
  */
 export function emptyHomeFilters() {

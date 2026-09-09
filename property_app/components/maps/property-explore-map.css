@@ -14,9 +14,11 @@
   min-height: 22rem;
 }
 
-/* Homepage compact map stage must never inherit the 22rem floor */
+/* Homepage search-shell map must never inherit the 22rem floor */
 .home-map-stage .pem-root,
-.home-map-stage .pem-canvas {
+.home-map-stage .pem-canvas,
+.home-search-shell__map .pem-root,
+.home-search-shell__map .pem-canvas {
   min-height: 0 !important;
   height: 100% !important;
   border: 0 !important;
