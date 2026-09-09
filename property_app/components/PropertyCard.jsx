@@ -17,6 +17,7 @@ const PropertyCard = ({
   property,
   isSaved = false,
   allowOpen = false,
+  onPreview = null,
 }) => {
   const { t } = useLanguage();
   const { data: session } = useSession();
@@ -108,9 +109,23 @@ const PropertyCard = ({
   };
 
   const listingHref = propertyPublicPath(property);
+  const usePreview = typeof onPreview === "function" && !locked;
+  const propertyKey = String(_id || property?.id || "");
+
+  const openPreview = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const cardRoot =
+      e.currentTarget.closest?.("[data-discovery-card]") ||
+      e.currentTarget.closest?.(".group") ||
+      e.currentTarget;
+    onPreview?.(property, cardRoot);
+  };
 
   const media = (
     <div
+      data-home-prop-flip={usePreview ? "" : undefined}
+      data-flip-id={usePreview && propertyKey ? `home-prop-${propertyKey}` : undefined}
       className={`relative h-72 overflow-hidden ${locked ? "" : "cursor-pointer"}`}
     >
       <Image
@@ -255,7 +270,20 @@ const PropertyCard = ({
       }`}
       aria-disabled={locked || undefined}
     >
-      {locked ? media : <Link href={listingHref}>{media}</Link>}
+      {locked ? (
+        media
+      ) : usePreview ? (
+        <button
+          type="button"
+          className="block w-full appearance-none border-0 bg-transparent p-0 text-left"
+          onClick={openPreview}
+          aria-haspopup="dialog"
+        >
+          {media}
+        </button>
+      ) : (
+        <Link href={listingHref}>{media}</Link>
+      )}
 
       {!locked ? (
         <>
@@ -282,7 +310,20 @@ const PropertyCard = ({
         </>
       ) : null}
 
-      {locked ? body : <Link href={listingHref}>{body}</Link>}
+      {locked ? (
+        body
+      ) : usePreview ? (
+        <button
+          type="button"
+          className="block w-full flex-grow appearance-none border-0 bg-transparent p-0 text-left"
+          onClick={openPreview}
+          aria-haspopup="dialog"
+        >
+          {body}
+        </button>
+      ) : (
+        <Link href={listingHref}>{body}</Link>
+      )}
     </div>
   );
 };

@@ -143,6 +143,12 @@ export const messages = {
       moreFromHostFallback: "More from this host",
       moreStays: "{count} more stays",
     },
+    preview: {
+      amenities: "Amenities",
+      reserve: "Reserve",
+      keepBrowsing: "Keep browsing",
+      close: "Close",
+    },
     empty: {
       noListings: "No listings yet",
       noListingsHint: "When you publish a property, it will show up here.",
@@ -1019,6 +1025,12 @@ export const messages = {
       moreFromHost: "Autres logements de {name}",
       moreFromHostFallback: "Autres logements de cet hôte",
       moreStays: "{count} autres séjours",
+    },
+    preview: {
+      amenities: "Équipements",
+      reserve: "Réserver",
+      keepBrowsing: "Continuer",
+      close: "Fermer",
     },
     empty: {
       noListings: "Aucun logement pour l’instant",

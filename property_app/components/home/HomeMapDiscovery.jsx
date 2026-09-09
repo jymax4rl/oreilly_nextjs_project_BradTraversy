@@ -8,7 +8,6 @@ import {
   useRef,
   useState,
 } from "react";
-import Link from "next/link";
 import gsap from "gsap";
 import {
   MapPin,
@@ -21,6 +20,9 @@ import PropertyCard from "@/components/PropertyCard";
 import PropertyExploreMap from "@/components/maps/PropertyExploreMap";
 import PriceRangeSlider from "@/components/search/PriceRangeSlider";
 import LocationSuggestInput from "@/components/search/LocationSuggestInput";
+import HomePropertyPreviewModal, {
+  captureCardFlipState,
+} from "@/components/home/HomePropertyPreviewModal";
 import { useHomeDiscovery } from "@/components/home/HomeDiscoveryContext";
 import {
   captureSearchShellFlipState,
@@ -36,7 +38,6 @@ import {
 } from "@/lib/i18n/messages";
 import { formatListingPrice } from "@/utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
-import { propertyPublicPath } from "@/utils/listings/propertyPath";
 import "@/components/maps/property-explore-map.css";
 
 const PROPERTY_TYPES = PROPERTY_TYPE_VALUES;
@@ -133,6 +134,9 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
   const [error, setError] = useState(null);
   const [bounds, setBounds] = useState(null);
   const [mapReady, setMapReady] = useState(false);
+  const [previewId, setPreviewId] = useState(null);
+  const [previewSeed, setPreviewSeed] = useState(null);
+  const previewFlipRef = useRef(null);
 
   const abortRef = useRef(null);
   const seqRef = useRef(0);
@@ -308,6 +312,42 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
     [setSelectedPropertyId],
   );
 
+  const openPropertyPreview = useCallback(
+    (property, cardEl) => {
+      const id = String(property?._id || property?.id || "");
+      if (!id) return;
+      setSelectedPropertyId(id);
+      previewFlipRef.current = captureCardFlipState(cardEl);
+      setPreviewSeed({
+        id,
+        name: property.name || property.title,
+        type: property.type,
+        city: property.location?.city || property.city,
+        country: property.location?.country || property.country,
+        beds: property.beds,
+        baths: property.baths,
+        listingPrice:
+          property.listingPrice ??
+          property.rates?.nightly ??
+          property.priceUsd ??
+          null,
+        images: property.images?.length
+          ? property.images
+          : property.thumbnail
+            ? [property.thumbnail]
+            : [],
+      });
+      setPreviewId(id);
+    },
+    [setSelectedPropertyId],
+  );
+
+  const closePropertyPreview = useCallback(() => {
+    setPreviewId(null);
+    setPreviewSeed(null);
+    previewFlipRef.current = null;
+  }, []);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const next = {
@@ -423,9 +463,32 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
               />
             ) : null}
             {selectedPin && searchExpanded ? (
-              <Link
-                href={propertyPublicPath(selectedPin)}
+              <button
+                type="button"
                 className="home-map-preview"
+                onClick={(e) => {
+                  const cardEl = cardRefs.current.get(String(selectedPin.id));
+                  openPropertyPreview(
+                    {
+                      _id: selectedPin.id,
+                      id: selectedPin.id,
+                      slug: selectedPin.slug,
+                      name: selectedPin.title,
+                      title: selectedPin.title,
+                      type: selectedPin.type,
+                      beds: selectedPin.beds,
+                      baths: selectedPin.baths,
+                      city: selectedPin.city,
+                      country: selectedPin.country,
+                      priceUsd: selectedPin.priceUsd,
+                      thumbnail: selectedPin.thumbnail,
+                      images: selectedPin.thumbnail
+                        ? [selectedPin.thumbnail]
+                        : [],
+                    },
+                    cardEl || e.currentTarget,
+                  );
+                }}
               >
                 {selectedPin.thumbnail ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -433,9 +496,13 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
                     src={selectedPin.thumbnail}
                     alt=""
                     className="home-map-preview__img"
+                    data-home-prop-flip
                   />
                 ) : (
-                  <div className="home-map-preview__img home-map-preview__img--empty" />
+                  <div
+                    className="home-map-preview__img home-map-preview__img--empty"
+                    data-home-prop-flip
+                  />
                 )}
                 <div className="home-map-preview__body">
                   <p className="home-map-preview__title">{selectedPin.title}</p>
@@ -457,7 +524,7 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
                     ) : null}
                   </p>
                 </div>
-              </Link>
+              </button>
             ) : null}
           </div>
 
@@ -609,9 +676,11 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
                 }`}
                 onMouseEnter={() => setSelectedPropertyId(id)}
                 onFocus={() => setSelectedPropertyId(id)}
-                onClick={() => setSelectedPropertyId(id)}
               >
-                <PropertyCard property={property} />
+                <PropertyCard
+                  property={property}
+                  onPreview={openPropertyPreview}
+                />
               </div>
             );
           })}
@@ -628,6 +697,15 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
           </div>
         ) : null}
       </div>
+
+      {previewId ? (
+        <HomePropertyPreviewModal
+          propertyId={previewId}
+          seed={previewSeed}
+          flipState={previewFlipRef.current}
+          onClose={closePropertyPreview}
+        />
+      ) : null}
     </section>
   );
 }
