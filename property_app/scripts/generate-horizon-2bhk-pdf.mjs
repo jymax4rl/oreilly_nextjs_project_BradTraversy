@@ -51,8 +51,10 @@ const args = [
 ];
 
 const child = spawn(chrome, args, { stdio: "inherit" });
+const timer = setTimeout(() => child.kill("SIGTERM"), 40000);
 child.on("exit", (code) => {
-  if (code !== 0) {
+  clearTimeout(timer);
+  if (!existsSync(pdfPath)) {
     console.error(`Print failed (${code})`);
     process.exit(code || 1);
   }
