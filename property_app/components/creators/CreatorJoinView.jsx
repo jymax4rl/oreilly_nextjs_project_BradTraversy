@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Megaphone } from "lucide-react";
+import { toUserFacingError } from "@/utils/userFacingError";
 
 export default function CreatorJoinView({ token, preview }) {
   const { data: session, status } = useSession();
@@ -28,7 +29,7 @@ export default function CreatorJoinView({ token, preview }) {
       router.replace("/creators/console");
       router.refresh();
     } catch (err) {
-      setError(err.message);
+      setError(toUserFacingError(err));
       setBusy(false);
     }
   }

@@ -3,6 +3,7 @@
 import { useEffect, useId, useState } from "react";
 import { Pencil, Plus, X } from "lucide-react";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { toUserFacingError } from "@/utils/userFacingError";
 
 function rateToPercentInput(rate) {
   const n = Number(rate);
@@ -130,7 +131,7 @@ export default function HostCreatorCodeModal({
       }
       onClose?.();
     } catch (err) {
-      setError(err.message || t("hostConsole.creators.failed"));
+      setError(toUserFacingError(err, t("hostConsole.creators.failed")));
     } finally {
       setSubmitting(false);
     }

@@ -24,6 +24,7 @@ import LocationSuggestInput from "@/components/search/LocationSuggestInput";
 import HomePropertyPreviewModal, {
   captureCardFlipState,
 } from "@/components/home/HomePropertyPreviewModal";
+import { toUserFacingError } from "@/utils/userFacingError";
 import { useHomeDiscovery } from "@/components/home/HomeDiscoveryContext";
 import {
   captureSearchShellFlipState,
@@ -263,7 +264,7 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
       } catch (err) {
         if (err?.name === "AbortError") return;
         if (seq !== seqRef.current) return;
-        setError(err.message || "Could not load map stays");
+        setError(toUserFacingError(err, "Could not load map stays"));
       } finally {
         if (seq === seqRef.current) setLoading(false);
       }

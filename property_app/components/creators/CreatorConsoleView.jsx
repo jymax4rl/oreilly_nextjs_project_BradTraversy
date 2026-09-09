@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, ExternalLink, Megaphone, RefreshCw } from "lucide-react";
 import CreatorAvailabilityCalendar from "@/components/creators/CreatorAvailabilityCalendar";
+import { toUserFacingError } from "@/utils/userFacingError";
 
 function money(n) {
   return new Intl.NumberFormat("en-US", {
@@ -46,7 +47,7 @@ export default function CreatorConsoleView({ initial }) {
         setSelectedPropertyId(json.properties?.[0]?.id || null);
       }
     } catch (err) {
-      setError(err.message);
+      setError(toUserFacingError(err));
     } finally {
       setRefreshing(false);
     }
@@ -71,7 +72,7 @@ export default function CreatorConsoleView({ initial }) {
       } catch (err) {
         if (!cancelled) {
           setAvailability(null);
-          setError(err.message);
+          setError(toUserFacingError(err));
         }
       } finally {
         if (!cancelled) setLoadingCal(false);

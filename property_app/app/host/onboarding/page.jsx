@@ -7,6 +7,7 @@ import Link from "next/link";
 import { addressFromLegacy } from "@/utils/address";
 import HostApplicationForm from "@/components/host/HostApplicationForm";
 import HostPitchModal from "@/components/onboarding/HostPitchModal";
+import { toUserFacingError } from "@/utils/userFacingError";
 import {
   HostPwaInstallCard,
   HostPwaInstallModal,
@@ -116,7 +117,7 @@ export default function HostOnboardingPage() {
       await update();
       router.push("/host/install?next=/host/pending");
     } catch (err) {
-      setError(err.message);
+      setError(toUserFacingError(err));
     } finally {
       setSubmitting(false);
     }

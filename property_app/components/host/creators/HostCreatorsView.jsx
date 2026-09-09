@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toUserFacingError } from "@/utils/userFacingError";
 import {
   Megaphone,
   Link2,
@@ -124,7 +125,7 @@ export default function HostCreatorsView({ initial }) {
       }
       router.refresh();
     } catch (err) {
-      setError(err.message || t("hostConsole.creators.failed"));
+      setError(toUserFacingError(err, t("hostConsole.creators.failed")));
     } finally {
       setRefreshing(false);
     }
@@ -148,7 +149,7 @@ export default function HostCreatorsView({ initial }) {
       await refreshProgram();
       if (data.id) setSelectedId(data.id);
     } catch (err) {
-      setError(err.message);
+      setError(toUserFacingError(err));
     } finally {
       setBusy("");
     }
@@ -168,7 +169,7 @@ export default function HostCreatorsView({ initial }) {
       if (!res.ok) throw new Error(data.error || t("hostConsole.creators.failed"));
       await refreshProgram();
     } catch (err) {
-      setError(err.message);
+      setError(toUserFacingError(err));
     } finally {
       setBusy("");
     }
@@ -197,7 +198,7 @@ export default function HostCreatorsView({ initial }) {
       setNotice(t("hostConsole.creators.portalCopied"));
       await refreshProgram();
     } catch (err) {
-      setError(err.message);
+      setError(toUserFacingError(err));
     } finally {
       setBusy("");
     }

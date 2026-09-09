@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { toUserFacingError } from "@/utils/userFacingError";
 import {
   CalendarCheck,
   Eye,
@@ -60,7 +61,7 @@ function HostBookingRow({ booking, propertyId, onChanged }) {
       await fn();
       onChanged?.();
     } catch (e) {
-      setMessage({ ok: false, text: e.message || t("hostConsole.bookings.requestFailed") });
+      setMessage({ ok: false, text: toUserFacingError(e, t("hostConsole.bookings.requestFailed")) });
     } finally {
       setBusy(null);
     }
@@ -480,7 +481,7 @@ export default function HostPropertyBookings({
       setBookings(list);
       setUpdatedAt(new Date());
     } catch (e) {
-      setError(e.message || t("hostConsole.bookings.couldNotLoad"));
+      setError(toUserFacingError(e, t("hostConsole.bookings.couldNotLoad")));
     } finally {
       setLoading(false);
       setRefreshing(false);

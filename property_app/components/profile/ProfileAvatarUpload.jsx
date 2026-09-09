@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { Camera, Loader2 } from "lucide-react";
+import { toUserFacingError } from "@/utils/userFacingError";
 
 /**
  * Profile avatar with camera overlay → POST /api/user/profile/avatar.
@@ -63,7 +64,7 @@ export default function ProfileAvatarUpload({
       setPreview(null);
       await update();
     } catch (err) {
-      setError(err.message || "Could not upload photo");
+      setError(toUserFacingError(err, "Could not upload photo"));
       setPreview(null);
     } finally {
       setUploading(false);

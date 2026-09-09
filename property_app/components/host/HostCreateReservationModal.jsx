@@ -6,6 +6,7 @@ import { FaWhatsapp } from "react-icons/fa";
 import GuestDateRangePicker from "@/components/calendar/GuestDateRangePicker";
 import { isValidGuestPhone } from "@/utils/bookings/paymentMode";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { toUserFacingError } from "@/utils/userFacingError";
 
 /**
  * Host-side walk-in reservation: WhatsApp required, name/email optional, dates on calendar.
@@ -86,7 +87,7 @@ export default function HostCreateReservationModal({
       setDone(true);
       onCreated?.(data);
     } catch (err) {
-      setError(err.message || t("hostConsole.createReservation.failed"));
+      setError(toUserFacingError(err, t("hostConsole.createReservation.failed")));
     } finally {
       setSubmitting(false);
     }

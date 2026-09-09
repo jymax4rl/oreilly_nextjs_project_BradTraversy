@@ -20,11 +20,13 @@ import {
   ChevronRight,
   MapPin,
   Sparkles,
+  RefreshCw,
 } from "lucide-react";
 import { formatListingPrice } from "@/utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { propertyImageUrl } from "@/utils/propertyImageUrl";
+import { toUserFacingError } from "@/utils/userFacingError";
 import {
   captureElementRect,
   runModalMorphClose,
@@ -70,6 +72,7 @@ export default function HomePropertyPreviewModal({
   const [detail, setDetail] = useState(seed);
   const [index, setIndex] = useState(0);
   const [entered, setEntered] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const open = Boolean(propertyId);
 
@@ -99,7 +102,7 @@ export default function HomePropertyPreviewModal({
         setDetail(data.property);
       } catch (err) {
         if (err?.name === "AbortError" || cancelled) return;
-        setError(err.message || "Unable to load stay");
+        setError(toUserFacingError(err, "Unable to load stay"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -109,7 +112,7 @@ export default function HomePropertyPreviewModal({
       cancelled = true;
       controller.abort();
     };
-  }, [propertyId]);
+  }, [propertyId, reloadKey]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -322,9 +325,21 @@ export default function HomePropertyPreviewModal({
             </p>
           ) : null}
           {error ? (
-            <p className="home-prop-preview__status home-prop-preview__status--error">
-              {error}
-            </p>
+            <div className="home-prop-preview__status home-prop-preview__status--error">
+              <p>{error}</p>
+              <button
+                type="button"
+                className="home-prop-preview__retry"
+                onClick={() => setReloadKey((k) => k + 1)}
+                disabled={loading}
+              >
+                <RefreshCw
+                  className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}
+                  aria-hidden
+                />
+                {loading ? "Refreshing…" : "Refresh"}
+              </button>
+            </div>
           ) : null}
 
           {display ? (

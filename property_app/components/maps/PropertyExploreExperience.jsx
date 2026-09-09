@@ -9,6 +9,7 @@ import PropertyExploreMap from "@/components/maps/PropertyExploreMap";
 import { formatListingPrice } from "@/utils/currencyUtils";
 import { useCurrency } from "@/utils/CurrencyContext";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
+import { toUserFacingError } from "@/utils/userFacingError";
 import "@/components/maps/property-explore-map.css";
 
 function buildQueryFromFilters(filters, bounds) {
@@ -165,7 +166,7 @@ export default function PropertyExploreExperience({
       } catch (err) {
         if (err?.name === "AbortError") return;
         if (seq !== seqRef.current) return;
-        setError(err.message || "Could not load map stays");
+        setError(toUserFacingError(err, "Could not load map stays"));
       } finally {
         if (seq === seqRef.current) setLoading(false);
       }

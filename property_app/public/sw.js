@@ -1,6 +1,8 @@
 /* Minimal service worker — satisfies Chromium installability.
-   Keep fetch handler present; network-first for navigations. */
-const CACHE = "isisel-shell-v3";
+   Keep fetch handler present; network-first for navigations.
+   Never throw from respondWith — that surfaces as a technical
+   "FetchEvent.respondWith received an error" string in page fetch(). */
+const CACHE = "isisel-shell-v4";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -19,6 +21,40 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+function offlineResponse(request) {
+  const url = new URL(request.url);
+  const accept = request.headers.get("accept") || "";
+  const wantsJson =
+    url.pathname.startsWith("/api/") ||
+    accept.includes("application/json");
+
+  if (wantsJson) {
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        error: "You appear to be offline. Check your connection and try again.",
+      }),
+      {
+        status: 503,
+        statusText: "Offline",
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store",
+        },
+      },
+    );
+  }
+
+  return new Response("You appear to be offline.", {
+    status: 503,
+    statusText: "Offline",
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
@@ -30,7 +66,11 @@ self.addEventListener("fetch", (event) => {
       } catch {
         const cached = await caches.match(request);
         if (cached) return cached;
-        throw new Error("offline");
+        if (request.mode === "navigate") {
+          const shell = await caches.match("/");
+          if (shell) return shell;
+        }
+        return offlineResponse(request);
       }
     })(),
   );

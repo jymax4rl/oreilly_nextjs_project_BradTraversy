@@ -15,6 +15,7 @@ import {
   countNights,
   validateStayDates,
 } from "@/utils/availability/validateStay";
+import { toUserFacingError } from "@/utils/userFacingError";
 import {
   calculateBookingFees,
   calculateStayTotal,
@@ -335,13 +336,15 @@ function RightColumn({ data }) {
       });
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setPhoneModalError(
-          payload.error || "Please try again or message the host.",
+        const msg = toUserFacingError(
+          payload.error,
+          "Please try again or message the host.",
         );
+        setPhoneModalError(msg);
         setPaymentNotice({
           type: "error",
           title: "Could not request reservation",
-          message: payload.error || "Please try again or message the host.",
+          message: msg,
         });
         return;
       }
@@ -384,9 +387,10 @@ function RightColumn({ data }) {
         setPaymentNotice({
           type: "error",
           title: "Could not start card checkout",
-          message:
-            payload.message ||
+          message: toUserFacingError(
+            payload.message || payload.error,
             "Please try again, or message the host to arrange payment.",
+          ),
         });
         return;
       }
@@ -433,9 +437,10 @@ function RightColumn({ data }) {
         setPaymentNotice({
           type: "error",
           title: "Could not start checkout",
-          message:
-            payload.message ||
+          message: toUserFacingError(
+            payload.message || payload.error,
             "Please try again, or message the host to arrange payment.",
+          ),
         });
         return;
       }
