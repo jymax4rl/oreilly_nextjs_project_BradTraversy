@@ -1,5 +1,5 @@
 /**
- * Print Talbiy Cisse visiting card (85 × 55 mm, recto + verso).
+ * Print Taliybe Cisse visiting card (85 × 55 mm, recto + verso).
  * Usage: node scripts/generate-talbiy-card-pdf.mjs
  */
 import { existsSync, mkdirSync } from "node:fs";
