@@ -39,7 +39,7 @@ function readFiltersFromUrl() {
 
 /**
  * Homepage composition:
- * NAV → HERO → MAP DISCOVERY (compact + overlapping search) → RESULTS
+ * NAV → HERO → SEARCH SHELL (pill → map + widgets) → RESULTS
  */
 export default function HomeDiscoveryShell({
   hero,
