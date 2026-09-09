@@ -1076,6 +1076,7 @@
   height: 2.35rem;
   border: 0;
   border-radius: 999px;
+  opacity: 0;
   background: rgba(255, 255, 255, 0.92);
   color: var(--portal-ink, #0c1a1a);
   box-shadow: 0 8px 18px rgba(12, 26, 26, 0.16);
