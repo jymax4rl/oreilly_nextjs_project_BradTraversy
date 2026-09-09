@@ -140,6 +140,44 @@ export default function HomeDiscoveryShell({
     return () => document.body.classList.remove("home-discovery-active");
   }, [isResults]);
 
+  useEffect(() => {
+    if (!isResults) {
+      document.documentElement.style.removeProperty(
+        "--home-discovery-chrome-bottom",
+      );
+      return undefined;
+    }
+
+    const measure = () => {
+      const heroBottom =
+        heroRef.current?.getBoundingClientRect?.().bottom ?? 0;
+      const searchBottom =
+        searchRef.current?.getBoundingClientRect?.().bottom ?? 0;
+      const bottom = Math.max(heroBottom, searchBottom, 0);
+      if (bottom > 0) {
+        document.documentElement.style.setProperty(
+          "--home-discovery-chrome-bottom",
+          `${Math.ceil(bottom)}px`,
+        );
+      }
+    };
+
+    measure();
+    const raf = requestAnimationFrame(measure);
+    const t1 = window.setTimeout(measure, 100);
+    const t2 = window.setTimeout(measure, 450);
+    window.addEventListener("resize", measure);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      window.removeEventListener("resize", measure);
+      document.documentElement.style.removeProperty(
+        "--home-discovery-chrome-bottom",
+      );
+    };
+  }, [isResults, stage]);
+
   return (
     <>
       <div ref={heroRef} className="home-discovery-hero-slot">
