@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./home-portal.css";
+@import "../../components/pwa-boot-reveal.css";
 
 /*
   Isisel — global design tokens

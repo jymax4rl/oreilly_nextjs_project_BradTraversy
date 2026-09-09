@@ -70,6 +70,10 @@ runFlipFrom({
 5. Always settle opacity/transform if the tween is killed mid-flight.
 6. **Reserve** → `propertyPublicPath`. Close with `runModalMorphClose`.
 
+## PWA boot reveal
+
+Installed / standalone opens hold the Isisel mark (`PwaBootEarlyScript` + `PwaBootReveal`) until fonts + frames are ready, then a calm GSAP curtain/logo reveal. Do not invent a second competing splash.
+
 ## Anti-patterns
 
 - Mixing 3+ unrelated easings on one interaction
