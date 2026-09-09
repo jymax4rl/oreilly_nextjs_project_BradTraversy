@@ -17,6 +17,7 @@ import {
   PROPERTY_TYPE_VALUES,
   propertyTypeMessageKey,
 } from "@/lib/i18n/messages";
+import PriceRangeSlider from "@/components/search/PriceRangeSlider";
 
 const PROPERTY_TYPES = PROPERTY_TYPE_VALUES;
 
@@ -28,35 +29,31 @@ const MIN_COUNT_OPTIONS = [
   { value: "4", label: "4+" },
 ];
 
-function PriceFields({ minPrice, maxPrice, setMinPrice, setMaxPrice, t }) {
+function PriceFields({
+  minPrice,
+  maxPrice,
+  setMinPrice,
+  setMaxPrice,
+  setPriceTouched,
+  t,
+}) {
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <label className="min-w-0">
-        <span className="sr-only">{t("search.minNight")}</span>
-        <input
-          type="number"
-          name="minPrice"
-          min={0}
-          inputMode="numeric"
-          value={minPrice}
-          onChange={(e) => setMinPrice(e.target.value)}
-          placeholder={t("search.minNightPh")}
-          className="home-search-field w-full rounded-2xl px-3 py-2.5 text-[14px] outline-none transition sm:py-3 sm:text-[15px]"
-        />
-      </label>
-      <label className="min-w-0">
-        <span className="sr-only">{t("search.maxNight")}</span>
-        <input
-          type="number"
-          name="maxPrice"
-          min={0}
-          inputMode="numeric"
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(e.target.value)}
-          placeholder={t("search.maxNightPh")}
-          className="home-search-field w-full rounded-2xl px-3 py-2.5 text-[14px] outline-none transition sm:py-3 sm:text-[15px]"
-        />
-      </label>
+    <div className="rounded-2xl border border-[var(--portal-border,var(--kama-border))] bg-[var(--portal-field,var(--kama-field))] px-3 py-2">
+      <p className="mb-1 text-[11px] font-semibold text-[var(--portal-ink-muted,var(--kama-ink-muted))]">
+        {t("search.perNight")} (USD)
+      </p>
+      <PriceRangeSlider
+        min={0}
+        max={1000}
+        step={10}
+        valueMin={Number(minPrice) || 0}
+        valueMax={Number(maxPrice) || 1000}
+        onChange={({ min, max }) => {
+          setMinPrice(String(min));
+          setMaxPrice(String(max));
+          setPriceTouched?.(true);
+        }}
+      />
     </div>
   );
 }
@@ -117,8 +114,9 @@ export default function HomePortalSearch() {
   const router = useRouter();
   const [location, setLocation] = useState("");
   const [propertyType, setPropertyType] = useState("All Properties");
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
+  const [minPrice, setMinPrice] = useState("0");
+  const [maxPrice, setMaxPrice] = useState("1000");
+  const [priceTouched, setPriceTouched] = useState(false);
   const [minBeds, setMinBeds] = useState("");
   const [minBaths, setMinBaths] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -137,8 +135,7 @@ export default function HomePortalSearch() {
   }, []);
 
   const activeFilterCount = [
-    minPrice.trim(),
-    maxPrice.trim(),
+    priceTouched ? "1" : "",
     minBeds,
     minBaths,
   ].filter(Boolean).length;
@@ -150,8 +147,12 @@ export default function HomePortalSearch() {
     if (propertyType && propertyType !== "All Properties") {
       params.set("type", propertyType);
     }
-    if (minPrice.trim()) params.set("minPrice", minPrice.trim());
-    if (maxPrice.trim()) params.set("maxPrice", maxPrice.trim());
+    if (priceTouched) {
+      const minN = Number(minPrice);
+      const maxN = Number(maxPrice);
+      if (Number.isFinite(minN) && minN > 0) params.set("minPrice", String(minN));
+      if (Number.isFinite(maxN) && maxN < 1000) params.set("maxPrice", String(maxN));
+    }
     if (minBeds) params.set("minBeds", minBeds);
     if (minBaths) params.set("minBaths", minBaths);
     const queryString = params.toString();
@@ -280,6 +281,7 @@ export default function HomePortalSearch() {
                 maxPrice={maxPrice}
                 setMinPrice={setMinPrice}
                 setMaxPrice={setMaxPrice}
+                setPriceTouched={setPriceTouched}
                 t={t}
               />
               <RoomFields
@@ -301,6 +303,7 @@ export default function HomePortalSearch() {
               maxPrice={maxPrice}
               setMinPrice={setMinPrice}
               setMaxPrice={setMaxPrice}
+              setPriceTouched={setPriceTouched}
               t={t}
             />
           </div>

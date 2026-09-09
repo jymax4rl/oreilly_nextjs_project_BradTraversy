@@ -7,8 +7,10 @@ import {
   PROPERTY_TYPE_VALUES,
   propertyTypeMessageKey,
 } from "@/lib/i18n/messages";
+import PriceRangeSlider from "@/components/search/PriceRangeSlider";
 
 const PROPERTY_TYPES = PROPERTY_TYPE_VALUES;
+const PRICE_SLIDER_MAX = 1000;
 
 const MIN_COUNT_OPTIONS = [
   { value: "", label: "Any" },
@@ -23,15 +25,25 @@ const PropertySearch = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Initialize from URL params (back-button persistence)
   const [location, setLocation] = useState(searchParams.get("location") || "");
   const [propertyType, setPropertyType] = useState(
     searchParams.get("type") || "All Properties",
   );
-  const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
-  const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
+  const [minPrice, setMinPrice] = useState(
+    searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : 0,
+  );
+  const [maxPrice, setMaxPrice] = useState(
+    searchParams.get("maxPrice")
+      ? Number(searchParams.get("maxPrice"))
+      : PRICE_SLIDER_MAX,
+  );
+  const [priceTouched, setPriceTouched] = useState(
+    Boolean(searchParams.get("minPrice") || searchParams.get("maxPrice")),
+  );
   const [minBeds, setMinBeds] = useState(searchParams.get("minBeds") || "");
   const [minBaths, setMinBaths] = useState(searchParams.get("minBaths") || "");
+  const [checkIn, setCheckIn] = useState(searchParams.get("checkIn") || "");
+  const [checkOut, setCheckOut] = useState(searchParams.get("checkOut") || "");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
@@ -53,10 +65,14 @@ const PropertySearch = () => {
     if (propertyType && propertyType !== "All Properties") {
       params.set("type", propertyType);
     }
-    if (minPrice.trim()) params.set("minPrice", minPrice.trim());
-    if (maxPrice.trim()) params.set("maxPrice", maxPrice.trim());
+    if (priceTouched) {
+      if (minPrice > 0) params.set("minPrice", String(minPrice));
+      if (maxPrice < PRICE_SLIDER_MAX) params.set("maxPrice", String(maxPrice));
+    }
     if (minBeds) params.set("minBeds", minBeds);
     if (minBaths) params.set("minBaths", minBaths);
+    if (checkIn) params.set("checkIn", checkIn);
+    if (checkOut) params.set("checkOut", checkOut);
     const queryString = params.toString();
     router.push(`/properties${queryString ? `?${queryString}` : ""}`);
     router.refresh();
@@ -65,33 +81,33 @@ const PropertySearch = () => {
   const clearSearch = () => {
     setLocation("");
     setPropertyType("All Properties");
-    setMinPrice("");
-    setMaxPrice("");
+    setMinPrice(0);
+    setMaxPrice(PRICE_SLIDER_MAX);
+    setPriceTouched(false);
     setMinBeds("");
     setMinBaths("");
+    setCheckIn("");
+    setCheckOut("");
     inputRef.current?.focus();
   };
 
   const hasActiveFilters =
     location.trim() ||
     propertyType !== "All Properties" ||
-    minPrice.trim() ||
-    maxPrice.trim() ||
+    priceTouched ||
     minBeds ||
-    minBaths;
+    minBaths ||
+    checkIn ||
+    checkOut;
 
   return (
-    <section className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-[12vh] mb-12">
-      <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-6 md:p-10">
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-4 w-full"
-        >
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-center w-full">
-            {/* Location Input */}
-            <div className="w-full md:flex-[2] relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <MapPin className="h-5 w-5 text-gray-400 group-focus-within:text-[var(--kama-accent)] transition-colors" />
+    <section className="relative z-20 mx-auto mb-12 mt-[12vh] max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="rounded-3xl border border-white/20 bg-white/90 p-6 shadow-2xl backdrop-blur-xl md:p-10">
+        <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
+          <div className="flex w-full flex-col items-center justify-center gap-4 md:flex-row">
+            <div className="group relative w-full md:flex-[2]">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                <MapPin className="h-5 w-5 text-gray-400 transition-colors group-focus-within:text-[var(--kama-accent)]" />
               </div>
               <input
                 ref={inputRef}
@@ -99,36 +115,37 @@ const PropertySearch = () => {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder={t("search.locationLong")}
-                className="w-full pl-12 pr-10 py-4 rounded-2xl bg-[var(--kama-field)] border border-[var(--kama-border)] text-[var(--kama-ink)] placeholder-[var(--kama-ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20 focus:border-[var(--kama-accent)] focus:bg-white transition-all duration-200 shadow-sm"
+                className="w-full rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-field)] py-4 pl-12 pr-10 text-[var(--kama-ink)] shadow-sm placeholder-[var(--kama-ink-muted)] transition-all duration-200 focus:border-[var(--kama-accent)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20"
               />
-              {location && (
+              {location ? (
                 <button
                   type="button"
                   onClick={() => setLocation("")}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
                 >
                   <X className="h-4 w-4" />
                 </button>
-              )}
+              ) : null}
             </div>
 
-            {/* Property Type Dropdown */}
-            <div className="w-full md:flex-[1.5] relative" ref={dropdownRef}>
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+            <div className="relative w-full md:flex-[1.5]" ref={dropdownRef}>
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
                 <Home className="h-5 w-5 text-gray-400" />
               </div>
               <button
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="cursor-pointer w-full pl-12 pr-4 py-4 text-left rounded-2xl bg-[var(--kama-field)] border border-[var(--kama-border)] text-[var(--kama-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20 focus:border-[var(--kama-accent)] focus:bg-white transition-all duration-200 shadow-sm flex items-center justify-between"
+                className="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-field)] py-4 pl-12 pr-4 text-left text-[var(--kama-ink)] shadow-sm transition-all duration-200 focus:border-[var(--kama-accent)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20"
               >
-                <span className="block truncate">{t(propertyTypeMessageKey(propertyType))}</span>
+                <span className="block truncate">
+                  {t(propertyTypeMessageKey(propertyType))}
+                </span>
                 <ChevronDown
                   className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
                 />
               </button>
-              {isDropdownOpen && (
-                <div className="absolute z-50 mt-2 w-full bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              {isDropdownOpen ? (
+                <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl">
                   <div className="max-h-60 overflow-auto py-2">
                     {PROPERTY_TYPES.map((type) => (
                       <div
@@ -137,79 +154,110 @@ const PropertySearch = () => {
                           setPropertyType(type);
                           setIsDropdownOpen(false);
                         }}
-                        className={`px-4 py-3 cursor-pointer transition-colors text-sm flex items-center justify-between ${propertyType === type ? "bg-[var(--kama-accent-soft)] text-[var(--kama-accent)] font-medium" : "text-gray-700 hover:bg-gray-50"}`}
+                        className={`flex cursor-pointer items-center justify-between px-4 py-3 text-sm transition-colors ${propertyType === type ? "bg-[var(--kama-accent-soft)] font-medium text-[var(--kama-accent)]" : "text-gray-700 hover:bg-gray-50"}`}
                       >
                         {t(propertyTypeMessageKey(type))}
-                        {propertyType === type && (
-                          <div className="w-2 h-2 rounded-full bg-[var(--kama-accent)]"></div>
-                        )}
+                        {propertyType === type ? (
+                          <div className="h-2 w-2 rounded-full bg-[var(--kama-accent)]" />
+                        ) : null}
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-center w-full">
-            {/* Price range */}
-            <div className="w-full md:flex-[1.2] grid grid-cols-2 gap-2">
-              <input
-                type="number"
+          <div className="grid w-full gap-4 md:grid-cols-[1.35fr_1fr_0.9fr_auto] md:items-end">
+            <div className="rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-4 py-3">
+              <p className="mb-1 text-xs font-semibold text-[var(--kama-ink-muted)]">
+                {t("search.perNight")} (USD)
+              </p>
+              <PriceRangeSlider
                 min={0}
-                value={minPrice}
-                onChange={(e) => setMinPrice(e.target.value)}
-                placeholder={t("search.minNightPh")}
-                className="w-full py-4 px-4 rounded-2xl bg-[var(--kama-field)] border border-[var(--kama-border)] text-[var(--kama-ink)] placeholder-[var(--kama-ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20 focus:border-[var(--kama-accent)] focus:bg-white transition-all shadow-sm"
-              />
-              <input
-                type="number"
-                min={0}
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(e.target.value)}
-                placeholder={t("search.maxNightPh")}
-                className="w-full py-4 px-4 rounded-2xl bg-[var(--kama-field)] border border-[var(--kama-border)] text-[var(--kama-ink)] placeholder-[var(--kama-ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20 focus:border-[var(--kama-accent)] focus:bg-white transition-all shadow-sm"
+                max={PRICE_SLIDER_MAX}
+                step={10}
+                valueMin={minPrice}
+                valueMax={maxPrice}
+                onChange={({ min, max }) => {
+                  setMinPrice(min);
+                  setMaxPrice(max);
+                  setPriceTouched(true);
+                }}
               />
             </div>
 
-            {/* Beds / baths */}
-            <div className="w-full md:flex-[1.2] grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2">
+              <label className="min-w-0">
+                <span className="mb-1 block text-xs font-semibold text-[var(--kama-ink-muted)]">
+                  Check-in
+                </span>
+                <input
+                  type="date"
+                  value={checkIn}
+                  onChange={(e) => setCheckIn(e.target.value)}
+                  className="w-full rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-3 text-sm text-[var(--kama-ink)] focus:border-[var(--kama-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20"
+                />
+              </label>
+              <label className="min-w-0">
+                <span className="mb-1 block text-xs font-semibold text-[var(--kama-ink-muted)]">
+                  Check-out
+                </span>
+                <input
+                  type="date"
+                  value={checkOut}
+                  onChange={(e) => setCheckOut(e.target.value)}
+                  className="w-full rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-field)] px-3 py-3 text-sm text-[var(--kama-ink)] focus:border-[var(--kama-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20"
+                />
+              </label>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
               <div className="relative">
-                <BedDouble className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden />
+                <BedDouble
+                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                  aria-hidden
+                />
                 <select
                   value={minBeds}
                   onChange={(e) => setMinBeds(e.target.value)}
                   aria-label={t("search.minBeds")}
-                  className="w-full appearance-none py-4 pl-10 pr-8 rounded-2xl bg-[var(--kama-field)] border border-[var(--kama-border)] text-[var(--kama-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20 focus:border-[var(--kama-accent)] focus:bg-white transition-all shadow-sm"
+                  className="w-full appearance-none rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-field)] py-4 pl-10 pr-8 text-[var(--kama-ink)] shadow-sm focus:border-[var(--kama-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20"
                 >
                   {MIN_COUNT_OPTIONS.map((opt) => (
                     <option key={`beds-${opt.value || "any"}`} value={opt.value}>
-                      {opt.value ? t("search.bedsN", { n: opt.label.replace("+", "") }) : t("search.bedsAny")}
+                      {opt.value
+                        ? t("search.bedsN", { n: opt.label.replace("+", "") })
+                        : t("search.bedsAny")}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="relative">
-                <Bath className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden />
+                <Bath
+                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                  aria-hidden
+                />
                 <select
                   value={minBaths}
                   onChange={(e) => setMinBaths(e.target.value)}
                   aria-label={t("search.minBaths")}
-                  className="w-full appearance-none py-4 pl-10 pr-8 rounded-2xl bg-[var(--kama-field)] border border-[var(--kama-border)] text-[var(--kama-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20 focus:border-[var(--kama-accent)] focus:bg-white transition-all shadow-sm"
+                  className="w-full appearance-none rounded-2xl border border-[var(--kama-border)] bg-[var(--kama-field)] py-4 pl-10 pr-8 text-[var(--kama-ink)] shadow-sm focus:border-[var(--kama-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--kama-accent)]/20"
                 >
                   {MIN_COUNT_OPTIONS.map((opt) => (
                     <option key={`baths-${opt.value || "any"}`} value={opt.value}>
-                      {opt.value ? t("search.bathsN", { n: opt.label.replace("+", "") }) : t("search.bathsAny")}
+                      {opt.value
+                        ? t("search.bathsN", { n: opt.label.replace("+", "") })
+                        : t("search.bathsAny")}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
 
-            {/* Search Button */}
             <button
               type="submit"
-              className="kama-cta cursor-pointer w-full md:w-auto md:min-w-[160px] min-h-[52px] py-4 px-8 rounded-2xl font-bold shadow-lg shadow-[rgba(27,92,87,0.25)] hover:shadow-[rgba(27,92,87,0.35)] transform active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
+              className="kama-cta flex min-h-[52px] w-full cursor-pointer items-center justify-center gap-2 rounded-2xl px-8 py-4 font-bold shadow-lg shadow-[rgba(27,92,87,0.25)] transition-all duration-200 hover:shadow-[rgba(27,92,87,0.35)] active:scale-95 md:w-auto md:min-w-[148px]"
             >
               <Search className="h-5 w-5" />
               <span>{t("search.search")}</span>
@@ -217,44 +265,39 @@ const PropertySearch = () => {
           </div>
         </form>
 
-        {/* Active Filters */}
-        {hasActiveFilters && (
+        {hasActiveFilters ? (
           <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-gray-600">
             <span className="font-medium">{t("search.activeFilters")}</span>
-            {location.trim() && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--kama-accent-soft)] text-[var(--kama-accent)] text-xs font-medium">
+            {location.trim() ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--kama-accent-soft)] px-3 py-1 text-xs font-medium text-[var(--kama-accent)]">
                 <MapPin className="h-3 w-3" /> {location}
               </span>
-            )}
-            {propertyType !== "All Properties" && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--kama-accent-soft)] text-[var(--kama-accent)] text-xs font-medium">
+            ) : null}
+            {propertyType !== "All Properties" ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--kama-accent-soft)] px-3 py-1 text-xs font-medium text-[var(--kama-accent)]">
                 <Home className="h-3 w-3" /> {t(propertyTypeMessageKey(propertyType))}
               </span>
-            )}
-            {(minPrice.trim() || maxPrice.trim()) && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--kama-accent-soft)] text-[var(--kama-accent)] text-xs font-medium">
-                ${minPrice || "0"} – ${maxPrice || "∞"} {t("search.perNight")}
+            ) : null}
+            {priceTouched ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--kama-accent-soft)] px-3 py-1 text-xs font-medium text-[var(--kama-accent)]">
+                ${minPrice} – ${maxPrice >= PRICE_SLIDER_MAX ? "∞" : maxPrice}{" "}
+                {t("search.perNight")}
               </span>
-            )}
-            {minBeds && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--kama-accent-soft)] text-[var(--kama-accent)] text-xs font-medium">
-                <BedDouble className="h-3 w-3" /> {t("search.bedsN", { n: minBeds })}
+            ) : null}
+            {checkIn || checkOut ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--kama-accent-soft)] px-3 py-1 text-xs font-medium text-[var(--kama-accent)]">
+                {checkIn || "…"} → {checkOut || "…"}
               </span>
-            )}
-            {minBaths && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--kama-accent-soft)] text-[var(--kama-accent)] text-xs font-medium">
-                <Bath className="h-3 w-3" /> {t("search.bathsN", { n: minBaths })}
-              </span>
-            )}
+            ) : null}
             <button
               type="button"
               onClick={clearSearch}
-              className="text-red-500 hover:text-red-700 underline underline-offset-2 text-xs font-medium md:ml-auto"
+              className="text-xs font-medium text-red-500 underline underline-offset-2 hover:text-red-700 md:ml-auto"
             >
               {t("search.clear")}
             </button>
           </div>
-        )}
+        ) : null}
       </div>
     </section>
   );

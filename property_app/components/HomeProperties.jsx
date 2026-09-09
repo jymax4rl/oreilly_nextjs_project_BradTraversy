@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Search, MapPin, Home, SlidersHorizontal, BedDouble, Bath } from "lucide-react";
 import PropertyCard from "./PropertyCard";
 import Link from "next/link";
@@ -11,6 +11,8 @@ import PropertySearch from "./PropertySearch";
 import { Suspense } from "react";
 import HostListingCardActions from "./properties/HostListingCardActions";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
+import PropertyExploreExperience from "@/components/maps/PropertyExploreExperience";
+import "@/components/maps/property-explore-map.css";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { propertyTypeMessageKey } from "@/lib/i18n/messages";
 import { isListingsCatalogBeta } from "@/utils/listings/catalogBeta";
@@ -23,19 +25,19 @@ const HomeProperties = ({
   maxPrice = null,
   minBeds = null,
   minBaths = null,
+  checkIn = "",
+  checkOut = "",
   isSavedView = false,
   hideSearchToolbar = false,
   hostListingsView = false,
 }) => {
   const { t } = useLanguage();
   const { currencyCode, rates } = useCurrency();
-  const [properties, setProperties] = useState(
-    initialProperties.length > 0 ? initialProperties : [],
+  const properties = initialProperties.length > 0 ? initialProperties : [];
+  const [deletedIds, setDeletedIds] = useState(() => []);
+  const displayProperties = properties.filter(
+    (p) => !deletedIds.includes(String(p._id)),
   );
-
-  useEffect(() => {
-    setProperties(initialProperties.length > 0 ? initialProperties : []);
-  }, [initialProperties]);
 
   const currencyMeta =
     CURRENCIES.find((c) => c.code === currencyCode) || CURRENCIES[0];
@@ -146,7 +148,8 @@ const HomeProperties = ({
           </div>
         )}
 
-        {properties.length === 0 ? (
+        {hostListingsView || isSavedView ? (
+          displayProperties.length === 0 ? (
           <div className="col-span-full flex flex-col items-center justify-center rounded-3xl border border-gray-100 bg-white px-4 py-24 text-center shadow-sm">
             {hostListingsView ? (
               <>
@@ -202,7 +205,7 @@ const HomeProperties = ({
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-            {properties.map((property) =>
+            {displayProperties.map((property) =>
               hostListingsView ? (
                 <div
                   key={property._id}
@@ -223,9 +226,7 @@ const HomeProperties = ({
                       propertyName={property.name}
                       listingHref={propertyPublicPath(property)}
                       onDeleted={(id) => {
-                        setProperties((prev) =>
-                          prev.filter((p) => String(p._id) !== String(id)),
-                        );
+                        setDeletedIds((prev) => [...prev, String(id)]);
                       }}
                     />
                   </div>
@@ -242,6 +243,22 @@ const HomeProperties = ({
               ),
             )}
           </div>
+        )
+        ) : (
+          <PropertyExploreExperience
+            compact={hideSearchToolbar}
+            initialProperties={properties}
+            filters={{
+              location: searchQuery || "",
+              type: typeFilter || "",
+              minPrice,
+              maxPrice,
+              minBeds,
+              minBaths,
+              checkIn: checkIn || "",
+              checkOut: checkOut || "",
+            }}
+          />
         )}
       </div>
     </section>
