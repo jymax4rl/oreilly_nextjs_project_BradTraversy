@@ -527,6 +527,12 @@
   box-shadow: 0 10px 28px rgba(12, 26, 26, 0.22);
 }
 
+@media (min-width: 768px) {
+  .pem-explore__fab {
+    display: none !important;
+  }
+}
+
 .pem-explore__map-toggle {
   display: inline-flex;
   align-items: center;

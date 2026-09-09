@@ -120,7 +120,23 @@ export default function HomeDiscoveryShell({
 
     if (stage === HOME_STAGE.RESULTS) {
       requestAnimationFrame(() => {
-        cleanupRef.current = runHomeDiscoverTransition(common);
+        cleanupRef.current = runHomeDiscoverTransition({
+          ...common,
+          onComplete: () => {
+            const heroBottom =
+              heroRef.current?.getBoundingClientRect?.().bottom ?? 0;
+            const searchBottom =
+              searchRef.current?.getBoundingClientRect?.().bottom ?? 0;
+            const bottom = Math.max(heroBottom, searchBottom, 0);
+            if (bottom > 0) {
+              document.documentElement.style.setProperty(
+                "--home-discovery-chrome-bottom",
+                `${Math.ceil(bottom)}px`,
+              );
+            }
+            markTransitionDone();
+          },
+        });
       });
     } else {
       requestAnimationFrame(() => {

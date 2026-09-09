@@ -480,9 +480,9 @@
 .home-hero--compressed .home-hero--photo {
   min-height: 0 !important;
   max-height: none;
-  height: clamp(5.25rem, 11vh, 6.75rem) !important;
-  padding-top: calc(8vh + 0.35rem) !important;
-  padding-bottom: 0.35rem !important;
+  height: clamp(4.75rem, 9vh, 5.75rem) !important;
+  padding-top: calc(8vh + 0.15rem) !important;
+  padding-bottom: 0.15rem !important;
   justify-content: center;
 }
 
