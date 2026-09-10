@@ -115,11 +115,14 @@ export default withSentryConfig(nextConfig, {
   // Proxy browser events through the Next app (helps with ad blockers).
   tunnelRoute: "/monitoring",
 
-  // Tree-shake Sentry debug logger statements from production bundles.
-  disableLogger: true,
-
-  // Create Sentry cron monitors from vercel.json crons when present.
-  automaticVercelMonitors: true,
+  webpack: {
+    // Tree-shake Sentry debug logger statements from production bundles.
+    treeshake: {
+      removeDebugLogging: true,
+    },
+    // Create Sentry cron monitors from vercel.json crons when present.
+    automaticVercelMonitors: true,
+  },
 
   // Do not fail / block builds when auth token is missing (local + CI without secrets).
   // Set SENTRY_AUTH_TOKEN on Vercel to enable release + source map upload.
