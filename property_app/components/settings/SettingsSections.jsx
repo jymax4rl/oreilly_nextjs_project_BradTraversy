@@ -16,6 +16,7 @@ import {
 import NotificationToggles from "@/components/settings/NotificationToggles";
 import CurrencyPreference from "@/components/settings/CurrencyPreference";
 import SignOutButton from "@/components/settings/SignOutButton";
+import HostCancellationPolicyForm from "@/components/settings/HostCancellationPolicyForm";
 import HostPushPrompt from "@/components/host/HostPushPrompt";
 import { BECOME_A_HOST_HREF } from "@/utils/hostPwaInstall";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
@@ -197,6 +198,16 @@ export default function SettingsSections({ settings }) {
                   Add your IBAN below for platform-managed host settlement.
                 </p>
                 <HostPayoutForm />
+              </div>
+              <div className="mb-5 rounded-xl border border-[var(--kama-border)] bg-white px-4 py-4">
+                <h3 className="text-sm font-semibold text-[var(--kama-ink)]">
+                  Default cancellation policy
+                </h3>
+                <div className="mt-3">
+                  <HostCancellationPolicyForm
+                    initialPolicy={settings.defaultCancellationPolicy}
+                  />
+                </div>
               </div>
               <div className="space-y-0.5">
                 <DeepLink

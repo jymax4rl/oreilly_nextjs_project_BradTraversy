@@ -15,7 +15,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test utils/foundingHost/logic.test.mjs utils/listings/mapBounds.test.mjs utils/userFacingError.test.mjs",
+    "test": "node --test utils/foundingHost/logic.test.mjs utils/listings/mapBounds.test.mjs utils/userFacingError.test.mjs utils/bookings/bookingPolicy.test.mjs",
     "setup:email-templates": "node scripts/setup-resend-booking-templates.mjs",
     "docker:release": "node scripts/docker-release.mjs",
     "docker:bump": "node scripts/docker-release.mjs --bump",

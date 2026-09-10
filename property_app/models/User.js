@@ -134,6 +134,23 @@ const UserSchema = new Schema(
         default: undefined,
       },
     },
+    /**
+     * Host-wide default free-cancellation window. Applied to new reservations
+     * when a listing has no explicit Property.bookingPolicy. Snapshotted onto
+     * each booking so later edits do not rewrite past stays.
+     * preset: none | 12 | 24 | 48 | 72 | custom
+     */
+    defaultCancellationPolicy: {
+      preset: {
+        type: String,
+        enum: ["none", "12", "24", "48", "72", "custom"],
+        default: "48",
+      },
+      /** Used when preset === "custom" (hours before check-in). */
+      customHours: { type: Number, min: 0, max: 8760, default: 48 },
+      /** IANA zone for check-in midnight (eligibility math). */
+      timeZone: { type: String, default: "UTC" },
+    },
     /** Last accepted Terms & Conditions version string (e.g. kama-terms-v1.0-…). */
     termsVersion: {
       type: String,

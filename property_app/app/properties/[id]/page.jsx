@@ -28,6 +28,11 @@ import {
 } from "@/utils/listings/previewLockedHost";
 import { isListingPreviewLocked } from "@/utils/listings/previewLockedHost.server";
 import { findSameOwnerPublicListings } from "@/utils/listings/sameOwnerListings";
+import User from "@/models/User";
+import {
+  resolveEffectiveBookingPolicy,
+  describeCancellationPolicy,
+} from "@/utils/bookings/bookingPolicy";
 
 async function loadPublicListing(param) {
   await connectToDatabase();
@@ -126,6 +131,22 @@ export default async function PropertyPage({ params }) {
   const serialized = await attachOwnerProfiles(
     serializePropertyForClient(property),
   );
+
+  let hostDefault = null;
+  if (property.owner) {
+    const host = await User.findById(property.owner)
+      .select("defaultCancellationPolicy")
+      .lean();
+    hostDefault = host?.defaultCancellationPolicy || null;
+  }
+  const { policy: effectiveCancellationPolicy } = resolveEffectiveBookingPolicy({
+    property,
+    hostDefault,
+  });
+  serialized.cancellationPolicySummary = describeCancellationPolicy(
+    effectiveCancellationPolicy,
+  );
+  serialized.effectiveCancellationPolicy = effectiveCancellationPolicy;
   if (
     serialized.previewLocked &&
     !canUnlockPreviewListing(session) &&

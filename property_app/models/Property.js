@@ -76,6 +76,8 @@ const PropertySchema = new mongoose.Schema(
       allowGuestCancel: { type: Boolean },
       allowGuestModify: { type: Boolean },
       maxModifications: { type: Number },
+      /** Optional IANA zone override for this listing's check-in boundary. */
+      timeZone: { type: String },
     },
     images: [{ type: Schema.Types.Mixed }],
     audio: { type: Schema.Types.Mixed, required: false },
