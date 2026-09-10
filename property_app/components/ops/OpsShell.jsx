@@ -1,6 +1,12 @@
 import OpsNav from "@/components/ops/OpsNav";
+import OpsMobileDock from "@/components/ops/OpsMobileDock";
 import "@/components/ops/charts/ops-charts.css";
 
+/**
+ * Ops viewport shell:
+ * [top bar] + [scrollable main] + [in-flow bottom dock]
+ * Dock is a flex sibling, not position:fixed — stays on the screen bottom in PWA.
+ */
 export default function OpsShell({ children, title, subtitle, wide, copilot }) {
   return (
     <div className="ops-app">
@@ -20,6 +26,7 @@ export default function OpsShell({ children, title, subtitle, wide, copilot }) {
           {children}
         </div>
       </div>
+      <OpsMobileDock />
     </div>
   );
 }

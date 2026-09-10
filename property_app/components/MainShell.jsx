@@ -8,6 +8,9 @@ export default function MainShell({ children }) {
   const pathname = usePathname() || "";
   const explore = isExploreMobileLayout(pathname);
   const fullscreen = isFullscreenRoute(pathname);
+  const opsViewport =
+    (pathname.startsWith("/ops") && !pathname.startsWith("/ops/login")) ||
+    pathname.startsWith("/documentation");
   const isHome = pathname === "/";
   const isAudienceLanding =
     pathname === "/business" ||
@@ -27,18 +30,19 @@ export default function MainShell({ children }) {
     <main
       id="main-content"
       className={
-        fullscreen
-          ? // Avoid overflow-x-* here: on iOS/PWA it makes descendants with
-            // position:fixed stick to this main instead of the viewport
-            // (ops / host bottom chrome must stay edge-stuck).
-            "flex-grow m-0 min-h-dvh p-0 lg:pt-0"
-          : isHome
-            ? "flex-grow m-0 overflow-x-hidden p-0 pt-0 pb-0"
-            : isAudienceLanding
+        opsViewport
+          ? // Ops owns scroll + in-flow bottom dock; lock main to the viewport.
+            "flex m-0 min-h-dvh h-dvh flex-col overflow-hidden p-0 lg:pt-0"
+          : fullscreen
+            ? // Host / login: no main chrome padding; keep document scroll.
+              "flex-grow m-0 min-h-dvh p-0 lg:pt-0"
+            : isHome
               ? "flex-grow m-0 overflow-x-hidden p-0 pt-0 pb-0"
-              : explore
-              ? "flex-grow overflow-x-hidden pt-[calc(4.75rem+var(--kama-safe-top,env(safe-area-inset-top,0px)))] pb-[var(--kama-chrome-clearance)] lg:pt-0 lg:pb-0"
-              : "flex-grow overflow-x-hidden pt-[calc(8vh+var(--kama-safe-top,env(safe-area-inset-top,0px)))] pb-[calc(var(--kama-chrome-clearance)+1.25rem)] lg:pb-0 lg:pt-0"
+              : isAudienceLanding
+                ? "flex-grow m-0 overflow-x-hidden p-0 pt-0 pb-0"
+                : explore
+                  ? "flex-grow overflow-x-hidden pt-[calc(4.75rem+var(--kama-safe-top,env(safe-area-inset-top,0px)))] pb-[var(--kama-chrome-clearance)] lg:pt-0 lg:pb-0"
+                  : "flex-grow overflow-x-hidden pt-[calc(8vh+var(--kama-safe-top,env(safe-area-inset-top,0px)))] pb-[calc(var(--kama-chrome-clearance)+1.25rem)] lg:pb-0 lg:pt-0"
       }
     >
       {children}
