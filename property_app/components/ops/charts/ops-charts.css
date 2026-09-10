@@ -103,12 +103,12 @@
 }
 
 .ops-app-inner {
-  padding: 1.15rem 1.15rem 5.75rem;
+  padding: 1.15rem 1.15rem 6.25rem;
 }
 
 @media (min-width: 640px) {
   .ops-app-inner {
-    padding: 1.5rem 1.5rem 5.75rem;
+    padding: 1.5rem 1.5rem 6.25rem;
   }
 }
 
@@ -304,18 +304,34 @@
   background: transparent;
 }
 
+/* Floating frosted ops dock — 4 primary tabs + More (not edge-to-edge chrome). */
 .ops-bottom-nav {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: calc(0.55rem + env(safe-area-inset-bottom, 0px));
   z-index: 40;
   display: flex;
   justify-content: space-around;
-  gap: 0.15rem;
-  padding: 0.35rem 0.35rem calc(0.35rem + env(safe-area-inset-bottom));
-  background: #111;
-  border-top: 1px solid #1f1f1f;
+  align-items: stretch;
+  gap: 0.1rem;
+  max-width: 28rem;
+  margin-inline: auto;
+  padding: 0.3rem;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.84);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 10px 32px rgba(0, 0, 0, 0.38),
+    0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ops-bottom-nav {
+    background: rgba(17, 17, 17, 0.96);
+  }
 }
 
 .ops-bottom-link {
@@ -323,22 +339,25 @@
   min-width: 0;
   flex: 1 1 0;
   max-width: 5.5rem;
+  min-height: 3rem;
   flex-direction: column;
   align-items: center;
-  gap: 0.15rem;
+  justify-content: center;
+  gap: 0.12rem;
   border: 0;
-  border-radius: 0.5rem;
-  padding: 0.4rem 0.2rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.2rem;
   background: transparent;
   font: inherit;
   font-size: 0.625rem;
   font-weight: 550;
   line-height: 1.15;
-  color: #737373;
+  color: #a3a3a3;
   cursor: pointer;
   text-align: center;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
+  transition: background 0.18s ease, color 0.18s ease;
 }
 
 .ops-bottom-link > span {
@@ -351,7 +370,7 @@
 
 .ops-bottom-link--active {
   color: #fafafa;
-  background: #262626;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .ops-more-backdrop {
@@ -365,19 +384,21 @@
 
 .ops-more-sheet {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 0.65rem;
+  right: 0.65rem;
+  bottom: calc(4.35rem + env(safe-area-inset-bottom, 0px));
   z-index: 50;
   display: flex;
   flex-direction: column;
-  max-height: min(70dvh, 28rem);
-  padding: 0.65rem 0.85rem calc(4.75rem + env(safe-area-inset-bottom));
-  border-radius: 1rem 1rem 0 0;
-  background: #161616;
-  border-top: 1px solid #2a2a2a;
+  max-height: min(62dvh, 26rem);
+  padding: 0.65rem 0.85rem 0.85rem;
+  border-radius: 1.15rem;
+  background: rgba(22, 22, 22, 0.94);
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: #fafafa;
-  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.42);
   transform: translateY(110%);
   transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;

@@ -9,6 +9,7 @@ export function isExploreMobileLayout(pathname) {
   if (
     pathname.startsWith("/admin") ||
     pathname.startsWith("/ops") ||
+    pathname.startsWith("/documentation") ||
     pathname.startsWith("/host")
   )
     return false;
