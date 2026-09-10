@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 import Booking from "@/models/Booking";
 import Property from "@/models/Property";
+import User from "@/models/User";
+import {
+  resolveEffectiveBookingPolicy,
+  snapshotCancellationPolicy,
+} from "@/utils/bookings/bookingPolicy";
 import { getAvailabilityPayload } from "@/utils/availability/availabilityService";
 import {
   countNights,
@@ -115,7 +120,7 @@ export async function confirmBookingFromPayment({
   }
 
   const property = await Property.findById(propertyId)
-    .select("name owner rates")
+    .select("name owner rates bookingPolicy")
     .lean();
 
   const pricingSnapshot = await buildGatewayPricingSnapshot({
@@ -127,6 +132,23 @@ export async function confirmBookingFromPayment({
     amount,
     currency,
   });
+
+  let hostDefault = null;
+  if (property?.owner) {
+    const host = await User.findById(property.owner)
+      .select("defaultCancellationPolicy")
+      .lean();
+    hostDefault = host?.defaultCancellationPolicy || null;
+  }
+  const { policy: effectivePolicy, source: policySource } =
+    resolveEffectiveBookingPolicy({
+      property,
+      hostDefault,
+    });
+  const cancellationPolicySnapshot = snapshotCancellationPolicy(
+    effectivePolicy,
+    policySource,
+  );
 
   const booking = await Booking.create({
     propertyId: new mongoose.Types.ObjectId(propertyId),
@@ -144,6 +166,7 @@ export async function confirmBookingFromPayment({
     propertyName: propertyName || property?.name || undefined,
     version: 0,
     pricingSnapshot,
+    cancellationPolicySnapshot,
   });
 
   if (property?.owner) {

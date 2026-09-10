@@ -125,6 +125,23 @@ const BookingSchema = new mongoose.Schema(
     refundCurrency: { type: String },
     refundReference: { type: String },
     pricingSnapshot: { type: PricingSnapshotSchema },
+    /**
+     * Frozen cancellation / modify policy at reservation create time.
+     * Eligibility MUST read this snapshot — never the live host/property policy.
+     */
+    cancellationPolicySnapshot: {
+      freeCancelUntilHoursBeforeCheckIn: { type: Number },
+      modifyUntilHoursBeforeCheckIn: { type: Number },
+      allowGuestCancel: { type: Boolean },
+      allowGuestModify: { type: Boolean },
+      maxModifications: { type: Number },
+      timeZone: { type: String },
+      source: {
+        type: String,
+        enum: ["property", "host_default", "platform_default"],
+      },
+      capturedAt: { type: Date },
+    },
     emailStatus: { type: EmailStatusSchema, default: () => ({}) },
     /** Set when confirmation emails have been dispatched (webhook/callback idempotency). */
     confirmationEmailsDispatchedAt: { type: Date },
