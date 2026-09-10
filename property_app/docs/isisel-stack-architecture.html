@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Isisel — Stack Architecture & Program Flow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --teal: #1b5c57;
+      --teal-deep: #0f3d3a;
+      --teal-soft: #e7f1ef;
+      --ink: #0c1a1a;
+      --muted: #4a5c5b;
+      --canvas: #f7faf9;
+      --paper: #ffffff;
+      --line: rgba(27, 92, 87, 0.16);
+    }
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; background: #d5ddd9; color: var(--ink);
+      font-family: Sora, "Segoe UI", sans-serif;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .sheet {
+      width: 210mm; height: 297mm; margin: 0 auto 10px; overflow: hidden;
+      position: relative; page-break-after: always; break-after: page; background: var(--canvas);
+    }
+    .sheet:last-child { page-break-after: auto; margin-bottom: 0; }
+    @media print { html, body { background: none; } .sheet { margin: 0; box-shadow: none; } }
+
+    /* Cover */
+    .cover {
+      background:
+        radial-gradient(ellipse 90% 55% at 85% 8%, rgba(27,92,87,0.22), transparent 55%),
+        linear-gradient(165deg, #0c1a1a 0%, #123532 42%, #1b5c57 100%);
+      color: #f4f8f7;
+      padding: 14mm 16mm 12mm;
+      display: flex; flex-direction: column;
+    }
+    .cover-top { display: flex; justify-content: space-between; align-items: center; }
+    .brand { display: flex; align-items: center; gap: 3.5mm; }
+    .brand svg { width: 11mm; height: auto; display: block; }
+    .brand-name {
+      font-size: 11pt; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase;
+    }
+    .cover-meta { text-align: right; font-size: 8.5pt; opacity: 0.78; line-height: 1.45; }
+    .cover-hero { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 10mm; }
+    .eyebrow {
+      font-size: 8pt; font-weight: 600; letter-spacing: 0.32em; text-transform: uppercase;
+      color: #c9dfda; margin: 0 0 5mm;
+    }
+    .cover h1 {
+      font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 34pt;
+      line-height: 1.02; margin: 0 0 6mm; max-width: 170mm;
+    }
+    .cover h1 span { display: block; color: #b8d9d3; font-weight: 500; font-size: 22pt; margin-top: 2mm; }
+    .cover-rule { width: 28mm; height: 2.5px; background: #b8d9d3; margin-bottom: 7mm; }
+    .lede { font-size: 11.5pt; font-weight: 300; line-height: 1.45; max-width: 158mm; opacity: 0.92; margin: 0 0 8mm; }
+    .cover-pills { display: flex; flex-wrap: wrap; gap: 2.5mm; }
+    .pill {
+      border: 1px solid rgba(255,255,255,0.28); background: rgba(255,255,255,0.08);
+      padding: 2.2mm 4mm; font-size: 8pt; font-weight: 500; letter-spacing: 0.04em;
+    }
+    .cover-foot {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      border-top: 1px solid rgba(255,255,255,0.18); padding-top: 5mm; font-size: 8pt; opacity: 0.75;
+    }
+
+    /* Inner */
+    .inner { padding: 11mm 14mm 10mm; display: flex; flex-direction: column; height: 100%; }
+    .inner-head {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 4mm; border-bottom: 1px solid var(--line); margin-bottom: 5mm;
+    }
+    .brand-mini {
+      display: flex; align-items: center; gap: 2.5mm;
+      font-size: 8pt; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--teal);
+    }
+    .brand-mini svg { width: 6.5mm; height: auto; }
+    .folio { font-size: 8pt; color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; }
+    h2 {
+      font-family: Fraunces, Georgia, serif; font-size: 20pt; font-weight: 600;
+      line-height: 1.1; margin: 0 0 2mm; color: var(--ink);
+    }
+    .section-intro { font-size: 9.5pt; color: var(--muted); line-height: 1.45; margin: 0 0 5mm; max-width: 178mm; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92em; }
+
+    /* Layers */
+    .layers { display: flex; flex-direction: column; gap: 2.8mm; flex: 1; }
+    .layer {
+      background: var(--paper); border: 1px solid var(--line);
+      padding: 3.5mm 4.2mm; display: grid; grid-template-columns: 28mm 1fr; gap: 4mm; align-items: center;
+    }
+    .layer-label {
+      font-size: 7.5pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal);
+    }
+    .layer-label small {
+      display: block; font-weight: 400; letter-spacing: 0.02em; text-transform: none;
+      color: var(--muted); margin-top: 1mm; font-size: 7.2pt;
+    }
+    .tech-row { display: flex; flex-wrap: wrap; gap: 2mm; }
+    .tech {
+      display: inline-flex; align-items: center; gap: 2mm;
+      background: var(--teal-soft); border: 1px solid var(--line);
+      padding: 1.6mm 3mm; font-size: 7.8pt; font-weight: 500;
+    }
+    .tech svg { width: 4mm; height: 4mm; flex-shrink: 0; }
+    .tech.ghost { background: #fff; }
+
+    /* Flow */
+    .flow { display: flex; align-items: stretch; gap: 0; margin: 1mm 0 5mm; }
+    .flow-node {
+      flex: 1; background: var(--paper); border: 1px solid var(--line);
+      padding: 4mm 3mm; text-align: center;
+    }
+    .flow-node .icon { width: 9mm; height: 9mm; margin: 0 auto 2.2mm; }
+    .flow-node .icon svg { width: 100%; height: 100%; }
+    .flow-node strong { display: block; font-size: 9pt; margin-bottom: 1mm; }
+    .flow-node span { display: block; font-size: 7.4pt; color: var(--muted); line-height: 1.35; }
+    .flow-arrow {
+      width: 7mm; display: flex; align-items: center; justify-content: center;
+      color: var(--teal); flex-shrink: 0;
+    }
+    .flow-arrow svg { width: 5.5mm; }
+
+    .seq {
+      background: var(--paper); border: 1px solid var(--line);
+      padding: 4.2mm 5mm; margin-top: auto;
+    }
+    .seq h3 {
+      font-family: Fraunces, Georgia, serif; font-size: 12pt; font-weight: 600;
+      margin: 0 0 3mm; color: var(--teal);
+    }
+    .seq-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4mm 5mm; }
+    .seq-step { display: grid; grid-template-columns: 6.5mm 1fr; gap: 2.4mm; align-items: start; }
+    .seq-n {
+      width: 6mm; height: 6mm; border-radius: 50%; background: var(--teal); color: #fff;
+      font-size: 7pt; font-weight: 700; display: flex; align-items: center; justify-content: center;
+    }
+    .seq-step p { margin: 0; font-size: 7.8pt; color: var(--muted); line-height: 1.35; }
+    .seq-step p strong { color: var(--ink); font-weight: 600; }
+
+    .mono-box {
+      margin-top: 4.5mm; background: var(--teal-deep); color: #e8f2f0;
+      padding: 4.2mm 5mm; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm;
+    }
+    .mono-box h4 {
+      font-size: 7.2pt; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+      color: #9fc4be; margin: 0 0 1.8mm;
+    }
+    .mono-box p { margin: 0; font-size: 8.2pt; line-height: 1.4; font-weight: 300; }
+
+    /* Personas */
+    .personas { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3.2mm; flex: 1; }
+    .persona {
+      background: var(--paper); border: 1px solid var(--line);
+      padding: 4mm; display: flex; flex-direction: column;
+    }
+    .persona-head {
+      display: flex; align-items: center; gap: 2.4mm; margin-bottom: 3mm;
+      padding-bottom: 3mm; border-bottom: 1px solid var(--line);
+    }
+    .persona-badge {
+      width: 8mm; height: 8mm; background: var(--teal-soft);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .persona-badge svg { width: 4.4mm; height: 4.4mm; }
+    .persona h3 { font-family: Fraunces, Georgia, serif; font-size: 13pt; margin: 0; }
+    .persona .route { font-size: 7pt; color: var(--teal); font-weight: 600; letter-spacing: 0.04em; }
+    .persona ol { margin: 0; padding: 0 0 0 4mm; flex: 1; }
+    .persona li { font-size: 7.6pt; color: var(--muted); line-height: 1.38; margin-bottom: 2mm; }
+    .persona li strong { color: var(--ink); }
+    .persona .gate {
+      margin-top: auto; background: var(--teal-soft); padding: 2.4mm 3mm;
+      font-size: 7pt; color: var(--teal-deep); line-height: 1.35;
+    }
+
+    /* Integrations */
+    .integ-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+    .integ {
+      background: var(--paper); border: 1px solid var(--line);
+      padding: 4mm 4.2mm; display: grid; grid-template-columns: 10mm 1fr; gap: 3.2mm; align-items: start;
+    }
+    .integ .mark {
+      width: 10mm; height: 10mm; background: var(--teal-soft);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .integ .mark svg { width: 5.5mm; height: 5.5mm; }
+    .integ h3 { font-size: 10pt; margin: 0 0 1mm; font-weight: 600; }
+    .integ p { margin: 0; font-size: 7.6pt; color: var(--muted); line-height: 1.4; }
+
+    .foot-note {
+      margin-top: auto; padding-top: 4mm; font-size: 7pt; color: var(--muted); line-height: 1.4;
+      border-top: 1px solid var(--line);
+    }
+
+    /* Ankh logo paths shared via CSS? inline SVG instead */
+  </style>
+</head>
+<body>
+
+  <!-- 1 COVER -->
+  <section class="sheet cover">
+    <div class="cover-top">
+      <div class="brand">
+        <svg viewBox="0 0 551 519" fill="none" aria-hidden="true">
+          <path d="M238.24 278C229.74 332.5 245.74 393.5 245.74 393.5C245.74 393.5 235.581 401.468 231.74 408.5C227.515 416.232 226.74 430.5 226.74 430.5V517H37.2395C37.2395 517 18.6308 518 6.2395 499C-6.15182 480 3.7395 459 3.7395 459L68.2395 331H205.24C209.74 354.5 229.74 379 229.74 379C229.74 379 219.74 347 226.24 278C232.74 209 274.24 172 274.24 172C274.24 172 246.74 223.5 238.24 278Z" fill="#B8D9D3"/>
+          <path d="M324.24 430.5V517L501.24 519C501.24 519 521.662 516.854 531.74 509.5C540.983 502.755 546.329 497.066 549.24 486C551.678 476.73 548.425 467.5 546.74 463.5C545.054 459.5 536.74 442 536.74 442L480.24 331L329.24 330.5L333.24 325L338.74 316L472.74 314.5L420.74 216H356.74L357.24 205.5L356.74 199H414.74L333.74 48.5C333.74 48.5 309.24 1.53901e-05 274.24 0C239.24 -1.53901e-05 214.24 48.5 214.24 48.5L135.24 199H209.24C209.24 199 234.74 138.5 254.74 114C274.74 89.5 295.74 77 319.74 84C343.74 91 343.74 131 343.74 131C343.74 131 342.863 174.782 326.74 195C315.559 209.02 289.24 221.5 289.24 221.5C289.24 221.5 309.921 219.477 321.74 214C332.161 209.171 345.74 197 345.74 197C345.74 197 349.401 222.094 345.74 237.5C341.394 255.786 333.464 265.159 319.74 278C304.499 292.26 272.24 302.5 272.24 302.5C272.24 302.5 291.49 301.404 303.24 298C317.165 293.966 336.74 282 336.74 282C336.74 282 332.74 315.5 312.24 331C291.74 346.5 298.44 341.372 289.24 347.5C281.574 352.606 273.74 356.5 269.24 360C264.74 363.5 259.24 366.5 256.74 370C254.24 373.5 253.74 374 254.24 379C254.74 384 256.74 387 256.74 387C256.74 387 269.24 383.301 279.24 384C292.24 384.909 301.857 390 306.24 393.5C310.622 397 315.981 402.657 319.74 411C323.268 418.833 324.24 430.5 324.24 430.5Z" fill="#B8D9D3"/>
+        </svg>
+        <span class="brand-name">Isisel</span>
+      </div>
+      <div class="cover-meta">
+        www.isisel.com<br />
+        Internal architecture brief
+      </div>
+    </div>
+    <div class="cover-hero">
+      <p class="eyebrow">Platform · Engineering</p>
+      <h1>Stack architecture<span>and program flow</span></h1>
+      <div class="cover-rule"></div>
+      <p class="lede">
+        One Next.js deployable unit powers the guest marketplace, host console, and ops tools —
+        with MongoDB at the center and a small set of focused external services.
+      </p>
+      <div class="cover-pills">
+        <span class="pill">Next.js · App Router</span>
+        <span class="pill">React 19</span>
+        <span class="pill">MongoDB Atlas</span>
+        <span class="pill">NextAuth</span>
+        <span class="pill">Vercel</span>
+        <span class="pill">PWA</span>
+      </div>
+    </div>
+    <div class="cover-foot">
+      <span>property_app / KamaProperties</span>
+      <span>Diagram set · Stack &amp; flows</span>
+    </div>
+  </section>
+
+  <!-- 2 STACK LAYERS -->
+  <section class="sheet">
+    <div class="inner">
+      <div class="inner-head">
+        <div class="brand-mini">
+          <svg viewBox="0 0 551 519" fill="none" aria-hidden="true">
+            <path d="M238.24 278C229.74 332.5 245.74 393.5 245.74 393.5C245.74 393.5 235.581 401.468 231.74 408.5C227.515 416.232 226.74 430.5 226.74 430.5V517H37.2395C37.2395 517 18.6308 518 6.2395 499C-6.15182 480 3.7395 459 3.7395 459L68.2395 331H205.24C209.74 354.5 229.74 379 229.74 379C229.74 379 219.74 347 226.24 278C232.74 209 274.24 172 274.24 172C274.24 172 246.74 223.5 238.24 278Z" fill="#1B5C57"/>
+            <path d="M324.24 430.5V517L501.24 519C501.24 519 521.662 516.854 531.74 509.5C540.983 502.755 546.329 497.066 549.24 486C551.678 476.73 548.425 467.5 546.74 463.5C545.054 459.5 536.74 442 536.74 442L480.24 331L329.24 330.5L333.24 325L338.74 316L472.74 314.5L420.74 216H356.74L357.24 205.5L356.74 199H414.74L333.74 48.5C333.74 48.5 309.24 1.53901e-05 274.24 0C239.24 -1.53901e-05 214.24 48.5 214.24 48.5L135.24 199H209.24C209.24 199 234.74 138.5 254.74 114C274.74 89.5 295.74 77 319.74 84C343.74 91 343.74 131 343.74 131C343.74 131 342.863 174.782 326.74 195C315.559 209.02 289.24 221.5 289.24 221.5C289.24 221.5 309.921 219.477 321.74 214C332.161 209.171 345.74 197 345.74 197C345.74 197 349.401 222.094 345.74 237.5C341.394 255.786 333.464 265.159 319.74 278C304.499 292.26 272.24 302.5 272.24 302.5C272.24 302.5 291.49 301.404 303.24 298C317.165 293.966 336.74 282 336.74 282C336.74 282 332.74 315.5 312.24 331C291.74 346.5 298.44 341.372 289.24 347.5C281.574 352.606 273.74 356.5 269.24 360C264.74 363.5 259.24 366.5 256.74 370C254.24 373.5 253.74 374 254.24 379C254.74 384 256.74 387 256.74 387C256.74 387 269.24 383.301 279.24 384C292.24 384.909 301.857 390 306.24 393.5C310.622 397 315.981 402.657 319.74 411C323.268 418.833 324.24 430.5 324.24 430.5Z" fill="#1B5C57"/>
+          </svg>
+          Isisel
+        </div>
+        <span class="folio">01 · Stack layers</span>
+      </div>
+      <h2>Monolith layers</h2>
+      <p class="section-intro">
+        No separate backend service. Pages, Route Handlers, Mongoose models, and domain utils ship as one Vercel (or Docker) unit.
+      </p>
+      <div class="layers">
+        <div class="layer">
+          <div class="layer-label">Clients<small>Browsers &amp; PWA</small></div>
+          <div class="tech-row">
+            <span class="tech"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="2" stroke="#1B5C57" stroke-width="1.6"/><path d="M8 20h8" stroke="#1B5C57" stroke-width="1.6" stroke-linecap="round"/></svg>Guest explore</span>
+            <span class="tech"><svg viewBox="0 0 24 24" fill="none"><path d="M4 10h16v9H4z" stroke="#1B5C57" stroke-width="1.6"/><path d="M8 10V7a4 4 0 018 0v3" stroke="#1B5C57" stroke-width="1.6"/></svg>Host console</span>
+            <span class="tech"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3" stroke="#1B5C57" stroke-width="1.6"/><path d="M5 19a7 7 0 0114 0" stroke="#1B5C57" stroke-width="1.6" stroke-linecap="round"/></svg>Ops console</span>
+            <span class="tech ghost">Service Worker · Web Push</span>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="layer-label">App shell<small>app/ · components/</small></div>
+          <div class="tech-row">
+            <span class="tech"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#0c1a1a"/><path d="M14.5 7.5L9 16.5h2.1l1.2-2.1H16.5V7.5h-2zm.4 5.1h-1.7l1.7-3v3z" fill="#fff"/></svg>Next.js</span>
+            <span class="tech"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#61DAFB"/><circle cx="12" cy="12" r="2.2" fill="#0c1a1a"/><ellipse cx="12" cy="12" rx="9" ry="3.5" fill="none" stroke="#0c1a1a" stroke-width="1"/><ellipse cx="12" cy="12" rx="9" ry="3.5" fill="none" stroke="#0c1a1a" stroke-width="1" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.5" fill="none" stroke="#0c1a1a" stroke-width="1" transform="rotate(120 12 12)"/></svg>React 19</span>
+            <span class="tech ghost">App Router · RSC</span>
+            <span class="tech ghost">Tailwind 4</span>
+            <span class="tech ghost">middleware.js gates</span>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="layer-label">API<small>app/api/**</small></div>
+          <div class="tech-row">
+            <span class="tech ghost">Route Handlers</span>
+            <span class="tech ghost">Bookings · Properties</span>
+            <span class="tech ghost">Payments webhooks</span>
+            <span class="tech ghost">Ops · Host · Creators</span>
+            <span class="tech ghost">Health / cron</span>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="layer-label">Auth<small>NextAuth JWT</small></div>
+          <div class="tech-row">
+            <span class="tech"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.6c-.2 1.3-.95 2.4-2 3.1v2.6h3.2C20.5 17.8 22 15.3 22 12.2z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.6c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6C4.7 19.8 8.1 22 12 22z"/><path fill="#FBBC05" d="M6.4 13.9A5.9 5.9 0 016 12c0-.7.1-1.3.4-1.9V7.5H3.1A9.96 9.96 0 002 12c0 1.6.4 3.1 1.1 4.5l3.3-2.6z"/><path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8C17 2.9 14.7 2 12 2 8.1 2 4.7 4.2 3.1 7.5l3.3 2.6C7.2 7.7 9.4 5.9 12 5.9z"/></svg>Google OAuth</span>
+            <span class="tech ghost">Ops credentials</span>
+            <span class="tech ghost">JWT session</span>
+            <span class="tech ghost">Role · hostStatus</span>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="layer-label">Domain<small>utils/</small></div>
+          <div class="tech-row">
+            <span class="tech ghost">Bookings &amp; availability</span>
+            <span class="tech ghost">Payments adapters</span>
+            <span class="tech ghost">Email templates</span>
+            <span class="tech ghost">Creators · Docs · Push</span>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="layer-label">Data<small>KamaProperties</small></div>
+          <div class="tech-row">
+            <span class="tech"><svg viewBox="0 0 24 24"><path fill="#47A248" d="M12 2c-1.2 3.5-4.8 5.8-4.8 10.2 0 3.2 2 5.5 4.8 9.8 2.8-4.3 4.8-6.6 4.8-9.8C16.8 7.8 13.2 5.5 12 2z"/></svg>MongoDB Atlas</span>
+            <span class="tech ghost">Mongoose models</span>
+            <span class="tech ghost">User · Property · Booking</span>
+            <span class="tech ghost">Documentation · Traffic</span>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="layer-label">Platform<small>Hosting &amp; ops</small></div>
+          <div class="tech-row">
+            <span class="tech"><svg viewBox="0 0 24 24"><path fill="#0c1a1a" d="M12 3L2 20.5h20L12 3z"/></svg>Vercel</span>
+            <span class="tech"><svg viewBox="0 0 24 24"><path fill="#362D59" d="M12 2L3 6.5v5.2C3 16.4 7 20.7 12 22c5-1.3 9-5.6 9-10.3V6.5L12 2z"/></svg>Sentry</span>
+            <span class="tech ghost">Docker optional</span>
+            <span class="tech ghost">Daily DB keep-warm cron</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 REQUEST FLOW -->
+  <section class="sheet">
+    <div class="inner">
+      <div class="inner-head">
+        <div class="brand-mini">
+          <svg viewBox="0 0 551 519" fill="none" aria-hidden="true">
+            <path d="M238.24 278C229.74 332.5 245.74 393.5 245.74 393.5C245.74 393.5 235.581 401.468 231.74 408.5C227.515 416.232 226.74 430.5 226.74 430.5V517H37.2395C37.2395 517 18.6308 518 6.2395 499C-6.15182 480 3.7395 459 3.7395 459L68.2395 331H205.24C209.74 354.5 229.74 379 229.74 379C229.74 379 219.74 347 226.24 278C232.74 209 274.24 172 274.24 172C274.24 172 246.74 223.5 238.24 278Z" fill="#1B5C57"/>
+            <path d="M324.24 430.5V517L501.24 519C501.24 519 521.662 516.854 531.74 509.5C540.983 502.755 546.329 497.066 549.24 486C551.678 476.73 548.425 467.5 546.74 463.5C545.054 459.5 536.74 442 536.74 442L480.24 331L329.24 330.5L333.24 325L338.74 316L472.74 314.5L420.74 216H356.74L357.24 205.5L356.74 199H414.74L333.74 48.5C333.74 48.5 309.24 1.53901e-05 274.24 0C239.24 -1.53901e-05 214.24 48.5 214.24 48.5L135.24 199H209.24C209.24 199 234.74 138.5 254.74 114C274.74 89.5 295.74 77 319.74 84C343.74 91 343.74 131 343.74 131C343.74 131 342.863 174.782 326.74 195C315.559 209.02 289.24 221.5 289.24 221.5C289.24 221.5 309.921 219.477 321.74 214C332.161 209.171 345.74 197 345.74 197C345.74 197 349.401 222.094 345.74 237.5C341.394 255.786 333.464 265.159 319.74 278C304.499 292.26 272.24 302.5 272.24 302.5C272.24 302.5 291.49 301.404 303.24 298C317.165 293.966 336.74 282 336.74 282C336.74 282 332.74 315.5 312.24 331C291.74 346.5 298.44 341.372 289.24 347.5C281.574 352.606 273.74 356.5 269.24 360C264.74 363.5 259.24 366.5 256.74 370C254.24 373.5 253.74 374 254.24 379C254.74 384 256.74 387 256.74 387C256.74 387 269.24 383.301 279.24 384C292.24 384.909 301.857 390 306.24 393.5C310.622 397 315.981 402.657 319.74 411C323.268 418.833 324.24 430.5 324.24 430.5Z" fill="#1B5C57"/>
+          </svg>
+          Isisel
+        </div>
+        <span class="folio">02 · Program flow</span>
+      </div>
+      <h2>How a request moves</h2>
+      <p class="section-intro">
+        Typical path for marketplace and console traffic — from the browser through auth and domain logic into MongoDB, with optional side effects.
+      </p>
+
+      <div class="flow">
+        <div class="flow-node">
+          <div class="icon"><svg viewBox="0 0 48 48" fill="none"><rect x="6" y="8" width="36" height="26" rx="3" stroke="#1B5C57" stroke-width="2.2"/><path d="M16 40h16" stroke="#1B5C57" stroke-width="2.2" stroke-linecap="round"/><circle cx="24" cy="21" r="5" stroke="#1B5C57" stroke-width="2"/></svg></div>
+          <strong>Browser / PWA</strong>
+          <span>Pages · fetch · RSC</span>
+        </div>
+        <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12h14M12 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="flow-node">
+          <div class="icon"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" fill="#0c1a1a"/><path d="M28 14L18 34h4.2l2.2-4H32V14h-4zm.8 11h-3.4l3.4-6v6z" fill="#fff"/></svg></div>
+          <strong>Next.js</strong>
+          <span>Middleware · handlers</span>
+        </div>
+        <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12h14M12 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="flow-node">
+          <div class="icon"><svg viewBox="0 0 48 48" fill="none"><rect x="10" y="14" width="28" height="22" rx="3" stroke="#1B5C57" stroke-width="2.2"/><circle cx="24" cy="24" r="5" stroke="#1B5C57" stroke-width="2"/><path d="M24 14v-4" stroke="#1B5C57" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <strong>NextAuth</strong>
+          <span>JWT · roles</span>
+        </div>
+        <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12h14M12 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="flow-node">
+          <div class="icon"><svg viewBox="0 0 48 48"><path fill="#47A248" d="M24 6c-2.4 7-9.6 11.6-9.6 20.4C14.4 32.8 18.4 37.4 24 46c5.6-8.6 9.6-13.2 9.6-19.6C33.6 17.6 26.4 13 24 6z"/></svg></div>
+          <strong>MongoDB</strong>
+          <span>KamaProperties</span>
+        </div>
+      </div>
+
+      <div class="seq">
+        <h3>Canonical sequence</h3>
+        <div class="seq-steps">
+          <div class="seq-step">
+            <div class="seq-n">1</div>
+            <p><strong>Edge / middleware</strong> — locale cookie; redirect unauthenticated users away from <code>/ops</code>, <code>/host</code>, gated listing paths.</p>
+          </div>
+          <div class="seq-step">
+            <div class="seq-n">2</div>
+            <p><strong>Page or Route Handler</strong> — Server Component render or <code>app/api/**/route.js</code> JSON / webhook.</p>
+          </div>
+          <div class="seq-step">
+            <div class="seq-n">3</div>
+            <p><strong>Session check</strong> — <code>getServerSession</code> + role / <code>hostStatus</code> / ban flags from JWT.</p>
+          </div>
+          <div class="seq-step">
+            <div class="seq-n">4</div>
+            <p><strong>Connect DB</strong> — <code>connectToDatabase()</code> → Mongoose against Atlas <code>KamaProperties</code>.</p>
+          </div>
+          <div class="seq-step">
+            <div class="seq-n">5</div>
+            <p><strong>Domain utils</strong> — bookings, availability, creators, documentation, payments adapters.</p>
+          </div>
+          <div class="seq-step">
+            <div class="seq-n">6</div>
+            <p><strong>Side effects</strong> — Cloudinary, Resend, payment gateway, web push, Sentry capture.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mono-box">
+        <div>
+          <h4>Deploy</h4>
+          <p>Vercel project <strong>kemika02</strong> → www.isisel.com. Optional Docker image for self-host.</p>
+        </div>
+        <div>
+          <h4>Observability</h4>
+          <p>Sentry Next.js SDK on server, edge, and client. Example routes for verify.</p>
+        </div>
+        <div>
+          <h4>Keep-warm</h4>
+          <p>Cron hits <code>/api/health/db</code> daily so Atlas M0 does not pause on idle.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 PERSONA FLOWS -->
+  <section class="sheet">
+    <div class="inner">
+      <div class="inner-head">
+        <div class="brand-mini">
+          <svg viewBox="0 0 551 519" fill="none" aria-hidden="true">
+            <path d="M238.24 278C229.74 332.5 245.74 393.5 245.74 393.5C245.74 393.5 235.581 401.468 231.74 408.5C227.515 416.232 226.74 430.5 226.74 430.5V517H37.2395C37.2395 517 18.6308 518 6.2395 499C-6.15182 480 3.7395 459 3.7395 459L68.2395 331H205.24C209.74 354.5 229.74 379 229.74 379C229.74 379 219.74 347 226.24 278C232.74 209 274.24 172 274.24 172C274.24 172 246.74 223.5 238.24 278Z" fill="#1B5C57"/>
+            <path d="M324.24 430.5V517L501.24 519C501.24 519 521.662 516.854 531.74 509.5C540.983 502.755 546.329 497.066 549.24 486C551.678 476.73 548.425 467.5 546.74 463.5C545.054 459.5 536.74 442 536.74 442L480.24 331L329.24 330.5L333.24 325L338.74 316L472.74 314.5L420.74 216H356.74L357.24 205.5L356.74 199H414.74L333.74 48.5C333.74 48.5 309.24 1.53901e-05 274.24 0C239.24 -1.53901e-05 214.24 48.5 214.24 48.5L135.24 199H209.24C209.24 199 234.74 138.5 254.74 114C274.74 89.5 295.74 77 319.74 84C343.74 91 343.74 131 343.74 131C343.74 131 342.863 174.782 326.74 195C315.559 209.02 289.24 221.5 289.24 221.5C289.24 221.5 309.921 219.477 321.74 214C332.161 209.171 345.74 197 345.74 197C345.74 197 349.401 222.094 345.74 237.5C341.394 255.786 333.464 265.159 319.74 278C304.499 292.26 272.24 302.5 272.24 302.5C272.24 302.5 291.49 301.404 303.24 298C317.165 293.966 336.74 282 336.74 282C336.74 282 332.74 315.5 312.24 331C291.74 346.5 298.44 341.372 289.24 347.5C281.574 352.606 273.74 356.5 269.24 360C264.74 363.5 259.24 366.5 256.74 370C254.24 373.5 253.74 374 254.24 379C254.74 384 256.74 387 256.74 387C256.74 387 269.24 383.301 279.24 384C292.24 384.909 301.857 390 306.24 393.5C310.622 397 315.981 402.657 319.74 411C323.268 418.833 324.24 430.5 324.24 430.5Z" fill="#1B5C57"/>
+          </svg>
+          Isisel
+        </div>
+        <span class="folio">03 · Product flows</span>
+      </div>
+      <h2>Three programs, one stack</h2>
+      <p class="section-intro">
+        Guest marketplace, host workspace, and ops console share models and APIs — chrome and auth gates differ.
+      </p>
+      <div class="personas">
+        <div class="persona">
+          <div class="persona-head">
+            <div class="persona-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M4 19V7l8-3 8 3v12l-8 3-8-3z" stroke="#1B5C57" stroke-width="1.6"/><path d="M12 4v15" stroke="#1B5C57" stroke-width="1.6"/></svg></div>
+            <div>
+              <h3>Guest</h3>
+              <div class="route">/ · /properties</div>
+            </div>
+          </div>
+          <ol>
+            <li><strong>Explore</strong> home map &amp; search via <code>GET /api/properties</code>.</li>
+            <li><strong>Open listing</strong> <code>/properties/[id]</code> with Maps + media.</li>
+            <li><strong>Request stay</strong> <code>POST /api/bookings/request</code> (phone, manual pay).</li>
+            <li><strong>Confirm offline</strong> WhatsApp / host — emails &amp; push optional.</li>
+            <li><strong>Save</strong> bookmarks on <code>/saved-properties</code>.</li>
+          </ol>
+          <div class="gate">Gate: Google sign-in for booking identity; catalog may be beta-closed.</div>
+        </div>
+        <div class="persona">
+          <div class="persona-head">
+            <div class="persona-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 4l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z" stroke="#1B5C57" stroke-width="1.6"/></svg></div>
+            <div>
+              <h3>Host</h3>
+              <div class="route">/host/*</div>
+            </div>
+          </div>
+          <ol>
+            <li><strong>Onboard</strong> <code>/host/onboarding</code> → pending until verified.</li>
+            <li><strong>Home rings</strong> arrivals, departures, in-stay, needs-you.</li>
+            <li><strong>Calendar</strong> drag/resize availability blocks.</li>
+            <li><strong>Listings</strong> create/edit; ops moderates publish.</li>
+            <li><strong>Creators</strong> partnership tools under <code>/host/creators</code>.</li>
+          </ol>
+          <div class="gate">Gate: <code>hostStatus === "verified"</code> (except install / onboarding).</div>
+        </div>
+        <div class="persona">
+          <div class="persona-head">
+            <div class="persona-badge"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" stroke="#1B5C57" stroke-width="1.6"/><path d="M5 19c1.8-3.2 4.2-4.8 7-4.8s5.2 1.6 7 4.8" stroke="#1B5C57" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+            <div>
+              <h3>Ops</h3>
+              <div class="route">/ops/* · /documentation</div>
+            </div>
+          </div>
+          <ol>
+            <li><strong>Login</strong> credentials provider at <code>/ops/login</code>.</li>
+            <li><strong>Moderate</strong> users, listings, reservations, transactions.</li>
+            <li><strong>Market</strong> creators, investors, acquisition copilot.</li>
+            <li><strong>Analytics</strong> PDF/CSV reports from ops analytics utils.</li>
+            <li><strong>Docs KB</strong> seeded Mongo articles on <code>/documentation</code>.</li>
+          </ol>
+          <div class="gate">Gate: role <code>admin</code> / <code>superadmin</code>; docs optional email restrict.</div>
+        </div>
+      </div>
+      <p class="foot-note">
+        Shell chrome: guest floating tab bar · host top nav · ops side rail + sticky mobile bottom nav.
+        Shared database and domain modules keep the three programs aligned across deploys.
+      </p>
+    </div>
+  </section>
+
+  <!-- 5 INTEGRATIONS -->
+  <section class="sheet">
+    <div class="inner">
+      <div class="inner-head">
+        <div class="brand-mini">
+          <svg viewBox="0 0 551 519" fill="none" aria-hidden="true">
+            <path d="M238.24 278C229.74 332.5 245.74 393.5 245.74 393.5C245.74 393.5 235.581 401.468 231.74 408.5C227.515 416.232 226.74 430.5 226.74 430.5V517H37.2395C37.2395 517 18.6308 518 6.2395 499C-6.15182 480 3.7395 459 3.7395 459L68.2395 331H205.24C209.74 354.5 229.74 379 229.74 379C229.74 379 219.74 347 226.24 278C232.74 209 274.24 172 274.24 172C274.24 172 246.74 223.5 238.24 278Z" fill="#1B5C57"/>
+            <path d="M324.24 430.5V517L501.24 519C501.24 519 521.662 516.854 531.74 509.5C540.983 502.755 546.329 497.066 549.24 486C551.678 476.73 548.425 467.5 546.74 463.5C545.054 459.5 536.74 442 536.74 442L480.24 331L329.24 330.5L333.24 325L338.74 316L472.74 314.5L420.74 216H356.74L357.24 205.5L356.74 199H414.74L333.74 48.5C333.74 48.5 309.24 1.53901e-05 274.24 0C239.24 -1.53901e-05 214.24 48.5 214.24 48.5L135.24 199H209.24C209.24 199 234.74 138.5 254.74 114C274.74 89.5 295.74 77 319.74 84C343.74 91 343.74 131 343.74 131C343.74 131 342.863 174.782 326.74 195C315.559 209.02 289.24 221.5 289.24 221.5C289.24 221.5 309.921 219.477 321.74 214C332.161 209.171 345.74 197 345.74 197C345.74 197 349.401 222.094 345.74 237.5C341.394 255.786 333.464 265.159 319.74 278C304.499 292.26 272.24 302.5 272.24 302.5C272.24 302.5 291.49 301.404 303.24 298C317.165 293.966 336.74 282 336.74 282C336.74 282 332.74 315.5 312.24 331C291.74 346.5 298.44 341.372 289.24 347.5C281.574 352.606 273.74 356.5 269.24 360C264.74 363.5 259.24 366.5 256.74 370C254.24 373.5 253.74 374 254.24 379C254.74 384 256.74 387 256.74 387C256.74 387 269.24 383.301 279.24 384C292.24 384.909 301.857 390 306.24 393.5C310.622 397 315.981 402.657 319.74 411C323.268 418.833 324.24 430.5 324.24 430.5Z" fill="#1B5C57"/>
+          </svg>
+          Isisel
+        </div>
+        <span class="folio">04 · Integrations</span>
+      </div>
+      <h2>External services</h2>
+      <p class="section-intro">
+        Side-effect services sit beside the monolith. Domain code in <code>utils/</code> owns adapters so Route Handlers stay thin.
+      </p>
+      <div class="integ-grid">
+        <div class="integ">
+          <div class="mark"><svg viewBox="0 0 24 24"><path fill="#3448C5" d="M12 2L3.5 6.5v4.8c0 5.4 3.7 10.4 8.5 11.7 4.8-1.3 8.5-6.3 8.5-11.7V6.5L12 2z"/></svg></div>
+          <div>
+            <h3>Cloudinary</h3>
+            <p>Listing and avatar media upload, transforms, and folder provisioning under <code>utils/cloudinary</code>.</p>
+          </div>
+        </div>
+        <div class="integ">
+          <div class="mark"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg></div>
+          <div>
+            <h3>Google Maps</h3>
+            <p>Map pins on home/search and Places autocomplete for address entry via <code>utils/googleMaps.js</code>.</p>
+          </div>
+        </div>
+        <div class="integ">
+          <div class="mark"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="#1B5C57" stroke-width="1.6"/><path d="M3 8l9 6 9-6" stroke="#1B5C57" stroke-width="1.6"/></svg></div>
+          <div>
+            <h3>Resend</h3>
+            <p>Transactional and marketing email from verified <code>@isisel.com</code> templates (bookings, moderation).</p>
+          </div>
+        </div>
+        <div class="integ">
+          <div class="mark"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="2" stroke="#1B5C57" stroke-width="1.6"/><path d="M3 10h18" stroke="#1B5C57" stroke-width="1.6"/><circle cx="8" cy="14" r="1.2" fill="#1B5C57"/></svg></div>
+          <div>
+            <h3>Payments</h3>
+            <p>GeniusPay preferred for ops MoMo; Creem demoted. Guests today: WhatsApp + manual confirmation.</p>
+          </div>
+        </div>
+        <div class="integ">
+          <div class="mark"><svg viewBox="0 0 24 24"><path fill="#362D59" d="M12 2L3 6.5v5.2C3 16.4 7 20.7 12 22c5-1.3 9-5.6 9-10.3V6.5L12 2z"/></svg></div>
+          <div>
+            <h3>Sentry</h3>
+            <p>Error and performance monitoring across Node, edge, and browser for the Next.js app.</p>
+          </div>
+        </div>
+        <div class="integ">
+          <div class="mark"><svg viewBox="0 0 24 24"><path fill="#0c1a1a" d="M12 3L2 20.5h20L12 3z"/></svg></div>
+          <div>
+            <h3>Vercel</h3>
+            <p>Production hosting, Analytics, Blob storage, and scheduled cron for Atlas keep-warm.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mono-box" style="margin-top: 6mm;">
+        <div>
+          <h4>Source of truth</h4>
+          <p>Ops docs KB: application-, database-, and api-architecture under <code>/documentation</code>.</p>
+        </div>
+        <div>
+          <h4>This deck</h4>
+          <p><code>docs/isisel-stack-architecture.html</code> → PDF via Chrome print script.</p>
+        </div>
+        <div>
+          <h4>Brand</h4>
+          <p>Teal Ankh mark · accent <strong>#1B5C57</strong> · ink <strong>#0C1A1A</strong>.</p>
+        </div>
+      </div>
+      <p class="foot-note">
+        Logos are simplified marks for illustration. Product names are trademarks of their respective owners.
+        Isisel / KamaProperties — confidential internal architecture overview.
+      </p>
+    </div>
+  </section>
+
+</body>
+</html>

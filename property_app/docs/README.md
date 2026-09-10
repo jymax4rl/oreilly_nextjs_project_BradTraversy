@@ -43,3 +43,16 @@ Regenerate PDF:
 ```bash
 node scripts/generate-availability-design-pdf.mjs
 ```
+
+## Stack architecture
+
+| File | Purpose |
+|------|---------|
+| `isisel-stack-architecture.html` | Source deck — layers, request flow, guest/host/ops, integrations |
+| `isisel-stack-architecture.pdf` | Generated architecture PDF |
+
+```bash
+npm run docs:stack-architecture-pdf
+```
+
+Also copied to `public/marketing/isisel-stack-architecture.pdf`.
