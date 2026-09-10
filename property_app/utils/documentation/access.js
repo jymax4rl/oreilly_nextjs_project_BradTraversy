@@ -1,13 +1,18 @@
 import { isOpsStaff } from "../opsAuth.js";
 
 /**
- * Ops documentation access: staff role + Isisel staff email domain.
+ * Ops documentation access.
  *
- * Domain from (first match wins):
- *   OPS_EMAIL_DOMAIN | ISEL_OPS_EMAIL_DOMAIN | default "isisel.com"
+ * Default: any Ops staff role may open /documentation (same people who already
+ * reach the console). Founders often sign into ops with a personal Gmail, so a
+ * hard @isisel.com requirement made Docs clicks look broken (silent redirect
+ * back to /ops).
  *
- * Optional allowlist (comma-separated full emails), server-only:
- *   OPS_DOCUMENTATION_EMAILS
+ * Optional harden (server-only):
+ *   OPS_DOCUMENTATION_RESTRICT_EMAIL=1
+ *     → require @OPS_EMAIL_DOMAIN (default isisel.com) OR allowlist
+ *   OPS_DOCUMENTATION_EMAILS=a@x.com,b@y.com
+ *     → always accepted when restrict mode is on (and also as extras)
  *
  * Never expose these values to the client bundle.
  */
@@ -38,6 +43,10 @@ function documentationEmailAllowlist() {
   );
 }
 
+function emailRestrictionEnabled() {
+  return process.env.OPS_DOCUMENTATION_RESTRICT_EMAIL === "1";
+}
+
 /**
  * @param {string | null | undefined} email
  */
@@ -58,6 +67,7 @@ export function isAuthorizedOpsDocumentationEmail(email) {
 export function canAccessOpsDocumentation(user) {
   if (!user) return false;
   if (!isOpsStaff(user.role)) return false;
+  if (!emailRestrictionEnabled()) return true;
   return isAuthorizedOpsDocumentationEmail(user.email);
 }
 
