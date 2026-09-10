@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "@sentry/nextjs": "^10.74.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.4.0",
     "async_hooks": "^1.0.0",
