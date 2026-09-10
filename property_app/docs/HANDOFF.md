@@ -2,6 +2,14 @@
 
 Owner is pausing marketplace UI work for **a few months** to earn through **influencer / creator partnerships**. This file is the resume packet for humans and Cursor agents.
 
+## Ops mobile dock (locked 2026-09-10)
+
+The ops PWA bottom bar was rebuilt and **approved**. Architecture: viewport shell with an **in-flow** footer dock (not `position: fixed`). Do not regress.
+
+- Spec: [`OPS_MOBILE_DOCK.md`](./OPS_MOBILE_DOCK.md)
+- Preview: [`ops-mobile-dock-preview.png`](./ops-mobile-dock-preview.png)
+- Git tag: `ops-mobile-dock-approved-2026-09-10`
+
 Live product: **https://www.isisel.com**  
 GitHub: **https://github.com/jymax4rl/oreilly_nextjs_project_BradTraversy**  
 Next.js app: **`property_app/`** (`npm run dev` here)

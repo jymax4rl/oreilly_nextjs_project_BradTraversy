@@ -13,9 +13,10 @@ import {
 import "@/components/ops/ops-mobile-dock.css";
 
 /**
- * Ops mobile dock — in-flow footer of the ops viewport shell.
- * Always sits on the screen bottom; content scrolls above it.
+ * Ops mobile dock — APPROVED 2026-09-10 (docs/OPS_MOBILE_DOCK.md).
+ * In-flow footer of the ops viewport shell; content scrolls above it.
  * More sheet portals to body so overflow:hidden on the shell cannot clip it.
+ * Do NOT convert the dock itself to position:fixed.
  */
 export default function OpsMobileDock() {
   const pathname = usePathname() || "";

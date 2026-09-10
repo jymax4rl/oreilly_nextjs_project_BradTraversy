@@ -2,6 +2,8 @@
 
 Read **`property_app/docs/HANDOFF.md`** first. That file is the pause snapshot (2026-09-04) and the source of truth until the next handoff.
 
+**Ops mobile dock (approved 2026-09-10):** keep the in-flow screen-bottom design. Do not switch it back to `position: fixed`. Spec + restore tag: `property_app/docs/OPS_MOBILE_DOCK.md`.
+
 | | |
 |---|---|
 | **Production** | https://www.isisel.com |

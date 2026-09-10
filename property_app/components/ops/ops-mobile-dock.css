@@ -1,3 +1,7 @@
+/* APPROVED 2026-09-10 — locked design. See docs/OPS_MOBILE_DOCK.md.
+   Do NOT switch .ops-dock to position:fixed (PWA regression).
+*/
+
 /* Ops mobile dock — in-flow screen-bottom chrome for PWA + mobile Safari. */
 
 .ops-dock {

@@ -3,9 +3,10 @@ import OpsMobileDock from "@/components/ops/OpsMobileDock";
 import "@/components/ops/charts/ops-charts.css";
 
 /**
- * Ops viewport shell:
- * [top bar] + [scrollable main] + [in-flow bottom dock]
- * Dock is a flex sibling, not position:fixed — stays on the screen bottom in PWA.
+ * Ops viewport shell (APPROVED 2026-09-10 — see docs/OPS_MOBILE_DOCK.md).
+ *
+ * Layout: [top bar] + [scrollable main] + [in-flow bottom dock]
+ * Do NOT move the dock to position:fixed — that regresses the installed PWA.
  */
 export default function OpsShell({ children, title, subtitle, wide, copilot }) {
   return (
