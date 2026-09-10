@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   Home,
   Users,
@@ -15,21 +16,60 @@ import {
   Award,
   BarChart3,
   MessageSquare,
+  Ellipsis,
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 
+/**
+ * Desktop rail shows every item.
+ * Mobile bottom bar only shows `mobile: "tab"` items + a More sheet for the rest,
+ * so new console sections do not keep crowding the tab bar.
+ */
 const NAV = [
-  { href: "/ops", label: "Home", exact: true, Icon: Home },
-  { href: "/ops/analytics", label: "Analytics", Icon: BarChart3 },
-  { href: "/ops/users", label: "Users", Icon: Users },
-  { href: "/ops/messages", label: "Messages", Icon: MessageSquare },
-  { href: "/ops/hosts", label: "Hosts", Icon: Building2 },
-  { href: "/ops/founding-hosts", label: "Founding", Icon: Award },
-  { href: "/ops/listings", label: "Listings", Icon: LayoutList },
-  { href: "/ops/reservations", label: "Reservations", Icon: CalendarCheck },
-  { href: "/ops/transactions", label: "Payments", Icon: CreditCard },
-  { href: "/ops/marketing", label: "Marketing", Icon: Megaphone },
+  { href: "/ops", label: "Home", exact: true, Icon: Home, mobile: "tab" },
+  {
+    href: "/ops/analytics",
+    label: "Analytics",
+    Icon: BarChart3,
+    mobile: "tab",
+  },
+  { href: "/ops/listings", label: "Listings", Icon: LayoutList, mobile: "tab" },
+  {
+    href: "/ops/reservations",
+    label: "Reservations",
+    Icon: CalendarCheck,
+    mobile: "tab",
+  },
+  { href: "/ops/users", label: "Users", Icon: Users, mobile: "more" },
+  {
+    href: "/ops/messages",
+    label: "Messages",
+    Icon: MessageSquare,
+    mobile: "more",
+  },
+  { href: "/ops/hosts", label: "Hosts", Icon: Building2, mobile: "more" },
+  {
+    href: "/ops/founding-hosts",
+    label: "Founding",
+    Icon: Award,
+    mobile: "more",
+  },
+  {
+    href: "/ops/transactions",
+    label: "Payments",
+    Icon: CreditCard,
+    mobile: "more",
+  },
+  {
+    href: "/ops/marketing",
+    label: "Marketing",
+    Icon: Megaphone,
+    mobile: "more",
+  },
 ];
+
+const MOBILE_TABS = NAV.filter((item) => item.mobile === "tab");
+const MOBILE_MORE = NAV.filter((item) => item.mobile !== "tab");
 
 function navActive(pathname, item) {
   if (item.exact) return pathname === item.href;
@@ -66,6 +106,41 @@ function NavLinks({ pathname, onNavigate }) {
 export default function OpsNav() {
   const pathname = usePathname() || "";
   const { data: session } = useSession();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const morePanelId = useId();
+  const moreButtonRef = useRef(null);
+  const morePanelRef = useRef(null);
+
+  const moreActive = MOBILE_MORE.some((item) => navActive(pathname, item));
+
+  useEffect(() => {
+    setMoreOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!moreOpen) return undefined;
+
+    const onKey = (event) => {
+      if (event.key === "Escape") setMoreOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+
+    const previouslyFocused = document.activeElement;
+    const firstLink = morePanelRef.current?.querySelector("a, button");
+    firstLink?.focus?.();
+
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      if (
+        previouslyFocused instanceof HTMLElement &&
+        document.contains(previouslyFocused)
+      ) {
+        previouslyFocused.focus();
+      } else {
+        moreButtonRef.current?.focus?.();
+      }
+    };
+  }, [moreOpen]);
 
   return (
     <>
@@ -99,7 +174,10 @@ export default function OpsNav() {
         <NavLinks pathname={pathname} />
 
         <div className="ops-rail-foot">
-          <p className="ops-side-text ops-rail-email" title={session?.user?.email || ""}>
+          <p
+            className="ops-side-text ops-rail-email"
+            title={session?.user?.email || ""}
+          >
             {session?.user?.email}
           </p>
           <button
@@ -117,8 +195,51 @@ export default function OpsNav() {
         </div>
       </aside>
 
+      {moreOpen ? (
+        <button
+          type="button"
+          className="ops-more-backdrop"
+          aria-label="Close more menu"
+          onClick={() => setMoreOpen(false)}
+        />
+      ) : null}
+
+      <div
+        ref={morePanelRef}
+        id={morePanelId}
+        className={`ops-more-sheet ${moreOpen ? "ops-more-sheet--open" : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="More ops sections"
+        aria-hidden={!moreOpen}
+        inert={!moreOpen ? true : undefined}
+      >
+        <div className="ops-more-sheet__handle" aria-hidden />
+        <p className="ops-more-sheet__title">More</p>
+        <nav className="ops-more-sheet__nav" aria-label="More ops sections">
+          {MOBILE_MORE.map((item) => {
+            const active = navActive(pathname, item);
+            const Icon = item.Icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMoreOpen(false)}
+                aria-current={active ? "page" : undefined}
+                className={`ops-more-link ${active ? "ops-more-link--active" : ""}`}
+              >
+                <span className="ops-more-link__icon">
+                  <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                </span>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+
       <nav className="ops-bottom-nav" aria-label="Ops sections">
-        {NAV.map((item) => {
+        {MOBILE_TABS.map((item) => {
           const active = navActive(pathname, item);
           const Icon = item.Icon;
           return (
@@ -133,6 +254,20 @@ export default function OpsNav() {
             </Link>
           );
         })}
+        <button
+          ref={moreButtonRef}
+          type="button"
+          className={`ops-bottom-link ${
+            moreOpen || moreActive ? "ops-bottom-link--active" : ""
+          }`}
+          aria-label="More ops sections"
+          aria-expanded={moreOpen}
+          aria-controls={morePanelId}
+          onClick={() => setMoreOpen((open) => !open)}
+        >
+          <Ellipsis className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+          <span>More</span>
+        </button>
       </nav>
     </>
   );
