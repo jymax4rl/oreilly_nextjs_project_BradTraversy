@@ -438,6 +438,13 @@ function RightColumn({ data }) {
               {checkOutTimeLabel}
             </p>
 
+            {data.cancellationPolicySummary ? (
+              <p className="rounded-xl bg-[var(--kama-field)] px-3 py-2 text-center text-xs leading-relaxed text-[var(--kama-ink)]">
+                <span className="font-semibold">Cancellation: </span>
+                {data.cancellationPolicySummary}
+              </p>
+            ) : null}
+
             {nights > 0 && (
               <p className="text-center text-sm font-medium text-[var(--kama-ink-muted)] animate-[calendarFadeIn_0.25s_ease-out]">
                 {nights} night{nights !== 1 ? "s" : ""}

@@ -23,6 +23,11 @@ import { resolveCommissionForProperty } from "@/utils/foundingHost/resolveCommis
 import { buildPricingCommissionFields } from "@/utils/foundingHost/logic";
 import { notifyHostNewReservation } from "@/utils/push/webPush";
 import { TRAINING_BOOKING_SOURCE } from "@/utils/opsTraining/constants";
+import User from "@/models/User";
+import {
+  resolveEffectiveBookingPolicy,
+  snapshotCancellationPolicy,
+} from "@/utils/bookings/bookingPolicy";
 
 /**
  * Create a pending reservation without a payment gateway.
@@ -62,7 +67,7 @@ export async function createManualBookingRequest({
   const phone = normalizeGuestPhone(guestPhone);
 
   const property = await Property.findById(propertyId)
-    .select("name owner seller_info rates status")
+    .select("name owner seller_info rates status bookingPolicy")
     .lean();
 
   if (!property) {
@@ -138,6 +143,23 @@ export async function createManualBookingRequest({
   const bookingStatus =
     createdByHost && status === "confirmed" ? "confirmed" : "pending";
 
+  let hostDefault = null;
+  if (property.owner) {
+    const host = await User.findById(property.owner)
+      .select("defaultCancellationPolicy")
+      .lean();
+    hostDefault = host?.defaultCancellationPolicy || null;
+  }
+  const { policy: effectivePolicy, source: policySource } =
+    resolveEffectiveBookingPolicy({
+      property,
+      hostDefault,
+    });
+  const cancellationPolicySnapshot = snapshotCancellationPolicy(
+    effectivePolicy,
+    policySource,
+  );
+
   const booking = await Booking.create({
     propertyId: new mongoose.Types.ObjectId(propertyId),
     guestId: String(guestId),
@@ -162,6 +184,7 @@ export async function createManualBookingRequest({
       currency: "USD",
       ...buildPricingCommissionFields({ commission, resolved }),
     },
+    cancellationPolicySnapshot,
   });
 
   const plain = booking.toObject();
