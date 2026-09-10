@@ -4,11 +4,17 @@
   --ops-hit: 2.25rem;
   --ops-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ops-bottom-nav-height: 3.55rem;
-  min-height: 100dvh;
-  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  /* Lock the ops shell to the visual viewport so the dock stays on-screen
+     while only .ops-app-main scrolls (critical for installed PWA). */
+  height: 100dvh;
+  height: 100svh;
+  max-height: 100dvh;
+  max-height: 100svh;
+  min-height: 0;
   background: #f6f6f4;
-  /* Do not clip here — overflow on this shell breaks position:fixed
-     bottom chrome in iOS / installed PWA webviews. */
+  overflow: hidden;
 }
 
 .ops-page-head {
@@ -38,9 +44,10 @@
 }
 
 .ops-mobile-top {
-  position: sticky;
-  top: 0;
+  position: relative;
+  top: auto;
   z-index: 30;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -102,9 +109,12 @@
 }
 
 .ops-app-main {
-  min-height: 100dvh;
-  min-height: 100svh;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-x: clip;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
 .ops-app-inner {
@@ -311,7 +321,7 @@
   background: transparent;
 }
 
-/* Edge-stuck ops mobile tab bar — always visible in browser + installed PWA. */
+/* Viewport-fixed ops mobile tab bar (portaled to document.body). */
 .ops-bottom-nav {
   position: fixed;
   left: 0;
@@ -325,6 +335,7 @@
   width: 100%;
   max-width: none;
   margin: 0;
+  box-sizing: border-box;
   padding: 0.35rem 0.35rem
     max(
       0.35rem,
@@ -332,13 +343,12 @@
       calc(0.35rem + env(safe-area-inset-bottom, 0px))
     );
   border-radius: 0;
-  background: rgba(17, 17, 17, 0.94);
+  background: rgba(17, 17, 17, 0.96);
   backdrop-filter: blur(16px) saturate(1.15);
   -webkit-backdrop-filter: blur(16px) saturate(1.15);
   border: 0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.28);
-  /* Keep composited on its own layer so iOS PWA scroll doesn’t yank it away. */
   transform: translate3d(0, 0, 0);
   -webkit-transform: translate3d(0, 0, 0);
   pointer-events: auto;

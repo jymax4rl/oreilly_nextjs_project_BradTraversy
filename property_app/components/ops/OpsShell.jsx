@@ -3,7 +3,7 @@ import "@/components/ops/charts/ops-charts.css";
 
 export default function OpsShell({ children, title, subtitle, wide, copilot }) {
   return (
-    <div className="ops-app min-h-dvh">
+    <div className="ops-app">
       <OpsNav />
       <div className="ops-app-main">
         <div

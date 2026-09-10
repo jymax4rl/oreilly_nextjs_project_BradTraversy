@@ -28,7 +28,10 @@ export default function MainShell({ children }) {
       id="main-content"
       className={
         fullscreen
-          ? "flex-grow m-0 min-h-dvh overflow-x-hidden p-0 lg:pt-0"
+          ? // Avoid overflow-x-* here: on iOS/PWA it makes descendants with
+            // position:fixed stick to this main instead of the viewport
+            // (ops / host bottom chrome must stay edge-stuck).
+            "flex-grow m-0 min-h-dvh p-0 lg:pt-0"
           : isHome
             ? "flex-grow m-0 overflow-x-hidden p-0 pt-0 pb-0"
             : isAudienceLanding

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Home,
   Users,
@@ -114,11 +115,16 @@ export default function OpsNav() {
   const pathname = usePathname() || "";
   const { data: session } = useSession();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [portalReady, setPortalReady] = useState(false);
   const morePanelId = useId();
   const moreButtonRef = useRef(null);
   const morePanelRef = useRef(null);
 
   const moreActive = MOBILE_MORE.some((item) => navActive(pathname, item));
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
 
   useEffect(() => {
     setMoreOpen(false);
@@ -148,6 +154,89 @@ export default function OpsNav() {
       }
     };
   }, [moreOpen]);
+
+  const mobileDock = (
+    <>
+      {moreOpen ? (
+        <button
+          type="button"
+          className="ops-more-backdrop"
+          aria-label="Close more menu"
+          onClick={() => setMoreOpen(false)}
+        />
+      ) : null}
+
+      <div
+        ref={morePanelRef}
+        id={morePanelId}
+        className={`ops-more-sheet ${moreOpen ? "ops-more-sheet--open" : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="More ops sections"
+        aria-hidden={!moreOpen}
+        inert={!moreOpen ? true : undefined}
+      >
+        <div className="ops-more-sheet__handle" aria-hidden />
+        <p className="ops-more-sheet__title">More</p>
+        <nav className="ops-more-sheet__nav" aria-label="More ops sections">
+          {MOBILE_MORE.map((item) => {
+            const active = navActive(pathname, item);
+            const Icon = item.Icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMoreOpen(false)}
+                aria-current={active ? "page" : undefined}
+                className={`ops-more-link ${
+                  active ? "ops-more-link--active" : ""
+                }`}
+              >
+                <span className="ops-more-link__icon">
+                  <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                </span>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+
+      <nav className="ops-bottom-nav" aria-label="Ops sections">
+        {MOBILE_TABS.map((item) => {
+          const active = navActive(pathname, item);
+          const Icon = item.Icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={active ? "page" : undefined}
+              className={`ops-bottom-link ${
+                active ? "ops-bottom-link--active" : ""
+              }`}
+            >
+              <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+        <button
+          ref={moreButtonRef}
+          type="button"
+          className={`ops-bottom-link ${
+            moreOpen || moreActive ? "ops-bottom-link--active" : ""
+          }`}
+          aria-label="More ops sections"
+          aria-expanded={moreOpen}
+          aria-controls={morePanelId}
+          onClick={() => setMoreOpen((open) => !open)}
+        >
+          <Ellipsis className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+          <span>More</span>
+        </button>
+      </nav>
+    </>
+  );
 
   return (
     <>
@@ -202,80 +291,8 @@ export default function OpsNav() {
         </div>
       </aside>
 
-      {moreOpen ? (
-        <button
-          type="button"
-          className="ops-more-backdrop"
-          aria-label="Close more menu"
-          onClick={() => setMoreOpen(false)}
-        />
-      ) : null}
-
-      <div
-        ref={morePanelRef}
-        id={morePanelId}
-        className={`ops-more-sheet ${moreOpen ? "ops-more-sheet--open" : ""}`}
-        role="dialog"
-        aria-modal="true"
-        aria-label="More ops sections"
-        aria-hidden={!moreOpen}
-        inert={!moreOpen ? true : undefined}
-      >
-        <div className="ops-more-sheet__handle" aria-hidden />
-        <p className="ops-more-sheet__title">More</p>
-        <nav className="ops-more-sheet__nav" aria-label="More ops sections">
-          {MOBILE_MORE.map((item) => {
-            const active = navActive(pathname, item);
-            const Icon = item.Icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMoreOpen(false)}
-                aria-current={active ? "page" : undefined}
-                className={`ops-more-link ${active ? "ops-more-link--active" : ""}`}
-              >
-                <span className="ops-more-link__icon">
-                  <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-                </span>
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-
-      <nav className="ops-bottom-nav" aria-label="Ops sections">
-        {MOBILE_TABS.map((item) => {
-          const active = navActive(pathname, item);
-          const Icon = item.Icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={active ? "page" : undefined}
-              className={`ops-bottom-link ${active ? "ops-bottom-link--active" : ""}`}
-            >
-              <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-        <button
-          ref={moreButtonRef}
-          type="button"
-          className={`ops-bottom-link ${
-            moreOpen || moreActive ? "ops-bottom-link--active" : ""
-          }`}
-          aria-label="More ops sections"
-          aria-expanded={moreOpen}
-          aria-controls={morePanelId}
-          onClick={() => setMoreOpen((open) => !open)}
-        >
-          <Ellipsis className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-          <span>More</span>
-        </button>
-      </nav>
+      {/* Portal to body so iOS/PWA fixed chrome is never trapped by layout overflow. */}
+      {portalReady ? createPortal(mobileDock, document.body) : mobileDock}
     </>
   );
 }
