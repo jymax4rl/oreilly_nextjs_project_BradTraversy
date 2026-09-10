@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, useCallback, useId, useRef } from "react"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { toUserFacingError } from "@/utils/userFacingError";
 import {
   Minus,
   Plus,
@@ -524,7 +525,7 @@ export default function ListingWizard() {
 
       router.push("/properties/my-listings");
     } catch (e) {
-      setError(e.message || "Something went wrong");
+      setError(toUserFacingError(e, "Something went wrong"));
     } finally {
       setSubmitting(false);
     }

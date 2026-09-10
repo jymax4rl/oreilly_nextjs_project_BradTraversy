@@ -57,16 +57,21 @@ export default function MobileTopChrome() {
   return (
     <div
       className={`lg:hidden fixed left-0 right-0 top-0 z-50 transition-transform duration-300 ease-out will-change-transform ${
-        navVisible ? "translate-y-0" : "-translate-y-full"
-      } ${
         isHome
           ? "home-glass-nav"
           : isPropertyScopedPath(pathname)
             ? "border-b border-[var(--kama-border)] bg-[color-mix(in_srgb,var(--kama-canvas)_78%,transparent)] shadow-none backdrop-blur-xl"
             : "border-b border-[var(--kama-border)] bg-[var(--kama-surface)] shadow-sm"
       }`}
+      style={{
+        // Slide away but keep the status-bar / Dynamic Island strip covered so
+        // scrolled content never paints under system chrome.
+        transform: navVisible
+          ? "translate3d(0,0,0)"
+          : "translate3d(0, calc(-100% + max(0.75rem, var(--kama-safe-top), env(safe-area-inset-top, 0px))), 0)",
+      }}
     >
-      <div className="[padding-top:max(0.5rem,var(--kama-safe-top))] [padding-left:var(--kama-safe-left)] [padding-right:var(--kama-safe-right)]">
+      <div className="[padding-top:max(0.85rem,var(--kama-safe-top),env(safe-area-inset-top,0px))] [padding-left:max(0px,var(--kama-safe-left),env(safe-area-inset-left,0px))] [padding-right:max(0px,var(--kama-safe-right),env(safe-area-inset-right,0px))]">
         <div className="flex items-center gap-2 px-3 py-2.5 pb-3">
           <BrandLogo
             className="h-9 w-auto"

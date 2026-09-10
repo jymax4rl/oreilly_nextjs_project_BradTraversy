@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { Pencil, Check, X } from "lucide-react";
+import { toUserFacingError } from "@/utils/userFacingError";
 
 /**
  * Inline edit for display name via PATCH /api/user/profile.
@@ -49,7 +50,7 @@ export default function ProfileDisplayNameForm({ initialName }) {
       // Refresh JWT so menu chrome picks up the Google profile name sync path
       await update();
     } catch (err) {
-      setError(err.message || "Could not save name");
+      setError(toUserFacingError(err, "Could not save name"));
     } finally {
       setSaving(false);
     }

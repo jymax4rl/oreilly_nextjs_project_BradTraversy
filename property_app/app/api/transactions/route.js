@@ -68,6 +68,8 @@ export const POST = async (request) => {
       check_in: body.check_in,
       check_out: body.check_out,
       nights: body.nights,
+      guest_phone: body.guest_phone,
+      promo_code: body.promo_code || body.promoCode,
     };
 
     // Third arg: client fields win over sparse webhook-created transaction rows.

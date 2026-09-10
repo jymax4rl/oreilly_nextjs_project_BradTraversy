@@ -1,3 +1,5 @@
+import { withSentryConfig } from "@sentry/nextjs/config";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Required for multi-stage Docker images (copy .next/standalone + static + public).
@@ -97,4 +99,37 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+const hasSentryAuthToken = Boolean(process.env.SENTRY_AUTH_TOKEN);
+
+export default withSentryConfig(nextConfig, {
+  // Matches Sentry org/project from the Configure Next.js SDK wizard.
+  org: process.env.SENTRY_ORG || "isisel",
+  project: process.env.SENTRY_PROJECT || "javascript-nextjs",
+
+  // Quiet locally; verbose in CI when uploading.
+  silent: !process.env.CI,
+
+  // Upload a larger set of client source maps for clearer stack traces.
+  widenClientFileUpload: true,
+
+  // Proxy browser events through the Next app (helps with ad blockers).
+  tunnelRoute: "/monitoring",
+
+  webpack: {
+    // Tree-shake Sentry debug logger statements from production bundles.
+    treeshake: {
+      removeDebugLogging: true,
+    },
+    // Create Sentry cron monitors from vercel.json crons when present.
+    automaticVercelMonitors: true,
+  },
+
+  // Do not fail / block builds when auth token is missing (local + CI without secrets).
+  // Set SENTRY_AUTH_TOKEN on Vercel to enable release + source map upload.
+  sourcemaps: {
+    disable: !hasSentryAuthToken,
+  },
+  release: {
+    create: hasSentryAuthToken,
+  },
+});

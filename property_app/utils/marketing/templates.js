@@ -442,6 +442,31 @@ function followFinalCopy(vars, locale) {
   );
 }
 
+function becomeHostCopy(vars, locale) {
+  if (locale === "fr") {
+    return letter(
+      [
+        greeting(vars, "fr"),
+        "Vous avez déjà un compte Isisel. Si vous avez une maison en Afrique — ou la maison de famille au pays — vous pouvez la mettre en ligne et garder 100 % de la nuit.",
+        "Les voyageurs demandent les dates sur www.isisel.com. Vous gérez les réservations depuis le téléphone.",
+        `Pour devenir hôte : ${HOST_APPLY_URL}`,
+        "Répondez à cet e-mail ou écrivez-moi sur WhatsApp si vous voulez que je vous guide.",
+      ],
+      SIGN.fr,
+    );
+  }
+  return letter(
+    [
+      greeting(vars, "en"),
+      "You already have an Isisel account. If you have a home in Africa — or the family house back home — you can list it and keep 100% of the night.",
+      "Guests request dates on www.isisel.com. You manage reservations from your phone.",
+      `Become a host: ${HOST_APPLY_URL}`,
+      "Reply to this email or WhatsApp me if you want a walkthrough.",
+    ],
+    SIGN.en,
+  );
+}
+
 export const MARKETING_TEMPLATES = [
   {
     id: "general_intro",
@@ -471,6 +496,31 @@ export const MARKETING_TEMPLATES = [
       ],
     },
     composeBody: generalCopy,
+  },
+  {
+    id: "become_a_host",
+    label: "Become a host",
+    labelFr: "Devenir hôte",
+    audience: "Guests already on Isisel who do not host yet",
+    audienceFr: "Voyageurs déjà inscrits qui n’hébergent pas encore",
+    category: "marketplace",
+    intent: "conversation",
+    promotional: false,
+    pdfKey: "host",
+    followUp: false,
+    subjectOptions: {
+      en: [
+        "List your home on Isisel",
+        "Become a host on Isisel",
+        "Your home, on your terms",
+      ],
+      fr: [
+        "Mettez votre maison sur Isisel",
+        "Devenez hôte sur Isisel",
+        "Votre maison, à vos conditions",
+      ],
+    },
+    composeBody: becomeHostCopy,
   },
   {
     id: "property_owners",

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { toUserFacingError } from "@/utils/userFacingError";
 import {
   dismissPushPrompt,
   isIosSafari,
@@ -67,7 +68,7 @@ export default function HostPushPrompt({ compact = false }) {
       setVisible(false);
       setDenied(false);
     } catch (err) {
-      setError(err.message || t("hostConsole.push.failed"));
+      setError(toUserFacingError(err, t("hostConsole.push.failed")));
     } finally {
       setBusy(false);
     }

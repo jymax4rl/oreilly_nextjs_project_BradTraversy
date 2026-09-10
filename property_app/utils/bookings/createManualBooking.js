@@ -23,6 +23,17 @@ import { resolveCommissionForProperty } from "@/utils/foundingHost/resolveCommis
 import { buildPricingCommissionFields } from "@/utils/foundingHost/logic";
 import { notifyHostNewReservation } from "@/utils/push/webPush";
 import { TRAINING_BOOKING_SOURCE } from "@/utils/opsTraining/constants";
+import User from "@/models/User";
+import {
+  resolveEffectiveBookingPolicy,
+  snapshotCancellationPolicy,
+} from "@/utils/bookings/bookingPolicy";
+import {
+  buildCreatorBookingFields,
+  resolveOptionalPromoAttribution,
+  applyGuestPromoDiscount,
+} from "@/utils/creators/promoAttribution";
+import { upsertCommissionForBooking } from "@/utils/creators/commissionEngine";
 
 /**
  * Create a pending reservation without a payment gateway.
@@ -42,6 +53,7 @@ export async function createManualBookingRequest({
   status,
   skipEmails = false,
   source,
+  promoCode,
 }) {
   if (!propertyId || !guestId || !checkIn || !checkOut) {
     return {
@@ -62,7 +74,7 @@ export async function createManualBookingRequest({
   const phone = normalizeGuestPhone(guestPhone);
 
   const property = await Property.findById(propertyId)
-    .select("name owner seller_info rates status")
+    .select("name owner seller_info rates status bookingPolicy")
     .lean();
 
   if (!property) {
@@ -124,11 +136,33 @@ export async function createManualBookingRequest({
   }
 
   const resolved = await resolveCommissionForProperty(property);
-  const { cleaningFee, commission, total: totalUsd } = calculateBookingFees(
+  const nights = countNights(validation.checkIn, validation.checkOut);
+
+  const promoResult = await resolveOptionalPromoAttribution({
+    propertyId,
+    promoCode,
+    guestId,
+    guestEmail,
+    source,
+  });
+  if (!promoResult.ok) {
+    return {
+      ok: false,
+      status: 400,
+      error: promoResult.error || "Invalid promo code",
+    };
+  }
+
+  const discount = applyGuestPromoDiscount(
     stayPricing.base,
+    promoResult.attribution?.guestDiscountRate || 0,
+  );
+  const pricedBase = discount.discountedBase;
+  const { cleaningFee, commission, total: totalUsd } = calculateBookingFees(
+    pricedBase,
     { commissionRate: resolved.commissionRate },
   );
-  const nights = countNights(validation.checkIn, validation.checkOut);
+
   const amount =
     amountHint != null && Number.isFinite(Number(amountHint))
       ? Number(amountHint)
@@ -137,6 +171,29 @@ export async function createManualBookingRequest({
 
   const bookingStatus =
     createdByHost && status === "confirmed" ? "confirmed" : "pending";
+
+  // Creator commission on the accommodation the guest actually pays
+  const creatorFields = buildCreatorBookingFields(
+    promoResult.attribution,
+    pricedBase,
+  );
+
+  let hostDefault = null;
+  if (property.owner) {
+    const host = await User.findById(property.owner)
+      .select("defaultCancellationPolicy")
+      .lean();
+    hostDefault = host?.defaultCancellationPolicy || null;
+  }
+  const { policy: effectivePolicy, source: policySource } =
+    resolveEffectiveBookingPolicy({
+      property,
+      hostDefault,
+    });
+  const cancellationPolicySnapshot = snapshotCancellationPolicy(
+    effectivePolicy,
+    policySource,
+  );
 
   const booking = await Booking.create({
     propertyId: new mongoose.Types.ObjectId(propertyId),
@@ -153,16 +210,36 @@ export async function createManualBookingRequest({
     propertyName: property.name || undefined,
     version: 0,
     ...(source ? { source } : {}),
+    ...creatorFields,
     pricingSnapshot: {
-      nightlyRate: stayPricing.base / Math.max(nights, 1),
-      accommodationBase: stayPricing.base,
+      nightlyRate: pricedBase / Math.max(nights, 1),
+      accommodationBase: pricedBase,
+      accommodationBeforePromo: discount.originalBase,
       cleaningFee,
       total: totalUsd,
       nights,
       currency: "USD",
+      ...(discount.guestDiscountAmount > 0
+        ? {
+            promoCode: promoResult.attribution?.creatorPromoCode,
+            promoDiscountRate: discount.guestDiscountRate,
+            promoDiscountAmount: discount.guestDiscountAmount,
+          }
+        : {}),
       ...buildPricingCommissionFields({ commission, resolved }),
     },
+    cancellationPolicySnapshot,
   });
+
+  if (creatorFields.creatorAttributionStatus === "attributed") {
+    try {
+      await upsertCommissionForBooking(booking.toObject(), {
+        actor: "booking.create",
+      });
+    } catch (err) {
+      console.error("[creator commission] upsert failed:", err);
+    }
+  }
 
   const plain = booking.toObject();
 

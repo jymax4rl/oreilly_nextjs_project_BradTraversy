@@ -104,6 +104,17 @@ const UserSchema = new Schema(
     /** Verified host mailing address (synced from host application). */
     hostAddress: AddressSchema,
     /**
+     * Host settlement details for platform-managed payouts.
+     * Guests pay Isisel (Creem MoR); ops/transfers use this IBAN later.
+     * Never expose full IBAN to other users — settings API only.
+     */
+    hostPayout: {
+      iban: { type: String, default: null },
+      accountName: { type: String, default: null },
+      updatedAt: { type: Date, default: null },
+    },
+
+    /**
      * Account preferences (Settings). Missing keys mean “default on”.
      * Booking email senders honor these unless a force-resend bypasses them.
      */
@@ -116,6 +127,29 @@ const UserSchema = new Schema(
         /** Host: guest date changes and cancellations */
         hostBookingChanges: { type: Boolean, default: true },
       },
+      /** Site UI language (EN/FR). Used for ops bulk emails and similar. */
+      language: {
+        type: String,
+        enum: ["en", "fr"],
+        default: undefined,
+      },
+    },
+    /**
+     * Host-wide default free-cancellation window. Applied to new reservations
+     * when a listing has no explicit Property.bookingPolicy. Snapshotted onto
+     * each booking so later edits do not rewrite past stays.
+     * preset: none | 12 | 24 | 48 | 72 | custom
+     */
+    defaultCancellationPolicy: {
+      preset: {
+        type: String,
+        enum: ["none", "12", "24", "48", "72", "custom"],
+        default: "48",
+      },
+      /** Used when preset === "custom" (hours before check-in). */
+      customHours: { type: Number, min: 0, max: 8760, default: 48 },
+      /** IANA zone for check-in midnight (eligibility math). */
+      timeZone: { type: String, default: "UTC" },
     },
     /** Last accepted Terms & Conditions version string (e.g. kama-terms-v1.0-…). */
     termsVersion: {

@@ -9,6 +9,7 @@ export function isExploreMobileLayout(pathname) {
   if (
     pathname.startsWith("/admin") ||
     pathname.startsWith("/ops") ||
+    pathname.startsWith("/documentation") ||
     pathname.startsWith("/host")
   )
     return false;
@@ -22,6 +23,7 @@ export function isExploreMobileLayout(pathname) {
   return (
     pathname === "/" ||
     pathname.startsWith("/properties") ||
-    pathname.startsWith("/saved-properties")
+    pathname.startsWith("/saved-properties") ||
+    pathname.startsWith("/messages")
   );
 }

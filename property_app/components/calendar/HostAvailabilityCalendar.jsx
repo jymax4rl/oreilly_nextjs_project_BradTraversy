@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { toUserFacingError } from "@/utils/userFacingError";
 import {
   CalendarDays,
   ChevronLeft,
@@ -75,7 +76,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
       setSelectedRateDate(null);
       setRateDraft("");
     } catch (e) {
-      setError(e.message || t("hostConsole.cal.couldNotLoad"));
+      setError(toUserFacingError(e, t("hostConsole.cal.couldNotLoad")));
     } finally {
       setLoading(false);
       setDirty(false);
@@ -314,7 +315,7 @@ export default function HostAvailabilityCalendar({ propertyId, baseRates = {} })
       setEditingIndex(null);
       setSuccess(t("hostConsole.cal.saved"));
     } catch (e) {
-      setError(e.message || t("hostConsole.cal.saveFailed"));
+      setError(toUserFacingError(e, t("hostConsole.cal.saveFailed")));
     } finally {
       setSaving(false);
     }

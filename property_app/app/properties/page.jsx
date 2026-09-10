@@ -5,14 +5,15 @@ import Property from "@/models/Property";
 import connectToDatabase from "@/config/database";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
-import { withApprovedListingFilter } from "@/utils/listingApproval";
 import { ensurePropertySlugs } from "@/utils/listings/propertySlug";
 import { redactPreviewLockedCatalogFields } from "@/utils/listings/previewLockedHost";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
+import { canBrowseListingCatalog } from "@/utils/listings/catalogBeta";
 import {
-  canBrowseListingCatalog,
-} from "@/utils/listings/catalogBeta";
+  buildCatalogMongoQuery,
+  parseCatalogSearchParams,
+} from "@/utils/listings/catalogQuery";
 
 export async function generateMetadata({ searchParams }) {
   const session = await getServerSession(authOptions);
@@ -45,15 +46,7 @@ export async function generateMetadata({ searchParams }) {
   };
 }
 
-// Listings need a live DB - do not prerender at image-build time (no secrets in Docker build).
 export const dynamic = "force-dynamic";
-
-function parsePositiveInt(value) {
-  if (value == null || value === "") return null;
-  const n = Number(value);
-  if (!Number.isFinite(n) || n < 1) return null;
-  return Math.floor(n);
-}
 
 function renderPropertiesList({
   initialProperties,
@@ -63,6 +56,8 @@ function renderPropertiesList({
   maxPrice,
   minBeds,
   minBaths,
+  checkIn,
+  checkOut,
   hideSearchToolbar = false,
   maxProperties,
 }) {
@@ -72,9 +67,15 @@ function renderPropertiesList({
   }
 
   return (
-    <div className="min-h-screen min-w-full overflow-x-hidden md:pt-[10vh]">
+    <div
+      className={
+        hideSearchToolbar
+          ? "min-h-screen min-w-full overflow-x-clip"
+          : "min-w-full overflow-x-clip md:min-h-0"
+      }
+    >
       <HomeProperties
-        key={`${locationQuery || "all"}-${typeQuery || "all"}-${minPrice ?? ""}-${maxPrice ?? ""}-${minBeds ?? ""}-${minBaths ?? ""}`}
+        key={`${locationQuery || "all"}-${typeQuery || "all"}-${minPrice ?? ""}-${maxPrice ?? ""}-${minBeds ?? ""}-${minBaths ?? ""}-${checkIn || ""}-${checkOut || ""}`}
         initialProperties={list}
         searchQuery={locationQuery || ""}
         typeFilter={typeQuery || ""}
@@ -82,6 +83,8 @@ function renderPropertiesList({
         maxPrice={maxPrice}
         minBeds={minBeds}
         minBaths={minBaths}
+        checkIn={checkIn || ""}
+        checkOut={checkOut || ""}
         hideSearchToolbar={hideSearchToolbar}
       />
     </div>
@@ -98,13 +101,11 @@ const PropertiesPage = async ({
     return <ComingSoonStays variant={hideSearchToolbar ? "home" : "page"} />;
   }
 
-  const params = (await searchParams) || {};
-  const locationQuery = params?.location?.trim();
-  const typeQuery = params?.type;
-  const minPrice = params?.minPrice ? Number(params.minPrice) : null;
-  const maxPrice = params?.maxPrice ? Number(params.maxPrice) : null;
-  const minBeds = parsePositiveInt(params?.minBeds);
-  const minBaths = parsePositiveInt(params?.minBaths);
+  const raw = (await searchParams) || {};
+  const parsed = parseCatalogSearchParams(raw);
+  const locationQuery = parsed.location;
+  const typeQuery = parsed.type;
+  const { minPrice, maxPrice, minBeds, minBaths, checkIn, checkOut } = parsed;
 
   const emptyList = () =>
     renderPropertiesList({
@@ -115,6 +116,8 @@ const PropertiesPage = async ({
       maxPrice,
       minBeds,
       minBaths,
+      checkIn,
+      checkOut,
       hideSearchToolbar,
       maxProperties,
     });
@@ -123,68 +126,18 @@ const PropertiesPage = async ({
     return emptyList();
   }
 
-  const mongoQuery = {};
-
-  if (locationQuery) {
-    const escaped = locationQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(escaped, "i");
-    mongoQuery.$or = [
-      { "location.city": regex },
-      { "location.state": regex },
-      { "location.country": regex },
-      { "location.street": regex },
-      { "location.zipcode": regex },
-      { name: regex },
-    ];
-  }
-
-  if (typeQuery && typeQuery !== "All Properties") {
-    mongoQuery.type = { $regex: new RegExp(typeQuery, "i") };
-  }
-
-  if (minPrice != null || maxPrice != null) {
-    const priceCond = {};
-    if (minPrice != null && !Number.isNaN(minPrice)) priceCond.$gte = minPrice;
-    if (maxPrice != null && !Number.isNaN(maxPrice)) priceCond.$lte = maxPrice;
-
-    if (Object.keys(priceCond).length) {
-      mongoQuery.$and = mongoQuery.$and || [];
-      mongoQuery.$and.push({
-        $or: [
-          { listingPrice: priceCond },
-          {
-            listingPrice: { $exists: false },
-            "rates.nightly": priceCond,
-          },
-        ],
-      });
-    }
-  }
-
-  if (minBeds != null) {
-    mongoQuery.beds = { $gte: minBeds };
-  }
-
-  if (minBaths != null) {
-    mongoQuery.baths = { $gte: minBaths };
-  }
-
-  const hasFilters =
-    locationQuery ||
-    (typeQuery && typeQuery !== "All Properties") ||
-    minPrice != null ||
-    maxPrice != null ||
-    minBeds != null ||
-    minBaths != null;
-  if (!hasFilters) {
-    mongoQuery.is_featured = false;
-  }
+  const mongoQuery = buildCatalogMongoQuery({
+    location: locationQuery,
+    type: typeQuery,
+    minPrice,
+    maxPrice,
+    minBeds,
+    minBaths,
+  });
 
   try {
     await connectToDatabase();
-    const properties = await Property.find(
-      withApprovedListingFilter(mongoQuery),
-    ).lean();
+    const properties = await Property.find(mongoQuery).lean();
     const serializedProperties = redactPreviewLockedCatalogFields(
       await attachOwnerProfiles(
         (await ensurePropertySlugs(properties)).map(serializePropertyForClient),
@@ -199,6 +152,8 @@ const PropertiesPage = async ({
       maxPrice,
       minBeds,
       minBaths,
+      checkIn,
+      checkOut,
       hideSearchToolbar,
       maxProperties,
     });

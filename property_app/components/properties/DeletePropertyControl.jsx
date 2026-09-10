@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import DeletePropertyModal from "./DeletePropertyModal";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { toUserFacingError } from "@/utils/userFacingError";
 
 /**
  * Opens the type-to-confirm delete modal and calls DELETE /api/properties/[id].
@@ -42,7 +43,7 @@ export default function DeletePropertyControl({
         router.refresh();
       }
     } catch (err) {
-      setError(err.message || t("hostConsole.delete.failed"));
+      setError(toUserFacingError(err, t("hostConsole.delete.failed")));
     } finally {
       setIsDeleting(false);
     }

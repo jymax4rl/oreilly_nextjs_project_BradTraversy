@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Save } from "lucide-react";
+import { toUserFacingError } from "@/utils/userFacingError";
 import {
   calculateBookingBase,
   getPrimaryDisplayRate,
@@ -41,7 +42,7 @@ export default function HostRatesForm({ propertyId, propertyName }) {
         monthly: r.monthly != null ? String(r.monthly) : "",
       });
     } catch (e) {
-      setError(e.message || t("hostConsole.rateForm.couldNotLoad"));
+      setError(toUserFacingError(e, t("hostConsole.rateForm.couldNotLoad")));
     } finally {
       setLoading(false);
     }
@@ -98,7 +99,7 @@ export default function HostRatesForm({ propertyId, propertyName }) {
       });
       setSuccess(t("hostConsole.rateForm.saved"));
     } catch (e) {
-      setError(e.message || t("hostConsole.rateForm.saveFailed"));
+      setError(toUserFacingError(e, t("hostConsole.rateForm.saveFailed")));
     } finally {
       setSaving(false);
     }

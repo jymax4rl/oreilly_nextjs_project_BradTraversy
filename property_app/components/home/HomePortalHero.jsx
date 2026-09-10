@@ -35,10 +35,47 @@ export default function HomePortalHero({ catalogOpen = true }) {
     return () => ctx.revert();
   }, []);
 
+  /* Lock mobile hero to the visible phone screen (visual viewport). */
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || typeof window === "undefined") return;
+
+    const mq = window.matchMedia("(max-width: 1023px)");
+
+    const sync = () => {
+      if (!mq.matches) {
+        root.style.removeProperty("--home-hero-height");
+        return;
+      }
+      const vv = window.visualViewport?.height;
+      const layout = window.innerHeight || 0;
+      /* Prefer the larger measure so browser chrome collapse never
+         leaves a cream strip under the photograph. */
+      const height = Math.max(layout, vv || 0, 0);
+      if (height > 0) {
+        root.style.setProperty("--home-hero-height", `${Math.round(height)}px`);
+      }
+    };
+
+    sync();
+    window.addEventListener("resize", sync);
+    window.visualViewport?.addEventListener("resize", sync);
+    window.visualViewport?.addEventListener("scroll", sync);
+    mq.addEventListener?.("change", sync);
+
+    return () => {
+      window.removeEventListener("resize", sync);
+      window.visualViewport?.removeEventListener("resize", sync);
+      window.visualViewport?.removeEventListener("scroll", sync);
+      mq.removeEventListener?.("change", sync);
+      root.style.removeProperty("--home-hero-height");
+    };
+  }, []);
+
   return (
     <section
       ref={rootRef}
-      className="home-hero--photo relative isolate flex flex-col items-center justify-end overflow-hidden px-5 pt-[5.5rem] sm:px-8 sm:pb-12 lg:pb-14"
+      className="home-hero--photo relative isolate flex flex-col items-center justify-end overflow-hidden px-5 sm:px-8 sm:pb-12 lg:pb-14 lg:pt-[5.5rem]"
       aria-labelledby="isisel-hero-brand"
     >
       <HomeHeroBackdrop />
@@ -69,14 +106,14 @@ export default function HomePortalHero({ catalogOpen = true }) {
 
         <a
           data-hero-fade
-          href={catalogOpen ? "#search" : "#stays"}
+          href={catalogOpen ? "#discover" : "#stays"}
           className="home-scroll-line mt-8 sm:mt-10"
           aria-label={
             catalogOpen ? t("home.browseStays") : t("home.comingSoon.kicker")
           }
           onClick={(event) => {
             const target = document.getElementById(
-              catalogOpen ? "search" : "stays",
+              catalogOpen ? "discover" : "stays",
             );
             if (!target) return;
             event.preventDefault();

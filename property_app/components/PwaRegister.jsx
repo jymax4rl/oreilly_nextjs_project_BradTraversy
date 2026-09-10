@@ -17,7 +17,12 @@ export default function PwaRegister() {
 
     const register = async () => {
       try {
-        await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+        const reg = await navigator.serviceWorker.register("/sw.js", {
+          scope: "/",
+          updateViaCache: "none",
+        });
+        // Pick up offline-safe SW revisions promptly on launch.
+        void reg.update?.();
       } catch {
         /* ignore — iOS guide still works without SW */
       }

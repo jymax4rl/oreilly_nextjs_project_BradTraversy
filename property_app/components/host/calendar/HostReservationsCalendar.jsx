@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { toUserFacingError } from "@/utils/userFacingError";
 import {
   CalendarRange,
   ChevronLeft,
@@ -162,7 +163,7 @@ export default function HostReservationsCalendar({ initialProperties = [] }) {
         setProperties(data.properties);
       }
     } catch (e) {
-      setError(e.message || t("hostConsole.resCal.loadFailed"));
+      setError(toUserFacingError(e, t("hostConsole.resCal.loadFailed")));
     } finally {
       if (!silent) setLoading(false);
     }

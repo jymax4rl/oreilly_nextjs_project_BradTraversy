@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 import Booking from "@/models/Booking";
 import Property from "@/models/Property";
+import User from "@/models/User";
+import {
+  resolveEffectiveBookingPolicy,
+  snapshotCancellationPolicy,
+} from "@/utils/bookings/bookingPolicy";
 import { getAvailabilityPayload } from "@/utils/availability/availabilityService";
 import {
   countNights,
@@ -16,6 +21,12 @@ import {
 import { resolveCommissionForProperty } from "@/utils/foundingHost/resolveCommission";
 import { buildPricingCommissionFields } from "@/utils/foundingHost/logic";
 import { notifyHostNewReservation } from "@/utils/push/webPush";
+import {
+  buildCreatorBookingFields,
+  resolveOptionalPromoAttribution,
+  applyGuestPromoDiscount,
+} from "@/utils/creators/promoAttribution";
+import { upsertCommissionForBooking } from "@/utils/creators/commissionEngine";
 
 async function buildGatewayPricingSnapshot({
   propertyId,
@@ -25,6 +36,8 @@ async function buildGatewayPricingSnapshot({
   checkOut,
   amount,
   currency,
+  guestDiscountRate = 0,
+  promoCodeLabel,
 }) {
   const nights = countNights(checkIn, checkOut);
   const listingRates = normalizeRates(property?.rates);
@@ -38,17 +51,29 @@ async function buildGatewayPricingSnapshot({
       checkOut,
     );
     if (stayPricing) {
-      const { cleaningFee, commission, total } = calculateBookingFees(
+      const discount = applyGuestPromoDiscount(
         stayPricing.base,
+        guestDiscountRate,
+      );
+      const { cleaningFee, commission, total } = calculateBookingFees(
+        discount.discountedBase,
         { commissionRate: resolved.commissionRate },
       );
       return {
-        nightlyRate: stayPricing.base / Math.max(nights, 1),
-        accommodationBase: stayPricing.base,
+        nightlyRate: discount.discountedBase / Math.max(nights, 1),
+        accommodationBase: discount.discountedBase,
+        accommodationBeforePromo: discount.originalBase,
         cleaningFee,
         total,
         nights,
         currency: "USD",
+        ...(discount.guestDiscountAmount > 0
+          ? {
+              promoCode: promoCodeLabel,
+              promoDiscountRate: discount.guestDiscountRate,
+              promoDiscountAmount: discount.guestDiscountAmount,
+            }
+          : {}),
         ...buildPricingCommissionFields({ commission, resolved }),
       };
     }
@@ -86,6 +111,7 @@ export async function confirmBookingFromPayment({
   amount,
   currency,
   propertyName,
+  promoCode,
 }) {
   if (!propertyId || !guestId || !checkIn || !checkOut) {
     return {
@@ -95,7 +121,7 @@ export async function confirmBookingFromPayment({
   }
 
   if (transactionId != null) {
-    const existing = await Booking.findOne({ transactionId }).lean();
+    const existing = await Booking.findOne({ transactionId: String(transactionId) }).lean();
     if (existing) {
       return { ok: true, booking: existing, created: false };
     }
@@ -115,8 +141,22 @@ export async function confirmBookingFromPayment({
   }
 
   const property = await Property.findById(propertyId)
-    .select("name owner rates")
+    .select("name owner rates bookingPolicy")
     .lean();
+
+  const promoResult = await resolveOptionalPromoAttribution({
+    propertyId,
+    promoCode,
+    guestId,
+    guestEmail,
+  });
+  if (!promoResult.ok && promoCode) {
+    console.warn(
+      "[creator promo] ignored after payment:",
+      promoResult.error,
+    );
+  }
+  const attribution = promoResult.ok ? promoResult.attribution : null;
 
   const pricingSnapshot = await buildGatewayPricingSnapshot({
     propertyId,
@@ -126,7 +166,32 @@ export async function confirmBookingFromPayment({
     checkOut: validation.checkOut,
     amount,
     currency,
+    guestDiscountRate: attribution?.guestDiscountRate || 0,
+    promoCodeLabel: attribution?.creatorPromoCode,
   });
+
+  // After payment, never block the stay on a bad promo — skip attribution instead.
+  const creatorFields = buildCreatorBookingFields(
+    attribution,
+    pricingSnapshot?.accommodationBase ?? amount,
+  );
+
+  let hostDefault = null;
+  if (property?.owner) {
+    const host = await User.findById(property.owner)
+      .select("defaultCancellationPolicy")
+      .lean();
+    hostDefault = host?.defaultCancellationPolicy || null;
+  }
+  const { policy: effectivePolicy, source: policySource } =
+    resolveEffectiveBookingPolicy({
+      property,
+      hostDefault,
+    });
+  const cancellationPolicySnapshot = snapshotCancellationPolicy(
+    effectivePolicy,
+    policySource,
+  );
 
   const booking = await Booking.create({
     propertyId: new mongoose.Types.ObjectId(propertyId),
@@ -138,13 +203,25 @@ export async function confirmBookingFromPayment({
     checkOut: validation.checkOut,
     status: "confirmed",
     paymentMode: PAYMENT_MODE_GATEWAY,
-    transactionId: transactionId ?? undefined,
+    transactionId: transactionId != null ? String(transactionId) : undefined,
     amount: amount != null ? Number(amount) : pricingSnapshot?.total,
     currency: currency || pricingSnapshot?.currency || undefined,
     propertyName: propertyName || property?.name || undefined,
     version: 0,
     pricingSnapshot,
+    ...creatorFields,
+    cancellationPolicySnapshot,
   });
+
+  if (creatorFields.creatorAttributionStatus === "attributed") {
+    try {
+      await upsertCommissionForBooking(booking.toObject(), {
+        actor: "booking.confirm",
+      });
+    } catch (err) {
+      console.error("[creator commission] upsert failed:", err);
+    }
+  }
 
   if (property?.owner) {
     try {

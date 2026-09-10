@@ -6,11 +6,11 @@ export const CREATOR_PATH = "/influencers";
 export const creatorSeo = {
   title: "Travel Creator & Influencer Partnerships | Isisel",
   description:
-    "Isisel is looking for travel, lifestyle, and Africa-focused creators to explore partnership opportunities. Tell us who you are — name and email is enough. No follower minimum, no application maze.",
+    "Partner with Isisel hosts: share property promo codes, guests get a discount, you earn commission after the stay. Or tell us who you are — name and email is enough. No follower minimum.",
   canonical: CREATOR_PATH,
   ogTitle: "Turn your influence into new opportunities | Isisel",
   ogDescription:
-    "You already have an audience. Let's talk about what we could create together — travel, stays, and stories across Africa.",
+    "Host-invited promo codes, guest discounts, and a creator console — plus broader partnerships for travel stories across Africa.",
 };
 
 export const creatorJsonLd = {
@@ -33,9 +33,9 @@ export const creatorPage = {
   ],
   h1: "Turn your influence into new opportunities.",
   lede:
-    "Are you a creator talking about travel, lifestyle, Africa, hospitality, or experiences? We're looking for creators who want to explore partnership opportunities with Isisel.",
+    "Are you a creator talking about travel, lifestyle, Africa, hospitality, or experiences? Hosts can invite you with property promo codes — or start a broader conversation with Isisel.",
   primaryCta: "Let's Discuss",
-  secondaryCta: "See how we can work together",
+  secondaryCta: "See how host codes work",
   heroStory: ["Creator", "Audience", "Travel", "Isisel", "Opportunity"],
   heroImage: {
     src: "/home/hero-villa-4k.png",
@@ -75,20 +75,20 @@ export const creatorPage = {
     note: "Partnerships can be tailored. Nothing below is a guarantee — it's a map of what we can discuss.",
     items: [
       {
-        title: "New revenue opportunities",
-        body: "Explore potential commercial partnerships with Isisel. Terms depend on the collaboration — we don't publish a one-size rate.",
+        title: "Host promo codes",
+        body: "When a host invites you, you get codes for specific stays. Guests book with your code, receive a discount, and you earn commission after checkout.",
+      },
+      {
+        title: "Creator console",
+        body: "Track assigned codes, check property availability for your stories, and follow earnings — once you've claimed a host invite.",
       },
       {
         title: "Exclusive campaigns",
-        body: "Eligible creators may be invited into Isisel campaigns and launches, depending on timing and fit.",
+        body: "Eligible creators may also be invited into Isisel campaigns and launches, depending on timing and fit.",
       },
       {
         title: "Access to hospitality",
         body: "Work with a platform connecting travellers and accommodation — villas, apartments, and stays across Africa.",
-      },
-      {
-        title: "Build something early",
-        body: "Creators who collaborate with Isisel early can potentially take part in the growth of the platform from an early stage.",
       },
       {
         title: "Creative freedom",
@@ -96,7 +96,7 @@ export const creatorPage = {
       },
       {
         title: "Long-term partnerships",
-        body: "We're more interested in relationships than a one-off promotional post. Let's discuss what that could look like.",
+        body: "We're more interested in relationships than a one-off promotional post. Host codes are one path — broader collaborations are another.",
       },
     ],
   },
@@ -143,8 +143,13 @@ export const creatorPage = {
     id: "work-together",
     h2: "What could a partnership look like?",
     intro:
-      "There isn't a single template. Here are models we can discuss — none of them are a published, guaranteed program.",
+      "There isn't a single template. Hosts can invite you into a live promo-code program; other collaborations stay conversation-led.",
     items: [
+      {
+        title: "Host promo codes",
+        badge: "Live with hosts",
+        body: "A host assigns you a code for a property — guest discount and your commission rate are set by that host. Share the stay, guests book with your code, you earn after the stay.",
+      },
       {
         title: "Content partnerships",
         body: "You produce travel or property content featuring Isisel, in a way that still feels like you.",
@@ -155,18 +160,45 @@ export const creatorPage = {
       },
       {
         title: "Destination content",
-        body: "You showcase destinations and properties available through Isisel.",
+        body: "You showcase destinations and properties available through Isisel — with calendars in your console when a host has invited you.",
       },
       {
         title: "Audience partnerships",
         body: "You introduce your community to Isisel when it genuinely fits what they already care about.",
       },
+    ],
+  },
+
+  program: {
+    id: "host-codes",
+    kicker: "Live now",
+    h2: "Partner codes with hosts.",
+    body: "Hosts on Isisel can invite creators to promote a stay. Guests who book with your code get a discount. You earn a commission after checkout — tracked in your creator console, separate from Isisel's platform fee.",
+    steps: [
       {
-        title: "Affiliate / performance",
-        badge: "Potential partnership model",
-        body: "A performance-based collaboration is something we can discuss. We do not advertise a commission percentage — there isn't a published affiliate rate yet.",
+        n: "01",
+        title: "Get invited",
+        body: "A host sends you a private invite link for their property.",
+      },
+      {
+        n: "02",
+        title: "Claim your console",
+        body: "Sign in with Google, see your codes, and open availability calendars.",
+      },
+      {
+        n: "03",
+        title: "Share the stay",
+        body: "Promote when nights are open. Guests apply your code at booking and see the discount.",
+      },
+      {
+        n: "04",
+        title: "Earn after the stay",
+        body: "Commission follows the booking — pending through checkout, then toward payout once approved.",
       },
     ],
+    ctaDiscuss: "Not invited yet? Let's Discuss",
+    ctaConsole: "Open creator console",
+    consoleHref: "/creators/console",
   },
 
   bigIdea: {
@@ -216,27 +248,27 @@ export const creatorPage = {
   journey: {
     id: "journey",
     h2: "How it starts",
-    note: "This is not a complicated application.",
+    note: "Two doors: a host invite, or a short conversation with us. Neither is a maze.",
     steps: [
       {
         n: "01",
-        title: "Tell us about yourself",
-        body: "Name and email. That's enough to begin.",
+        title: "Tell us about yourself — or open an invite",
+        body: "Name and email to begin a conversation. Or use the link a host already sent you.",
       },
       {
         n: "02",
-        title: "Let's discuss your audience & content",
-        body: "We'll talk about where you create and who you speak to.",
+        title: "Discuss — or claim your console",
+        body: "We talk about your audience and content. Invited creators sign in with Google and land in the console.",
       },
       {
         n: "03",
-        title: "We explore a partnership",
-        body: "If there's a fit, we shape something together — not a generic brief.",
+        title: "Shape the partnership",
+        body: "Host codes for specific stays, a campaign, or another model that still sounds like you.",
       },
       {
         n: "04",
-        title: "Create something together",
-        body: "Content, campaigns, or another model that still sounds like you.",
+        title: "Create — and track what lands",
+        body: "Share stays with confidence. When guests book with your code, earnings show up in your console.",
       },
     ],
   },
@@ -244,7 +276,7 @@ export const creatorPage = {
   proof: {
     id: "now",
     h2: "Looking for the right creators to grow with.",
-    body: "We're opening conversations with creators who believe in what we're building. If that's you, we'd like to hear from you.",
+    body: "Hosts are already inviting partners. We're also opening conversations with creators who believe in what we're building. If that's you, we'd like to hear from you.",
   },
 
   faq: {
@@ -265,19 +297,23 @@ export const creatorPage = {
       },
       {
         q: "Is this an affiliate program?",
-        a: "Not a published one. Performance-based partnerships are a potential model we can discuss. There is no advertised commission rate, because we have not established a public affiliate program.",
+        a: "Hosts can invite you into a live promo-code partnership: guests get a discount on that stay, and you earn a commission set by the host. There is no single public rate for every creator — rates are per host invite. Broader campaigns and content deals are still conversation-led.",
       },
       {
         q: "How do creator partnerships work?",
-        a: "You tell us who you are. We get in touch. We talk about your content, your audience, and whether there's a natural collaboration. If there is, we shape the partnership together. Terms are discussed individually.",
+        a: "Two paths. A host sends you an invite → you claim your console → you share codes and check calendars. Or you tell us who you are, we get in touch, and we shape content, campaigns, or another collaboration together.",
       },
       {
         q: "How much can I earn?",
-        a: "There is no published earning figure — and we won't invent one. Commercial terms, if any, depend on the partnership. Some collaborations may be commercial; some may be about access, content, or campaigns. Let's discuss.",
+        a: "On host promo codes, your commission rate is set by that host for that property — not a platform-wide published figure. Other commercial terms, if any, depend on the collaboration. Let's discuss when you're not coming through a host invite.",
       },
       {
         q: "Do you pay creators?",
-        a: "We may. Payment is not automatic, and we don't have a public fee schedule. If a partnership includes commercial terms, we'll talk through them with you.",
+        a: "For host-attributed bookings, commission is tracked in your console and moves toward payout after the stay is finalized and approved. Other partnerships may include commercial terms we discuss individually — there is no public fee schedule for campaigns.",
+      },
+      {
+        q: "I already have a host invite — what do I do?",
+        a: "Open the invite link they sent, sign in with Google to claim your console, then you'll see your codes, property availability, and earnings. You can also go straight to the creator console if you've already claimed.",
       },
       {
         q: "Can I work with Isisel if I'm a small creator?",
@@ -304,8 +340,10 @@ export const creatorPage = {
 
   final: {
     h2: "Let's talk about what we could build together.",
-    body: "Tell us who you are, where you create, and what you're thinking. We'll take it from there.",
+    body: "Tell us who you are, where you create, and what you're thinking — or open your console if a host already invited you.",
     cta: "Let's Discuss",
+    ctaConsole: "Open creator console",
+    consoleHref: "/creators/console",
   },
 
   form: {

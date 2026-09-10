@@ -7,7 +7,10 @@ import {
   normalizeCurrencyCode,
 } from "@/utils/mobileMoney";
 
-function getPaymentLabel(code, support) {
+function getPaymentLabel(code, support, gateway) {
+  if (gateway?.geniuspay && gateway?.creem) return "MoMo or card";
+  if (gateway?.geniuspay) return "Mobile Money";
+  if (gateway?.creem) return "Card";
   if (support?.useOrangeBranding) return "Orange Money";
   if (code === "KES") return "M-Pesa";
   if (isMobileMoneyCurrency(code)) return "Mobile Money";
@@ -15,19 +18,30 @@ function getPaymentLabel(code, support) {
 }
 
 /**
- * Restrained payment hint — chip by default (not a peach callout panel).
- * Orange Money keeps a small brand cue; chrome stays ocean teal.
+ * Restrained payment hint — chip by default.
+ * When online gateway is on, gatewayProviders drives MoMo / card labels.
  */
 export default function PaymentMethodBadge({
   currencyCode,
   compact = true,
   manual = false,
+  gatewayProviders = null,
 }) {
   const code = normalizeCurrencyCode(currencyCode);
   const support = getMobileMoneySupport(code);
   const isMobile = isMobileMoneyCurrency(code);
-  const label = manual ? "Pay host directly" : getPaymentLabel(code, support);
-  const orange = !manual && support?.useOrangeBranding;
+  const gateway = gatewayProviders && !manual ? gatewayProviders : null;
+  const dualGateway = Boolean(gateway?.geniuspay && gateway?.creem);
+  const label = manual
+    ? "Pay host directly"
+    : getPaymentLabel(code, support, gateway);
+  const orange = !manual && !gateway && support?.useOrangeBranding;
+  const showPhoneIcon = Boolean(
+    manual || gateway?.geniuspay || (!gateway && isMobile),
+  );
+  const showCardIcon = Boolean(
+    gateway?.creem || (!manual && !gateway && !isMobile),
+  );
 
   if (compact) {
     return (
@@ -36,23 +50,26 @@ export default function PaymentMethodBadge({
         role="status"
         aria-live="polite"
       >
-        {manual || isMobile ? (
+        {showPhoneIcon ? (
           <Smartphone
             size={12}
             className={
-              orange ? "shrink-0 text-orange-600" : "shrink-0 text-[var(--kama-accent)]"
+              orange
+                ? "shrink-0 text-orange-600"
+                : "shrink-0 text-[var(--kama-accent)]"
             }
             aria-hidden
           />
-        ) : (
+        ) : null}
+        {showCardIcon && (dualGateway || !showPhoneIcon) ? (
           <CreditCard
             size={12}
             className="shrink-0 text-[var(--kama-accent)]"
             aria-hidden
           />
-        )}
+        ) : null}
         <span className="truncate text-[var(--kama-ink)]">{label}</span>
-        {!manual ? (
+        {!manual && !gateway ? (
           <span className="shrink-0 opacity-60">{code}</span>
         ) : null}
       </span>
@@ -69,29 +86,46 @@ export default function PaymentMethodBadge({
         Payment
       </p>
       <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-semibold text-[var(--kama-ink)]">
-        {manual || isMobile ? (
+        {showPhoneIcon ? (
           <Smartphone
             size={16}
             className={
-              orange ? "shrink-0 text-orange-600" : "shrink-0 text-[var(--kama-accent)]"
+              orange
+                ? "shrink-0 text-orange-600"
+                : "shrink-0 text-[var(--kama-accent)]"
             }
             aria-hidden
           />
-        ) : (
+        ) : null}
+        {showCardIcon && (dualGateway || !showPhoneIcon) ? (
           <CreditCard
             size={16}
             className="shrink-0 text-[var(--kama-accent)]"
             aria-hidden
           />
-        )}
+        ) : null}
         <span>{label}</span>
-        {!manual ? (
-          <span className="font-normal text-[var(--kama-ink-muted)]">({code})</span>
+        {!manual && !gateway ? (
+          <span className="font-normal text-[var(--kama-ink-muted)]">
+            ({code})
+          </span>
         ) : null}
       </p>
       {manual ? (
         <p className="mt-1 text-xs leading-snug text-[var(--kama-ink-muted)]">
           Arrange payment with the host after you reserve
+        </p>
+      ) : dualGateway ? (
+        <p className="mt-1 text-xs leading-snug text-[var(--kama-ink-muted)]">
+          Mobile Money via GeniusPay, or card via Creem
+        </p>
+      ) : gateway?.geniuspay ? (
+        <p className="mt-1 text-xs leading-snug text-[var(--kama-ink-muted)]">
+          Wave, Orange, MTN, or Moov at checkout
+        </p>
+      ) : gateway?.creem ? (
+        <p className="mt-1 text-xs leading-snug text-[var(--kama-ink-muted)]">
+          Card at checkout
         </p>
       ) : support?.hint && isMobile ? (
         <p className="mt-1 text-xs leading-snug text-[var(--kama-ink-muted)]">

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./home-portal.css";
+@import "../../components/pwa-boot-reveal.css";
 
 /*
   Isisel — global design tokens
@@ -21,11 +22,15 @@
   --kama-glass: rgba(255, 255, 255, 0.82);
   --kama-focus-ring: 0 0 0 3px rgba(27, 92, 87, 0.18);
   --kama-danger: #b42318;
-  --kama-nav-height-mobile: 5.35rem;
+  /* Floating dock (~3.1rem) + outer pad (0.65rem) + breathing room */
+  --kama-nav-height-mobile: 6.25rem;
   --kama-chrome-clearance: calc(
-    var(--kama-nav-height-mobile) + env(safe-area-inset-bottom, 0px)
+    var(--kama-nav-height-mobile) +
+      env(safe-area-inset-bottom, 0px) +
+      var(--kama-safe-bottom, 0px)
   );
   --kama-safe-top: env(safe-area-inset-top, 0px);
+  --kama-safe-bottom: env(safe-area-inset-bottom, 0px);
   --kama-safe-left: env(safe-area-inset-left, 0px);
   --kama-safe-right: env(safe-area-inset-right, 0px);
 
@@ -53,6 +58,13 @@ html {
   scroll-behavior: smooth;
   min-height: 100%;
   min-height: -webkit-fill-available;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Keep focused / scrolled content clear of the floating tab bar */
+  scroll-padding-bottom: var(--kama-chrome-clearance);
+  scroll-padding-top: calc(
+    var(--kama-safe-top, env(safe-area-inset-top, 0px)) + 3.5rem
+  );
 }
 
 html.kama-photo-hero,
@@ -69,6 +81,31 @@ body {
   color: var(--kama-ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+  Installed / mobile “app” feel: iOS Safari zooms focused inputs when
+  computed font-size is under 16px. Force ≥16px on real text fields so
+  tapping a field never zooms the viewport (no pinch-out recovery).
+*/
+@media (max-width: 1023px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(
+      [type="file"]
+    ):not([type="color"]):not([type="hidden"]):not([type="button"]):not(
+      [type="submit"]
+    ):not([type="reset"]):not([type="image"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+    line-height: 1.35;
+  }
+}
+
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
 }
 
 /*

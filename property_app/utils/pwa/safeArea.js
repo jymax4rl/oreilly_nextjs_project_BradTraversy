@@ -1,8 +1,10 @@
 /**
- * Keep installed-PWA chrome below the status bar only when the OS is
- * actually painting over the webview. When the inset is 0 (in-browser,
- * or a PWA whose webview already starts below the icons), leave padding
- * at 0 so the bar stays flush like a native nav.
+ * Keep chrome below the status bar / Dynamic Island when the OS paints over
+ * the webview (installed PWA with viewport-fit=cover, or Safari).
+ *
+ * Critical: never clobber the CSS `env(safe-area-inset-*)` defaults with `0px`
+ * when the JS probe reads 0 — that was hiding content under the notch in
+ * Mobile Safari.
  */
 
 function readEnvInset(property) {
@@ -32,21 +34,62 @@ function isEdgeToEdgeViewport() {
   return window.innerHeight >= screenH - 56;
 }
 
+/** Coarse iPhone notch / Dynamic Island detection when env() is unavailable. */
+function likelyNeedsTopInsetFallback() {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  if (!/iPhone|iPad|iPod/i.test(ua)) return false;
+  // Large modern iPhones (Logical CSS px); Dynamic Island models are ≥852 tall.
+  const h = Math.max(window.screen?.height || 0, window.innerHeight || 0);
+  return h >= 812;
+}
+
 export function syncPwaSafeArea() {
   if (typeof document === "undefined") return;
 
   const envTop = readEnvInset("safe-area-inset-top");
   const envLeft = readEnvInset("safe-area-inset-left");
   const envRight = readEnvInset("safe-area-inset-right");
+  const envBottom = readEnvInset("safe-area-inset-bottom");
 
   const overlayWithoutInset =
     isStandaloneOrFullscreen() && envTop < 20 && isEdgeToEdgeViewport();
 
-  const top = overlayWithoutInset ? 54 : envTop;
+  const browserNotchWithoutInset =
+    !isStandaloneOrFullscreen() &&
+    envTop < 20 &&
+    likelyNeedsTopInsetFallback() &&
+    isEdgeToEdgeViewport();
+
   const root = document.documentElement;
-  root.style.setProperty("--kama-safe-top", `${top}px`);
-  root.style.setProperty("--kama-safe-left", `${envLeft}px`);
-  root.style.setProperty("--kama-safe-right", `${envRight}px`);
+
+  if (overlayWithoutInset || browserNotchWithoutInset) {
+    // Status bar overlays the webview but env() reported 0.
+    root.style.setProperty("--kama-safe-top", "54px");
+  } else if (envTop > 0) {
+    root.style.setProperty("--kama-safe-top", `${envTop}px`);
+  } else {
+    // Keep stylesheet default: env(safe-area-inset-top) — do not write 0px.
+    root.style.removeProperty("--kama-safe-top");
+  }
+
+  if (envLeft > 0) {
+    root.style.setProperty("--kama-safe-left", `${envLeft}px`);
+  } else {
+    root.style.removeProperty("--kama-safe-left");
+  }
+
+  if (envRight > 0) {
+    root.style.setProperty("--kama-safe-right", `${envRight}px`);
+  } else {
+    root.style.removeProperty("--kama-safe-right");
+  }
+
+  if (envBottom > 0) {
+    root.style.setProperty("--kama-safe-bottom", `${envBottom}px`);
+  } else {
+    root.style.removeProperty("--kama-safe-bottom");
+  }
 }
 
 export function startPwaSafeAreaSync() {

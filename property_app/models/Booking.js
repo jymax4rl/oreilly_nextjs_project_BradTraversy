@@ -14,6 +14,11 @@ const PricingSnapshotSchema = new mongoose.Schema(
     total: { type: Number },
     nights: { type: Number },
     currency: { type: String, default: "USD" },
+    /** Guest promo discount (creator code) — never mixed into platformFee. */
+    promoCode: { type: String },
+    promoDiscountRate: { type: Number },
+    promoDiscountAmount: { type: Number },
+    accommodationBeforePromo: { type: Number },
   },
   { _id: false },
 );
@@ -77,7 +82,7 @@ const BookingSchema = new mongoose.Schema(
     /**
      * How payment is collected.
      * - manual: guest reserved without gateway; host arranges payment (status usually pending)
-     * - gateway: paid via Flutterwave (or similar); status usually confirmed
+     * - gateway: paid via Creem / Flutterwave (or similar); status usually confirmed
      */
     paymentMode: {
       type: String,
@@ -94,8 +99,9 @@ const BookingSchema = new mongoose.Schema(
       default: undefined,
       index: true,
     },
+    /** Provider payment id (string — works for Creem ids and Flutterwave numeric ids). */
     transactionId: {
-      type: Number,
+      type: String,
       sparse: true,
       unique: true,
     },
@@ -125,9 +131,59 @@ const BookingSchema = new mongoose.Schema(
     refundCurrency: { type: String },
     refundReference: { type: String },
     pricingSnapshot: { type: PricingSnapshotSchema },
+    /**
+     * Frozen cancellation / modify policy at reservation create time.
+     * Eligibility MUST read this snapshot — never the live host/property policy.
+     */
+    cancellationPolicySnapshot: {
+      freeCancelUntilHoursBeforeCheckIn: { type: Number },
+      modifyUntilHoursBeforeCheckIn: { type: Number },
+      allowGuestCancel: { type: Boolean },
+      allowGuestModify: { type: Boolean },
+      maxModifications: { type: Number },
+      timeZone: { type: String },
+      source: {
+        type: String,
+        enum: ["property", "host_default", "platform_default"],
+      },
+      capturedAt: { type: Date },
+    },
     emailStatus: { type: EmailStatusSchema, default: () => ({}) },
     /** Set when confirmation emails have been dispatched (webhook/callback idempotency). */
     confirmationEmailsDispatchedAt: { type: Date },
+
+    /**
+     * Creator partnership attribution (host-funded marketing).
+     * Never reuse platformFee / commissionAmount for these amounts.
+     */
+    creatorPromoCode: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      maxlength: 32,
+      index: true,
+    },
+    creatorPromoCodeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CreatorPromoCode",
+      index: true,
+    },
+    creatorPartnerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CreatorPartner",
+      index: true,
+    },
+    creatorPartnerName: { type: String, trim: true, maxlength: 120 },
+    creatorCommissionRate: { type: Number, min: 0, max: 0.5 },
+    creatorCommissionBase: { type: Number, min: 0 },
+    creatorCommissionAmount: { type: Number, min: 0, default: 0 },
+    creatorHostId: { type: String, index: true },
+    creatorAttributionStatus: {
+      type: String,
+      enum: ["none", "attributed", "void"],
+      default: "none",
+      index: true,
+    },
   },
   {
     timestamps: true,
@@ -137,6 +193,7 @@ const BookingSchema = new mongoose.Schema(
 
 BookingSchema.index({ propertyId: 1, status: 1, checkIn: 1 });
 BookingSchema.index({ createdAt: 1, status: 1 });
+BookingSchema.index({ creatorHostId: 1, creatorPartnerId: 1 });
 
 const Booking =
   mongoose.models.Booking || mongoose.model("Booking", BookingSchema);

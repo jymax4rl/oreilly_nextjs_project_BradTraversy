@@ -4,6 +4,7 @@ import { isHostWorkspacePath } from "@/utils/hostConsole";
 export function isFullscreenRoute(pathname) {
   if (!pathname) return false;
   if (pathname.startsWith("/ops")) return true;
+  if (pathname.startsWith("/documentation")) return true;
   if (isHostWorkspacePath(pathname)) return true;
   return pathname === "/login" || pathname === "/properties/add";
 }

@@ -4,7 +4,8 @@ import { useEffect } from "react";
 import { Fraunces, Outfit } from "next/font/google";
 import Lenis from "lenis";
 import HomePortalHero from "./HomePortalHero";
-import HomeSearchSection from "./HomeSearchSection";
+import HomeDiscoveryShell from "./HomeDiscoveryShell";
+import { HomeDiscoveryProvider } from "./HomeDiscoveryContext";
 import FoundingHostsHomeModal from "@/components/foundingHosts/FoundingHostsHomeModal";
 
 const fraunces = Fraunces({
@@ -20,15 +21,11 @@ const outfit = Outfit({
   display: "swap",
 });
 
-export default function HomeImmersive({
-  children,
-  foundingStats = null,
-  catalogOpen = true,
-}) {
+function HomeLenis() {
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const mobile = window.matchMedia("(max-width: 767px)").matches;
-    if (reduce || mobile) return;
+    if (reduce || mobile) return undefined;
 
     const lenis = new Lenis({
       duration: 1.05,
@@ -49,14 +46,34 @@ export default function HomeImmersive({
     };
   }, []);
 
+  return null;
+}
+
+export default function HomeImmersive({
+  children,
+  foundingStats = null,
+  catalogOpen = true,
+  seedProperties = [],
+}) {
   return (
-    <div className={`home-portal ${fraunces.variable} ${outfit.variable}`}>
-      <div className="home-portal-content">
-        <HomePortalHero catalogOpen={catalogOpen} />
-        {catalogOpen ? <HomeSearchSection /> : null}
-        {children}
+    <HomeDiscoveryProvider>
+      <div className={`home-portal ${fraunces.variable} ${outfit.variable}`}>
+        <HomeLenis />
+        <div className="home-portal-content">
+          {catalogOpen ? (
+            <HomeDiscoveryShell
+              seedProperties={seedProperties}
+              hero={<HomePortalHero catalogOpen={catalogOpen} />}
+            />
+          ) : (
+            <>
+              <HomePortalHero catalogOpen={catalogOpen} />
+              {children}
+            </>
+          )}
+        </div>
+        <FoundingHostsHomeModal stats={foundingStats} />
       </div>
-      <FoundingHostsHomeModal stats={foundingStats} />
-    </div>
+    </HomeDiscoveryProvider>
   );
 }

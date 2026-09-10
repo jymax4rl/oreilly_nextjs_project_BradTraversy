@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { isOpsStaff } from "@/utils/opsAuth";
+import { canAccessOpsDocumentationToken } from "@/utils/documentation/access";
 import {
   LANG_CHOICE_KEY,
   LANG_COOKIE_MAX_AGE,
@@ -48,6 +49,18 @@ async function handleAuth(req) {
   });
   const { pathname } = req.nextUrl;
   const staff = isOpsStaff(token?.role);
+
+  if (pathname.startsWith("/documentation")) {
+    if (!token || !staff) {
+      const login = new URL("/ops/login", req.url);
+      login.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(login);
+    }
+    if (!canAccessOpsDocumentationToken(token)) {
+      return NextResponse.redirect(new URL("/ops", req.url));
+    }
+    return NextResponse.next();
+  }
 
   if (pathname.startsWith("/ops")) {
     if (pathname === "/ops/login" || pathname.startsWith("/ops/login/")) {
