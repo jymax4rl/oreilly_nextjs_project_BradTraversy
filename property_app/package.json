@@ -22,6 +22,8 @@
     "docs:track-record-pdf": "node scripts/generate-track-record-pdf.mjs",
     "docs:project-status-pdf": "node scripts/generate-project-status-pdf.mjs",
     "docs:marketing-pdfs": "node scripts/generate-marketing-pdfs.mjs",
+    "docs:horizon-2bhk-pdf": "node scripts/generate-horizon-2bhk-pdf.mjs",
+    "docs:talbiy-card-pdf": "node scripts/generate-talbiy-card-pdf.mjs",
     "db:backfill-availability-host": "node scripts/backfill-availability-host-id.mjs",
     "db:backfill-cloudinary-folders": "node scripts/backfillCloudinaryFolders.mjs",
     "db:provision-cloudinary-folders": "node scripts/provisionCloudinaryFolders.mjs",

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>The Horizon — Appartement 2 BHK · Bijilo Park</title>
+  <style>
+    @font-face { font-family: Inter; src: url("pdf-assets/fonts/Inter-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; }
+    @font-face { font-family: Inter; src: url("pdf-assets/fonts/Inter-Italic.ttf") format("truetype"); font-weight: 400; font-style: italic; }
+    @font-face { font-family: Inter; src: url("pdf-assets/fonts/Inter-Medium.ttf") format("truetype"); font-weight: 500; font-style: normal; }
+    @font-face { font-family: Inter; src: url("pdf-assets/fonts/Inter-SemiBold.ttf") format("truetype"); font-weight: 600; font-style: normal; }
+    @font-face { font-family: Inter; src: url("pdf-assets/fonts/Inter-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; }
+    @font-face { font-family: Display; src: url("pdf-assets/fonts/NotoSerifDisplay-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; }
+    @font-face { font-family: Display; src: url("pdf-assets/fonts/NotoSerifDisplay-Italic.ttf") format("truetype"); font-weight: 400; font-style: italic; }
+    @font-face { font-family: Display; src: url("pdf-assets/fonts/NotoSerifDisplay-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; }
+    @font-face { font-family: Display; src: url("pdf-assets/fonts/NotoSerifDisplay-BoldItalic.ttf") format("truetype"); font-weight: 700; font-style: italic; }
+
+    :root {
+      --bg: #090a0c;
+      --panel: #12141a;
+      --ink: #f4efe6;
+      --muted: #a8a196;
+      --gold: #d4b896;
+      --gold-bright: #ecd9b6;
+      --line: rgba(212, 184, 150, 0.22);
+      --soft: rgba(244, 239, 230, 0.08);
+    }
+
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; background: #090a0c; color: var(--ink);
+      font-family: Inter, "Segoe UI", sans-serif;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    img { display: block; max-width: 100%; }
+    p { margin: 0; }
+    h1, h2, h3 { margin: 0; font-weight: 400; }
+
+    .sheet {
+      width: 210mm; height: 296.8mm; overflow: hidden; position: relative;
+      page-break-after: always; break-after: page; background: var(--bg);
+    }
+    .sheet:last-child { page-break-after: auto; break-after: auto; }
+
+    .kicker {
+      font-size: 8pt; font-weight: 600; letter-spacing: 0.34em; text-transform: uppercase; color: var(--gold);
+    }
+    .folio {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 7.5pt; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
+    }
+    .rule { height: 1px; background: var(--line); border: 0; margin: 0; }
+
+    .pad { padding: 12mm 14mm 11mm; height: 100%; display: flex; flex-direction: column; }
+    h2.display {
+      font-family: Display, Georgia, serif; font-size: 28pt; line-height: 1.05; letter-spacing: -0.02em;
+    }
+    h2.display em { font-style: italic; color: var(--gold-bright); }
+    .lede { font-size: 10.5pt; line-height: 1.55; color: var(--muted); font-weight: 400; max-width: 170mm; }
+    .body { font-size: 9.4pt; line-height: 1.55; color: #cfc8bc; }
+    .caption { font-size: 7.5pt; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); }
+
+    .stats { display: grid; gap: 0; }
+    .stat { border-top: 1px solid var(--line); padding: 4.2mm 0 3.6mm; }
+    .stat b { display: block; font-family: Display, Georgia, serif; font-size: 20pt; font-weight: 400; line-height: 1; color: var(--ink); }
+    .stat span { display: block; margin-top: 1.6mm; font-size: 7.4pt; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+
+    table.dims { width: 100%; border-collapse: collapse; font-size: 8pt; }
+    table.dims th, table.dims td { text-align: left; padding: 2.1mm 0; border-bottom: 1px solid var(--line); vertical-align: baseline; }
+    table.dims th { font-size: 7pt; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
+    table.dims td.num { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 500; }
+    table.dims td.muted { color: var(--muted); }
+
+    .chip-row { display: flex; flex-wrap: wrap; gap: 2mm; }
+    .chip {
+      border: 1px solid var(--line); color: var(--gold-bright); font-size: 7.4pt;
+      letter-spacing: 0.12em; text-transform: uppercase; padding: 1.6mm 3.2mm; font-weight: 500;
+    }
+
+    .photo { overflow: hidden; background: #1a1c22; }
+    .photo img { width: 100%; height: 100%; object-fit: cover; }
+    .plan-frame { background: #0e1014; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .plan-frame img { width: 100%; height: 100%; object-fit: contain; }
+
+    /* Cover */
+    .cover { color: var(--ink); }
+    .cover-bg { position: absolute; inset: 0; }
+    .cover-bg img { width: 100%; height: 100%; object-fit: cover; }
+    .cover-veil {
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(180deg, rgba(8,9,11,0.28) 0%, rgba(8,9,11,0.12) 38%, rgba(8,9,11,0.88) 100%),
+        linear-gradient(90deg, rgba(8,9,11,0.45) 0%, rgba(8,9,11,0.05) 55%);
+    }
+    .cover-inner { position: relative; z-index: 2; height: 100%; padding: 13mm 14mm 12mm; display: flex; flex-direction: column; }
+    .cover h1 {
+      font-family: Display, Georgia, serif; font-size: 42pt; line-height: 0.92; letter-spacing: -0.03em; margin: 0 0 5mm;
+    }
+    .cover h1 em { font-style: italic; color: var(--gold-bright); }
+    .cover-meta { display: flex; gap: 8mm; margin-top: 7mm; }
+    .cover-meta div b { display: block; font-family: Display, Georgia, serif; font-size: 16pt; font-weight: 400; }
+    .cover-meta div span { font-size: 7.2pt; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
+
+    /* Room hero */
+    .hero-page .hero-bg { position: absolute; inset: 0; }
+    .hero-page .hero-bg img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-page .hero-veil {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(9,10,12,0.55) 0%, rgba(9,10,12,0.08) 38%, rgba(9,10,12,0.82) 100%);
+    }
+    .hero-copy { position: relative; z-index: 2; height: 100%; padding: 13mm 14mm 12mm; display: flex; flex-direction: column; justify-content: space-between; }
+    .hero-copy h2 { font-family: Display, Georgia, serif; font-size: 34pt; line-height: 0.98; max-width: 150mm; }
+    .hero-copy .note { font-size: 10pt; line-height: 1.5; color: #e8e2d6; max-width: 128mm; }
+
+    .split { display: grid; grid-template-columns: 1.12fr 0.88fr; gap: 6mm; flex: 1; min-height: 0; }
+    .split-wide { display: grid; grid-template-columns: 0.92fr 1.08fr; gap: 6mm; flex: 1; min-height: 0; }
+
+    .amenity-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 3.2mm; flex: 1; min-height: 0; }
+    .amenity-card { position: relative; overflow: hidden; }
+    .amenity-card img { width: 100%; height: 100%; object-fit: cover; }
+    .amenity-card span {
+      position: absolute; left: 4mm; bottom: 4mm; font-size: 8pt; letter-spacing: 0.18em; text-transform: uppercase;
+      color: #fff; text-shadow: 0 8px 18px rgba(0,0,0,0.55);
+    }
+
+    .pay { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3mm; }
+    .pay-card { background: var(--panel); border: 1px solid var(--line); padding: 6mm 5.5mm; }
+    .pay-card b { display: block; font-family: Display, Georgia, serif; font-size: 17pt; font-weight: 400; color: var(--gold-bright); }
+    .pay-card span { display: block; margin-top: 2.4mm; font-size: 8pt; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); line-height: 1.4; }
+
+    @media print {
+      html, body { background: none; }
+      .sheet { margin: 0; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 01 COVER -->
+  <section class="sheet cover">
+    <div class="cover-bg"><img src="pdf-assets/horizon-2bhk/exterieur-piscine.jpg" alt="The Horizon, piscine à débordement au crépuscule" /></div>
+    <div class="cover-veil"></div>
+    <div class="cover-inner">
+      <div class="folio" style="color:#ecd9b6">
+        <span>The Horizon · Bijilo Park</span>
+        <span>Gambie</span>
+      </div>
+      <div style="flex:1"></div>
+      <p class="kicker" style="margin-bottom:5mm">Sable · Ciel · Sérénité</p>
+      <h1>L’appartement<br /><em>2 BHK</em></h1>
+      <p class="lede" style="color:#e7e0d4; max-width:158mm">
+        Une chambre principale, une chambre, deux salles de bain.
+        Typologies&nbsp;2A et&nbsp;3A — même programme, deux écritures du plan.
+      </p>
+      <div class="cover-meta">
+        <div><b>80,2&nbsp;m²</b><span>Surface 2A</span></div>
+        <div><b>2&nbsp;+&nbsp;2</b><span>Chambres · Salles de bain</span></div>
+        <div><b>112&nbsp;000&nbsp;€</b><span>Échelonné</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 L'APPARTEMENT -->
+  <section class="sheet">
+    <div class="pad">
+      <div class="folio"><span>The Horizon</span><span>02 / L’appartement</span></div>
+      <hr class="rule" style="margin:4.5mm 0 7mm" />
+      <p class="kicker" style="margin-bottom:3.5mm">Le 2 BHK</p>
+      <h2 class="display" style="margin-bottom:4.5mm">Le cœur de la résidence.<br /><em>Deux chambres, une vie ouverte.</em></h2>
+      <p class="lede" style="margin-bottom:7mm">
+        L’appartement 2&nbsp;BHK de The Horizon, à Bijilo Park, est conçu pour habiter, recevoir et respirer&nbsp;:
+        un séjour-cuisine-salle à manger d’un seul geste, une chambre principale avec salle de bain privative,
+        une seconde chambre baignée de lumière, une terrasse, une buanderie.
+      </p>
+      <div style="display:grid; grid-template-columns: 1.15fr 0.85fr; gap:7mm; flex:1; min-height:0">
+        <div style="display:grid; grid-template-rows: 1fr 1fr; gap:3.2mm; min-height:0">
+          <div class="photo"><img src="pdf-assets/horizon-2bhk/chambre-principale.jpg" alt="Chambre principale" /></div>
+          <div class="photo"><img src="pdf-assets/horizon-2bhk/sejour-04.jpg" alt="Séjour ouvert sur la terrasse" /></div>
+        </div>
+        <div>
+          <div class="stats" style="grid-template-columns:1fr">
+            <div class="stat"><b>80,2 / 80,4&nbsp;m²</b><span>Typologie 2A · Typologie 3A</span></div>
+            <div class="stat"><b>2 chambres</b><span>Principale + chambre 2</span></div>
+            <div class="stat"><b>2 salles de bain</b><span>Suite parentale + salle de bain</span></div>
+            <div class="stat"><b>Terrasse</b><span>Deck 1,80&nbsp;m de profondeur</span></div>
+            <div class="stat"><b>112&nbsp;000&nbsp;€</b><span>34&nbsp;500&nbsp;€ d’apport, puis mensualités</span></div>
+          </div>
+          <p class="body" style="margin-top:5mm">
+            Les deux typologies offrent le même nombre de pièces. Seule change la géométrie du plateau&nbsp;:
+            la 2A sépare les chambres de part et d’autre du séjour&nbsp;; la 3A, en angle, oriente les chambres vers le parc.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 BIJILO -->
+  <section class="sheet hero-page">
+    <div class="hero-bg"><img src="pdf-assets/horizon-2bhk/toit-terrasse.jpg" alt="Toit-terrasse The Horizon au coucher du soleil" /></div>
+    <div class="hero-veil"></div>
+    <div class="hero-copy">
+      <div>
+        <div class="folio" style="color:#ecd9b6"><span>The Horizon</span><span>03 / Bijilo Park</span></div>
+        <p class="kicker" style="margin:8mm 0 4mm">Le lieu</p>
+        <h2>Face au parc,<br />l’Atlantique au loin.</h2>
+      </div>
+      <div>
+        <p class="note">
+          The Horizon s’élève à Bijilo Park, entre la canopée du parc national, le centre de conférences
+          et le corridor de Bijilo Beach. Depuis l’appartement 2&nbsp;BHK, les vues se partagent selon la typologie&nbsp;:
+          parc, piscine du podium, ville, horizon marin.
+        </p>
+        <div class="chip-row" style="margin-top:7mm">
+          <span class="chip">Parc national de Bijilo</span>
+          <span class="chip">Centre de conférences</span>
+          <span class="chip">Plage de Bijilo</span>
+          <span class="chip">Toit-terrasse panoramique</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 HALL + RDC -->
+  <section class="sheet">
+    <div class="pad">
+      <div class="folio"><span>The Horizon</span><span>04 / Hall d’entrée</span></div>
+      <hr class="rule" style="margin:4.5mm 0 6mm" />
+      <p class="kicker" style="margin-bottom:3mm">Hall d’entrée</p>
+      <h2 class="display" style="font-size:24pt; margin-bottom:4mm">Un hall double hauteur.<br /><em>Le premier geste du bâtiment.</em></h2>
+      <div class="split" style="height:118mm; flex:none">
+        <div class="photo"><img src="pdf-assets/horizon-2bhk/hall-entree.jpg" alt="Hall d’entrée The Horizon" /></div>
+        <div class="plan-frame"><img src="pdf-assets/horizon-2bhk/plan-rez-de-chaussee.jpg" alt="Plan du rez-de-chaussée" /></div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:4mm; margin-top:5.5mm">
+        <p class="body"><strong style="color:var(--ink); display:block; margin-bottom:1.2mm">Lobby</strong>Hall d’entrée double hauteur, accueil, salon d’attente.</p>
+        <p class="body"><strong style="color:var(--ink); display:block; margin-bottom:1.2mm">Affaires</strong>Salle de réunion et business centre au rez-de-chaussée.</p>
+        <p class="body"><strong style="color:var(--ink); display:block; margin-bottom:1.2mm">Restaurant</strong>Restaurant et cuisine, ouverts sur le paysage.</p>
+        <p class="body"><strong style="color:var(--ink); display:block; margin-bottom:1.2mm">Accès</strong>Portail, sécurité, parking, rampe vers le sous-sol, six ascenseurs dont un brancard.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 PREMIER ÉTAGE -->
+  <section class="sheet">
+    <div class="pad">
+      <div class="folio"><span>The Horizon</span><span>05 / Premier étage</span></div>
+      <hr class="rule" style="margin:4.5mm 0 6mm" />
+      <p class="kicker" style="margin-bottom:3mm">Premier étage</p>
+      <h2 class="display" style="font-size:24pt; margin-bottom:3.5mm">La vie commune autour de l’eau.</h2>
+      <p class="lede" style="margin-bottom:5mm; font-size:10pt">
+        Au premier niveau, le plateau en U encadre la piscine et le pool deck. C’est aussi là que se tiennent
+        la salle de sport, le mini spa, la salle de jeux, le café et l’aire de jeux pour enfants — le quotidien
+        de l’immeuble, juste sous les appartements 2&nbsp;BHK.
+      </p>
+      <div class="plan-frame" style="flex:1; min-height:0"><img src="pdf-assets/horizon-2bhk/plan-premier-etage.jpg" alt="Plan du premier étage" /></div>
+      <div class="chip-row" style="margin-top:5mm">
+        <span class="chip">Piscine</span>
+        <span class="chip">Pool deck</span>
+        <span class="chip">Salle de sport</span>
+        <span class="chip">Mini spa</span>
+        <span class="chip">Salle de jeux</span>
+        <span class="chip">Café</span>
+        <span class="chip">Aire enfants</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 ÉTAGES -->
+  <section class="sheet">
+    <div class="pad">
+      <div class="folio"><span>The Horizon</span><span>06 / Étages courants</span></div>
+      <hr class="rule" style="margin:4.5mm 0 6mm" />
+      <p class="kicker" style="margin-bottom:3mm">Étage type · Plateau étage 12</p>
+      <h2 class="display" style="font-size:23pt; margin-bottom:3.5mm">Le 2&nbsp;BHK sur le plateau.</h2>
+      <p class="lede" style="margin-bottom:5mm; font-size:10pt">
+        Sur un étage type, les typologies 2A et 3A (ainsi que leurs miroirs 2B et 3B) occupent le programme 2&nbsp;BHK.
+        La 2A tient les ailes&nbsp;; la 3A est l’unité d’angle. Même nombre de pièces, autre dessin du plan.
+      </p>
+      <div style="display:grid; grid-template-rows: 1fr 1fr; gap:3.5mm; flex:1; min-height:0">
+        <div class="plan-frame"><img src="pdf-assets/horizon-2bhk/plan-etage-type.jpg" alt="Plan d’un étage type" /></div>
+        <div class="plan-frame" style="background:#07080a"><img src="pdf-assets/horizon-2bhk/plateau-etage-12.jpg" alt="Plateau de l’étage 12, 16 logements" /></div>
+      </div>
+      <p class="caption" style="margin-top:4mm">Étage type · Plateau étage 12 · 16 logements · 2&nbsp;BHK en bleu</p>
+    </div>
+  </section>
+
+  <!-- 07 TYPOLOGIE 2A -->
+  <section class="sheet">
+    <div class="pad">
+      <div class="folio"><span>The Horizon</span><span>07 / Typologie 2A</span></div>
+      <hr class="rule" style="margin:4.5mm 0 6mm" />
+      <div class="split-wide">
+        <div style="display:flex; flex-direction:column; min-height:0">
+          <p class="kicker" style="margin-bottom:3mm">Typologie 2A · 2 BHK</p>
+          <h2 class="display" style="font-size:26pt; margin-bottom:3.5mm">80,2&nbsp;m².<br /><em>Les chambres de part et d’autre.</em></h2>
+          <p class="body" style="margin-bottom:5mm">
+            L’entrée ouvre sur la cuisine en U, la salle à manger et le séjour, puis la terrasse tournée vers
+            le parc national de Bijilo et le centre de conférences. À gauche, la chambre principale et sa suite.
+            À droite, un passage de 1,00&nbsp;m mène à la chambre&nbsp;2, à la buanderie et à la seconde salle de bain.
+          </p>
+          <table class="dims">
+            <thead><tr><th>Pièce</th><th>Dimensions</th></tr></thead>
+            <tbody>
+              <tr><td>01 Séjour</td><td class="num">3,15 × 5,10&nbsp;m</td></tr>
+              <tr><td>02 Terrasse</td><td class="num">3,10 × 1,80&nbsp;m</td></tr>
+              <tr><td>03 Cuisine</td><td class="num">5,10 × 2,55&nbsp;m</td></tr>
+              <tr><td>04 Salle à manger</td><td class="num">1,95 × 2,65&nbsp;m</td></tr>
+              <tr><td>05 Buanderie</td><td class="num">1,40 × 1,35&nbsp;m</td></tr>
+              <tr><td>06 Salle de bain</td><td class="num">1,53 × 2,50&nbsp;m</td></tr>
+              <tr><td>07 Chambre principale</td><td class="num">3,48 × 4,10&nbsp;m</td></tr>
+              <tr><td>08 Salle de bain suite</td><td class="num">1,53 × 2,70&nbsp;m</td></tr>
+              <tr><td>09 Chambre 2</td><td class="num">3,13 × 3,40&nbsp;m</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="plan-frame" style="background:#f3f1ec"><img src="pdf-assets/horizon-2bhk/typologie-2a.jpg" alt="Plan Typologie 2A" /></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 TYPOLOGIE 3A -->
+  <section class="sheet">
+    <div class="pad">
+      <div class="folio"><span>The Horizon</span><span>08 / Typologie 3A</span></div>
+      <hr class="rule" style="margin:4.5mm 0 6mm" />
+      <div class="split-wide">
+        <div style="display:flex; flex-direction:column; min-height:0">
+          <p class="kicker" style="margin-bottom:3mm">Typologie 3A · 2 BHK</p>
+          <h2 class="display" style="font-size:26pt; margin-bottom:3.5mm">80,4&nbsp;m².<br /><em>L’unité d’angle.</em></h2>
+          <p class="body" style="margin-bottom:5mm">
+            Même programme que la 2A — deux chambres, deux salles de bain, séjour, cuisine, buanderie, terrasse.
+            Le plateau change. La 3A est un angle&nbsp;: le séjour et le deck regardent la piscine du podium,
+            les deux chambres s’ouvrent sur le parc national de Bijilo, un troisième côté prend la ville.
+          </p>
+          <table class="dims">
+            <thead><tr><th>Pièce</th><th>Dimensions</th></tr></thead>
+            <tbody>
+              <tr><td>01 Séjour</td><td class="num">3,20 × 6,75&nbsp;m</td></tr>
+              <tr><td>02 Terrasse</td><td class="num">3,40 × 1,80&nbsp;m</td></tr>
+              <tr><td>03 Cuisine</td><td class="num">2,55 × 4,30&nbsp;m</td></tr>
+              <tr><td>04 Buanderie</td><td class="num">1,55 × 1,35&nbsp;m</td></tr>
+              <tr><td>05 Salle de bain suite</td><td class="num">1,50 × 2,45&nbsp;m</td></tr>
+              <tr><td>06 Chambre principale</td><td class="num">3,45 × 4,20&nbsp;m</td></tr>
+              <tr><td>07 Salle de bain</td><td class="num">1,55 × 2,65&nbsp;m</td></tr>
+              <tr><td>08 Chambre 2</td><td class="num">3,45 × 3,20&nbsp;m</td></tr>
+            </tbody>
+          </table>
+          <p class="caption" style="margin-top:4.5mm">Vues · Piscine · Ville · Parc national de Bijilo</p>
+        </div>
+        <div class="plan-frame" style="background:#f3f1ec"><img src="pdf-assets/horizon-2bhk/typologie-3a.jpg" alt="Plan Typologie 3A" /></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 09 CHAMBRE PRINCIPALE -->
+  <section class="sheet hero-page">
+    <div class="hero-bg"><img src="pdf-assets/horizon-2bhk/chambre-principale.jpg" alt="Chambre principale, vue sur le parc et l’océan" /></div>
+    <div class="hero-veil"></div>
+    <div class="hero-copy">
+      <div>
+        <div class="folio" style="color:#ecd9b6"><span>The Horizon</span><span>09 / Chambre principale</span></div>
+        <p class="kicker" style="margin:8mm 0 4mm">Chambre principale</p>
+        <h2>La suite.<br />Le calme, la vue, la salle de bain privative.</h2>
+      </div>
+      <div>
+        <p class="note">
+          La chambre principale est la pièce maîtresse du 2&nbsp;BHK. Grand lit, placards, baie vitrée jusqu’au sol,
+          terrasse ou balcon selon l’étage. Salle de bain ensuite — 1,53&nbsp;×&nbsp;2,70&nbsp;m en 2A, 1,50&nbsp;×&nbsp;2,45&nbsp;m en 3A.
+          En 2A&nbsp;: 3,48&nbsp;×&nbsp;4,10&nbsp;m. En 3A&nbsp;: 3,45&nbsp;×&nbsp;4,20&nbsp;m.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 CHAMBRE 2 -->
+  <section class="sheet hero-page">
+    <div class="hero-bg"><img src="pdf-assets/horizon-2bhk/chambre-2.jpg" alt="Chambre 2, grande baie vitrée" /></div>
+    <div class="hero-veil"></div>
+    <div class="hero-copy">
+      <div>
+        <div class="folio" style="color:#ecd9b6"><span>The Horizon</span><span>10 / Chambre 2</span></div>
+        <p class="kicker" style="margin:8mm 0 4mm">Chambre 2</p>
+        <h2>La seconde chambre.<br />Une grande baie, le jour entier.</h2>
+      </div>
+      <div>
+        <p class="note">
+          Pas une chambre de service — une vraie pièce, avec placard et une large fenêtre.
+          En 2A elle mesure 3,13&nbsp;×&nbsp;3,40&nbsp;m, desservie par la salle de bain du couloir.
+          En 3A, 3,45&nbsp;×&nbsp;3,20&nbsp;m, tournée vers le parc national de Bijilo.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 SÉJOUR -->
+  <section class="sheet">
+    <div class="pad">
+      <div class="folio"><span>The Horizon</span><span>11 / Séjour</span></div>
+      <hr class="rule" style="margin:4.5mm 0 6mm" />
+      <p class="kicker" style="margin-bottom:3mm">Séjour</p>
+      <h2 class="display" style="font-size:24pt; margin-bottom:3mm">Un seul plateau pour vivre, dîner, cuisiner.</h2>
+      <p class="lede" style="margin-bottom:5mm; font-size:10pt">
+        Le séjour du 2&nbsp;BHK est ouvert. Marbre, bois, lumière rasante. La terrasse prolonge la pièce&nbsp;:
+        3,10&nbsp;×&nbsp;1,80&nbsp;m en 2A, 3,40&nbsp;×&nbsp;1,80&nbsp;m en 3A.
+      </p>
+      <div style="display:grid; grid-template-columns:1.25fr 0.75fr; gap:3.2mm; flex:1; min-height:0">
+        <div class="photo"><img src="pdf-assets/horizon-2bhk/sejour-04.jpg" alt="Séjour ouvert sur la terrasse" /></div>
+        <div style="display:grid; grid-template-rows:1fr 1fr; gap:3.2mm; min-height:0">
+          <div class="photo"><img src="pdf-assets/horizon-2bhk/sejour-01.jpg" alt="Séjour, mur TV bois" /></div>
+          <div class="photo"><img src="pdf-assets/horizon-2bhk/sejour-02.jpg" alt="Séjour, mur de marbre" /></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 CUISINE -->
+  <section class="sheet">
+    <div class="pad">
+      <div class="folio"><span>The Horizon</span><span>12 / Cuisine</span></div>
+      <hr class="rule" style="margin:4.5mm 0 6mm" />
+      <p class="kicker" style="margin-bottom:3mm">Cuisine ouverte</p>
+      <h2 class="display" style="font-size:24pt; margin-bottom:3mm">Pierre, bois, plan de travail continu.</h2>
+      <p class="lede" style="margin-bottom:5mm; font-size:10pt">
+        Cuisine en U, îlot, électroménager intégré. En 2A elle s’étire sur 5,10&nbsp;×&nbsp;2,55&nbsp;m, avec salle à manger dédiée.
+        En 3A, 2,55&nbsp;×&nbsp;4,30&nbsp;m, collée au séjour-salle à manger de 3,20&nbsp;×&nbsp;6,75&nbsp;m.
+      </p>
+      <div style="display:grid; grid-template-rows:1.05fr 0.95fr; gap:3.2mm; flex:1; min-height:0">
+        <div class="photo"><img src="pdf-assets/horizon-2bhk/sejour-03.jpg" alt="Cuisine et salle à manger, marbre" /></div>
+        <div class="photo"><img src="pdf-assets/horizon-2bhk/sejour-05.jpg" alt="Cuisine et séjour au crépuscule" /></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 COMMODITÉS -->
+  <section class="sheet">
+    <div class="pad">
+      <div class="folio"><span>The Horizon</span><span>13 / Commodités</span></div>
+      <hr class="rule" style="margin:4.5mm 0 6mm" />
+      <p class="kicker" style="margin-bottom:3mm">La résidence</p>
+      <h2 class="display" style="font-size:24pt; margin-bottom:3.5mm">Ce que le 2&nbsp;BHK ouvre, en bas de chez soi.</h2>
+      <div class="amenity-grid">
+        <div class="amenity-card">
+          <img src="pdf-assets/horizon-2bhk/salle-sport.jpg" alt="Salle de sport" />
+          <span>Salle de sport</span>
+        </div>
+        <div class="amenity-card">
+          <img src="pdf-assets/horizon-2bhk/salle-jeux.jpg" alt="Salle de jeux" />
+          <span>Salle de jeux</span>
+        </div>
+        <div class="amenity-card">
+          <img src="pdf-assets/horizon-2bhk/restaurant.jpg" alt="Restaurant" />
+          <span>Restaurant</span>
+        </div>
+        <div class="amenity-card">
+          <img src="pdf-assets/horizon-2bhk/cafe.jpg" alt="Café" />
+          <span>Café</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 INVESTISSEMENT -->
+  <section class="sheet">
+    <div class="pad">
+      <div class="folio"><span>The Horizon</span><span>14 / Conditions</span></div>
+      <hr class="rule" style="margin:4.5mm 0 7mm" />
+      <p class="kicker" style="margin-bottom:3.5mm">L’acquisition</p>
+      <h2 class="display" style="margin-bottom:5mm">112&nbsp;000&nbsp;€.<br /><em>Un premier versement, puis des mensualités.</em></h2>
+      <p class="lede" style="margin-bottom:8mm">
+        Prix de l’appartement 2&nbsp;BHK, typologies 2A et 3A. Le solde après l’apport se règle chaque mois —
+        le même logement, le même programme, deux dessins de plateau.
+      </p>
+      <div class="pay" style="margin-bottom:8mm">
+        <div class="pay-card">
+          <b>112&nbsp;000&nbsp;€</b>
+          <span>Prix de l’appartement 2&nbsp;BHK</span>
+        </div>
+        <div class="pay-card">
+          <b>34&nbsp;500&nbsp;€</b>
+          <span>Premier versement</span>
+        </div>
+        <div class="pay-card">
+          <b>77&nbsp;500&nbsp;€</b>
+          <span>Solde, mensualités</span>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6mm; margin-bottom:6mm">
+        <div>
+          <p class="caption" style="margin-bottom:3mm">Inclus dans le 2 BHK</p>
+          <p class="body" style="line-height:1.7">
+            Chambre principale avec salle de bain privative · Chambre&nbsp;2 · Seconde salle de bain ·
+            Séjour · Cuisine · Salle à manger (2A) · Terrasse · Buanderie · Accès piscine, sport, jeux, café, restaurant, toit-terrasse.
+          </p>
+        </div>
+        <div>
+          <p class="caption" style="margin-bottom:3mm">Contact</p>
+          <p class="body" style="line-height:1.7">
+            Talbiy Cisse<br />
+            Commercial · Relations France · SIIL<br />
+            The Horizon · Bijilo Park<br />
+            WhatsApp 06&nbsp;23&nbsp;71&nbsp;81&nbsp;71<br />
+            WhatsApp +33&nbsp;7&nbsp;84&nbsp;67&nbsp;20&nbsp;83<br />
+            contact@isisel.com
+          </p>
+        </div>
+      </div>
+      <div class="photo" style="flex:1; min-height:0">
+        <img src="pdf-assets/horizon-2bhk/exterieur-piscine.jpg" alt="The Horizon, piscine et façade au crépuscule" />
+      </div>
+      <div style="padding-top:5mm; display:flex; justify-content:space-between; align-items:flex-end">
+        <p class="caption">The Horizon · Appartement 2 BHK · Typologies 2A &amp; 3A</p>
+        <p class="caption">Sable. Ciel. Sérénité.</p>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>
