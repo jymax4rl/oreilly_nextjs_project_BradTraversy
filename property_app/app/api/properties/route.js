@@ -40,9 +40,9 @@ import {
   withCatalogPinAliases,
 } from "@/utils/listings/withCatalogPinAliases";
 import {
-  guestCatalogCorsPreflight,
-  withGuestCatalogCors,
-} from "@/utils/listings/guestCatalogCors";
+  mobileCorsJson,
+  mobileCorsPreflight,
+} from "@/utils/mobileAuth/cors";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -50,10 +50,10 @@ export const dynamic = "force-dynamic";
 
 /**
  * OPTIONS /api/properties — CORS preflight for Expo web (guest catalogue).
- * Allowlisted Origins only; methods GET/HEAD/OPTIONS (not POST).
+ * Reuses mobileAuth CORS helpers (reflect Origin, credentials false).
  */
 export async function OPTIONS(request) {
-  return guestCatalogCorsPreflight(request);
+  return mobileCorsPreflight(request);
 }
 
 /**
@@ -70,7 +70,7 @@ export async function OPTIONS(request) {
  * Each property includes nested location/rates/images plus flat Discover pin
  * aliases (city, country, lat, lng, nightly, currency, imageUrl, …).
  *
- * CORS: allowlisted Expo web Origins on success and error JSON (no credentials).
+ * CORS: mobileCorsJson (reflect Origin, no credentials) for Expo web.
  */
 export async function GET(request) {
   try {
@@ -97,21 +97,19 @@ export async function GET(request) {
       ),
     ).map(pinsOnly ? toDiscoverPinOnly : withCatalogPinAliases);
 
-    return withGuestCatalogCors(
-      request,
-      Response.json({
-        properties: serialized,
-        total,
-        page,
-        limit,
-        filters,
-      }),
-    );
+    return mobileCorsJson(request, {
+      properties: serialized,
+      total,
+      page,
+      limit,
+      filters,
+    });
   } catch (error) {
     console.error("GET /api/properties:", error);
-    return withGuestCatalogCors(
+    return mobileCorsJson(
       request,
-      Response.json({ error: "Failed to load properties" }, { status: 500 }),
+      { error: "Failed to load properties" },
+      500,
     );
   }
 }

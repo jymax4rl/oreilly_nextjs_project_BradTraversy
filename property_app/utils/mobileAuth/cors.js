@@ -1,10 +1,13 @@
 /**
  * CORS for Expo / mobile Bearer clients (no cookies).
  * Allows Authorization + JSON; reflects Origin when present, else *.
+ * Also used by public catalogue GET/HEAD/OPTIONS (/api/properties*).
+ * HEAD is listed so Expo web catalogue preflights succeed; mobile auth
+ * routes keep using GET/POST/OPTIONS unchanged.
  */
 
 const ALLOW_HEADERS = "Authorization, Content-Type";
-const ALLOW_METHODS = "GET, POST, OPTIONS";
+const ALLOW_METHODS = "GET, HEAD, POST, OPTIONS";
 
 /**
  * @param {Request} request
