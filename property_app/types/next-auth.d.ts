@@ -7,6 +7,7 @@ declare module "next-auth" {
       role: string;
       hostStatus: string;
       hasCompletedHostOnboarding: boolean;
+      banned: boolean;
     } & DefaultSession["user"];
   }
 }
