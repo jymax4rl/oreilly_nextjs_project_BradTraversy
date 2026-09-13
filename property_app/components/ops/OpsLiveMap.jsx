@@ -8,6 +8,7 @@ import {
   GOOGLE_MAPS_LOAD_TIMEOUT_MS,
 } from "@/utils/googleMaps";
 import { coerceCoordinate } from "@/utils/address";
+import { ISEL_MAP_STYLES } from "@/utils/maps/isiselMapStyle";
 
 const DEFAULT_CENTER = { lat: 7.2, lng: 21.5 };
 const DEFAULT_ZOOM = 3;
@@ -193,41 +194,8 @@ export default function OpsLiveMap({
           fullscreenControl: true,
           gestureHandling: "greedy",
           clickableIcons: false,
-          backgroundColor: "#f7f9f8",
-          styles: [
-            { elementType: "geometry", stylers: [{ color: "#eef3f1" }] },
-            { elementType: "labels", stylers: [{ visibility: "off" }] },
-            {
-              featureType: "administrative",
-              elementType: "geometry.stroke",
-              stylers: [{ color: "#d5e0dc" }, { weight: 0.6 }],
-            },
-            {
-              featureType: "administrative.country",
-              elementType: "geometry.stroke",
-              stylers: [{ visibility: "on" }, { color: "#c5d4cf" }],
-            },
-            {
-              featureType: "landscape",
-              stylers: [{ color: "#e8eeec" }],
-            },
-            {
-              featureType: "poi",
-              stylers: [{ visibility: "off" }],
-            },
-            {
-              featureType: "road",
-              stylers: [{ visibility: "off" }],
-            },
-            {
-              featureType: "transit",
-              stylers: [{ visibility: "off" }],
-            },
-            {
-              featureType: "water",
-              stylers: [{ color: "#ffffff" }],
-            },
-          ],
+          backgroundColor: "#F4F1EC",
+          styles: ISEL_MAP_STYLES,
         });
         window.clearTimeout(safetyTimer);
         setMapReady(true);

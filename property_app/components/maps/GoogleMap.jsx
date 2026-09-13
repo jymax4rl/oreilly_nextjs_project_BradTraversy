@@ -7,9 +7,9 @@ import {
   describeGoogleMapsError,
   GOOGLE_MAPS_LOAD_TIMEOUT_MS,
 } from "@/utils/googleMaps";
+import { ISEL_MAP_STYLES } from "@/utils/maps/isiselMapStyle";
 
 const KAMA_TEAL = "#1B5C57";
-const KAMA_TEAL_SOFT = "#c5ddd9";
 const DEFAULT_PIN_ZOOM = 15;
 const PIN_W = 36;
 const PIN_H = 44;
@@ -387,17 +387,7 @@ export default function GoogleMap({
           gestureHandling: "greedy",
           clickableIcons: false,
           // Explicitly omit mapId so we stay on raster tiles (OverlayView-friendly).
-          styles: [
-            {
-              featureType: "water",
-              stylers: [{ color: KAMA_TEAL_SOFT }],
-            },
-            {
-              featureType: "poi",
-              elementType: "labels",
-              stylers: [{ visibility: "off" }],
-            },
-          ],
+          styles: ISEL_MAP_STYLES,
         });
 
         centerMapOn(mapRef.current, center, zoom);

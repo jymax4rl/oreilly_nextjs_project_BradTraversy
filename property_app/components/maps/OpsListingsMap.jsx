@@ -8,9 +8,9 @@ import {
   GOOGLE_MAPS_LOAD_TIMEOUT_MS,
 } from "@/utils/googleMaps";
 import { coerceCoordinate } from "@/utils/address";
+import { ISEL_MAP_STYLES } from "@/utils/maps/isiselMapStyle";
 
 const KAMA_TEAL = "#1B5C57";
-const KAMA_TEAL_SOFT = "#c5ddd9";
 const PIN_W = 28;
 const PIN_H = 34;
 const DEFAULT_CENTER = { lat: 6.5244, lng: 3.3792 }; // Lagos fallback
@@ -186,17 +186,7 @@ export default function OpsListingsMap({
           zoomControl: true,
           gestureHandling: "greedy",
           clickableIcons: false,
-          styles: [
-            {
-              featureType: "water",
-              stylers: [{ color: KAMA_TEAL_SOFT }],
-            },
-            {
-              featureType: "poi",
-              elementType: "labels",
-              stylers: [{ visibility: "off" }],
-            },
-          ],
+          styles: ISEL_MAP_STYLES,
         });
         window.clearTimeout(safetyTimer);
         setMapReady(true);
