@@ -39,10 +39,22 @@ import {
   toDiscoverPinOnly,
   withCatalogPinAliases,
 } from "@/utils/listings/withCatalogPinAliases";
+import {
+  guestCatalogCorsPreflight,
+  withGuestCatalogCors,
+} from "@/utils/listings/guestCatalogCors";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
+
+/**
+ * OPTIONS /api/properties — CORS preflight for Expo web (guest catalogue).
+ * Allowlisted Origins only; methods GET/HEAD/OPTIONS (not POST).
+ */
+export async function OPTIONS(request) {
+  return guestCatalogCorsPreflight(request);
+}
 
 /**
  * GET /api/properties — public catalog (no auth required).
@@ -57,6 +69,8 @@ export const dynamic = "force-dynamic";
  * Shape: { properties, total, page, limit, filters }
  * Each property includes nested location/rates/images plus flat Discover pin
  * aliases (city, country, lat, lng, nightly, currency, imageUrl, …).
+ *
+ * CORS: allowlisted Expo web Origins on success and error JSON (no credentials).
  */
 export async function GET(request) {
   try {
@@ -83,18 +97,21 @@ export async function GET(request) {
       ),
     ).map(pinsOnly ? toDiscoverPinOnly : withCatalogPinAliases);
 
-    return Response.json({
-      properties: serialized,
-      total,
-      page,
-      limit,
-      filters,
-    });
+    return withGuestCatalogCors(
+      request,
+      Response.json({
+        properties: serialized,
+        total,
+        page,
+        limit,
+        filters,
+      }),
+    );
   } catch (error) {
     console.error("GET /api/properties:", error);
-    return Response.json(
-      { error: "Failed to load properties" },
-      { status: 500 },
+    return withGuestCatalogCors(
+      request,
+      Response.json({ error: "Failed to load properties" }, { status: 500 }),
     );
   }
 }

@@ -17,8 +17,20 @@ import {
 } from "@/utils/listings/previewLockedHost";
 import { isListingPreviewLocked } from "@/utils/listings/previewLockedHost.server";
 import { withCatalogPinAliases } from "@/utils/listings/withCatalogPinAliases";
+import {
+  guestCatalogCorsPreflight,
+  withGuestCatalogCors,
+} from "@/utils/listings/guestCatalogCors";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * OPTIONS /api/properties/[id] — CORS preflight for Expo web (guest catalogue).
+ * Allowlisted Origins only; methods GET/HEAD/OPTIONS (not mutate verbs).
+ */
+export async function OPTIONS(request) {
+  return guestCatalogCorsPreflight(request);
+}
 
 /**
  * GET /api/properties/[id] — public detail (no auth required).
@@ -30,6 +42,8 @@ export const dynamic = "force-dynamic";
  * - preview-locked hosts → 404 unless ops unlock or owner
  *
  * Shape: { property }
+ *
+ * CORS: allowlisted Expo web Origins on success and error JSON (no credentials).
  */
 export async function GET(request, { params }) {
   try {
@@ -38,14 +52,20 @@ export async function GET(request, { params }) {
 
     const found = await findPropertyByParam(id, "-internalNotes");
     if (!found) {
-      return Response.json({ error: "Property not found" }, { status: 404 });
+      return withGuestCatalogCors(
+        request,
+        Response.json({ error: "Property not found" }, { status: 404 }),
+      );
     }
 
     const property = await ensurePropertySlug(found);
     const session = await getAuthFromRequest(request);
 
     if (!canUserViewListing(property, session)) {
-      return Response.json({ error: "Property not found" }, { status: 404 });
+      return withGuestCatalogCors(
+        request,
+        Response.json({ error: "Property not found" }, { status: 404 }),
+      );
     }
 
     let serialized = await attachOwnerProfiles(
@@ -61,19 +81,25 @@ export async function GET(request, { params }) {
       !canUnlockPreviewListing(session) &&
       !isListingOwner(session, serialized)
     ) {
-      return Response.json({ error: "Property not found" }, { status: 404 });
+      return withGuestCatalogCors(
+        request,
+        Response.json({ error: "Property not found" }, { status: 404 }),
+      );
     }
 
     if (previewLocked) {
       [serialized] = redactPreviewLockedCatalogFields([serialized]);
     }
 
-    return Response.json({ property: withCatalogPinAliases(serialized) });
+    return withGuestCatalogCors(
+      request,
+      Response.json({ property: withCatalogPinAliases(serialized) }),
+    );
   } catch (error) {
     console.error("GET /api/properties/[id]:", error);
-    return Response.json(
-      { error: "Failed to load property" },
-      { status: 500 },
+    return withGuestCatalogCors(
+      request,
+      Response.json({ error: "Failed to load property" }, { status: 500 }),
     );
   }
 }

@@ -250,4 +250,96 @@ function serializePropertyForApi(property) {
   assert.equal(only.imageUrl, "/images/properties/photo.jpg");
 }
 
+{
+  const {
+    getGuestCatalogAllowedOrigins,
+    isAllowedGuestCatalogOrigin,
+    guestCatalogCorsHeaders,
+    guestCatalogCorsPreflight,
+    withGuestCatalogCors,
+  } = await load("utils/listings/guestCatalogCors.js");
+
+  const defaults = getGuestCatalogAllowedOrigins();
+  assert.ok(defaults.includes("http://localhost:8081"));
+  assert.ok(defaults.includes("http://localhost:19006"));
+  assert.ok(defaults.includes("http://127.0.0.1:8081"));
+  assert.ok(defaults.includes("http://127.0.0.1:19006"));
+  assert.equal(isAllowedGuestCatalogOrigin("http://localhost:8081"), true);
+  assert.equal(isAllowedGuestCatalogOrigin("https://evil.example"), false);
+  assert.equal(isAllowedGuestCatalogOrigin(null), false);
+
+  const prev = process.env.CATALOG_CORS_ORIGINS;
+  process.env.CATALOG_CORS_ORIGINS = "https://preview.expo.dev, http://localhost:9999";
+  try {
+    const extended = getGuestCatalogAllowedOrigins();
+    assert.ok(extended.includes("https://preview.expo.dev"));
+    assert.ok(extended.includes("http://localhost:9999"));
+    assert.ok(extended.includes("http://localhost:8081"));
+    assert.equal(isAllowedGuestCatalogOrigin("https://preview.expo.dev"), true);
+  } finally {
+    if (prev === undefined) delete process.env.CATALOG_CORS_ORIGINS;
+    else process.env.CATALOG_CORS_ORIGINS = prev;
+  }
+
+  function fakeRequest(origin) {
+    return {
+      headers: {
+        get(name) {
+          return name.toLowerCase() === "origin" ? origin : null;
+        },
+      },
+    };
+  }
+
+  const allowedHeaders = guestCatalogCorsHeaders(
+    fakeRequest("http://localhost:8081"),
+  );
+  assert.equal(
+    allowedHeaders.get("Access-Control-Allow-Origin"),
+    "http://localhost:8081",
+  );
+  assert.equal(allowedHeaders.get("Access-Control-Allow-Credentials"), "false");
+  assert.equal(
+    allowedHeaders.get("Access-Control-Allow-Methods"),
+    "GET, HEAD, OPTIONS",
+  );
+  assert.ok(!String(allowedHeaders.get("Access-Control-Allow-Methods")).includes("POST"));
+  assert.equal(allowedHeaders.get("Vary"), "Origin");
+
+  const deniedHeaders = guestCatalogCorsHeaders(
+    fakeRequest("https://evil.example"),
+  );
+  assert.equal(deniedHeaders.get("Access-Control-Allow-Origin"), null);
+  assert.notEqual(deniedHeaders.get("Access-Control-Allow-Origin"), "*");
+
+  const noOriginHeaders = guestCatalogCorsHeaders(fakeRequest(null));
+  assert.equal(noOriginHeaders.get("Access-Control-Allow-Origin"), null);
+
+  const preflight = guestCatalogCorsPreflight(
+    fakeRequest("http://127.0.0.1:19006"),
+  );
+  assert.equal(preflight.status, 204);
+  assert.equal(
+    preflight.headers.get("Access-Control-Allow-Origin"),
+    "http://127.0.0.1:19006",
+  );
+
+  const deniedPreflight = guestCatalogCorsPreflight(
+    fakeRequest("https://evil.example"),
+  );
+  assert.equal(deniedPreflight.status, 204);
+  assert.equal(deniedPreflight.headers.get("Access-Control-Allow-Origin"), null);
+
+  const wrapped = withGuestCatalogCors(
+    fakeRequest("http://localhost:8081"),
+    Response.json({ ok: true }, { status: 200 }),
+  );
+  assert.equal(wrapped.status, 200);
+  assert.equal(
+    wrapped.headers.get("Access-Control-Allow-Origin"),
+    "http://localhost:8081",
+  );
+  assert.equal(wrapped.headers.get("Content-Type"), "application/json");
+}
+
 console.log("smoke-public-properties-api: ok");
