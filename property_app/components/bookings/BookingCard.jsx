@@ -7,6 +7,7 @@ import { Calendar, MapPin, Pencil, Trash2 } from "lucide-react";
 import { formatGuestDate, countNights } from "@/utils/availability/validateStay";
 import { propertyCardImageSrc } from "@/utils/cloudinary/propertyMediaUrls";
 import { propertyPublicPath } from "@/utils/listings/propertyPath";
+import { toUserFacingError } from "@/utils/userFacingError";
 
 /**
  * Guest My Bookings card — modify/cancel when policy allows.
@@ -46,7 +47,7 @@ export default function BookingCard({ booking, onChanged }) {
       await fn();
       onChanged?.();
     } catch (e) {
-      setMessage({ ok: false, text: e.message || "Request failed" });
+      setMessage({ ok: false, text: toUserFacingError(e, "Request failed") });
     } finally {
       setBusy(null);
     }

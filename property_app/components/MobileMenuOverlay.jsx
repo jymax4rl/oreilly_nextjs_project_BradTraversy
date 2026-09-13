@@ -18,7 +18,9 @@ import {
   CalendarCheck,
   ChevronRight,
   X,
-  Clapperboard,
+  Info,
+  Mail,
+  Megaphone,
 } from "lucide-react";
 import { LuUserRound } from "react-icons/lu";
 import BrandLogo from "@/components/BrandLogo";
@@ -206,6 +208,17 @@ export default function MobileMenuOverlay({
                       {t("menu.myBookings")}
                     </Link>
                     <Link
+                      href="/creators/console"
+                      onClick={close}
+                      className={rowClass("/creators/console")}
+                    >
+                      <Megaphone
+                        className="kama-menu-row-icon"
+                        aria-hidden
+                      />
+                      {t("menu.creatorConsole")}
+                    </Link>
+                    <Link
                       href="/messages"
                       onClick={close}
                       className={rowClass("/messages")}
@@ -260,26 +273,26 @@ export default function MobileMenuOverlay({
                     </Link>
                     )}
                     <Link
-                      href="/business"
+                      href="/about"
                       onClick={close}
-                      className={rowClass("/business")}
+                      className={rowClass("/about")}
                     >
-                      <Building2
+                      <Info
                         className="kama-menu-row-icon"
                         aria-hidden
                       />
-                      {t("nav.business")}
+                      {t("footer.about")}
                     </Link>
                     <Link
-                      href="/influencers"
+                      href="/contact"
                       onClick={close}
-                      className={rowClass("/influencers")}
+                      className={rowClass("/contact")}
                     >
-                      <Clapperboard
+                      <Mail
                         className="kama-menu-row-icon"
                         aria-hidden
                       />
-                      {t("nav.creators")}
+                      {t("footer.contact")}
                     </Link>
                 </nav>
               </section>

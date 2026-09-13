@@ -47,6 +47,8 @@ HostApplicationSchema.pre("validate", function () {
   }
 });
 
+HostApplicationSchema.index({ status: 1, reviewedAt: 1 });
+
 const HostApplication =
   models.HostApplication || model("HostApplication", HostApplicationSchema);
 

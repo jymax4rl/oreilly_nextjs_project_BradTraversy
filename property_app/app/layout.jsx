@@ -13,6 +13,8 @@ import { MenuOverlayProvider } from "@/contexts/MenuOverlayContext";
 import { ScrollNavProvider } from "@/contexts/ScrollNavContext";
 import ChunkErrorRecovery from "@/components/ChunkErrorRecovery";
 import PwaRegister from "@/components/PwaRegister";
+import PwaBootEarlyScript from "@/components/PwaBootEarlyScript";
+import PwaBootReveal from "@/components/PwaBootReveal";
 import TrafficProbe from "@/components/metrics/TrafficProbe";
 import { LanguageProvider } from "@/components/i18n/LanguageProvider";
 import { getRequestLang } from "@/lib/i18n/server";
@@ -101,6 +103,10 @@ export const viewport = {
   themeColor: "#1b5c57",
   width: "device-width",
   initialScale: 1,
+  /* Keep scale locked so focus on fields never zooms the “app” surface.
+     Form fields also use ≥16px on mobile (globals.css) for iOS Safari. */
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
 };
 
@@ -116,17 +122,21 @@ async function MainLayout({ children }) {
               <StyledComponentsRegistry>
                 <html lang={lang}>
                   <body className="flex flex-col min-h-dvh">
+                    <PwaBootEarlyScript />
                     <SiteJsonLd />
                     <ChunkErrorRecovery />
                     <PwaRegister />
+                    <PwaBootReveal />
                     <TrafficProbe />
-                    <Navbar />
-                    <MobileTopChromeGate />
-                    <MainShell>{children}</MainShell>
-                    <MobileBottomNavGate />
-                    <FooterGate>
-                      <Footer className="hidden lg:block" />
-                    </FooterGate>
+                    <div data-pwa-boot-app className="flex min-h-dvh flex-col">
+                      <Navbar />
+                      <MobileTopChromeGate />
+                      <MainShell>{children}</MainShell>
+                      <MobileBottomNavGate />
+                      <FooterGate>
+                        <Footer className="hidden lg:block" />
+                      </FooterGate>
+                    </div>
                   </body>
                 </html>
               </StyledComponentsRegistry>

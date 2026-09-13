@@ -1,115 +1,345 @@
 /**
  * Data-driven booking / cancellation policy.
  *
- * Property.bookingPolicy (optional) overrides defaults. CRUD (guest cancel/modify)
- * and UI gating should call evaluateBookingPolicy — do not hardcode windows in
- * components.
+ * Resolution for a NEW reservation (then snapshotted onto the booking):
+ *   1. Property.bookingPolicy when any field is explicitly set
+ *   2. Else host defaultCancellationPolicy
+ *   3. Else platform DEFAULT_BOOKING_POLICY
  *
- * Defaults (when property has no bookingPolicy):
- * - Guest free cancel until 48 hours before check-in (UTC midnight of checkIn)
- * - Guest modify dates until 48 hours before check-in
- * - Max 3 guest modifications
- * - After the free window: guest cannot self-cancel or modify (contact host)
- * - Host can always cancel/modify active (non-cancelled, not past check-out) stays
+ * Eligibility for cancel/modify MUST prefer booking.cancellationPolicySnapshot
+ * so later host/property edits never rewrite past stays.
+ *
+ * Check-in boundary is timezone-safe: local midnight of check-in day in the
+ * policy IANA timeZone (falls back to UTC).
  */
 
 /** @typedef {'guest' | 'host' | 'admin'} BookingPolicyActor */
 /** @typedef {'cancel' | 'modify' | 'resend'} BookingPolicyAction */
 
 export const DEFAULT_BOOKING_POLICY = Object.freeze({
-  /** Hours before check-in (UTC start of checkIn day) when guest may cancel free. */
+  /** Hours before check-in when guest may cancel free. 0 + allowGuestCancel false = none. */
   freeCancelUntilHoursBeforeCheckIn: 48,
-  /** Hours before check-in when guest may change dates. */
   modifyUntilHoursBeforeCheckIn: 48,
   allowGuestCancel: true,
   allowGuestModify: true,
   maxModifications: 3,
+  /** IANA zone used to interpret check-in civil date as an absolute instant. */
+  timeZone: "UTC",
 });
 
+/** Preset free-cancel windows offered in host Settings. */
+export const CANCELLATION_PRESETS = Object.freeze([
+  { id: "none", hours: 0, allowGuestCancel: false },
+  { id: "12", hours: 12, allowGuestCancel: true },
+  { id: "24", hours: 24, allowGuestCancel: true },
+  { id: "48", hours: 48, allowGuestCancel: true },
+  { id: "72", hours: 72, allowGuestCancel: true },
+  { id: "custom", hours: null, allowGuestCancel: true },
+]);
+
+export const CANCELLATION_PRESET_IDS = CANCELLATION_PRESETS.map((p) => p.id);
+
+const POLICY_KEYS = [
+  "freeCancelUntilHoursBeforeCheckIn",
+  "modifyUntilHoursBeforeCheckIn",
+  "allowGuestCancel",
+  "allowGuestModify",
+  "maxModifications",
+  "timeZone",
+];
+
+function coerceHours(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+
+function coerceBool(value, fallback) {
+  if (value === false) return false;
+  if (value === true) return true;
+  return fallback;
+}
+
+function isValidTimeZone(tz) {
+  if (!tz || typeof tz !== "string") return false;
+  try {
+    Intl.DateTimeFormat("en-US", { timeZone: tz }).format(new Date());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function normalizeTimeZone(tz, fallback = "UTC") {
+  return isValidTimeZone(tz) ? tz : fallback;
+}
+
 /**
- * Merge property.bookingPolicy with defaults (numbers coerced; invalid ignored).
- * @param {object|null|undefined} property
+ * Normalize a partial policy object onto defaults.
+ * @param {object|null|undefined} raw
  */
-export function resolveBookingPolicy(property) {
-  const raw = property?.bookingPolicy || {};
-  const num = (v, fallback) => {
-    const n = Number(v);
-    return Number.isFinite(n) && n >= 0 ? n : fallback;
-  };
+export function normalizeBookingPolicy(raw = {}) {
+  const timeZone = normalizeTimeZone(
+    raw.timeZone,
+    DEFAULT_BOOKING_POLICY.timeZone,
+  );
   return {
-    freeCancelUntilHoursBeforeCheckIn: num(
+    freeCancelUntilHoursBeforeCheckIn: coerceHours(
       raw.freeCancelUntilHoursBeforeCheckIn,
       DEFAULT_BOOKING_POLICY.freeCancelUntilHoursBeforeCheckIn,
     ),
-    modifyUntilHoursBeforeCheckIn: num(
+    modifyUntilHoursBeforeCheckIn: coerceHours(
       raw.modifyUntilHoursBeforeCheckIn,
       DEFAULT_BOOKING_POLICY.modifyUntilHoursBeforeCheckIn,
     ),
-    allowGuestCancel:
-      raw.allowGuestCancel === false
-        ? false
-        : DEFAULT_BOOKING_POLICY.allowGuestCancel,
-    allowGuestModify:
-      raw.allowGuestModify === false
-        ? false
-        : DEFAULT_BOOKING_POLICY.allowGuestModify,
-    maxModifications: num(
+    allowGuestCancel: coerceBool(
+      raw.allowGuestCancel,
+      DEFAULT_BOOKING_POLICY.allowGuestCancel,
+    ),
+    allowGuestModify: coerceBool(
+      raw.allowGuestModify,
+      DEFAULT_BOOKING_POLICY.allowGuestModify,
+    ),
+    maxModifications: coerceHours(
       raw.maxModifications,
       DEFAULT_BOOKING_POLICY.maxModifications,
     ),
+    timeZone,
+  };
+}
+
+/** True when the listing stored any explicit bookingPolicy field. */
+export function propertyHasExplicitBookingPolicy(property) {
+  const raw = property?.bookingPolicy;
+  if (!raw || typeof raw !== "object") return false;
+  return POLICY_KEYS.some((key) => raw[key] !== undefined && raw[key] !== null);
+}
+
+/**
+ * Convert host Settings form / DB default into a booking policy object.
+ * @param {object|null|undefined} hostDefault
+ */
+export function hostDefaultToBookingPolicy(hostDefault) {
+  if (!hostDefault || typeof hostDefault !== "object") {
+    return { ...DEFAULT_BOOKING_POLICY };
+  }
+
+  const presetId = String(hostDefault.preset || "48");
+  const preset = CANCELLATION_PRESETS.find((p) => p.id === presetId);
+  const timeZone = normalizeTimeZone(
+    hostDefault.timeZone,
+    DEFAULT_BOOKING_POLICY.timeZone,
+  );
+
+  if (!preset || presetId === "none") {
+    return normalizeBookingPolicy({
+      ...DEFAULT_BOOKING_POLICY,
+      freeCancelUntilHoursBeforeCheckIn: 0,
+      allowGuestCancel: false,
+      modifyUntilHoursBeforeCheckIn: coerceHours(
+        hostDefault.modifyUntilHoursBeforeCheckIn,
+        DEFAULT_BOOKING_POLICY.modifyUntilHoursBeforeCheckIn,
+      ),
+      timeZone,
+    });
+  }
+
+  const hours =
+    presetId === "custom"
+      ? coerceHours(
+          hostDefault.customHours,
+          DEFAULT_BOOKING_POLICY.freeCancelUntilHoursBeforeCheckIn,
+        )
+      : preset.hours;
+
+  return normalizeBookingPolicy({
+    ...DEFAULT_BOOKING_POLICY,
+    freeCancelUntilHoursBeforeCheckIn: hours,
+    allowGuestCancel: hours > 0,
+    modifyUntilHoursBeforeCheckIn: coerceHours(
+      hostDefault.modifyUntilHoursBeforeCheckIn,
+      hours > 0 ? hours : DEFAULT_BOOKING_POLICY.modifyUntilHoursBeforeCheckIn,
+    ),
+    timeZone,
+  });
+}
+
+/**
+ * Persistable host Settings shape from a UI payload.
+ * @param {object} input
+ */
+export function normalizeHostCancellationSettings(input = {}) {
+  const preset = CANCELLATION_PRESET_IDS.includes(input.preset)
+    ? input.preset
+    : "48";
+  const customHours = coerceHours(input.customHours, 48);
+  const timeZone = normalizeTimeZone(input.timeZone, "UTC");
+  return {
+    preset,
+    customHours: Math.min(Math.floor(customHours), 24 * 365),
+    timeZone,
   };
 }
 
 /**
- * Check-in instant = UTC midnight of YYYY-MM-DD.
- * @param {string} checkInYmd
- * @returns {Date|null}
+ * Merge property.bookingPolicy with defaults (legacy helper).
+ * Prefer resolveEffectiveBookingPolicy for new work.
  */
-export function checkInUtcDate(checkInYmd) {
-  if (!checkInYmd || !/^\d{4}-\d{2}-\d{2}$/.test(checkInYmd)) return null;
-  const t = Date.parse(`${checkInYmd}T00:00:00.000Z`);
-  return Number.isFinite(t) ? new Date(t) : null;
+export function resolveBookingPolicy(property) {
+  return normalizeBookingPolicy(property?.bookingPolicy || {});
 }
 
-function hoursUntilCheckIn(checkInYmd, now) {
-  const start = checkInUtcDate(checkInYmd);
+/**
+ * Effective policy for a listing at booking time.
+ * @param {{ property?: object|null, hostDefault?: object|null }} args
+ */
+export function resolveEffectiveBookingPolicy({
+  property = null,
+  hostDefault = null,
+} = {}) {
+  if (propertyHasExplicitBookingPolicy(property)) {
+    return {
+      policy: normalizeBookingPolicy({
+        ...hostDefaultToBookingPolicy(hostDefault),
+        ...property.bookingPolicy,
+        timeZone:
+          property.bookingPolicy?.timeZone ||
+          hostDefault?.timeZone ||
+          DEFAULT_BOOKING_POLICY.timeZone,
+      }),
+      source: "property",
+    };
+  }
+  if (hostDefault && typeof hostDefault === "object") {
+    return {
+      policy: hostDefaultToBookingPolicy(hostDefault),
+      source: "host_default",
+    };
+  }
+  return {
+    policy: { ...DEFAULT_BOOKING_POLICY },
+    source: "platform_default",
+  };
+}
+
+/**
+ * Freeze policy onto a reservation document.
+ */
+export function snapshotCancellationPolicy(policy, source = "platform_default") {
+  const normalized = normalizeBookingPolicy(policy);
+  return {
+    freeCancelUntilHoursBeforeCheckIn:
+      normalized.freeCancelUntilHoursBeforeCheckIn,
+    modifyUntilHoursBeforeCheckIn: normalized.modifyUntilHoursBeforeCheckIn,
+    allowGuestCancel: normalized.allowGuestCancel,
+    allowGuestModify: normalized.allowGuestModify,
+    maxModifications: normalized.maxModifications,
+    timeZone: normalized.timeZone,
+    source,
+    capturedAt: new Date(),
+  };
+}
+
+/**
+ * Policy used for eligibility: snapshot first, else live property/host.
+ */
+export function resolvePolicyForBooking(
+  booking,
+  property = null,
+  hostDefault = null,
+) {
+  const snap = booking?.cancellationPolicySnapshot;
+  if (snap && typeof snap === "object") {
+    return normalizeBookingPolicy(snap);
+  }
+  return resolveEffectiveBookingPolicy({ property, hostDefault }).policy;
+}
+
+/**
+ * Absolute check-in instant for YYYY-MM-DD in an IANA time zone (local midnight).
+ * Timezone-safe replacement for UTC-midnight-only math.
+ *
+ * @param {string} checkInYmd
+ * @param {string} [timeZone]
+ * @returns {Date|null}
+ */
+export function checkInInstant(checkInYmd, timeZone = "UTC") {
+  if (!checkInYmd || !/^\d{4}-\d{2}-\d{2}$/.test(checkInYmd)) return null;
+  const tz = normalizeTimeZone(timeZone, "UTC");
+
+  // Start with UTC midnight guess, then correct using the zone's wall time.
+  const [year, month, day] = checkInYmd.split("-").map(Number);
+  let utcMs = Date.UTC(year, month - 1, day, 0, 0, 0, 0);
+
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
+
+  for (let i = 0; i < 3; i += 1) {
+    const parts = dtf.formatToParts(new Date(utcMs));
+    const get = (type) =>
+      Number(parts.find((p) => p.type === type)?.value || 0);
+    const asUtc = Date.UTC(
+      get("year"),
+      get("month") - 1,
+      get("day"),
+      get("hour"),
+      get("minute"),
+      get("second"),
+    );
+    const target = Date.UTC(year, month - 1, day, 0, 0, 0, 0);
+    utcMs += target - asUtc;
+  }
+
+  return new Date(utcMs);
+}
+
+/** @deprecated Use checkInInstant — kept for existing imports. */
+export function checkInUtcDate(checkInYmd) {
+  return checkInInstant(checkInYmd, "UTC");
+}
+
+export function hoursUntilCheckIn(checkInYmd, now = new Date(), timeZone = "UTC") {
+  const start = checkInInstant(checkInYmd, timeZone);
   if (!start) return null;
   return (start.getTime() - now.getTime()) / (1000 * 60 * 60);
 }
 
-function todayUtcYmd(now = new Date()) {
-  const y = now.getUTCFullYear();
-  const m = String(now.getUTCMonth() + 1).padStart(2, "0");
-  const d = String(now.getUTCDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+function todayYmdInTimeZone(now, timeZone) {
+  const tz = normalizeTimeZone(timeZone, "UTC");
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const get = (type) => parts.find((p) => p.type === type)?.value;
+  return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
 /**
  * Central gate for cancel / modify / resend.
- *
- * @param {object} booking — must include status, checkIn, checkOut; optional modificationCount
- * @param {object|null} property — optional; uses defaults when null
- * @param {BookingPolicyAction} action
- * @param {Date} [now]
- * @param {{ actor?: BookingPolicyActor }} [opts]
- * @returns {{
- *   allowed: boolean,
- *   code?: string,
- *   reason?: string,
- *   refundEligible?: boolean,
- *   hoursUntilCheckIn?: number|null,
- *   policy: object,
- * }}
+ * Prefers booking.cancellationPolicySnapshot when present.
  */
 export function evaluateBookingPolicy(
   booking,
   property,
   action,
   now = new Date(),
-  { actor = "guest" } = {},
+  { actor = "guest", hostDefault = null } = {},
 ) {
-  const policy = resolveBookingPolicy(property);
-  const hours = hoursUntilCheckIn(booking?.checkIn, now);
+  const policy = resolvePolicyForBooking(booking, property, hostDefault);
+  const hours = hoursUntilCheckIn(
+    booking?.checkIn,
+    now,
+    policy.timeZone || "UTC",
+  );
   const base = {
     policy,
     hoursUntilCheckIn: hours,
@@ -136,7 +366,8 @@ export function evaluateBookingPolicy(
   if (action === "resend") {
     const canResend =
       booking.status === "confirmed" ||
-      (booking.status === "pending" && booking.paymentMode === "manual");
+      (booking.status === "pending" &&
+        (booking.paymentMode === "manual" || booking.paymentMode === "manual"));
     if (!canResend) {
       return {
         ...base,
@@ -146,12 +377,10 @@ export function evaluateBookingPolicy(
           "Only confirmed or pending (manual payment) bookings can resend emails",
       };
     }
-    // Host / admin / guest ownership is enforced by the route — policy allows.
     return { ...base, allowed: true, code: "ok" };
   }
 
-  // Past check-out: no cancel/modify for anyone via self-service.
-  const today = todayUtcYmd(now);
+  const today = todayYmdInTimeZone(now, policy.timeZone || "UTC");
   if (booking.checkOut && booking.checkOut <= today) {
     return {
       ...base,
@@ -180,7 +409,6 @@ export function evaluateBookingPolicy(
     }
   }
 
-  // Guest actor
   if (action === "cancel") {
     if (!policy.allowGuestCancel) {
       return {
@@ -188,6 +416,7 @@ export function evaluateBookingPolicy(
         allowed: false,
         code: "guest_cancel_disabled",
         reason: "This listing does not allow guest cancellations",
+        refundEligible: false,
       };
     }
     if (hours == null) {
@@ -196,6 +425,7 @@ export function evaluateBookingPolicy(
         allowed: false,
         code: "invalid_check_in",
         reason: "Invalid check-in date",
+        refundEligible: false,
       };
     }
     if (hours < policy.freeCancelUntilHoursBeforeCheckIn) {
@@ -224,7 +454,8 @@ export function evaluateBookingPolicy(
         reason: "This listing does not allow date changes",
       };
     }
-    const mods = Number(booking.modificationCount) || 0;
+    const mods =
+      Number(booking.modificationCount ?? booking.modificationCount) || 0;
     if (mods >= policy.maxModifications) {
       return {
         ...base,
@@ -264,14 +495,14 @@ export function evaluateBookingPolicy(
  * Human-readable summary for UI (guest-facing).
  */
 export function describeBookingPolicy(policy = DEFAULT_BOOKING_POLICY) {
-  const p = { ...DEFAULT_BOOKING_POLICY, ...policy };
+  const p = normalizeBookingPolicy(policy);
   const parts = [];
-  if (p.allowGuestCancel) {
+  if (!p.allowGuestCancel || p.freeCancelUntilHoursBeforeCheckIn <= 0) {
+    parts.push("No free cancellation");
+  } else {
     parts.push(
       `Free cancellation until ${p.freeCancelUntilHoursBeforeCheckIn} hours before check-in`,
     );
-  } else {
-    parts.push("Guest cancellation is not available");
   }
   if (p.allowGuestModify) {
     parts.push(
@@ -279,4 +510,13 @@ export function describeBookingPolicy(policy = DEFAULT_BOOKING_POLICY) {
     );
   }
   return parts.join(". ") + ".";
+}
+
+/** Short guest-facing cancellation line for the booking card. */
+export function describeCancellationPolicy(policy = DEFAULT_BOOKING_POLICY) {
+  const p = normalizeBookingPolicy(policy);
+  if (!p.allowGuestCancel || p.freeCancelUntilHoursBeforeCheckIn <= 0) {
+    return "No free cancellation";
+  }
+  return `Free cancellation until ${p.freeCancelUntilHoursBeforeCheckIn} hours before check-in`;
 }

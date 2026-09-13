@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Isisel — Guide live TikTok (diaspora soninké)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --teal: #1b5c57;
+      --teal-deep: #0f3d3a;
+      --ink: #121212;
+      --muted: #5a5854;
+      --cream: #f4f1ea;
+      --paper: #fbfaf6;
+      --sand: #c4a574;
+      --line: rgba(27, 92, 87, 0.14);
+    }
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; background: #ddd9d0; color: var(--ink);
+      font-family: Outfit, "Segoe UI", sans-serif;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .sheet {
+      width: 210mm; height: 297mm; margin: 0 auto 12px; overflow: hidden;
+      position: relative; page-break-after: always; break-after: page; background: var(--paper);
+    }
+    .sheet:last-child { page-break-after: auto; margin-bottom: 0; }
+    .mark { width: 32px; height: 30px; display: block; }
+    p { margin: 0; }
+    .inner { padding: 11mm 13mm 12mm; display: flex; flex-direction: column; height: 100%; }
+    .inner-head {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 4.5mm; border-bottom: 1px solid var(--line); margin-bottom: 5mm;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 9px;
+      letter-spacing: 0.22em; font-size: 9.5pt; font-weight: 600; text-transform: uppercase; color: var(--teal);
+    }
+    .folio { font-size: 8pt; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; text-align: right; line-height: 1.45; }
+    h1 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 28pt; font-weight: 600; line-height: 1.05; margin: 0 0 2.5mm; color: var(--ink);
+    }
+    h1 em { font-style: italic; color: var(--teal); }
+    .lede { font-size: 10.5pt; color: var(--muted); line-height: 1.45; max-width: 178mm; margin: 0 0 6mm; }
+    .lede strong { color: var(--ink); font-weight: 600; }
+    h2 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 22pt; font-weight: 600; line-height: 1.08; margin: 0 0 2mm; }
+    h3 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 15pt; font-weight: 600; margin: 0; color: var(--teal); }
+    .points { display: flex; flex-direction: column; gap: 3.6mm; flex: 1; }
+    .point {
+      display: grid; grid-template-columns: 14mm 1fr; gap: 4mm; align-items: start;
+      background: var(--cream); border: 1px solid var(--line); padding: 4.6mm 5.5mm 4.8mm 4.5mm;
+    }
+    .point.demo { background: #fff; border-color: rgba(196, 165, 116, 0.55); }
+    .n {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 18pt; font-weight: 600; color: var(--sand); line-height: 1; padding-top: 1mm;
+    }
+    .kicker { font-size: 7.5pt; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--sand); margin-bottom: 1.2mm; }
+    .say {
+      margin-top: 2mm; font-size: 10.3pt; line-height: 1.42; color: var(--ink); font-weight: 400;
+    }
+    .say em { font-style: italic; color: var(--teal-deep); }
+    .hint { margin-top: 2mm; font-size: 8.5pt; color: var(--muted); line-height: 1.4; }
+    .hint strong { color: var(--teal); font-weight: 600; }
+    .foot {
+      margin-top: 5mm; display: flex; justify-content: space-between; align-items: center;
+      border-top: 1px solid var(--line); padding-top: 4mm; font-size: 8.5pt; color: var(--muted);
+    }
+    .foot a { color: var(--teal); font-weight: 600; text-decoration: none; }
+    .band { height: 34mm; overflow: hidden; margin: 0 0 4mm; }
+    .band img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3.5mm; margin-bottom: 4mm; }
+    .card { border: 1px solid var(--line); background: #fff; padding: 4.2mm 5mm; }
+    .card.cream { background: var(--cream); }
+    .card p { font-size: 9.4pt; color: var(--muted); line-height: 1.4; }
+    .card p strong { color: var(--ink); font-weight: 600; }
+    .card ol, .card ul { margin: 2mm 0 0; padding-left: 4.5mm; }
+    .card li { font-size: 9.4pt; color: var(--muted); line-height: 1.4; margin-bottom: 1.2mm; }
+    .card li:last-child { margin-bottom: 0; }
+    .card li strong { color: var(--ink); }
+    .close-box {
+      background: var(--teal); color: #f7f4ee; padding: 5.5mm 6.5mm; margin-bottom: 4mm;
+    }
+    .close-box .kicker { color: var(--sand); }
+    .close-box h2 { color: #f7f4ee; font-size: 19pt; margin-bottom: 2.5mm; }
+    .close-box p { font-size: 10.5pt; font-weight: 300; line-height: 1.45; }
+    .close-box p + p { margin-top: 2.5mm; }
+    .close-box strong { font-weight: 600; color: #fff; }
+    .std {
+      border: 1.5px solid var(--teal); padding: 4.5mm 5.5mm; background: var(--cream); margin-bottom: 4mm;
+    }
+    .std .kicker { color: var(--teal); }
+    .std p { font-size: 10pt; line-height: 1.42; color: var(--ink); }
+    .cta {
+      margin-top: auto; background: var(--teal-deep); color: #f7f4ee;
+      padding: 5mm 6.5mm 4.5mm;
+    }
+    .cta-row { display: flex; justify-content: space-between; align-items: center; gap: 8mm; }
+    .cta h2 { color: #f7f4ee; font-size: 18pt; margin: 0 0 1.2mm; }
+    .cta p { font-size: 9.5pt; opacity: 0.92; font-weight: 300; }
+    .cta a { color: #e8d7b5; text-decoration: none; font-weight: 600; }
+    .cta-btn {
+      display: inline-block; background: var(--sand); color: var(--ink); text-decoration: none;
+      font-size: 9pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 3.2mm 5.5mm; white-space: nowrap;
+    }
+    .dont { font-size: 8pt; color: #d9cbb0; line-height: 1.4; margin-top: 3mm; opacity: 0.95; }
+    @media print {
+      html, body { background: none; }
+      .sheet { margin: 0; box-shadow: none; page-break-inside: avoid; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <section class="sheet inner">
+    <div class="inner-head">
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 551 519" fill="none" aria-hidden="true">
+          <path d="M238.24 278C229.74 332.5 245.74 393.5 245.74 393.5C245.74 393.5 235.581 401.468 231.74 408.5C227.515 416.232 226.74 430.5 226.74 430.5V517H37.2395C37.2395 517 18.6308 518 6.2395 499C-6.15182 480 3.7395 459 3.7395 459L68.2395 331H205.24C209.74 354.5 229.74 379 229.74 379C229.74 379 219.74 347 226.24 278C232.74 209 274.24 172 274.24 172C274.24 172 246.74 223.5 238.24 278Z" fill="#1B5C57"/>
+          <path d="M324.24 430.5V517L501.24 519C501.24 519 521.662 516.854 531.74 509.5C540.983 502.755 546.329 497.066 549.24 486C551.678 476.73 548.425 467.5 546.74 463.5C545.054 459.5 536.74 442 536.74 442L480.24 331L329.24 330.5L333.24 325L338.74 316L472.74 314.5L420.74 216H356.74L357.24 205.5L356.74 199H414.74L333.74 48.5C333.74 48.5 309.24 1.53901e-05 274.24 0C239.24 -1.53901e-05 214.24 48.5 214.24 48.5L135.24 199H209.24C209.24 199 234.74 138.5 254.74 114C274.74 89.5 295.74 77 319.74 84C343.74 91 343.74 131 343.74 131C343.74 131 342.863 174.782 326.74 195C315.559 209.02 289.24 221.5 289.24 221.5C289.24 221.5 309.921 219.477 321.74 214C332.161 209.171 345.74 197 345.74 197C345.74 197 349.401 222.094 345.74 237.5C341.394 255.786 333.464 265.159 319.74 278C304.499 292.26 272.24 302.5 272.24 302.5C272.24 302.5 291.49 301.404 303.24 298C317.165 293.966 336.74 282 336.74 282C336.74 282 332.74 315.5 312.24 331C291.74 346.5 298.44 341.372 289.24 347.5C281.574 352.606 273.74 356.5 269.24 360C264.74 363.5 259.24 366.5 256.74 370C254.24 373.5 253.74 374 254.24 379C254.74 384 256.74 387 256.74 387C256.74 387 269.24 383.301 279.24 384C292.24 384.909 301.857 390 306.24 393.5C310.622 397 315.981 402.657 319.74 411C323.268 418.833 324.24 430.5 324.24 430.5Z" fill="#1B5C57"/>
+        </svg>
+        Isisel
+      </div>
+      <div class="folio">Guide live TikTok · 01 / 02<br />www.isisel.com</div>
+    </div>
+
+    <h1>Quatre points. <em>Pas plus.</em></h1>
+    <p class="lede">
+      Parle avec tes mots. Reste dans cet ordre. Le live n’est pas une pub&nbsp;: c’est une présentation de
+      <strong>l’application de la diaspora soninké</strong> pour que l’argent reste dans la communauté.
+    </p>
+
+    <div class="points">
+      <article class="point">
+        <div class="n">01</div>
+        <div>
+          <div class="kicker">Notre communauté</div>
+          <h3>Faite par des Soninké, pour la diaspora</h3>
+          <p class="say">
+            «&nbsp;Isisel, c’est une application faite par des Soninké, pour les Soninké.
+            Où que tu sois — Paris, l’Europe, l’Afrique, ailleurs — tu restes connecté à la communauté.
+            L’idée est simple&nbsp;: <em>que notre argent circule entre nous</em>, pas ailleurs.&nbsp;»
+          </p>
+        </div>
+      </article>
+
+      <article class="point">
+        <div class="n">02</div>
+        <div>
+          <div class="kicker">Les propriétaires</div>
+          <h3>Gagner, et tout gérer depuis le téléphone</h3>
+          <p class="say">
+            «&nbsp;Si tu as une maison au pays — villa, appartement, maison de famille —
+            tu peux la mettre en location et <em>gérer tes réservations depuis ton téléphone</em>.
+            Même si tu vis en Europe. Tu vois tes biens, tes dates, tes clients, sans être sur place.&nbsp;»
+          </p>
+        </div>
+      </article>
+
+      <article class="point demo">
+        <div class="n">03</div>
+        <div>
+          <div class="kicker">Démo en direct</div>
+          <h3>Une notification à chaque réservation</h3>
+          <p class="say">
+            «&nbsp;Et dès qu’il y a une réservation, le propriétaire est prévenu.
+            Regardez — on va le faire <em>en direct</em>.&nbsp;»
+          </p>
+          <p class="hint">
+            <strong>Geste&nbsp;:</strong> montre l’écran du téléphone. Attends la réservation test.
+            Quand la notification arrive&nbsp;: «&nbsp;Voilà. Tu n’as pas besoin d’être collé à un ordinateur.&nbsp;»
+          </p>
+        </div>
+      </article>
+
+      <article class="point">
+        <div class="n">04</div>
+        <div>
+          <div class="kicker">Clôture</div>
+          <h3>Entreprendre en Afrique — avec exigence</h3>
+          <p class="say">
+            «&nbsp;Tu peux entreprendre en Afrique tout en restant en Europe.
+            Toutes tes maisons, toutes tes réservations, au même endroit.
+            Mais ce n’est pas n’importe quoi&nbsp;: <em>chaque annonce est relue</em>.
+            Elle doit être professionnelle, propre, à la hauteur. On ne publie pas ce qui ne respecte pas nos standards.&nbsp;»
+          </p>
+        </div>
+      </article>
+    </div>
+
+    <div class="foot">
+      <span>Ordre du live&nbsp;: communauté → téléphone → notification → exigence</span>
+      <a href="https://www.isisel.com">www.isisel.com</a>
+    </div>
+  </section>
+
+  <section class="sheet inner">
+    <div class="inner-head">
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 551 519" fill="none" aria-hidden="true">
+          <path d="M238.24 278C229.74 332.5 245.74 393.5 245.74 393.5C245.74 393.5 235.581 401.468 231.74 408.5C227.515 416.232 226.74 430.5 226.74 430.5V517H37.2395C37.2395 517 18.6308 518 6.2395 499C-6.15182 480 3.7395 459 3.7395 459L68.2395 331H205.24C209.74 354.5 229.74 379 229.74 379C229.74 379 219.74 347 226.24 278C232.74 209 274.24 172 274.24 172C274.24 172 246.74 223.5 238.24 278Z" fill="#1B5C57"/>
+          <path d="M324.24 430.5V517L501.24 519C501.24 519 521.662 516.854 531.74 509.5C540.983 502.755 546.329 497.066 549.24 486C551.678 476.73 548.425 467.5 546.74 463.5C545.054 459.5 536.74 442 536.74 442L480.24 331L329.24 330.5L333.24 325L338.74 316L472.74 314.5L420.74 216H356.74L357.24 205.5L356.74 199H414.74L333.74 48.5C333.74 48.5 309.24 1.53901e-05 274.24 0C239.24 -1.53901e-05 214.24 48.5 214.24 48.5L135.24 199H209.24C209.24 199 234.74 138.5 254.74 114C274.74 89.5 295.74 77 319.74 84C343.74 91 343.74 131 343.74 131C343.74 131 342.863 174.782 326.74 195C315.559 209.02 289.24 221.5 289.24 221.5C289.24 221.5 309.921 219.477 321.74 214C332.161 209.171 345.74 197 345.74 197C345.74 197 349.401 222.094 345.74 237.5C341.394 255.786 333.464 265.159 319.74 278C304.499 292.26 272.24 302.5 272.24 302.5C272.24 302.5 291.49 301.404 303.24 298C317.165 293.966 336.74 282 336.74 282C336.74 282 332.74 315.5 312.24 331C291.74 346.5 298.44 341.372 289.24 347.5C281.574 352.606 273.74 356.5 269.24 360C264.74 363.5 259.24 366.5 256.74 370C254.24 373.5 253.74 374 254.24 379C254.74 384 256.74 387 256.74 387C256.74 387 269.24 383.301 279.24 384C292.24 384.909 301.857 390 306.24 393.5C310.622 397 315.981 402.657 319.74 411C323.268 418.833 324.24 430.5 324.24 430.5Z" fill="#1B5C57"/>
+        </svg>
+        Isisel
+      </div>
+      <div class="folio">Coulisses + clôture · 02 / 02<br />À répéter avant le live</div>
+    </div>
+
+    <div class="band">
+      <img src="pdf-assets/host-cover.jpg" alt="Séjour — villa" />
+    </div>
+
+    <div class="grid2">
+      <article class="card cream">
+        <div class="kicker">Avant le live</div>
+        <h3 style="margin-bottom: 2mm;">Répéter la notification</h3>
+        <ol>
+          <li>Téléphone hôte ouvert sur <strong>isisel.com/host</strong>, alertes déjà autorisées.</li>
+          <li>Déclencher une <strong>réservation test</strong> ensemble. Confirmer que la notification arrive.</li>
+          <li>Noter le délai (quelques secondes). Pendant le live, ne pas parler trop vite&nbsp;: <strong>faire une pause</strong>.</li>
+        </ol>
+      </article>
+      <article class="card">
+        <div class="kicker">Pendant le live</div>
+        <h3 style="margin-bottom: 2mm;">Le geste, pas le jargon</h3>
+        <ol>
+          <li>Annonce&nbsp;: «&nbsp;On envoie une réservation maintenant.&nbsp;»</li>
+          <li>Montre le téléphone. Silence 2–3 secondes. Laisse arriver la notif.</li>
+          <li>Quand elle apparaît&nbsp;: «&nbsp;Chaque réservation, tu es prévenu. Tu gères depuis le téléphone.&nbsp;»</li>
+        </ol>
+      </article>
+    </div>
+
+    <div class="close-box">
+      <div class="kicker">Phrase de clôture — à ancrer</div>
+      <h2>Entreprendre au pays, depuis l’Europe.</h2>
+      <p>
+        «&nbsp;Si tu vis ici et que tu as une maison au pays, tu n’as plus à laisser ça dormir.
+        Tu peux devenir entrepreneur en Afrique <strong>sans quitter l’Europe</strong>&nbsp;:
+        tes biens, tes réservations, tout sous les yeux, sur ton téléphone.&nbsp;»
+      </p>
+      <p>
+        «&nbsp;Mais on veut du sérieux. <strong>Chaque annonce est relue.</strong>
+        Photos, description, niveau — ça doit coller à nos standards.
+        Isisel, ce n’est pas un groupe WhatsApp. C’est une plateforme professionnelle,
+        pour que la communauté voyage et gagne dans la dignité.&nbsp;»
+      </p>
+    </div>
+
+    <div class="std">
+      <div class="kicker">Insister là-dessus — ne pas sauter</div>
+      <h3 style="margin-bottom: 2mm;">Le professionnalisme n’est pas optionnel</h3>
+      <p>
+        Les listings ne sont pas publiés automatiquement. Ils sont <strong>revus</strong>.
+        Ce qui n’est pas propre, pas clair, pas à la hauteur, ne passe pas.
+        Dis-le clairement&nbsp;: on construit une image sérieuse pour la diaspora —
+        pas une vitrine improvisée.
+      </p>
+    </div>
+
+    <div class="cta">
+      <div class="cta-row">
+        <div>
+          <h2>Renvoyer vers le site</h2>
+          <p>Hôtes&nbsp;: <a href="https://www.isisel.com/host/onboarding">isisel.com/host/onboarding</a>
+          &nbsp;·&nbsp; Tout le monde&nbsp;: <a href="https://www.isisel.com">www.isisel.com</a></p>
+        </div>
+        <a class="cta-btn" href="https://www.isisel.com">isisel.com</a>
+      </div>
+      <p class="dont">
+        Ne pas improviser sur les prix, les commissions ou «&nbsp;on accepte tout le monde&nbsp;».
+        Question hors sujet&nbsp;: «&nbsp;Allez sur isisel.com, ou contactez l’équipe.&nbsp;»
+      </p>
+    </div>
+  </section>
+
+</body>
+</html>

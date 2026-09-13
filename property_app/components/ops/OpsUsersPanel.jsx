@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { isOpsStaff } from "@/utils/opsAuth";
 import OpsUserProfileModal from "@/components/admin/OpsUserProfileModal";
+import AdminMessageHostModal from "@/components/admin/AdminMessageHostModal";
 
 const SEARCH_DEBOUNCE_MS = 280;
 
@@ -56,6 +57,7 @@ export default function OpsUsersPanel() {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [profileUserId, setProfileUserId] = useState(null);
+  const [messageTarget, setMessageTarget] = useState(null);
 
   useEffect(() => {
     if (status === "authenticated" && !isOpsStaff(session?.user?.role)) {
@@ -156,7 +158,7 @@ export default function OpsUsersPanel() {
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-[var(--kama-ink-muted)]">
           Every account created on the platform — guests, host applicants, verified
-          hosts, and staff. Open a row for profile, host ID, and ban controls.
+          hosts, and staff. Open a row for profile, host ID, and in-app message.
         </p>
       </header>
 
@@ -294,13 +296,30 @@ export default function OpsUsersPanel() {
                   <p className="text-xs text-gray-500">
                     Joined {formatJoined(user.createdAt)}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => setProfileUserId(user._id)}
-                    className="rounded-lg border border-[var(--kama-border)] bg-white px-3 py-1.5 text-sm font-semibold text-[var(--kama-ink)] transition hover:bg-[var(--kama-field)]"
-                  >
-                    Open profile
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    {session?.user?.id &&
+                    String(session.user.id) !== String(user._id) ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMessageTarget({
+                            id: String(user._id),
+                            label: user.username || user.email,
+                          })
+                        }
+                        className="rounded-lg border border-[#1B5C57]/30 bg-[#1B5C57]/5 px-3 py-1.5 text-sm font-semibold text-[#1B5C57] transition hover:bg-[#1B5C57]/10"
+                      >
+                        Message
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => setProfileUserId(user._id)}
+                      className="rounded-lg border border-[var(--kama-border)] bg-white px-3 py-1.5 text-sm font-semibold text-[var(--kama-ink)] transition hover:bg-[var(--kama-field)]"
+                    >
+                      Open profile
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -321,6 +340,14 @@ export default function OpsUsersPanel() {
             ),
           );
         }}
+      />
+      <AdminMessageHostModal
+        open={Boolean(messageTarget)}
+        recipientId={messageTarget?.id || ""}
+        hostLabel={messageTarget?.label || ""}
+        senderName={session?.user?.name || session?.user?.email || "Isisel Ops"}
+        senderEmail={session?.user?.email || ""}
+        onClose={() => setMessageTarget(null)}
       />
     </div>
   );

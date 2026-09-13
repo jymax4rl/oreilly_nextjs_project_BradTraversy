@@ -1,5 +1,11 @@
 # Engineering docs
 
+## Pause / resume (agents and humans)
+
+| File | Purpose |
+|------|---------|
+| `HANDOFF.md` | **Read first.** 2026-09-04 snapshot: production vs git, influencer track, uncommitted work |
+
 ## Project status (advancement & next steps)
 
 | File | Purpose |

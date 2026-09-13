@@ -10,7 +10,8 @@ export function propertyPublicPath(property) {
   const slug =
     typeof property.slug === "string" ? property.slug.trim() : "";
   if (slug) return `/properties/${slug}`;
-  const id = property._id?.toString?.() ?? property._id;
+  const id =
+    property._id?.toString?.() ?? property._id ?? property.id?.toString?.() ?? property.id;
   if (id) return `/properties/${id}`;
   return "/properties";
 }

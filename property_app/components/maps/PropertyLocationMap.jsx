@@ -33,7 +33,7 @@ export default function PropertyLocationMap({ location = {} }) {
   if (!addressLine && lat == null) return null;
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+    <section className="mb-4 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm sm:mb-0">
       <div className="border-b border-zinc-100 px-5 py-4">
         <h2 className="text-lg font-semibold text-zinc-900">Where you&apos;ll be</h2>
         {addressLine ? (
@@ -48,7 +48,7 @@ export default function PropertyLocationMap({ location = {} }) {
           </p>
         ) : null}
         {estimated ? (
-          <p className="mt-2 text-xs text-amber-800/80">
+          <p className="mt-2 pb-1 text-xs text-amber-800/80">
             Approximate area shown — host pin coordinates were not saved with
             this listing.
           </p>

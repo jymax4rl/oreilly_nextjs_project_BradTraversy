@@ -7,13 +7,15 @@ import PropertyLocationMap from "@/components/maps/PropertyLocationMap";
 import { formatLocationLine } from "@/utils/listingPricing";
 import { MapPin, Star } from "lucide-react";
 import PropertyShareButton from "@/components/PropertyShareButton";
+import SameOwnerListings from "@/components/SameOwnerListings";
 
-export default function DynamicProperty({ property }) {
+export default function DynamicProperty({ property, siblingListings = [] }) {
   const data = property;
+  const hostName = data.host?.name || data.seller_info?.name || "";
 
   return (
-    <div className="min-h-screen bg-[var(--kama-canvas)] pb-[calc(var(--kama-chrome-clearance,4.25rem)+5.5rem)] pt-14 font-sans text-[var(--kama-ink)] selection:bg-[var(--kama-accent-soft)] sm:pt-16 md:pt-20 lg:pb-20">
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-4 sm:space-y-8 sm:px-6 sm:py-6">
+    <div className="min-h-screen bg-[var(--kama-canvas)] pb-[calc(var(--kama-chrome-clearance,6.25rem)+6.5rem)] pt-14 font-sans text-[var(--kama-ink)] selection:bg-[var(--kama-accent-soft)] sm:pt-16 md:pt-20 lg:pb-20">
+      <main className="mx-auto max-w-7xl space-y-6 px-4 py-4 pb-8 sm:space-y-8 sm:px-6 sm:py-6 sm:pb-10">
         <header className="min-w-0 space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -61,6 +63,8 @@ export default function DynamicProperty({ property }) {
             <PropertyDetails data={data} />
           </div>
         </div>
+
+        <SameOwnerListings listings={siblingListings} hostName={hostName} />
       </main>
     </div>
   );

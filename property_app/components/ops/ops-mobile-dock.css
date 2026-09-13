@@ -1,0 +1,212 @@
+/* APPROVED 2026-09-10 — locked design. See docs/OPS_MOBILE_DOCK.md.
+   Do NOT switch .ops-dock to position:fixed (PWA regression).
+*/
+
+/* Ops mobile dock — in-flow screen-bottom chrome for PWA + mobile Safari. */
+
+.ops-dock {
+  --ops-dock-fg: #a8a8a8;
+  --ops-dock-fg-active: #f4f4f4;
+  --ops-dock-accent: #2f8f86;
+  --ops-dock-bg: #0c0c0c;
+  --ops-dock-line: rgba(255, 255, 255, 0.1);
+  flex: 0 0 auto;
+  z-index: 40;
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--ops-dock-bg);
+  border-top: 1px solid var(--ops-dock-line);
+  color: var(--ops-dock-fg);
+  /* Isolate from page scroll compositing. */
+  transform: translateZ(0);
+}
+
+.ops-dock__row {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 0.15rem;
+  min-height: 3.35rem;
+  padding: 0.28rem 0.35rem 0.4rem;
+}
+
+.ops-dock__tab {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.18rem;
+  min-height: 2.85rem;
+  margin: 0;
+  padding: 0.3rem 0.15rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.ops-dock__tab:active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ops-dock__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.ops-dock__label {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ops-dock__tab--active {
+  color: var(--ops-dock-fg-active);
+}
+
+.ops-dock__tab--active .ops-dock__icon {
+  color: var(--ops-dock-accent);
+}
+
+/* More sheet — portaled to body */
+.ops-dock-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.ops-dock-backdrop--open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ops-dock-sheet {
+  position: fixed;
+  left: 0.65rem;
+  right: 0.65rem;
+  bottom: calc(
+    3.85rem + env(safe-area-inset-bottom, 0px) + var(--kama-safe-bottom, 0px)
+  );
+  z-index: 95;
+  display: flex;
+  flex-direction: column;
+  max-height: min(58dvh, 24rem);
+  padding: 0.7rem 0.7rem 0.85rem;
+  border-radius: 1.1rem;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f4f4f4;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  transform: translate3d(0, 18px, 0);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.18s ease;
+}
+
+.ops-dock-sheet--open {
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ops-dock-sheet__handle {
+  width: 2.1rem;
+  height: 0.22rem;
+  margin: 0 auto 0.7rem;
+  border-radius: 999px;
+  background: #3a3a3a;
+}
+
+.ops-dock-sheet__title {
+  margin: 0 0.35rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+}
+
+.ops-dock-sheet__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ops-dock-sheet__link {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2.85rem;
+  padding: 0.65rem 0.7rem;
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.03);
+  color: #d6d6d6;
+  font-size: 0.875rem;
+  font-weight: 550;
+  text-decoration: none;
+}
+
+.ops-dock-sheet__icon {
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  color: #8f8f8f;
+}
+
+.ops-dock-sheet__link--active {
+  background: rgba(47, 143, 134, 0.16);
+  color: #f4f4f4;
+}
+
+.ops-dock-sheet__link--active .ops-dock-sheet__icon {
+  color: #2f8f86;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ops-dock__tab,
+  .ops-dock-backdrop,
+  .ops-dock-sheet {
+    transition: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ops-dock,
+  .ops-dock-backdrop,
+  .ops-dock-sheet {
+    display: none !important;
+  }
+}

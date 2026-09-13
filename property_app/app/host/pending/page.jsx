@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { HostPwaInstallCard } from "@/components/host/HostPwaInstallGuide";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 export default function HostPendingPage() {
+  const { t } = useLanguage();
   const { data: session } = useSession();
   const [application, setApplication] = useState(null);
   const [loadingApp, setLoadingApp] = useState(true);
@@ -121,7 +123,7 @@ export default function HostPendingPage() {
           href="/host/install?next=/host/pending"
           className="mb-3 inline-block text-sm font-medium text-[var(--kama-accent)] underline-offset-2 hover:underline"
         >
-          Open full install guide
+          {t("pwa.openGuide")}
         </Link>
         <div>
           <Link

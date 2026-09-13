@@ -1,9 +1,16 @@
 import OpsNav from "@/components/ops/OpsNav";
+import OpsMobileDock from "@/components/ops/OpsMobileDock";
 import "@/components/ops/charts/ops-charts.css";
 
+/**
+ * Ops viewport shell (APPROVED 2026-09-10 — see docs/OPS_MOBILE_DOCK.md).
+ *
+ * Layout: [top bar] + [scrollable main] + [in-flow bottom dock]
+ * Do NOT move the dock to position:fixed — that regresses the installed PWA.
+ */
 export default function OpsShell({ children, title, subtitle, wide, copilot }) {
   return (
-    <div className="ops-app min-h-dvh">
+    <div className="ops-app">
       <OpsNav />
       <div className="ops-app-main">
         <div
@@ -20,6 +27,7 @@ export default function OpsShell({ children, title, subtitle, wide, copilot }) {
           {children}
         </div>
       </div>
+      <OpsMobileDock />
     </div>
   );
 }

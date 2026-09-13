@@ -2,7 +2,7 @@
 
 > **Modèle produit — pas un avis juridique formel.**  
 > Faites examiner ces textes par un conseil qualifié.  
-> **Version :** `kama-terms-v1.0-2026-08-31` · **Mise à jour :** 31 août 2026
+> **Version :** `kama-terms-v1.1-2026-09-04` · **Mise à jour :** 4 septembre 2026
 
 ## 1. Accord
 
@@ -24,9 +24,9 @@ Honorer les accords confirmés, communiquer de bonne foi, respecter le règlemen
 
 Annonces et disponibilités exactes. Voir **HOST_TERMS.md**.
 
-## 6. Contenu et PI
+## 6. Propriété intellectuelle
 
-Vous conservez vos contenus et accordez une licence d’affichage. La marque et le logiciel Isisel restent notre propriété.
+Le service, la marque, le logiciel, le design et les compilations de données Isisel appartiennent à Isisel et à ses concédants. Vous ne recevez qu’une licence limitée d’usage du marketplace. Vous conservez vos contenus licitement téléversés et concédez une licence d’hébergement et d’affichage. Les marques de tiers restent celles de leurs titulaires. Politique complète : **/policies/intellectual-property** et `INTELLECTUAL_PROPERTY.md`.
 
 ## 7. Responsabilité
 

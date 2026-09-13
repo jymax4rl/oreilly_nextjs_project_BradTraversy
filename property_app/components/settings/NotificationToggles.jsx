@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toUserFacingError } from "@/utils/userFacingError";
 
 /**
  * Persistable notification toggles via PATCH /api/user/settings.
@@ -30,7 +31,7 @@ export default function NotificationToggles({
     hostNewBookings: {
       title: "New reservations",
       description:
-        "Email when a guest books one of your listings (after payment).",
+        "Email and lock-screen alert when a guest books one of your listings.",
     },
     hostBookingChanges: {
       title: "Reservation changes",
@@ -64,7 +65,7 @@ export default function NotificationToggles({
       setTimeout(() => setSavedKey(""), 1800);
     } catch (err) {
       setPrefs((p) => ({ ...p, [key]: previous }));
-      setError(err.message || "Save failed");
+      setError(toUserFacingError(err, "Save failed"));
     } finally {
       setSavingKey(null);
     }

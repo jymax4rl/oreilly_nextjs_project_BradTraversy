@@ -8,3 +8,7 @@ export const OPS_ROLES = Object.freeze(["admin", "superadmin"]);
 export function isOpsStaff(role) {
   return role === "admin" || role === "superadmin";
 }
+
+export function isSuperAdmin(role) {
+  return role === "superadmin";
+}
