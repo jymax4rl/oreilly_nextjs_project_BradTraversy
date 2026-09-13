@@ -1,34 +1,134 @@
 import connectToDatabase from "@/config/database";
 import Message from "@/models/Message";
 import Property from "@/models/Property";
+import User from "@/models/User";
 import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
+import {
+  buildConversationDTOs,
+  toMessageDTO,
+} from "@/utils/messages/messageDto";
+import mongoose from "mongoose";
 import { revalidatePath } from "next/cache";
 
 /**
- * GET /api/messages — inbox for the authenticated user (cookie or Bearer).
- * Same query as getMessages: sender OR recipient, populated, newest first.
- * Response: { messages }
+ * CONTRACT v1 — dual-gate guest↔host messaging (cookie | Bearer via getAuthFromRequest).
+ *
+ * GET /api/messages
+ *   Default → { conversations: ConversationDTO[], total }
+ *   ?propertyId=&peerId= → { messages: MessageDTO[] } chronological for that thread
+ *
+ * POST /api/messages
+ *   Body: { propertyId, recipientId, name, email, body, phone? }
+ *   → 201 { message: MessageDTO }
+ */
+
+function requireAuth(session) {
+  if (!session?.user?.id) {
+    return Response.json({ error: "Sign in required" }, { status: 401 });
+  }
+  return null;
+}
+
+/**
+ * GET /api/messages
  */
 export async function GET(request) {
   try {
     await connectToDatabase();
     const session = await getAuthFromRequest(request);
-    if (!session?.user?.id) {
-      return Response.json({ error: "Sign in required" }, { status: 401 });
+    const unauthorized = requireAuth(session);
+    if (unauthorized) return unauthorized;
+
+    const meId = String(session.user.id);
+    const { searchParams } = new URL(request.url);
+    const propertyId = searchParams.get("propertyId");
+    const peerId = searchParams.get("peerId");
+
+    // Thread mode: both query params required together.
+    if (propertyId || peerId) {
+      if (!propertyId || !peerId) {
+        return Response.json(
+          { error: "propertyId and peerId are both required for thread view" },
+          { status: 400 },
+        );
+      }
+      if (
+        !mongoose.Types.ObjectId.isValid(propertyId) ||
+        !mongoose.Types.ObjectId.isValid(peerId)
+      ) {
+        return Response.json(
+          { error: "Invalid propertyId or peerId" },
+          { status: 400 },
+        );
+      }
+
+      const messages = await Message.find({
+        property: propertyId,
+        $or: [
+          { sender: meId, recipient: peerId },
+          { sender: peerId, recipient: meId },
+        ],
+      })
+        .sort({ createdAt: 1 })
+        .lean();
+
+      return Response.json({
+        messages: messages.map(toMessageDTO),
+      });
     }
 
-    const userId = session.user.id;
+    // Conversation list (default).
     const messages = await Message.find({
-      $or: [{ sender: userId }, { recipient: userId }],
+      $or: [{ sender: meId }, { recipient: meId }],
     })
-      .populate("sender", "username email image")
-      .populate("recipient", "username email image")
-      .populate("property", "name location images slug")
       .sort({ createdAt: -1 })
       .lean();
 
+    const propertyIds = new Set();
+    const userIds = new Set([meId]);
+    for (const m of messages) {
+      propertyIds.add(String(m.property));
+      userIds.add(String(m.sender));
+      userIds.add(String(m.recipient));
+    }
+
+    const [properties, users] = await Promise.all([
+      propertyIds.size
+        ? Property.find({ _id: { $in: [...propertyIds] } })
+            .select("name slug images")
+            .lean()
+        : [],
+      userIds.size
+        ? User.find({ _id: { $in: [...userIds] } })
+            .select("username image")
+            .lean()
+        : [],
+    ]);
+
+    const propertyById = new Map(
+      properties.map((p) => [String(p._id), p]),
+    );
+    const userById = new Map(
+      users.map((u) => [
+        String(u._id),
+        {
+          _id: String(u._id),
+          username: u.username || "",
+          image: u.image || undefined,
+        },
+      ]),
+    );
+
+    const conversations = buildConversationDTOs(
+      messages,
+      meId,
+      propertyById,
+      userById,
+    );
+
     return Response.json({
-      messages: JSON.parse(JSON.stringify(messages)),
+      conversations,
+      total: conversations.length,
     });
   } catch (error) {
     console.error("GET /api/messages:", error);
@@ -37,21 +137,14 @@ export async function GET(request) {
 }
 
 /**
- * POST /api/messages — send a guest↔host message (JSON body, not FormData).
- * Required: propertyId, recipientId, name, email, body. Optional: phone.
- * Rejects self-send. Creates Message with read: false.
- * Response: { success }
+ * POST /api/messages
  */
 export async function POST(request) {
   try {
     await connectToDatabase();
     const session = await getAuthFromRequest(request);
-    if (!session?.user?.id) {
-      return Response.json(
-        { error: "You must be signed in to send a message." },
-        { status: 401 },
-      );
-    }
+    const unauthorized = requireAuth(session);
+    if (unauthorized) return unauthorized;
 
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== "object") {
@@ -60,12 +153,9 @@ export async function POST(request) {
 
     const propertyId = body.propertyId;
     const recipientId = body.recipientId;
-    const name =
-      typeof body.name === "string" ? body.name.trim() : "";
-    const email =
-      typeof body.email === "string" ? body.email.trim() : "";
-    const phone =
-      typeof body.phone === "string" ? body.phone.trim() : "";
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const email = typeof body.email === "string" ? body.email.trim() : "";
+    const phone = typeof body.phone === "string" ? body.phone.trim() : "";
     const messageBody =
       typeof body.body === "string" ? body.body.trim() : "";
 
@@ -83,7 +173,7 @@ export async function POST(request) {
       );
     }
 
-    await Message.create({
+    const created = await Message.create({
       sender: session.user.id,
       recipient: recipientId,
       property: propertyId,
@@ -102,7 +192,7 @@ export async function POST(request) {
     }
 
     return Response.json(
-      { success: "Message sent successfully!" },
+      { message: toMessageDTO(created) },
       { status: 201 },
     );
   } catch (error) {

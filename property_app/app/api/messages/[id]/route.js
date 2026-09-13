@@ -1,22 +1,23 @@
 import connectToDatabase from "@/config/database";
 import Message from "@/models/Message";
 import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
+import { toMessageDTO } from "@/utils/messages/messageDto";
 import mongoose from "mongoose";
 import { revalidatePath } from "next/cache";
 
 /**
- * PATCH /api/messages/[id] — mark a message read/unread (recipient only).
+ * PATCH /api/messages/[id] — mark as read (CONTRACT v1).
  *
- * Body: `{ read: true | false }` — sets `read` explicitly (clearer REST than
- * the web action's toggle). Only the recipient may update this field.
- * Response: `{ read }`
+ * Body: `{ read: true }` only in this slice.
+ * Only the recipient may mark read → 403; missing → 404.
+ * Response: `{ message: MessageDTO }`
  */
 export async function PATCH(request, { params }) {
   try {
     await connectToDatabase();
     const session = await getAuthFromRequest(request);
     if (!session?.user?.id) {
-      return Response.json({ error: "Unauthorized." }, { status: 401 });
+      return Response.json({ error: "Sign in required" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -25,9 +26,9 @@ export async function PATCH(request, { params }) {
     }
 
     const body = await request.json().catch(() => null);
-    if (!body || typeof body !== "object" || typeof body.read !== "boolean") {
+    if (!body || typeof body !== "object" || body.read !== true) {
       return Response.json(
-        { error: "Body must include read: true|false" },
+        { error: "Body must be { read: true }" },
         { status: 400 },
       );
     }
@@ -44,12 +45,12 @@ export async function PATCH(request, { params }) {
       );
     }
 
-    message.read = body.read;
+    message.read = true;
     await message.save();
 
     revalidatePath("/messages");
 
-    return Response.json({ read: message.read });
+    return Response.json({ message: toMessageDTO(message) });
   } catch (error) {
     console.error("PATCH /api/messages/[id]:", error);
     return Response.json(
