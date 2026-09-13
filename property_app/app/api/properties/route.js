@@ -22,10 +22,74 @@ import { sendListingSubmittedAdminEmail } from "@/utils/email/sendListingModerat
 import { after } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
-import { allocateUniqueSlug, listingSlugBase } from "@/utils/listings/propertySlug";
+import {
+  allocateUniqueSlug,
+  ensurePropertySlugs,
+  listingSlugBase,
+} from "@/utils/listings/propertySlug";
+import {
+  buildCatalogPropertyQuery,
+  parseCatalogPagination,
+} from "@/utils/listings/buildCatalogPropertyQuery";
+import { withApprovedListingFilter } from "@/utils/listingApproval";
+import { serializePropertyForApi } from "@/utils/listings/serializePropertyForApi";
+import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
+import { redactPreviewLockedCatalogFields } from "@/utils/listings/previewLockedHost";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
+/**
+ * GET /api/properties — public catalog (no auth required).
+ *
+ * Query params (same dialect as /properties web browse):
+ *   location, type, minPrice, maxPrice, minBeds, minBaths
+ *   city, country (optional field-specific filters)
+ *   page, limit (pagination; default limit 24, max 100)
+ *
+ * Visibility: approvedListingQuery only (pending moderation + rejected hidden).
+ * Shape: { properties, total, page, limit, filters }
+ */
+export async function GET(request) {
+  try {
+    await connectToDatabase();
+
+    const { searchParams } = new URL(request.url);
+    const { mongoQuery, filters } = buildCatalogPropertyQuery(searchParams);
+    const { page, limit, skip } = parseCatalogPagination(searchParams);
+    const listingQuery = withApprovedListingFilter(mongoQuery);
+
+    const [rows, total] = await Promise.all([
+      Property.find(listingQuery)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Property.countDocuments(listingQuery),
+    ]);
+
+    const serialized = redactPreviewLockedCatalogFields(
+      await attachOwnerProfiles(
+        (await ensurePropertySlugs(rows)).map(serializePropertyForApi),
+      ),
+    );
+
+    return Response.json({
+      properties: serialized,
+      total,
+      page,
+      limit,
+      filters,
+    });
+  } catch (error) {
+    console.error("GET /api/properties:", error);
+    return Response.json(
+      { error: "Failed to load properties" },
+      { status: 500 },
+    );
+  }
+}
 
 function num(value) {
   const n = Number(value);
