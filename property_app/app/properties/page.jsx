@@ -7,6 +7,7 @@ import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
 import { withApprovedListingFilter } from "@/utils/listingApproval";
 import { ensurePropertySlugs } from "@/utils/listings/propertySlug";
 import { redactPreviewLockedCatalogFields } from "@/utils/listings/previewLockedHost";
+import { buildCatalogPropertyQuery } from "@/utils/listings/buildCatalogPropertyQuery";
 
 export async function generateMetadata({ searchParams }) {
   const params = (await searchParams) || {};
@@ -30,13 +31,6 @@ export async function generateMetadata({ searchParams }) {
 
 // Listings need a live DB - do not prerender at image-build time (no secrets in Docker build).
 export const dynamic = "force-dynamic";
-
-function parsePositiveInt(value) {
-  if (value == null || value === "") return null;
-  const n = Number(value);
-  if (!Number.isFinite(n) || n < 1) return null;
-  return Math.floor(n);
-}
 
 function renderPropertiesList({
   initialProperties,
@@ -77,12 +71,12 @@ const PropertiesPage = async ({
   maxProperties,
 }) => {
   const params = (await searchParams) || {};
-  const locationQuery = params?.location?.trim();
-  const typeQuery = params?.type;
-  const minPrice = params?.minPrice ? Number(params.minPrice) : null;
-  const maxPrice = params?.maxPrice ? Number(params.maxPrice) : null;
-  const minBeds = parsePositiveInt(params?.minBeds);
-  const minBaths = parsePositiveInt(params?.minBaths);
+  const { mongoQuery, filters } = buildCatalogPropertyQuery(params, {
+    excludeFeaturedWhenUnfiltered: true,
+  });
+  const locationQuery = filters.location;
+  const typeQuery = filters.type || params?.type || "";
+  const { minPrice, maxPrice, minBeds, minBaths } = filters;
 
   const emptyList = () =>
     renderPropertiesList({
@@ -99,63 +93,6 @@ const PropertiesPage = async ({
 
   if (!process.env.MONGODB_URI) {
     return emptyList();
-  }
-
-  const mongoQuery = {};
-
-  if (locationQuery) {
-    const escaped = locationQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(escaped, "i");
-    mongoQuery.$or = [
-      { "location.city": regex },
-      { "location.state": regex },
-      { "location.country": regex },
-      { "location.street": regex },
-      { "location.zipcode": regex },
-      { name: regex },
-    ];
-  }
-
-  if (typeQuery && typeQuery !== "All Properties") {
-    mongoQuery.type = { $regex: new RegExp(typeQuery, "i") };
-  }
-
-  if (minPrice != null || maxPrice != null) {
-    const priceCond = {};
-    if (minPrice != null && !Number.isNaN(minPrice)) priceCond.$gte = minPrice;
-    if (maxPrice != null && !Number.isNaN(maxPrice)) priceCond.$lte = maxPrice;
-
-    if (Object.keys(priceCond).length) {
-      mongoQuery.$and = mongoQuery.$and || [];
-      mongoQuery.$and.push({
-        $or: [
-          { listingPrice: priceCond },
-          {
-            listingPrice: { $exists: false },
-            "rates.nightly": priceCond,
-          },
-        ],
-      });
-    }
-  }
-
-  if (minBeds != null) {
-    mongoQuery.beds = { $gte: minBeds };
-  }
-
-  if (minBaths != null) {
-    mongoQuery.baths = { $gte: minBaths };
-  }
-
-  const hasFilters =
-    locationQuery ||
-    (typeQuery && typeQuery !== "All Properties") ||
-    minPrice != null ||
-    maxPrice != null ||
-    minBeds != null ||
-    minBaths != null;
-  if (!hasFilters) {
-    mongoQuery.is_featured = false;
   }
 
   try {
