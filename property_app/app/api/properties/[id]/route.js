@@ -16,6 +16,7 @@ import {
   redactPreviewLockedCatalogFields,
 } from "@/utils/listings/previewLockedHost";
 import { isListingPreviewLocked } from "@/utils/listings/previewLockedHost.server";
+import { withCatalogPinAliases } from "@/utils/listings/withCatalogPinAliases";
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +68,7 @@ export async function GET(request, { params }) {
       [serialized] = redactPreviewLockedCatalogFields([serialized]);
     }
 
-    return Response.json({ property: serialized });
+    return Response.json({ property: withCatalogPinAliases(serialized) });
   } catch (error) {
     console.error("GET /api/properties/[id]:", error);
     return Response.json(
