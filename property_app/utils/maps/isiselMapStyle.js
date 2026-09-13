@@ -17,8 +17,6 @@ const INK = "#1C2423";
 const BRAND_DEEP = "#134843";
 /** Mid teal-ink for gentle landscape variation */
 const LAND_TEAL = "#1B4541";
-/** Brand teal (reference; pins use this in OverlayView components) */
-const BRAND = "#2A5D57";
 /** Quiet roads — slightly lighter than land, never bright */
 const ROAD = "#2A3532";
 const ROAD_SOFT = "#3A4A46";
