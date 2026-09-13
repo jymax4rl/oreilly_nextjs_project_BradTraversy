@@ -10,6 +10,7 @@ import {
   canBrowseListingCatalog,
   isListingsCatalogBeta,
 } from "@/utils/listings/catalogBeta";
+import { fetchHomeSeedProperties } from "@/utils/listings/homeSeedProperties";
 
 const beta = isListingsCatalogBeta();
 
@@ -38,6 +39,7 @@ const HomePage = async () => {
   const catalogOpen = canBrowseListingCatalog(session);
 
   let foundingStats = null;
+  let seedProperties = [];
   try {
     const ok = await connectToDatabase();
     if (ok) {
@@ -48,8 +50,17 @@ const HomePage = async () => {
     console.error("home founding stats:", error);
   }
 
+  // Cold-open Discover list uses seedProperties before expand/search pins load.
+  if (catalogOpen) {
+    seedProperties = await fetchHomeSeedProperties({ limit: 80 });
+  }
+
   return (
-    <HomeImmersive foundingStats={foundingStats} catalogOpen={catalogOpen}>
+    <HomeImmersive
+      foundingStats={foundingStats}
+      catalogOpen={catalogOpen}
+      seedProperties={seedProperties}
+    >
       {!catalogOpen ? (
         <div id="stays" className="home-listings-bridge relative z-[2]">
           <ComingSoonStays variant="home" />

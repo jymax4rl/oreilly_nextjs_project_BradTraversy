@@ -355,13 +355,8 @@ export default function HomeMapDiscovery({ seedProperties = [] }) {
 
   const listProperties = useMemo(() => {
     if (pins.length) return pins.map(pinToCardProperty);
-    if (!hasSearched && seedProperties?.length) {
-      return seedProperties.filter(
-        (p) =>
-          Number.isFinite(Number(p?.location?.lat)) &&
-          Number.isFinite(Number(p?.location?.lng)),
-      );
-    }
+    // Cold-open: show SSR catalogue seeds (coords optional — map pins still require them).
+    if (!hasSearched && seedProperties?.length) return seedProperties;
     return [];
   }, [pins, seedProperties, hasSearched]);
 
