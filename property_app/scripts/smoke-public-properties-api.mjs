@@ -18,6 +18,11 @@ const { buildCatalogPropertyQuery, parseCatalogPagination } = await load(
 const { serializePropertyForClient } = await load(
   "utils/serializePropertyForClient.js",
 );
+const {
+  toDiscoverPinFields,
+  toDiscoverPinOnly,
+  withCatalogPinAliases,
+} = await load("utils/listings/withCatalogPinAliases.js");
 
 // Mirror PRIVATE_LISTING_KEYS / toPublicPropertyApiShape (keeps smoke free of @/ alias).
 const PRIVATE_LISTING_KEYS = new Set([
@@ -171,6 +176,78 @@ function serializePropertyForApi(property) {
   assert.deepEqual(api.amenities, ["Wifi", "Pool"]);
   assert.equal(api.checkInTime, "15:00");
   assert.equal(api.seller_info.name, "Awa");
+
+  const withPins = withCatalogPinAliases(api);
+  assert.equal(withPins.city, "Dakar");
+  assert.equal(withPins.country, "Senegal");
+  assert.equal(withPins.lat, null);
+  assert.equal(withPins.lng, null);
+  assert.equal(withPins.nightly, 120);
+  assert.equal(withPins.currency, "USD");
+  assert.equal(withPins.imageUrl, "https://cdn.example/a.jpg");
+  assert.equal(withPins.beds, 3);
+  assert.equal(withPins.baths, 2);
+  assert.equal(withPins.previewLocked, false);
+  assert.equal(withPins.location.city, "Dakar");
+  assert.equal(withPins.rates.nightly, 120);
+  assert.equal(withPins.images[0].url, "https://cdn.example/a.jpg");
+  assert.equal(withPins.listingPrice, 120);
+}
+
+{
+  const pin = toDiscoverPinFields({
+    id: "abc",
+    slug: "villa-accra",
+    name: "Hill Villa",
+    type: "Villa",
+    beds: 4,
+    baths: 3,
+    listingPrice: null,
+    rates: { nightly: 85 },
+    images: [
+      "https://cdn.example/cover.jpg",
+      "https://cdn.example/card.jpg",
+    ],
+    location: { city: "Accra", country: "Ghana", lat: 5.6, lng: -0.2 },
+    previewLocked: true,
+  });
+  assert.deepEqual(pin, {
+    id: "abc",
+    slug: "villa-accra",
+    name: "Hill Villa",
+    type: "Villa",
+    city: "Accra",
+    country: "Ghana",
+    beds: 4,
+    baths: 3,
+    currency: "USD",
+    nightly: 85,
+    imageUrl: "https://cdn.example/card.jpg",
+    lat: 5.6,
+    lng: -0.2,
+    previewLocked: true,
+  });
+
+  const only = toDiscoverPinOnly({
+    id: "abc",
+    slug: "villa-accra",
+    name: "Hill Villa",
+    type: "Villa",
+    beds: 4,
+    baths: 3,
+    listingPrice: 99,
+    rates: { nightly: 85 },
+    images: ["photo.jpg"],
+    location: { city: null, country: "Ghana", lat: "5.6", lng: "-0.2" },
+    host: { name: "secret" },
+    ratesNestedKeep: true,
+  });
+  assert.equal(only.nightly, 99);
+  assert.equal(only.city, null);
+  assert.equal(only.lat, 5.6);
+  assert.equal(only.lng, -0.2);
+  assert.equal(only.host, undefined);
+  assert.equal(only.imageUrl, "/images/properties/photo.jpg");
 }
 
 console.log("smoke-public-properties-api: ok");

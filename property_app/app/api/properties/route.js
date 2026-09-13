@@ -35,6 +35,10 @@ import { withApprovedListingFilter } from "@/utils/listingApproval";
 import { serializePropertyForApi } from "@/utils/listings/serializePropertyForApi";
 import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
 import { redactPreviewLockedCatalogFields } from "@/utils/listings/previewLockedHost";
+import {
+  toDiscoverPinOnly,
+  withCatalogPinAliases,
+} from "@/utils/listings/withCatalogPinAliases";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -47,9 +51,12 @@ export const dynamic = "force-dynamic";
  *   location, type, minPrice, maxPrice, minBeds, minBaths
  *   city, country (optional field-specific filters)
  *   page, limit (pagination; default limit 24, max 100)
+ *   view=pins — optional; returns Discover pin fields only (bandwidth)
  *
  * Visibility: approvedListingQuery only (pending moderation + rejected hidden).
  * Shape: { properties, total, page, limit, filters }
+ * Each property includes nested location/rates/images plus flat Discover pin
+ * aliases (city, country, lat, lng, nightly, currency, imageUrl, …).
  */
 export async function GET(request) {
   try {
@@ -59,6 +66,7 @@ export async function GET(request) {
     const { mongoQuery, filters } = buildCatalogPropertyQuery(searchParams);
     const { page, limit, skip } = parseCatalogPagination(searchParams);
     const listingQuery = withApprovedListingFilter(mongoQuery);
+    const pinsOnly = String(searchParams.get("view") || "").toLowerCase() === "pins";
 
     const [rows, total] = await Promise.all([
       Property.find(listingQuery)
@@ -73,7 +81,7 @@ export async function GET(request) {
       await attachOwnerProfiles(
         (await ensurePropertySlugs(rows)).map(serializePropertyForApi),
       ),
-    );
+    ).map(pinsOnly ? toDiscoverPinOnly : withCatalogPinAliases);
 
     return Response.json({
       properties: serialized,
