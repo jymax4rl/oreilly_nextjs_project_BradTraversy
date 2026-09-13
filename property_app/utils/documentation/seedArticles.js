@@ -100,7 +100,7 @@ Ops path: \`/ops/login\` (credentials) → overview, listings moderation, reserv
 
 ## Business rules
 
-- Public listing **catalog is beta-closed by default** (\`NEXT_PUBLIC_LISTINGS_CATALOG_BETA\`): only verified hosts and ops browse other hosts’ listings until launch.
+- Public listing catalog is **open by default**. Optional soft-launch gate: \`NEXT_PUBLIC_LISTINGS_CATALOG_BETA=true\` limits browse to verified hosts and ops.
 - Guest **online MoMo/card checkout is ops-only** today; everyday guests use WhatsApp + manual payment with the host.
 - Cleaning is a **15% fee on accommodation**, not a cleaner workforce product.
 - New listings require **ops moderation** before public visibility.
@@ -114,7 +114,7 @@ Ops path: \`/ops/login\` (credentials) → overview, listings moderation, reserv
 ## Troubleshooting
 
 - Site up but data 500s → Atlas may be paused; check \`GET /api/health/db\`.
-- Guests see empty catalog → expected in catalog beta; open with \`NEXT_PUBLIC_LISTINGS_CATALOG_BETA=false\`.
+- Guests see empty catalog → check \`NEXT_PUBLIC_LISTINGS_CATALOG_BETA\` is not \`true\`; default is open.
 `,
   }),
 
@@ -437,7 +437,7 @@ Verified hosts create/edit; ops approve/reject/hide; guests browse when catalog 
 3. Ops reviews at \`/ops/listings\` (also legacy admin listings APIs).
 4. Approved + \`listed !== false\` → public catalog / sitemap.
 
-**Catalog beta** (\`utils/listings/catalogBeta.js\`): default closed; only ops + verified hosts browse others’ listings until \`NEXT_PUBLIC_LISTINGS_CATALOG_BETA=false\`.
+**Catalog beta** (\`utils/listings/catalogBeta.js\`): default open; set \`NEXT_PUBLIC_LISTINGS_CATALOG_BETA=true\` to limit browse to ops + verified hosts.
 
 ## Business rules
 
@@ -1570,7 +1570,7 @@ Ops noticing empty home, login failures, or 503s on data APIs.
     category: "Troubleshooting",
     subcategory: "Listings",
     summary:
-      "Guests see no properties because NEXT_PUBLIC_LISTINGS_CATALOG_BETA defaults to closed; only verified hosts and ops browse.",
+      "Guests see no properties because NEXT_PUBLIC_LISTINGS_CATALOG_BETA was set to true (hosts/ops-only soft launch).",
     tags: ["catalog", "beta", "listings"],
     featureStatus: "active",
     relatedFeatures: ["Catalog beta"],
@@ -1583,7 +1583,7 @@ Ops noticing empty home, login failures, or 503s on data APIs.
     relatedApiEndpoints: ["GET /api/properties", "POST /api/bookings/request"],
     content: `## What
 
-When catalog beta is enabled (the **default** if the env var is unset), \`canBrowseListingCatalog\` returns true only for **ops staff** and **verified hosts**. Anonymous guests and ordinary guests get an empty/closed catalog experience.
+When catalog beta is enabled (\`NEXT_PUBLIC_LISTINGS_CATALOG_BETA=true\`), \`canBrowseListingCatalog\` returns true only for **ops staff** and **verified hosts**. Anonymous guests and ordinary guests get an empty/closed catalog experience. Unset/false keeps the public marketplace open.
 
 ## Why
 
@@ -1595,9 +1595,9 @@ Support agents hearing “the website has no homes.”
 
 ## How
 
-1. Confirm whether \`NEXT_PUBLIC_LISTINGS_CATALOG_BETA\` is unset/true in the deployed environment.
+1. Confirm whether \`NEXT_PUBLIC_LISTINGS_CATALOG_BETA\` is explicitly \`true\` in the deployed environment.
 2. Sign in as verified host or ops — listings should appear if moderation/listed flags allow.
-3. To open public catalog: set \`NEXT_PUBLIC_LISTINGS_CATALOG_BETA=false\` and **rebuild/redeploy** (public env is build-time for client).
+3. To open public catalog: unset the var or set \`NEXT_PUBLIC_LISTINGS_CATALOG_BETA=false\` and **rebuild/redeploy** (public env is build-time for client).
 4. Also verify listings are approved and \`listed !== false\`.
 
 ## Business rules

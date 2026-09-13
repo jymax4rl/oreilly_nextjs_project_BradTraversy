@@ -1,14 +1,16 @@
-import { isOpsStaff } from "@/utils/opsAuth";
+import { isOpsStaff } from "../opsAuth.js";
 
 /**
- * Guest catalogue is closed until public launch.
- * Default: beta (hosts and ops only).
- * Open the catalogue: NEXT_PUBLIC_LISTINGS_CATALOG_BETA=false
+ * Optional catalogue soft-launch gate.
+ *
+ * Default: OPEN (guests browse approved listings) — matches live isisel.com.
+ * Close the public catalogue (hosts/ops preview only):
+ *   NEXT_PUBLIC_LISTINGS_CATALOG_BETA=true
  */
 export function isListingsCatalogBeta() {
   const raw = process.env.NEXT_PUBLIC_LISTINGS_CATALOG_BETA;
-  if (raw == null || raw === "") return true;
-  return raw !== "false" && raw !== "0";
+  if (raw == null || raw === "") return false;
+  return raw === "true" || raw === "1";
 }
 
 export function isVerifiedHostUser(user) {
