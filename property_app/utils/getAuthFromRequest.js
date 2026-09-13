@@ -16,10 +16,10 @@ import {
  *
  * Returns a shared session-like shape so handlers can migrate without
  * branching on cookie vs Bearer:
- * `{ user: { id, email, name, image } }`
+ * `{ user: { id, email, name, image, role, hostStatus, hasCompletedHostOnboarding, banned } }`
  *
  * @param {Request} request
- * @returns {Promise<{ user: { id: string, email: string, name: string|null, image: string|null } }|null>}
+ * @returns {Promise<import('@/types/apiAuth').AuthSession|null>}
  */
 export async function getAuthFromRequest(request) {
   if (!request) return null;
@@ -31,6 +31,11 @@ export async function getAuthFromRequest(request) {
       email: cookieSession.user.email,
       name: cookieSession.user.name,
       image: cookieSession.user.image,
+      // Pass through NextAuth session fields host handlers already rely on
+      role: cookieSession.user.role,
+      hostStatus: cookieSession.user.hostStatus,
+      hasCompletedHostOnboarding: cookieSession.user.hasCompletedHostOnboarding,
+      banned: cookieSession.user.banned,
     });
     if (authUser) return toAuthSession(authUser);
   }
@@ -58,14 +63,19 @@ export async function getAuthFromRequest(request) {
       email: { $regex: new RegExp(`^${escaped}$`, "i") },
     });
   }
-  if (!user || user.banned) return null;
+  if (!user) return null;
 
+  // Hydrate host/role fields from Mongo (same source as NextAuth callbacks).
+  // Access JWT stays minimal (sub/email/typ); do not trust claims for these.
   const authUser = toAuthUser({
     id: user._id.toString(),
     email: user.email,
-    // Prefer DB name/image; token only carries email + sub
     username: user.username,
     image: user.image,
+    role: user.role,
+    hostStatus: user.hostStatus,
+    hasCompletedHostOnboarding: user.hasCompletedHostOnboarding,
+    banned: user.banned,
   });
   if (!authUser) return null;
   return toAuthSession(authUser);

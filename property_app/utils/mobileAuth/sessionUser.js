@@ -1,9 +1,27 @@
 /**
  * Shared session-like user shape for cookie sessions and Bearer JWTs.
- * Marketplace handlers can migrate to getAuthFromRequest without branching.
+ * Marketplace / host handlers can migrate to getAuthFromRequest without branching.
  *
- * @param {{ _id?: unknown, id?: string, email?: string, username?: string, name?: string, image?: string|null }} user
- * @returns {{ id: string, email: string, name: string|null, image: string|null }}
+ * @typedef {import('@/types/apiAuth').AuthUser} AuthUser
+ * @typedef {import('@/types/apiAuth').AuthSession} AuthSession
+ */
+
+/**
+ * Normalize a NextAuth session user or Mongo User document into AuthUser.
+ *
+ * @param {{
+ *   _id?: unknown,
+ *   id?: string,
+ *   email?: string,
+ *   username?: string,
+ *   name?: string|null,
+ *   image?: string|null,
+ *   role?: string,
+ *   hostStatus?: string,
+ *   hasCompletedHostOnboarding?: boolean,
+ *   banned?: boolean,
+ * }} user
+ * @returns {AuthUser|null}
  */
 export function toAuthUser(user) {
   if (!user) return null;
@@ -19,12 +37,16 @@ export function toAuthUser(user) {
     email: user.email ? String(user.email) : "",
     name: user.username || user.name || null,
     image: user.image || null,
+    role: typeof user.role === "string" ? user.role : "guest",
+    hostStatus: typeof user.hostStatus === "string" ? user.hostStatus : "none",
+    hasCompletedHostOnboarding: user.hasCompletedHostOnboarding === true,
+    banned: user.banned === true,
   };
 }
 
 /**
- * @param {{ id: string, email: string, name: string|null, image: string|null }} authUser
- * @returns {{ user: typeof authUser }}
+ * @param {AuthUser} authUser
+ * @returns {AuthSession}
  */
 export function toAuthSession(authUser) {
   return { user: authUser };
