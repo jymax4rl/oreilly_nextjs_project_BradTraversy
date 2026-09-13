@@ -1,7 +1,6 @@
 import connectToDatabase from "@/config/database";
 import User from "@/models/User";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import { getSettingsPayload } from "@/utils/user/getSettingsPayload";
 import {
   DEFAULT_NOTIFICATION_PREFS,
@@ -13,10 +12,10 @@ const NOTIFICATION_KEYS = Object.keys(DEFAULT_NOTIFICATION_PREFS);
 /**
  * GET /api/user/settings — authenticated settings snapshot.
  */
-export const GET = async () => {
+export const GET = async (request) => {
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
 
     if (!session?.user?.email) {
       return new Response("Unauthorized", { status: 401 });
@@ -43,7 +42,7 @@ export const GET = async () => {
 export const PATCH = async (request) => {
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
 
     if (!session?.user?.email) {
       return new Response("Unauthorized", { status: 401 });

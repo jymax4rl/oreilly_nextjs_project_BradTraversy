@@ -1,6 +1,5 @@
 import connectToDatabase from "@/config/database";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import { assertVerifiedHost } from "@/utils/availability/propertyAccess";
 import { deleteOwnedProperty } from "@/utils/properties/deleteOwnedProperty";
 import { isOpsStaff } from "@/utils/opsAuth";
@@ -11,12 +10,12 @@ import { isOpsStaff } from "@/utils/opsAuth";
  * - Host: verified + ownership required
  * - Admin / superadmin: may delete any listing
  */
-export async function DELETE(_request, { params }) {
+export async function DELETE(request, { params }) {
   try {
     await connectToDatabase();
     const { id } = await params;
 
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     if (!session?.user?.id) {
       return Response.json({ error: "Sign in required" }, { status: 401 });
     }

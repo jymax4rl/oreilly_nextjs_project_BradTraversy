@@ -1,7 +1,6 @@
 import connectToDatabase from "@/config/database";
 import HostApplication from "@/models/HostApplication";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import { normalizeAddressInput } from "@/utils/address";
 import { ensureMarketplaceUser } from "@/utils/user/ensureMarketplaceUser";
 
@@ -49,10 +48,10 @@ async function syncUserHostAddress(user, address) {
 }
 
 // GET — return the caller's own application (used to pre-populate the edit form)
-export const GET = async () => {
+export const GET = async (request) => {
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     if (!session?.user) return new Response("Unauthorized", { status: 401 });
 
     const user = await userFromSession(session);
@@ -72,7 +71,7 @@ export const GET = async () => {
 export const POST = async (request) => {
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     if (!session?.user) return new Response("Unauthorized", { status: 401 });
 
     const body = await request.json();
@@ -121,7 +120,7 @@ export const POST = async (request) => {
 export const PUT = async (request) => {
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     if (!session?.user) return new Response("Unauthorized", { status: 401 });
 
     const body = await request.json();

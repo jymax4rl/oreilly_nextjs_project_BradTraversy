@@ -1,7 +1,6 @@
 import connectToDatabase from "@/config/database";
 import User from "@/models/User";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import { getProfilePayload } from "@/utils/user/getProfilePayload";
 import { isCloudinaryConfigured } from "@/utils/cloudinary/cloudinary";
 import {
@@ -16,7 +15,7 @@ import {
 export const POST = async (request) => {
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
 
     if (!session?.user?.email || !session?.user?.id) {
       return new Response("Unauthorized", { status: 401 });

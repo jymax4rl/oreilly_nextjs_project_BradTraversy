@@ -2,8 +2,7 @@ import connectToDatabase from "@/config/database";
 import Booking from "@/models/Booking";
 import Property from "@/models/Property";
 import Transaction from "@/models/Transaction";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import { isOpsStaff } from "@/utils/opsAuth";
 import {
   bookingEmailConfigError,
@@ -18,10 +17,10 @@ import { evaluateBookingPolicy } from "@/utils/bookings/bookingPolicy";
  * Force-resend guest + host confirmation emails.
  * Allowed: booking guest, property host (owner), or admin.
  */
-export async function POST(_request, { params }) {
+export async function POST(request, { params }) {
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     if (!session?.user?.id) {
       return Response.json({ error: "Sign in required" }, { status: 401 });
     }
