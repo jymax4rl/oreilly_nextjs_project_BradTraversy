@@ -1,32 +1,42 @@
 /**
  * Isisel luxury editorial Google Maps JSON style (raster Styled Maps).
  *
- * Cream / parchment water, charcoal land, quiet labels, no POI/transit clutter.
+ * Tuned to exact Isisel platform tokens (Expo/web brand) — cream water,
+ * teal-ink land, quiet labels — not a generic charcoal dark map.
  * Pass as `styles` on `google.maps.Map` — do NOT set `mapId` (OverlayView pins
- * require classic raster tiles).
- *
- * Colors tuned for mobile contrast on narrow viewports while matching the
- * editorial basemap mock as closely as Google styled maps allow.
+ * require classic raster tiles). Teal pins stay `#1B5C57` in map components.
  */
 
-const WATER = "#E8E4DC";
-const LAND = "#2C3533";
-const LAND_SOFT = "#343D3A";
-const ROAD = "#3A4441";
-const ADMIN_STROKE = "#4A5553";
-/** Light labels on dark land */
-const LABEL_ON_LAND = "#D2D8D5";
-const LABEL_STROKE_LAND = "#2C3533";
-/** Muted teal-grey labels over cream water */
-const LABEL_ON_WATER = "#6E8580";
-const LABEL_STROKE_WATER = "#E8E4DC";
+/** Platform cream / surfaces — water fill */
+const CREAM = "#F4F1EC";
+/** Soft brand wash — water label stroke */
+const BRAND_SOFT = "#E8F1EF";
+/** Charcoal ink — primary land base */
+const INK = "#1C2423";
+/** Brand deep teal — natural / terrain tint so land reads teal-ink */
+const BRAND_DEEP = "#134843";
+/** Mid teal-ink for gentle landscape variation */
+const LAND_TEAL = "#1B4541";
+/** Brand teal (reference; pins use this in OverlayView components) */
+const BRAND = "#2A5D57";
+/** Quiet roads — slightly lighter than land, never bright */
+const ROAD = "#2A3532";
+const ROAD_SOFT = "#3A4A46";
+/** Thin admin borders */
+const ADMIN_STROKE = "#3A4A46";
+/** Soft cream labels on dark teal-ink land */
+const LABEL_ON_LAND = "#E8F1EF";
+const LABEL_STROKE_LAND = "#1C2423";
+/** brandMuted labels over cream water */
+const LABEL_ON_WATER = "#89A8A2";
+const LABEL_STROKE_WATER = BRAND_SOFT;
 
 /** @type {google.maps.MapTypeStyle[]} */
 export const ISEL_MAP_STYLES = [
-  // Global geometry → charcoal land base
+  // Global geometry → teal-ink land base (not flat grey)
   {
     elementType: "geometry",
-    stylers: [{ color: LAND }],
+    stylers: [{ color: INK }],
   },
   {
     elementType: "labels.icon",
@@ -45,7 +55,7 @@ export const ISEL_MAP_STYLES = [
   {
     featureType: "administrative",
     elementType: "geometry.stroke",
-    stylers: [{ color: ADMIN_STROKE }, { weight: 0.6 }],
+    stylers: [{ color: ADMIN_STROKE }, { weight: 0.55 }],
   },
   {
     featureType: "administrative.land_parcel",
@@ -59,14 +69,14 @@ export const ISEL_MAP_STYLES = [
   {
     featureType: "administrative.province",
     elementType: "geometry.stroke",
-    stylers: [{ color: ADMIN_STROKE }, { weight: 0.5 }],
+    stylers: [{ color: ADMIN_STROKE }, { weight: 0.45 }],
   },
 
-  // Landscape
+  // Landscape — ink base with brand-deep / teal-ink natural variation
   {
     featureType: "landscape",
     elementType: "geometry.fill",
-    stylers: [{ color: LAND }],
+    stylers: [{ color: INK }],
   },
   {
     featureType: "landscape.man_made",
@@ -75,12 +85,12 @@ export const ISEL_MAP_STYLES = [
   {
     featureType: "landscape.natural",
     elementType: "geometry.fill",
-    stylers: [{ color: LAND }],
+    stylers: [{ color: LAND_TEAL }],
   },
   {
     featureType: "landscape.natural.terrain",
     elementType: "geometry.fill",
-    stylers: [{ color: LAND_SOFT }],
+    stylers: [{ color: BRAND_DEEP }],
   },
 
   // POI / transit — fully off (editorial, uncluttered)
@@ -97,7 +107,7 @@ export const ISEL_MAP_STYLES = [
     stylers: [{ visibility: "off" }],
   },
 
-  // Roads — nearly invisible, slightly lighter than land
+  // Roads — very quiet, slightly lighter than land
   {
     featureType: "road",
     elementType: "geometry.fill",
@@ -106,7 +116,7 @@ export const ISEL_MAP_STYLES = [
   {
     featureType: "road",
     elementType: "geometry.stroke",
-    stylers: [{ color: LAND_SOFT }, { visibility: "simplified" }],
+    stylers: [{ color: ROAD_SOFT }, { visibility: "simplified" }],
   },
   {
     featureType: "road",
@@ -116,34 +126,34 @@ export const ISEL_MAP_STYLES = [
   {
     featureType: "road.highway",
     elementType: "geometry.fill",
-    stylers: [{ color: ROAD }],
+    stylers: [{ color: ROAD_SOFT }],
   },
   {
     featureType: "road.highway",
     elementType: "geometry.stroke",
-    stylers: [{ color: LAND_SOFT }, { visibility: "simplified" }],
+    stylers: [{ color: ROAD }, { visibility: "simplified" }],
   },
   {
     featureType: "road.arterial",
     elementType: "geometry.fill",
-    stylers: [{ color: LAND_SOFT }],
+    stylers: [{ color: ROAD }],
   },
   {
     featureType: "road.local",
     elementType: "geometry.fill",
-    stylers: [{ color: LAND_SOFT }],
+    stylers: [{ color: ROAD }],
   },
 
-  // Water — warm cream / parchment coastal feel
+  // Water — warm platform cream (editorial coastline)
   {
     featureType: "water",
     elementType: "geometry",
-    stylers: [{ color: WATER }],
+    stylers: [{ color: CREAM }],
   },
   {
     featureType: "water",
     elementType: "geometry.fill",
-    stylers: [{ color: WATER }],
+    stylers: [{ color: CREAM }],
   },
   {
     featureType: "water",
