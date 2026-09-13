@@ -11,7 +11,8 @@ import {
  * Dual-gate auth for API route handlers only (not page middleware).
  *
  * Resolution order:
- * 1. Existing NextAuth cookie session (unchanged web path)
+ * 1. Existing NextAuth cookie session (unchanged web path) — skipped when
+ *    `options.bearerOnly` is true (e.g. GET /api/auth/mobile/me)
  * 2. Else `Authorization: Bearer <accessToken>` verified with MOBILE_JWT_SECRET
  *
  * Returns a shared session-like shape so handlers can migrate without
@@ -19,25 +20,31 @@ import {
  * `{ user: { id, email, name, image, role, hostStatus, hasCompletedHostOnboarding, banned } }`
  *
  * @param {Request} request
+ * @param {{ bearerOnly?: boolean }} [options]
  * @returns {Promise<import('@/types/apiAuth').AuthSession|null>}
  */
-export async function getAuthFromRequest(request) {
+export async function getAuthFromRequest(request, options = {}) {
   if (!request) return null;
 
-  const cookieSession = await getSessionFromRequest(request);
-  if (cookieSession?.user?.id || cookieSession?.user?.email) {
-    const authUser = toAuthUser({
-      id: cookieSession.user.id,
-      email: cookieSession.user.email,
-      name: cookieSession.user.name,
-      image: cookieSession.user.image,
-      // Pass through NextAuth session fields host handlers already rely on
-      role: cookieSession.user.role,
-      hostStatus: cookieSession.user.hostStatus,
-      hasCompletedHostOnboarding: cookieSession.user.hasCompletedHostOnboarding,
-      banned: cookieSession.user.banned,
-    });
-    if (authUser) return toAuthSession(authUser);
+  const bearerOnly = options.bearerOnly === true;
+
+  if (!bearerOnly) {
+    const cookieSession = await getSessionFromRequest(request);
+    if (cookieSession?.user?.id || cookieSession?.user?.email) {
+      const authUser = toAuthUser({
+        id: cookieSession.user.id,
+        email: cookieSession.user.email,
+        name: cookieSession.user.name,
+        image: cookieSession.user.image,
+        // Pass through NextAuth session fields host handlers already rely on
+        role: cookieSession.user.role,
+        hostStatus: cookieSession.user.hostStatus,
+        hasCompletedHostOnboarding:
+          cookieSession.user.hasCompletedHostOnboarding,
+        banned: cookieSession.user.banned,
+      });
+      if (authUser) return toAuthSession(authUser);
+    }
   }
 
   const authHeader = request.headers.get("authorization") || "";

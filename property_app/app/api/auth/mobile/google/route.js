@@ -1,13 +1,10 @@
 import connectToDatabase from "@/config/database";
-import { ACCESS_TOKEN_EXPIRES_IN } from "@/utils/mobileAuth/constants";
-import { signMobileAccessToken } from "@/utils/mobileAuth/accessToken";
 import {
   mobileCorsJson,
   mobileCorsPreflight,
 } from "@/utils/mobileAuth/cors";
 import { verifyGoogleIdToken } from "@/utils/mobileAuth/googleIdToken";
-import { issueRefreshToken } from "@/utils/mobileAuth/refreshToken";
-import { toAuthUser } from "@/utils/mobileAuth/sessionUser";
+import { issueMobileTokenResponse } from "@/utils/mobileAuth/issueSession";
 import { ensureMarketplaceUser } from "@/utils/user/ensureMarketplaceUser";
 
 export const dynamic = "force-dynamic";
@@ -70,20 +67,12 @@ export const POST = async (request) => {
       await marketplaceUser.save();
     }
 
-    const authUser = toAuthUser(marketplaceUser);
-    const accessToken = await signMobileAccessToken({
-      id: authUser.id,
-      email: authUser.email,
-    });
-    const refreshToken = await issueRefreshToken(authUser.id);
+    const tokens = await issueMobileTokenResponse(marketplaceUser);
+    if (!tokens) {
+      return mobileCorsJson(request, { error: "Unable to issue tokens" }, 500);
+    }
 
-    return mobileCorsJson(request, {
-      accessToken,
-      refreshToken,
-      expiresIn: ACCESS_TOKEN_EXPIRES_IN,
-      tokenType: "Bearer",
-      user: authUser,
-    });
+    return mobileCorsJson(request, tokens);
   } catch (error) {
     console.error("POST /api/auth/mobile/google error:", error);
     return mobileCorsJson(request, { error: "Authentication failed" }, 500);

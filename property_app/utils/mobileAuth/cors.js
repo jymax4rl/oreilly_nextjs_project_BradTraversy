@@ -4,7 +4,7 @@
  */
 
 const ALLOW_HEADERS = "Authorization, Content-Type";
-const ALLOW_METHODS = "POST, OPTIONS";
+const ALLOW_METHODS = "GET, POST, OPTIONS";
 
 /**
  * @param {Request} request
