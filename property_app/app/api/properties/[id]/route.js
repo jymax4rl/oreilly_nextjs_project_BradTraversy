@@ -18,18 +18,18 @@ import {
 import { isListingPreviewLocked } from "@/utils/listings/previewLockedHost.server";
 import { withCatalogPinAliases } from "@/utils/listings/withCatalogPinAliases";
 import {
-  guestCatalogCorsPreflight,
-  withGuestCatalogCors,
-} from "@/utils/listings/guestCatalogCors";
+  mobileCorsJson,
+  mobileCorsPreflight,
+} from "@/utils/mobileAuth/cors";
 
 export const dynamic = "force-dynamic";
 
 /**
  * OPTIONS /api/properties/[id] — CORS preflight for Expo web (guest catalogue).
- * Allowlisted Origins only; methods GET/HEAD/OPTIONS (not mutate verbs).
+ * Reuses mobileAuth CORS helpers (reflect Origin, credentials false).
  */
 export async function OPTIONS(request) {
-  return guestCatalogCorsPreflight(request);
+  return mobileCorsPreflight(request);
 }
 
 /**
@@ -43,7 +43,7 @@ export async function OPTIONS(request) {
  *
  * Shape: { property }
  *
- * CORS: allowlisted Expo web Origins on success and error JSON (no credentials).
+ * CORS: mobileCorsJson (reflect Origin, no credentials) for Expo web.
  */
 export async function GET(request, { params }) {
   try {
@@ -52,20 +52,14 @@ export async function GET(request, { params }) {
 
     const found = await findPropertyByParam(id, "-internalNotes");
     if (!found) {
-      return withGuestCatalogCors(
-        request,
-        Response.json({ error: "Property not found" }, { status: 404 }),
-      );
+      return mobileCorsJson(request, { error: "Property not found" }, 404);
     }
 
     const property = await ensurePropertySlug(found);
     const session = await getAuthFromRequest(request);
 
     if (!canUserViewListing(property, session)) {
-      return withGuestCatalogCors(
-        request,
-        Response.json({ error: "Property not found" }, { status: 404 }),
-      );
+      return mobileCorsJson(request, { error: "Property not found" }, 404);
     }
 
     let serialized = await attachOwnerProfiles(
@@ -81,25 +75,22 @@ export async function GET(request, { params }) {
       !canUnlockPreviewListing(session) &&
       !isListingOwner(session, serialized)
     ) {
-      return withGuestCatalogCors(
-        request,
-        Response.json({ error: "Property not found" }, { status: 404 }),
-      );
+      return mobileCorsJson(request, { error: "Property not found" }, 404);
     }
 
     if (previewLocked) {
       [serialized] = redactPreviewLockedCatalogFields([serialized]);
     }
 
-    return withGuestCatalogCors(
-      request,
-      Response.json({ property: withCatalogPinAliases(serialized) }),
-    );
+    return mobileCorsJson(request, {
+      property: withCatalogPinAliases(serialized),
+    });
   } catch (error) {
     console.error("GET /api/properties/[id]:", error);
-    return withGuestCatalogCors(
+    return mobileCorsJson(
       request,
-      Response.json({ error: "Failed to load property" }, { status: 500 }),
+      { error: "Failed to load property" },
+      500,
     );
   }
 }
