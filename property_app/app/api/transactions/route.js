@@ -1,14 +1,13 @@
 import connectToDatabase from "@/config/database";
 import User from "@/models/User";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import { finalizePaidTransaction } from "@/utils/bookings/finalizePaidTransaction";
 
 export const POST = async (request) => {
   try {
     await connectToDatabase();
 
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     let userId = null;
     let actualCustomerName = null;
     let actualCustomerEmail = null;

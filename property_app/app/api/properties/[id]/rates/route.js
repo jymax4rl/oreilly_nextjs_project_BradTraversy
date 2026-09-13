@@ -1,7 +1,6 @@
 import connectToDatabase from "@/config/database";
 import Property from "@/models/Property";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import {
   getPropertyForApi,
   isPropertyOwner,
@@ -41,7 +40,7 @@ export async function PATCH(request, { params }) {
     await connectToDatabase();
     const { id } = await params;
 
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     const verified = assertVerifiedHost(session);
     if (!verified.ok) {
       return Response.json({ error: verified.message }, { status: verified.status });

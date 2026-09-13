@@ -1,7 +1,6 @@
 import connectToDatabase from "@/config/database";
 import User from "@/models/User";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import { TERMS_VERSION } from "@/lib/legal/constants";
 
 /**
@@ -11,7 +10,7 @@ import { TERMS_VERSION } from "@/lib/legal/constants";
 export const POST = async (request) => {
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
 
     if (!session?.user?.email) {
       return new Response("Unauthorized", { status: 401 });

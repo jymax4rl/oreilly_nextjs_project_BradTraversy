@@ -1,7 +1,6 @@
 import connectToDatabase from "@/config/database";
 import Booking from "@/models/Booking";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import {
   getPropertyForApi,
   isPropertyOwner,
@@ -51,7 +50,7 @@ async function assertHostOwnsBooking(params, session) {
 export async function PATCH(request, { params }) {
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     const loaded = await assertHostOwnsBooking(params, session);
     if (loaded.error) {
       return Response.json({ error: loaded.error }, { status: loaded.status });
@@ -92,7 +91,7 @@ export async function PATCH(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     const loaded = await assertHostOwnsBooking(params, session);
     if (loaded.error) {
       return Response.json({ error: loaded.error }, { status: loaded.status });

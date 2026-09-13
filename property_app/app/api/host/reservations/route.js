@@ -2,8 +2,7 @@ import connectToDatabase from "@/config/database";
 import Booking from "@/models/Booking";
 import Property from "@/models/Property";
 import Transaction from "@/models/Transaction";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import { assertVerifiedHost } from "@/utils/availability/propertyAccess";
 import { bookingWithPolicyFlags } from "@/utils/bookings/mutateBooking";
 import {
@@ -22,7 +21,7 @@ const ALLOWED_STATUS = new Set(["pending", "confirmed", "cancelled", "active"]);
 export async function GET(request) {
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     const verified = assertVerifiedHost(session);
     if (!verified.ok) {
       return Response.json({ error: verified.message }, { status: verified.status });

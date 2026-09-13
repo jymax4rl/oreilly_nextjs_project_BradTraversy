@@ -2,8 +2,7 @@ import connectToDatabase from "@/config/database";
 import mongoose from "mongoose";
 import Booking from "@/models/Booking";
 import Transaction from "@/models/Transaction";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import {
   getPropertyForApi,
   isPropertyOwner,
@@ -28,7 +27,7 @@ export async function GET(request, { params }) {
     await connectToDatabase();
     const { id } = await params;
 
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     const verified = assertVerifiedHost(session);
     if (!verified.ok) {
       return Response.json({ error: verified.message }, { status: verified.status });

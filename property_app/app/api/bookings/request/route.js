@@ -1,6 +1,5 @@
 import connectToDatabase from "@/config/database";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import User from "@/models/User";
 import { createManualBookingRequest } from "@/utils/bookings/createManualBooking";
 import { isPaymentGatewayCheckoutEnabled } from "@/utils/bookings/paymentMode";
@@ -23,7 +22,7 @@ export async function POST(request) {
     }
 
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     if (!session?.user?.id && !session?.user?.email) {
       return Response.json({ error: "Sign in to request a reservation" }, { status: 401 });
     }

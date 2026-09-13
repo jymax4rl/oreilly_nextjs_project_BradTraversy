@@ -9,8 +9,7 @@ import {
   propertyImagesFolder,
 } from "@/utils/cloudinary/generateFolderPath";
 import { uploadPropertyImage, uploadPropertyAudio } from "@/utils/cloudinary/uploadPropertyMedia";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import { computeListingPrice } from "@/utils/listingPricing";
 import { uploadPropertyImages } from "@/utils/uploadPropertyImages";
 import { softEstimateCoordinates, coerceCoordinate } from "@/utils/address";
@@ -53,7 +52,7 @@ export const POST = async (request) => {
   try {
     await connectToDatabase();
 
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     if (!session?.user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }

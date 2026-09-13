@@ -1,7 +1,5 @@
 import connectToDatabase from "@/config/database";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
-import { getSessionFromRequest } from "@/utils/authSessionRoute";
+import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import {
   getPropertyForApi,
   isPropertyOwner,
@@ -22,9 +20,7 @@ export async function GET(request, { params }) {
       return Response.json({ error: "Property not found" }, { status: 404 });
     }
 
-    const session =
-      (await getSessionFromRequest(request)) ||
-      (await getServerSession(authOptions));
+    const session = await getAuthFromRequest(request);
     const isOwner = isPropertyOwner(property, session?.user?.id);
 
     const payload = await getAvailabilityPayload(id, { isOwner });
@@ -46,9 +42,7 @@ export async function PUT(request, { params }) {
     await connectToDatabase();
     const { id } = await params;
 
-    const session =
-      (await getSessionFromRequest(request)) ||
-      (await getServerSession(authOptions));
+    const session = await getAuthFromRequest(request);
     const verified = assertVerifiedHost(session);
     if (!verified.ok) {
       return Response.json({ error: verified.message }, { status: verified.status });

@@ -1,8 +1,7 @@
 import connectToDatabase from "@/config/database";
 import Booking from "@/models/Booking";
 import Property from "@/models/Property";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/utils/authOptions";
+import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import {
   bookingWithPolicyFlags,
   cancelBookingRecord,
@@ -27,10 +26,10 @@ async function loadGuestBooking(bookingId, sessionUserId) {
 /**
  * GET /api/user/bookings/[bookingId] — guest view + policy action flags
  */
-export async function GET(_request, { params }) {
+export async function GET(request, { params }) {
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     if (!session?.user?.id) {
       return Response.json({ error: "Sign in required" }, { status: 401 });
     }
@@ -59,7 +58,7 @@ export async function GET(_request, { params }) {
 export async function PATCH(request, { params }) {
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     if (!session?.user?.id) {
       return Response.json({ error: "Sign in required" }, { status: 401 });
     }
@@ -105,7 +104,7 @@ export async function PATCH(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     await connectToDatabase();
-    const session = await getServerSession(authOptions);
+    const session = await getAuthFromRequest(request);
     if (!session?.user?.id) {
       return Response.json({ error: "Sign in required" }, { status: 401 });
     }
