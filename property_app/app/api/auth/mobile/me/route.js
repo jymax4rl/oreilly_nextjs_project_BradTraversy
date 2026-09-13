@@ -31,6 +31,9 @@ export const GET = async (request) => {
     if (!session?.user?.id) {
       return mobileCorsJson(request, { error: "Unauthorized" }, 401);
     }
+    if (session.user.banned) {
+      return mobileCorsJson(request, { error: "Account banned" }, 401);
+    }
 
     return mobileCorsJson(request, { user: session.user });
   } catch (error) {
