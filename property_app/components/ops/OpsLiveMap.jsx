@@ -194,7 +194,7 @@ export default function OpsLiveMap({
           fullscreenControl: true,
           gestureHandling: "greedy",
           clickableIcons: false,
-          backgroundColor: "#E8E4DC",
+          backgroundColor: "#F4F1EC",
           styles: ISEL_MAP_STYLES,
         });
         window.clearTimeout(safetyTimer);
