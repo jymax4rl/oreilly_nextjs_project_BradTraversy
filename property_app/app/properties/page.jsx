@@ -1,15 +1,32 @@
 import React from "react";
 import HomeProperties from "@/components/HomeProperties";
+import ComingSoonStays from "@/components/home/ComingSoonStays";
 import Property from "@/models/Property";
 import connectToDatabase from "@/config/database";
 import { serializePropertyForClient } from "@/utils/serializePropertyForClient";
 import { attachOwnerProfiles } from "@/utils/user/attachOwnerProfiles";
-import { withApprovedListingFilter } from "@/utils/listingApproval";
 import { ensurePropertySlugs } from "@/utils/listings/propertySlug";
 import { redactPreviewLockedCatalogFields } from "@/utils/listings/previewLockedHost";
-import { buildCatalogPropertyQuery } from "@/utils/listings/buildCatalogPropertyQuery";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/utils/authOptions";
+import { canBrowseListingCatalog } from "@/utils/listings/catalogBeta";
+import {
+  buildCatalogMongoQuery,
+  parseCatalogSearchParams,
+} from "@/utils/listings/catalogQuery";
 
 export async function generateMetadata({ searchParams }) {
+  const session = await getServerSession(authOptions);
+  if (!canBrowseListingCatalog(session)) {
+    return {
+      title: "Stays coming soon",
+      description:
+        "Isisel stays across Africa are opening soon. Hosts can preview the catalogue; guests will browse at launch.",
+      robots: { index: true, follow: true },
+      alternates: { canonical: "/properties" },
+    };
+  }
+
   const params = (await searchParams) || {};
   const location = String(params.location || "").trim();
   if (location) {
@@ -29,7 +46,6 @@ export async function generateMetadata({ searchParams }) {
   };
 }
 
-// Listings need a live DB - do not prerender at image-build time (no secrets in Docker build).
 export const dynamic = "force-dynamic";
 
 function renderPropertiesList({
@@ -40,6 +56,8 @@ function renderPropertiesList({
   maxPrice,
   minBeds,
   minBaths,
+  checkIn,
+  checkOut,
   hideSearchToolbar = false,
   maxProperties,
 }) {
@@ -49,9 +67,15 @@ function renderPropertiesList({
   }
 
   return (
-    <div className="min-h-screen min-w-full overflow-x-hidden md:pt-[10vh]">
+    <div
+      className={
+        hideSearchToolbar
+          ? "min-h-screen min-w-full overflow-x-clip"
+          : "min-w-full overflow-x-clip md:min-h-0"
+      }
+    >
       <HomeProperties
-        key={`${locationQuery || "all"}-${typeQuery || "all"}-${minPrice ?? ""}-${maxPrice ?? ""}-${minBeds ?? ""}-${minBaths ?? ""}`}
+        key={`${locationQuery || "all"}-${typeQuery || "all"}-${minPrice ?? ""}-${maxPrice ?? ""}-${minBeds ?? ""}-${minBaths ?? ""}-${checkIn || ""}-${checkOut || ""}`}
         initialProperties={list}
         searchQuery={locationQuery || ""}
         typeFilter={typeQuery || ""}
@@ -59,6 +83,8 @@ function renderPropertiesList({
         maxPrice={maxPrice}
         minBeds={minBeds}
         minBaths={minBaths}
+        checkIn={checkIn || ""}
+        checkOut={checkOut || ""}
         hideSearchToolbar={hideSearchToolbar}
       />
     </div>
@@ -70,13 +96,16 @@ const PropertiesPage = async ({
   hideSearchToolbar = false,
   maxProperties,
 }) => {
-  const params = (await searchParams) || {};
-  const { mongoQuery, filters } = buildCatalogPropertyQuery(params, {
-    excludeFeaturedWhenUnfiltered: true,
-  });
-  const locationQuery = filters.location;
-  const typeQuery = filters.type || params?.type || "";
-  const { minPrice, maxPrice, minBeds, minBaths } = filters;
+  const session = await getServerSession(authOptions);
+  if (!canBrowseListingCatalog(session)) {
+    return <ComingSoonStays variant={hideSearchToolbar ? "home" : "page"} />;
+  }
+
+  const raw = (await searchParams) || {};
+  const parsed = parseCatalogSearchParams(raw);
+  const locationQuery = parsed.location;
+  const typeQuery = parsed.type;
+  const { minPrice, maxPrice, minBeds, minBaths, checkIn, checkOut } = parsed;
 
   const emptyList = () =>
     renderPropertiesList({
@@ -87,6 +116,8 @@ const PropertiesPage = async ({
       maxPrice,
       minBeds,
       minBaths,
+      checkIn,
+      checkOut,
       hideSearchToolbar,
       maxProperties,
     });
@@ -95,11 +126,18 @@ const PropertiesPage = async ({
     return emptyList();
   }
 
+  const mongoQuery = buildCatalogMongoQuery({
+    location: locationQuery,
+    type: typeQuery,
+    minPrice,
+    maxPrice,
+    minBeds,
+    minBaths,
+  });
+
   try {
     await connectToDatabase();
-    const properties = await Property.find(
-      withApprovedListingFilter(mongoQuery),
-    ).lean();
+    const properties = await Property.find(mongoQuery).lean();
     const serializedProperties = redactPreviewLockedCatalogFields(
       await attachOwnerProfiles(
         (await ensurePropertySlugs(properties)).map(serializePropertyForClient),
@@ -114,6 +152,8 @@ const PropertiesPage = async ({
       maxPrice,
       minBeds,
       minBaths,
+      checkIn,
+      checkOut,
       hideSearchToolbar,
       maxProperties,
     });

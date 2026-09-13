@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   CalendarCheck,
@@ -13,6 +15,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import { BECOME_A_HOST_HREF } from "@/utils/hostPwaInstall";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 const HOST_STATUS_UI = {
   none: {
@@ -88,10 +91,11 @@ function QuickLink({ href, icon: Icon, label, description }) {
 }
 
 /**
- * Role-adaptive profile body (server component).
+ * Role-adaptive profile body.
  * Host/admin blocks are gated by server-provided profile flags only.
  */
 export default function ProfileSections({ profile }) {
+  const { t } = useLanguage();
   const { roles, hostStatus, counts } = profile;
   const hostUi = HOST_STATUS_UI[hostStatus] || HOST_STATUS_UI.none;
   const HostIcon = hostUi.Icon;
@@ -179,8 +183,8 @@ export default function ProfileSections({ profile }) {
               <QuickLink
                 href="/host/install?next=/host/listings"
                 icon={Smartphone}
-                label="Install Isisel app"
-                description="Home-screen shortcut for hosting"
+                label={t("pwa.navLabel")}
+                description={t("pwa.navHintHost")}
               />
             </div>
           </>
@@ -197,8 +201,8 @@ export default function ProfileSections({ profile }) {
             <QuickLink
               href="/host/install?next=/host/pending"
               icon={Smartphone}
-              label="Install Isisel app"
-              description="Add to home screen for host tools"
+              label={t("pwa.navLabel")}
+              description={t("pwa.navHintPending")}
             />
           </div>
         )}

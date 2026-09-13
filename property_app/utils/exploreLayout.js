@@ -1,11 +1,15 @@
 /**
  * Routes that use the Airbnb-style mobile header + bottom tab bar.
  */
+import { isHostWorkspacePath } from "@/utils/hostConsole";
+
 export function isExploreMobileLayout(pathname) {
   if (!pathname) return false;
+  if (isHostWorkspacePath(pathname)) return false;
   if (
     pathname.startsWith("/admin") ||
     pathname.startsWith("/ops") ||
+    pathname.startsWith("/documentation") ||
     pathname.startsWith("/host")
   )
     return false;
@@ -19,6 +23,7 @@ export function isExploreMobileLayout(pathname) {
   return (
     pathname === "/" ||
     pathname.startsWith("/properties") ||
-    pathname.startsWith("/saved-properties")
+    pathname.startsWith("/saved-properties") ||
+    pathname.startsWith("/messages")
   );
 }

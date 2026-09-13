@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import DeletePropertyModal from "./DeletePropertyModal";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { toUserFacingError } from "@/utils/userFacingError";
 
 /**
  * Opens the type-to-confirm delete modal and calls DELETE /api/properties/[id].
@@ -17,6 +19,7 @@ export default function DeletePropertyControl({
   className = "",
 }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState(null);
@@ -30,7 +33,7 @@ export default function DeletePropertyControl({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || "Failed to delete property.");
+        throw new Error(data.error || t("hostConsole.delete.failed"));
       }
       setOpen(false);
       if (typeof onDeleted === "function") {
@@ -40,7 +43,7 @@ export default function DeletePropertyControl({
         router.refresh();
       }
     } catch (err) {
-      setError(err.message || "Failed to delete property.");
+      setError(toUserFacingError(err, t("hostConsole.delete.failed")));
     } finally {
       setIsDeleting(false);
     }
@@ -62,7 +65,7 @@ export default function DeletePropertyControl({
         className={triggerClass}
       >
         <Trash2 className="h-3.5 w-3.5" aria-hidden />
-        Delete
+        {t("hostConsole.delete.button")}
       </button>
 
       <DeletePropertyModal

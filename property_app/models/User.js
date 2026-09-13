@@ -62,6 +62,40 @@ const UserSchema = new Schema(
       ref: "User",
       default: null,
     },
+    /** Ops training guest used to seed host calendars. Excluded from analytics. */
+    isTrainingGuest: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    /**
+     * Web Push subscriptions (installed PWA / mobile Chrome).
+     * Used to alert hosts on new reservations, including lock screen.
+     */
+    pushSubscriptions: {
+      type: [
+        {
+          _id: false,
+          endpoint: { type: String, required: true },
+          expirationTime: { type: Number, default: null },
+          keys: {
+            p256dh: { type: String, required: true },
+            auth: { type: String, required: true },
+          },
+          updatedAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: undefined,
+    },
+    /**
+     * Unread reservation alerts for the installed PWA icon badge.
+     * Incremented on each host push; cleared when they open the host console.
+     */
+    hostPushBadge: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     /** Host-application pitch seen (modal on /host/onboarding). */
     hasCompletedHostOnboarding: {
       type: Boolean,
@@ -69,6 +103,17 @@ const UserSchema = new Schema(
     },
     /** Verified host mailing address (synced from host application). */
     hostAddress: AddressSchema,
+    /**
+     * Host settlement details for platform-managed payouts.
+     * Guests pay Isisel (Creem MoR); ops/transfers use this IBAN later.
+     * Never expose full IBAN to other users — settings API only.
+     */
+    hostPayout: {
+      iban: { type: String, default: null },
+      accountName: { type: String, default: null },
+      updatedAt: { type: Date, default: null },
+    },
+
     /**
      * Account preferences (Settings). Missing keys mean “default on”.
      * Booking email senders honor these unless a force-resend bypasses them.
@@ -82,6 +127,29 @@ const UserSchema = new Schema(
         /** Host: guest date changes and cancellations */
         hostBookingChanges: { type: Boolean, default: true },
       },
+      /** Site UI language (EN/FR). Used for ops bulk emails and similar. */
+      language: {
+        type: String,
+        enum: ["en", "fr"],
+        default: undefined,
+      },
+    },
+    /**
+     * Host-wide default free-cancellation window. Applied to new reservations
+     * when a listing has no explicit Property.bookingPolicy. Snapshotted onto
+     * each booking so later edits do not rewrite past stays.
+     * preset: none | 12 | 24 | 48 | 72 | custom
+     */
+    defaultCancellationPolicy: {
+      preset: {
+        type: String,
+        enum: ["none", "12", "24", "48", "72", "custom"],
+        default: "48",
+      },
+      /** Used when preset === "custom" (hours before check-in). */
+      customHours: { type: Number, min: 0, max: 8760, default: 48 },
+      /** IANA zone for check-in midnight (eligibility math). */
+      timeZone: { type: String, default: "UTC" },
     },
     /** Last accepted Terms & Conditions version string (e.g. kama-terms-v1.0-…). */
     termsVersion: {
@@ -93,11 +161,50 @@ const UserSchema = new Schema(
       type: Date,
       default: null,
     },
+    /**
+     * Founding 100 Host program. Eligibility is attached to the host, not listings.
+     * `isFoundingHost` stays true after the commission-free window expires (badge).
+     * `status: revoked` hides the badge; `number` is never reused.
+     */
+    foundingHost: {
+      isFoundingHost: { type: Boolean, default: false },
+      number: { type: Number },
+      grantedAt: { type: Date },
+      expiresAt: { type: Date },
+      grantedBy: { type: Schema.Types.Mixed },
+      grantReason: { type: String, maxlength: 1000 },
+      status: {
+        type: String,
+        enum: ["active", "revoked"],
+      },
+    },
+    /**
+     * Ops-granted commission override. Independent of Founding 100 allocation.
+     */
+    commissionOverride: {
+      enabled: { type: Boolean, default: false },
+      rate: { type: Number, min: 0, max: 1 },
+      startsAt: { type: Date },
+      expiresAt: { type: Date },
+      reason: { type: String, maxlength: 1000 },
+      notes: { type: String, maxlength: 4000 },
+      grantedBy: { type: Schema.Types.ObjectId, ref: "User" },
+      grantedAt: { type: Date },
+    },
   },
   {
     timestamps: true,
   }
 );
+
+UserSchema.index({ createdAt: 1 });
+UserSchema.index({ hostStatus: 1, createdAt: 1 });
+
+UserSchema.index(
+  { "foundingHost.number": 1 },
+  { unique: true, sparse: true },
+);
+UserSchema.index({ "foundingHost.isFoundingHost": 1, "foundingHost.status": 1 });
 
 const User = models.User || model("User", UserSchema);
 export default User;

@@ -9,6 +9,10 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
 import { canUserViewListing } from "@/utils/listingApproval";
 import {
+  canBrowseListingCatalog,
+  isListingsCatalogBeta,
+} from "@/utils/listings/catalogBeta";
+import {
   ensurePropertySlug,
   findPropertyByParam,
 } from "@/utils/listings/propertySlug";
@@ -23,6 +27,12 @@ import {
   isListingOwner,
 } from "@/utils/listings/previewLockedHost";
 import { isListingPreviewLocked } from "@/utils/listings/previewLockedHost.server";
+import { findSameOwnerPublicListings } from "@/utils/listings/sameOwnerListings";
+import User from "@/models/User";
+import {
+  resolveEffectiveBookingPolicy,
+  describeCancellationPolicy,
+} from "@/utils/bookings/bookingPolicy";
 
 async function loadPublicListing(param) {
   await connectToDatabase();
@@ -113,11 +123,30 @@ export default async function PropertyPage({ params }) {
 
   const session = await getServerSession(authOptions);
   if (!canUserViewListing(property, session)) {
+    if (isListingsCatalogBeta() && !canBrowseListingCatalog(session)) {
+      redirect("/properties");
+    }
     notFound();
   }
   const serialized = await attachOwnerProfiles(
     serializePropertyForClient(property),
   );
+
+  let hostDefault = null;
+  if (property.owner) {
+    const host = await User.findById(property.owner)
+      .select("defaultCancellationPolicy")
+      .lean();
+    hostDefault = host?.defaultCancellationPolicy || null;
+  }
+  const { policy: effectiveCancellationPolicy } = resolveEffectiveBookingPolicy({
+    property,
+    hostDefault,
+  });
+  serialized.cancellationPolicySummary = describeCancellationPolicy(
+    effectiveCancellationPolicy,
+  );
+  serialized.effectiveCancellationPolicy = effectiveCancellationPolicy;
   if (
     serialized.previewLocked &&
     !canUnlockPreviewListing(session) &&
@@ -131,13 +160,18 @@ export default async function PropertyPage({ params }) {
     permanentRedirect(publicPath);
   }
 
+  const siblingListings = await findSameOwnerPublicListings(property);
+
   return (
     <div className="overflow-x-hidden">
       <ServerProperty
         property={serialized}
         canonicalUrl={propertyPublicUrl(property)}
       />
-      <DynamicProperty property={serialized} />
+      <DynamicProperty
+        property={serialized}
+        siblingListings={siblingListings}
+      />
     </div>
   );
 }

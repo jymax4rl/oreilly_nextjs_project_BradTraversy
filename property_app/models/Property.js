@@ -76,6 +76,8 @@ const PropertySchema = new mongoose.Schema(
       allowGuestCancel: { type: Boolean },
       allowGuestModify: { type: Boolean },
       maxModifications: { type: Number },
+      /** Optional IANA zone override for this listing's check-in boundary. */
+      timeZone: { type: String },
     },
     images: [{ type: Schema.Types.Mixed }],
     audio: { type: Schema.Types.Mixed, required: false },
@@ -93,6 +95,13 @@ const PropertySchema = new mongoose.Schema(
     rejectionReason: { type: String, required: false },
     listingReviewedAt: { type: Date, required: false },
     listingReviewedBy: { type: Schema.Types.ObjectId, ref: "User", required: false },
+    /**
+     * When false, the listing stays in ops/host tools but is hidden from the
+     * public catalog, sitemap, and guest listing pages. Missing/true = listed.
+     */
+    listed: { type: Boolean, default: true, index: true },
+    unlistedAt: { type: Date, required: false },
+    unlistedBy: { type: Schema.Types.ObjectId, ref: "User", required: false },
   },
   {
     timestamps: true,
@@ -100,6 +109,16 @@ const PropertySchema = new mongoose.Schema(
     collection: "Properties",
   },
 );
+
+PropertySchema.index({ createdAt: 1 });
+/** Catalog map viewport queries on numeric lat/lng (not GeoJSON yet). */
+PropertySchema.index({
+  listed: 1,
+  status: 1,
+  "location.lat": 1,
+  "location.lng": 1,
+});
+PropertySchema.index({ listingPrice: 1, "location.lat": 1, "location.lng": 1 });
 
 const Property =
   mongoose.models.Property || mongoose.model("Property", PropertySchema);

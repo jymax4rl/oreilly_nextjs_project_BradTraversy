@@ -1,6 +1,7 @@
 import User from "@/models/User";
 import {
   PREVIEW_LOCKED_HOST_EMAILS,
+  PREVIEW_LOCKED_HOST_NAMES,
   isPreviewLockedHost,
 } from "@/utils/listings/previewLockedHost";
 
@@ -10,16 +11,22 @@ function emailExactRegex(email) {
 }
 
 export async function findPreviewLockedOwnerIds() {
-  const users = await User.find({
-    $or: [
-      ...PREVIEW_LOCKED_HOST_EMAILS.map((email) => ({
-        email: { $regex: emailExactRegex(email) },
-      })),
-      { username: { $regex: /^(jimmeh camara|jimmeh gakou)$/i } },
-    ],
-  })
-    .select("_id")
-    .lean();
+  const or = [
+    ...PREVIEW_LOCKED_HOST_EMAILS.map((email) => ({
+      email: { $regex: emailExactRegex(email) },
+    })),
+    ...PREVIEW_LOCKED_HOST_NAMES.map((name) => ({
+      username: {
+        $regex: new RegExp(
+          `^${String(name).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+          "i",
+        ),
+      },
+    })),
+  ];
+  if (!or.length) return [];
+
+  const users = await User.find({ $or: or }).select("_id").lean();
   return users.map((user) => String(user._id));
 }
 

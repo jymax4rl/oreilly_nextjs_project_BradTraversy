@@ -1,5 +1,5 @@
 /** Current Terms & Conditions version — bump when legal text materially changes. */
-export const TERMS_VERSION = "kama-terms-v1.0-2026-08-31";
+export const TERMS_VERSION = "kama-terms-v1.1-2026-09-04";
 
 /** localStorage key for client-side terms acceptance. */
 export const TERMS_ACCEPTANCE_KEY = "kama-terms-acceptance";

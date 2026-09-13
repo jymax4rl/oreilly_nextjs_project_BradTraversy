@@ -12,10 +12,14 @@ const MessageSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    /**
+     * Listing this thread is about. Optional for ops → user account messages
+     * (hosts who do not have a listing yet).
+     */
     property: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Property",
-      required: true,
+      required: false,
     },
     name: {
       type: String,

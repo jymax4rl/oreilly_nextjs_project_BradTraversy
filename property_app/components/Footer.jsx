@@ -2,11 +2,17 @@
 
 import Link from "next/link";
 import { FaInstagram, FaTwitter, FaLinkedin, FaFacebook } from "react-icons/fa";
+import { useSession } from "next-auth/react";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { canBrowseListingCatalog } from "@/utils/listings/catalogBeta";
+import { BECOME_A_HOST_HREF } from "@/utils/hostPwaInstall";
 
 const Footer = ({ className = "" }) => {
   const currentYear = new Date().getFullYear();
   const { t } = useLanguage();
+  const { data: session } = useSession();
+  const catalogOpen = canBrowseListingCatalog(session);
+  const startHref = catalogOpen ? "/properties" : BECOME_A_HOST_HREF;
   return (
     <footer
       className={`bg-zinc-950 text-zinc-400 relative pt-24 pb-12 overflow-hidden font-sans ${className}`}
@@ -27,10 +33,10 @@ const Footer = ({ className = "" }) => {
             </p>
             <div className="flex gap-4 pt-4">
               <Link
-                href="/properties"
+                href={startHref}
                 className="bg-white text-black px-8 py-3 rounded-full font-medium hover:bg-zinc-200 transition-colors"
               >
-                {t("footer.getStarted")}
+                {catalogOpen ? t("footer.getStarted") : t("home.comingSoon.hostCta")}
               </Link>
             </div>
           </div>
@@ -41,17 +47,15 @@ const Footer = ({ className = "" }) => {
             <div className="flex flex-col space-y-4">
               <h4 className="text-white font-medium mb-2">{t("footer.company")}</h4>
               <FooterLink href="/business">{t("footer.forBusiness")}</FooterLink>
+              <FooterLink href="/founding-hosts">Founding Hosts</FooterLink>
               <FooterLink href="/influencers">{t("footer.forCreators")}</FooterLink>
+              <FooterLink href="/investors">{t("footer.forInvestors")}</FooterLink>
+              <FooterLink href="/horizon">Horizon · Bijilo</FooterLink>
               <FooterLink href="/host/onboarding">{t("nav.becomeHost")}</FooterLink>
               <FooterLink href="/about">{t("footer.about")}</FooterLink>
               <FooterLink href="/careers">{t("footer.careers")}</FooterLink>
               <FooterLink href="/press">{t("footer.press")}</FooterLink>
-              <a
-                href="mailto:contact@isisel.com"
-                className="hover:text-white hover:translate-x-1 transition-all duration-300 ease-in-out"
-              >
-                {t("footer.contact")}
-              </a>
+              <FooterLink href="/contact">{t("footer.contact")}</FooterLink>
             </div>
 
             {/* Column 2 */}
@@ -70,6 +74,9 @@ const Footer = ({ className = "" }) => {
               <FooterLink href="/policies/terms">{t("footer.terms")}</FooterLink>
               <FooterLink href="/policies/privacy">{t("footer.privacy")}</FooterLink>
               <FooterLink href="/policies/cookies">{t("footer.cookies")}</FooterLink>
+              <FooterLink href="/policies/intellectual-property">
+                {t("footer.ip")}
+              </FooterLink>
             </div>
           </div>
         </div>

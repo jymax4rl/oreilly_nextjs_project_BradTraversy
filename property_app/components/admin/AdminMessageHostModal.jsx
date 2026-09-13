@@ -25,9 +25,9 @@ export default function AdminMessageHostModal({
   const [error, setError] = useState(null);
   const [sent, setSent] = useState(false);
 
+  const listingThread = Boolean(propertyId);
   const canSend =
     Boolean(body.trim()) &&
-    Boolean(propertyId) &&
     Boolean(recipientId) &&
     Boolean(senderName?.trim()) &&
     Boolean(senderEmail?.trim()) &&
@@ -63,7 +63,7 @@ export default function AdminMessageHostModal({
     setError(null);
     try {
       const formData = new FormData();
-      formData.set("propertyId", propertyId);
+      if (propertyId) formData.set("propertyId", propertyId);
       formData.set("recipientId", recipientId);
       formData.set("name", senderName.trim());
       formData.set("email", senderEmail.trim());
@@ -107,11 +107,11 @@ export default function AdminMessageHostModal({
                 id={titleId}
                 className="text-lg font-semibold text-gray-900"
               >
-                Message host
+                {listingThread ? "Message host" : "Message user"}
               </h2>
               <p className="mt-1 text-sm text-gray-500">
                 Sent as you via in-app messaging
-                {hostLabel ? ` · to ${hostLabel}` : ""}.
+                {hostLabel ? ` · to ${hostLabel}` : ""}. They also receive an email.
               </p>
             </div>
           </div>
@@ -135,7 +135,9 @@ export default function AdminMessageHostModal({
 
           {sent ? (
             <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-              Message sent. The host will see it under Messages.
+              {listingThread
+                ? "Message sent. The host gets an email and will see it under Messages."
+                : "Message sent. They get an email and will see it under Messages."}
             </p>
           ) : (
             <div>
@@ -152,7 +154,11 @@ export default function AdminMessageHostModal({
                 value={body}
                 disabled={sending}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder="Write a note to the host about this listing…"
+                placeholder={
+                  listingThread
+                    ? "Write a note to the host about this listing…"
+                    : "Write a note to this person…"
+                }
                 className="mt-2 w-full resize-none rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#1B5C57] focus:ring-2 focus:ring-[#1B5C57]/20 disabled:opacity-60"
               />
             </div>

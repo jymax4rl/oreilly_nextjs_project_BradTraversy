@@ -3,9 +3,23 @@
 import connectToDatabase from "@/config/database";
 import Message from "@/models/Message";
 import Property from "@/models/Property";
+import User from "@/models/User";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/utils/authOptions";
+import { isOpsStaff } from "@/utils/opsAuth";
 import { revalidatePath } from "next/cache";
+import mongoose from "mongoose";
+import { sendOpsMessageEmail } from "@/utils/email/sendOpsMessageEmail";
+
+const MESSAGE_BODY_MAX = 4000;
+
+function revalidateMessagePaths(propertyId) {
+  revalidatePath("/messages");
+  revalidatePath("/host/messages");
+  revalidatePath("/ops/messages");
+  if (!propertyId) return;
+  revalidatePath(`/properties/${propertyId}`);
+}
 
 export async function getMessages() {
   await connectToDatabase();
@@ -51,25 +65,49 @@ export async function sendMessage(formData) {
     return { error: "You must be signed in to send a message." };
   }
 
-  const propertyId = formData.get("propertyId");
-  const recipientId = formData.get("recipientId");
+  const propertyId = String(formData.get("propertyId") || "").trim();
+  const recipientId = String(formData.get("recipientId") || "").trim();
   const name = formData.get("name")?.trim();
   const email = formData.get("email")?.trim();
   const phone = formData.get("phone")?.trim();
   const body = formData.get("body")?.trim();
+  const opsAccountMessage = !propertyId && isOpsStaff(session.user.role);
 
-  if (!propertyId || !recipientId || !name || !email || !body) {
+  if (!recipientId || !name || !email || !body) {
     return { error: "Please fill in all required fields." };
+  }
+
+  if (!propertyId && !opsAccountMessage) {
+    return { error: "Please fill in all required fields." };
+  }
+
+  if (body.length > MESSAGE_BODY_MAX) {
+    return { error: "Message is too long." };
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(recipientId)) {
+    return { error: "Invalid recipient." };
+  }
+
+  if (propertyId && !mongoose.Types.ObjectId.isValid(propertyId)) {
+    return { error: "Invalid listing." };
   }
 
   if (session.user.id === recipientId) {
     return { error: "You cannot send a message to yourself." };
   }
 
+  const recipient = await User.findById(recipientId)
+    .select("_id email username hostStatus")
+    .lean();
+  if (!recipient) {
+    return { error: "User not found." };
+  }
+
   await Message.create({
     sender: session.user.id,
     recipient: recipientId,
-    property: propertyId,
+    ...(propertyId ? { property: propertyId } : {}),
     name,
     email,
     phone: phone || undefined,
@@ -77,18 +115,31 @@ export async function sendMessage(formData) {
     read: false,
   });
 
-  revalidatePath("/messages");
-  revalidatePath(`/properties/${propertyId}`);
-  const listed = await Property.findById(propertyId).select("slug").lean();
-  if (listed?.slug) {
-    revalidatePath(`/properties/${listed.slug}`);
+  revalidateMessagePaths(propertyId || null);
+  let propertyName = "";
+  if (propertyId) {
+    const listed = await Property.findById(propertyId).select("slug name").lean();
+    if (listed?.slug) {
+      revalidatePath(`/properties/${listed.slug}`);
+    }
+    propertyName = listed?.name || "";
+  }
+
+  if (isOpsStaff(session.user.role)) {
+    await sendOpsMessageEmail({
+      recipientEmail: recipient.email,
+      recipientName: recipient.username,
+      hostStatus: recipient.hostStatus,
+      body,
+      propertyName,
+    });
   }
 
   return { success: "Message sent successfully!" };
 }
 
 /**
- * Reply in an existing property conversation (recipient → original sender).
+ * Reply in an existing conversation (recipient → original sender).
  */
 export async function replyToMessage(formData) {
   await connectToDatabase();
@@ -103,6 +154,10 @@ export async function replyToMessage(formData) {
 
   if (!parentId || !body) {
     return { error: "Please write a reply." };
+  }
+
+  if (body.length > MESSAGE_BODY_MAX) {
+    return { error: "Message is too long." };
   }
 
   const parent = await Message.findById(parentId);
@@ -125,10 +180,12 @@ export async function replyToMessage(formData) {
     return { error: "You cannot reply to yourself." };
   }
 
+  const parentPropertyId = parent.property ? parent.property.toString() : "";
+
   await Message.create({
     sender: userId,
     recipient: replyToUserId,
-    property: parent.property,
+    ...(parentPropertyId ? { property: parentPropertyId } : {}),
     name: session.user.name || session.user.email || "User",
     email: session.user.email || "",
     body,
@@ -140,11 +197,29 @@ export async function replyToMessage(formData) {
     await parent.save();
   }
 
-  revalidatePath("/messages");
-  revalidatePath(`/properties/${parent.property.toString()}`);
-  const listed = await Property.findById(parent.property).select("slug").lean();
-  if (listed?.slug) {
-    revalidatePath(`/properties/${listed.slug}`);
+  revalidateMessagePaths(parentPropertyId || null);
+  let propertyName = "";
+  if (parentPropertyId) {
+    const listed = await Property.findById(parentPropertyId)
+      .select("slug name")
+      .lean();
+    if (listed?.slug) {
+      revalidatePath(`/properties/${listed.slug}`);
+    }
+    propertyName = listed?.name || "";
+  }
+
+  if (isOpsStaff(session.user.role)) {
+    const replyRecipient = await User.findById(replyToUserId)
+      .select("email username hostStatus")
+      .lean();
+    await sendOpsMessageEmail({
+      recipientEmail: replyRecipient?.email,
+      recipientName: replyRecipient?.username,
+      hostStatus: replyRecipient?.hostStatus,
+      body,
+      propertyName,
+    });
   }
 
   return { success: "Reply sent." };
@@ -172,6 +247,8 @@ export async function markMessageAsRead(messageId) {
   await message.save();
 
   revalidatePath("/messages");
+  revalidatePath("/host/messages");
+  revalidatePath("/ops/messages");
 
   return { read: message.read };
 }
@@ -201,6 +278,8 @@ export async function deleteMessage(messageId) {
   await message.deleteOne();
 
   revalidatePath("/messages");
+  revalidatePath("/host/messages");
+  revalidatePath("/ops/messages");
 
   return { success: "Message deleted." };
 }

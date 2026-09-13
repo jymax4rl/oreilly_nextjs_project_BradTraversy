@@ -1,20 +1,9 @@
-import OpsShell from "@/components/ops/OpsShell";
-import OpsMarketingSubnav from "@/components/ops/OpsMarketingSubnav";
-import CreatorLeadsPanel from "@/components/ops/creators/CreatorLeadsPanel";
+import OpsCreatorsWorkspace from "@/components/ops/creators/OpsCreatorsWorkspace";
 
 export const metadata = {
-  title: "Creator Leads",
+  title: "Creator Partnerships",
 };
 
 export default function OpsCreatorLeadsPage() {
-  return (
-    <OpsShell
-      wide
-      title="Creator / Influencer Leads"
-      subtitle="Partnership conversations from /influencers — separate from host acquisition."
-    >
-      <OpsMarketingSubnav />
-      <CreatorLeadsPanel />
-    </OpsShell>
-  );
+  return <OpsCreatorsWorkspace />;
 }

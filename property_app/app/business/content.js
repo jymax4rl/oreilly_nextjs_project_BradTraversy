@@ -85,7 +85,7 @@ export const businessPage = {
     lede:
       "Founding hosts list without the traditional booking-platform commission on the night. You set the rate. Guests request the stay on Isisel. You keep the value of that night while the catalogue is still being built.",
     caveat:
-      "This is the current founding-host commercial line—not a claim that running a hospitality business has no costs, and not a guaranteed payout on every future stay.",
+      "This is the current founding-host commercial line—not a claim that running a hospitality business has no costs, and not a guaranteed payout on every future stay. Founding Host spots are awarded when a host’s first listing is approved, while the program still has room.",
     exampleLabel: "Illustrative example, not a forecast",
     amount: "€500",
     traditional: {

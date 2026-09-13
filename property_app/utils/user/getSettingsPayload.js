@@ -1,5 +1,6 @@
 import User from "@/models/User";
 import { normalizeNotificationPrefs } from "@/utils/user/notificationPrefs";
+import { normalizeHostCancellationSettings } from "@/utils/bookings/bookingPolicy";
 
 /**
  * Safe settings snapshot for the signed-in user (no secrets / hostAddress).
@@ -13,7 +14,7 @@ export async function getSettingsPayload(sessionUser) {
 
   const user = await User.findOne({ email: sessionUser.email })
     .select(
-      "username email image role hostStatus hasCompletedHostOnboarding preferences createdAt",
+      "username email image role hostStatus hasCompletedHostOnboarding preferences defaultCancellationPolicy createdAt",
     )
     .lean();
 
@@ -31,7 +32,6 @@ export async function getSettingsPayload(sessionUser) {
     image: user.image || null,
     role,
     roles: {
-      // Everyone can book; host/admin flags gate hosting & admin sections.
       guest: true,
       host: isVerifiedHost,
       admin: isAdmin,
@@ -44,7 +44,9 @@ export async function getSettingsPayload(sessionUser) {
         user.preferences?.notifications,
       ),
     },
-    /** Auth is Google-only today — Settings surfaces this honestly (no password UI). */
+    defaultCancellationPolicy: normalizeHostCancellationSettings(
+      user.defaultCancellationPolicy || {},
+    ),
     auth: {
       provider: "google",
       label: "Google",

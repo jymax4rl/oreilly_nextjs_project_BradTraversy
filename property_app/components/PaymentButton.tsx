@@ -4,6 +4,7 @@
 import { useFlutterwavePayment } from '@/hooks/useFlutterwavePayment';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toUserFacingError } from '@/utils/userFacingError';
 
 interface PaymentButtonProps {
   amount: number;
@@ -43,7 +44,7 @@ export default function PaymentButton({
         window.location.href = response.data.link;
       }
     } catch (err: any) {
-      setError(err.message || 'Payment failed. Please try again.');
+      setError(toUserFacingError(err, 'Payment failed. Please try again.'));
     }
   };
 

@@ -14,6 +14,11 @@ import {
   canUnlockPreviewListing,
 } from "@/utils/listings/previewLockedHost";
 import { isListingPreviewLocked } from "@/utils/listings/previewLockedHost.server";
+import { canUserViewListing } from "@/utils/listingApproval";
+import {
+  canBrowseListingCatalog,
+  isListingsCatalogBeta,
+} from "@/utils/listings/catalogBeta";
 
 export async function generateMetadata({ params }) {
   await connectToDatabase();
@@ -51,6 +56,13 @@ export default async function PropertyMessagePage({ params }) {
     redirect(
       `/login?callbackUrl=${encodeURIComponent(messagePath)}`,
     );
+  }
+
+  if (!canUserViewListing(property, session)) {
+    if (isListingsCatalogBeta() && !canBrowseListingCatalog(session)) {
+      redirect("/properties");
+    }
+    notFound();
   }
 
   const serialized = serializePropertyForClient(property);

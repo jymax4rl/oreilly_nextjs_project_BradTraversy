@@ -1,8 +1,11 @@
 "use client";
 
 import HomePortalSearch from "./HomePortalSearch";
+import { useHomeDiscoveryOptional } from "./HomeDiscoveryContext";
 
 export default function HomeSearchSection() {
+  const discovery = useHomeDiscoveryOptional();
+
   return (
     <section
       id="search"
@@ -10,7 +13,10 @@ export default function HomeSearchSection() {
       aria-label="Search stays"
     >
       <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
-        <HomePortalSearch />
+        <HomePortalSearch
+          onSearch={discovery?.enterResults}
+          initialFilters={discovery?.filters}
+        />
       </div>
     </section>
   );

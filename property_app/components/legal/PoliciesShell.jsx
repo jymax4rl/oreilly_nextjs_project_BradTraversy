@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
-  LEGAL_DISCLAIMER,
   POLICIES_META,
   POLICY_SECTIONS,
   getSectionById,
@@ -162,13 +161,6 @@ export default function PoliciesShell({ initialSection = null }) {
         </aside>
 
         <main className="min-w-0 max-w-full space-y-12">
-          <div
-            className="rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm leading-relaxed break-words text-amber-950"
-            role="note"
-          >
-            {LEGAL_DISCLAIMER[lang]}
-          </div>
-
           {sections.map((section) => (
             <section
               key={section.id}

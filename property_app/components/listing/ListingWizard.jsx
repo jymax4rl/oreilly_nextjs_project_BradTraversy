@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, useCallback, useId, useRef } from "react"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { toUserFacingError } from "@/utils/userFacingError";
 import {
   Minus,
   Plus,
@@ -524,7 +525,7 @@ export default function ListingWizard() {
 
       router.push("/properties/my-listings");
     } catch (e) {
-      setError(e.message || "Something went wrong");
+      setError(toUserFacingError(e, "Something went wrong"));
     } finally {
       setSubmitting(false);
     }
@@ -538,7 +539,7 @@ export default function ListingWizard() {
       className="listing-wizard flex min-h-dvh flex-col bg-[var(--kama-canvas)]"
       data-listing-wizard
     >
-      <header className="sticky top-0 z-[60] border-b border-[var(--kama-border)] bg-[var(--kama-surface)]/95 backdrop-blur-md">
+      <header className="kama-safe-top sticky top-0 z-[60] border-b border-[var(--kama-border)] bg-[var(--kama-surface)]/95 backdrop-blur-md">
         <div className="flex items-center justify-between px-4 py-3 sm:px-6">
           <Link
             href="/host/listings"

@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
+import { startPwaSafeAreaSync } from "@/utils/pwa/safeArea";
 
 /**
- * Registers the minimal service worker required for Chromium PWA installability.
+ * Registers the PWA service worker and keeps top chrome clear of the
+ * status bar only when the installed app is actually drawing under it.
  */
 export default function PwaRegister() {
+  useEffect(() => startPwaSafeAreaSync(), []);
+
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
       return;
@@ -13,17 +17,18 @@ export default function PwaRegister() {
 
     const register = async () => {
       try {
-        await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+        const reg = await navigator.serviceWorker.register("/sw.js", {
+          scope: "/",
+          updateViaCache: "none",
+        });
+        // Pick up offline-safe SW revisions promptly on launch.
+        void reg.update?.();
       } catch {
         /* ignore — iOS guide still works without SW */
       }
     };
 
-    if (document.readyState === "complete") {
-      register();
-    } else {
-      window.addEventListener("load", register, { once: true });
-    }
+    register();
   }, []);
 
   return null;
