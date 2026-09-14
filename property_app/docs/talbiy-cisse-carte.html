@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Talbiy Cisse — Carte de visite · Swami India</title>
+  <style>
+    @font-face { font-family: Inter; src: url("pdf-assets/fonts/Inter-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; }
+    @font-face { font-family: Inter; src: url("pdf-assets/fonts/Inter-Medium.ttf") format("truetype"); font-weight: 500; font-style: normal; }
+    @font-face { font-family: Inter; src: url("pdf-assets/fonts/Inter-SemiBold.ttf") format("truetype"); font-weight: 600; font-style: normal; }
+    @font-face { font-family: Inter; src: url("pdf-assets/fonts/Inter-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; }
+    @font-face { font-family: Display; src: url("pdf-assets/fonts/NotoSerifDisplay-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; }
+    @font-face { font-family: Display; src: url("pdf-assets/fonts/NotoSerifDisplay-Italic.ttf") format("truetype"); font-weight: 400; font-style: italic; }
+    @font-face { font-family: Display; src: url("pdf-assets/fonts/NotoSerifDisplay-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; }
+
+    :root {
+      --ink: #f6f0e4;
+      --gold: #e4c891;
+      --gold-dim: #c4a46d;
+      --muted: #c9b89a;
+    }
+
+    @page { size: 85mm 55mm; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; background: #07080a; color: var(--ink);
+      font-family: Inter, "Segoe UI", sans-serif;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    p { margin: 0; }
+
+    .card {
+      width: 85mm; height: 55mm; overflow: hidden; position: relative;
+      page-break-after: always; break-after: page;
+    }
+    .card:last-child { page-break-after: auto; break-after: auto; }
+    .bg { position: absolute; inset: 0; }
+    .bg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .veil {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 48%, rgba(7,8,10,0.22) 0%, rgba(7,8,10,0.5) 78%, rgba(7,8,10,0.28) 100%);
+    }
+    .inner {
+      position: relative; z-index: 2; height: 100%;
+      padding: 5.2mm 8.4mm 4.8mm;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+    }
+
+    .brand {
+      font-size: 5.6pt; font-weight: 600; letter-spacing: 0.36em; text-transform: uppercase; color: var(--gold);
+    }
+    .name {
+      font-family: Display, Georgia, serif; font-weight: 400;
+      font-size: 13.4pt; letter-spacing: 0.04em; line-height: 1; color: #f8f2e8;
+    }
+    .role {
+      font-size: 5.8pt; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
+    }
+    .rule {
+      width: 16mm; height: 0.26mm; background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      border: 0; margin: 0;
+    }
+    .contacts {
+      display: flex; flex-direction: column; align-items: center; gap: 1.15mm;
+    }
+    .line {
+      display: flex; align-items: center; justify-content: center; gap: 1.5mm;
+      font-size: 7.1pt; letter-spacing: 0.04em; color: var(--gold);
+    }
+    .line b {
+      font-family: Inter, sans-serif; font-size: 5pt; font-weight: 700;
+      letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+    }
+    .line span { font-family: Display, Georgia, serif; font-size: 8.2pt; letter-spacing: 0.06em; }
+    .mail { font-family: Inter, sans-serif; font-size: 7.2pt; letter-spacing: 0.04em; color: #f0e6d4; }
+    .ico { width: 2.7mm; height: 2.7mm; display: block; flex: 0 0 auto; }
+    .foot {
+      font-size: 5.2pt; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; color: var(--gold-dim);
+    }
+    .mono {
+      width: 9.2mm; height: 9.2mm; border: 0.28mm solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-family: Display, Georgia, serif; font-size: 8.2pt; color: var(--gold); letter-spacing: 0.08em;
+    }
+    .tag {
+      font-family: Display, Georgia, serif; font-style: italic; font-size: 10.5pt; color: var(--gold);
+    }
+    .horizon {
+      font-family: Display, Georgia, serif; font-size: 16pt; letter-spacing: 0.16em; color: #f8f2e8;
+    }
+  </style>
+</head>
+<body>
+  <section class="card" id="recto">
+    <div class="bg"><img src="pdf-assets/cartes/card-ornament-front.jpg" alt="" /></div>
+    <div class="veil"></div>
+    <div class="inner">
+      <p class="brand">Swami India</p>
+      <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.55mm; width:100%">
+        <p class="name">Talbiy Cisse</p>
+        <p class="role">Commercial · Relations France</p>
+        <hr class="rule" />
+        <div class="contacts">
+          <p class="line">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="#e4c891" d="M12.04 2C6.58 2 2.15 6.4 2.15 11.83c0 1.96.52 3.86 1.5 5.54L2 22l4.78-1.56a10.05 10.05 0 0 0 5.26 1.48h.01c5.46 0 9.89-4.4 9.89-9.84C21.94 6.4 17.5 2 12.04 2zm5.76 13.99c-.24.67-1.4 1.28-1.94 1.36-.5.07-1.12.1-1.81-.11-.42-.13-.95-.31-1.64-.6-2.89-1.24-4.77-4.15-4.92-4.34-.14-.2-1.18-1.56-1.18-2.98 0-1.41.74-2.11 1-2.4.24-.27.64-.4.86-.4h.62c.2 0 .47-.04.73.56.27.62.91 2.13.99 2.28.08.16.13.34.02.55-.1.2-.16.33-.31.5-.16.18-.33.4-.47.53-.16.16-.32.33-.14.64.18.31.81 1.33 1.74 2.16 1.2 1.06 2.18 1.39 2.52 1.54.33.16.53.13.73-.08.2-.2.84-.97 1.07-1.3.22-.34.45-.28.76-.16.31.11 1.98.93 2.32 1.1.34.18.56.26.64.41.08.16.08.9-.16 1.57z"/></svg>
+            <b>WhatsApp</b>
+            <span>06 23 71 81 71</span>
+          </p>
+          <p class="line">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="#e4c891" d="M12.04 2C6.58 2 2.15 6.4 2.15 11.83c0 1.96.52 3.86 1.5 5.54L2 22l4.78-1.56a10.05 10.05 0 0 0 5.26 1.48h.01c5.46 0 9.89-4.4 9.89-9.84C21.94 6.4 17.5 2 12.04 2zm5.76 13.99c-.24.67-1.4 1.28-1.94 1.36-.5.07-1.12.1-1.81-.11-.42-.13-.95-.31-1.64-.6-2.89-1.24-4.77-4.15-4.92-4.34-.14-.2-1.18-1.56-1.18-2.98 0-1.41.74-2.11 1-2.4.24-.27.64-.4.86-.4h.62c.2 0 .47-.04.73.56.27.62.91 2.13.99 2.28.08.16.13.34.02.55-.1.2-.16.33-.31.5-.16.18-.33.4-.47.53-.16.16-.32.33-.14.64.18.31.81 1.33 1.74 2.16 1.2 1.06 2.18 1.39 2.52 1.54.33.16.53.13.73-.08.2-.2.84-.97 1.07-1.3.22-.34.45-.28.76-.16.31.11 1.98.93 2.32 1.1.34.18.56.26.64.41.08.16.08.9-.16 1.57z"/></svg>
+            <b>WhatsApp</b>
+            <span>+33 7 84 67 20 83</span>
+          </p>
+          <p class="mail">contact@isisel.com</p>
+        </div>
+      </div>
+      <p class="foot">The Horizon · Bijilo Park</p>
+    </div>
+  </section>
+
+  <section class="card" id="verso">
+    <div class="bg"><img src="pdf-assets/cartes/card-ornament-back.jpg" alt="" /></div>
+    <div class="veil"></div>
+    <div class="inner">
+      <p class="brand">Swami India</p>
+      <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.4mm; width:100%">
+        <div class="mono">TC</div>
+        <p class="horizon">THE HORIZON</p>
+        <p class="tag">Sable. Ciel. Sérénité.</p>
+      </div>
+      <p class="foot">Commercial · Relations France</p>
+    </div>
+  </section>
+</body>
+</html>
