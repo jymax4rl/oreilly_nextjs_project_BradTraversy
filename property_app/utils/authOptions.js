@@ -23,7 +23,10 @@ export const authOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
-          prompt: "consent",
+          // select_account: always show the Google account picker (mobile +
+          // web). consent alone reuses the browser's last Google session, so
+          // guests could not switch away from a previously used account.
+          prompt: "select_account consent",
           access_type: "offline",
           response_type: "code",
         },
