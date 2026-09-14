@@ -12,7 +12,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "next build",
+    "build": "node scripts/fetch-expo-web.mjs && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "node --test utils/foundingHost/logic.test.mjs utils/listings/mapBounds.test.mjs utils/listings/catalogBeta.test.mjs utils/listings/homeSeedProperties.test.mjs utils/userFacingError.test.mjs utils/bookings/bookingPolicy.test.mjs utils/documentation/access.test.mjs components/ops/ops-mobile-dock.contract.test.mjs",
