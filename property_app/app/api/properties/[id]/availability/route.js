@@ -10,6 +10,15 @@ import {
   updatePropertyAvailability,
 } from "@/utils/availability/availabilityService";
 import { canUserViewListing } from "@/utils/listingApproval";
+import {
+  expoClientCorsJson,
+  expoClientCorsPreflight,
+  withExpoClientCors,
+} from "@/utils/mobileAuth/expoClientCors";
+
+export async function OPTIONS(request) {
+  return expoClientCorsPreflight(request);
+}
 
 export async function GET(request, { params }) {
   try {
@@ -18,20 +27,20 @@ export async function GET(request, { params }) {
 
     const property = await getPropertyForApi(id);
     if (!property) {
-      return Response.json({ error: "Property not found" }, { status: 404 });
+      return withExpoClientCors(request, Response.json({ error: "Property not found" }, { status: 404 }));
     }
 
     const session = await getAuthFromRequest(request);
     if (!canUserViewListing(property, session)) {
-      return Response.json({ error: "Property not found" }, { status: 404 });
+      return withExpoClientCors(request, Response.json({ error: "Property not found" }, { status: 404 }));
     }
     const isOwner = isPropertyOwner(property, session?.user?.id);
 
     const payload = await getAvailabilityPayload(id, { isOwner });
-    return Response.json(payload);
+    return withExpoClientCors(request, Response.json(payload));
   } catch (error) {
     console.error("GET availability:", error);
-    return Response.json({ error: "Failed to load availability" }, { status: 500 });
+    return withExpoClientCors(request, Response.json({ error: "Failed to load availability" }, { status: 500 }));
   }
 }
 
@@ -49,45 +58,45 @@ export async function PUT(request, { params }) {
     const session = await getAuthFromRequest(request);
     const verified = assertVerifiedHost(session);
     if (!verified.ok) {
-      return Response.json({ error: verified.message }, { status: verified.status });
+      return withExpoClientCors(request, Response.json({ error: verified.message }, { status: verified.status }));
     }
 
     const property = await getPropertyForApi(id);
     if (!property) {
-      return Response.json({ error: "Property not found" }, { status: 404 });
+      return withExpoClientCors(request, Response.json({ error: "Property not found" }, { status: 404 }));
     }
     if (!isPropertyOwner(property, session.user.id)) {
-      return Response.json(
+      return withExpoClientCors(request, Response.json(
         { error: "Only the property owner can update availability" },
         { status: 403 },
-      );
+      ));
     }
 
     let body;
     try {
       body = await request.json();
     } catch {
-      return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+      return withExpoClientCors(request, Response.json({ error: "Invalid JSON body" }, { status: 400 }));
     }
 
     const result = await updatePropertyAvailability(id, property.owner, body);
 
     if (!result.ok) {
-      return Response.json(
+      return withExpoClientCors(request, Response.json(
         { error: result.error, details: result.details },
         { status: result.status },
-      );
+      ));
     }
 
-    return Response.json(result.payload);
+    return withExpoClientCors(request, Response.json(result.payload));
   } catch (error) {
     console.error("PUT availability:", error);
-    return Response.json(
+    return withExpoClientCors(request, Response.json(
       {
         error: "Failed to update availability",
         details: process.env.NODE_ENV === "development" ? [error.message] : undefined,
       },
       { status: 500 },
-    );
+    ));
   }
 }
