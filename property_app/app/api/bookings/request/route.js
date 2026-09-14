@@ -6,6 +6,10 @@ import { createManualBookingRequest } from "@/utils/bookings/createManualBooking
 import { isPaymentGatewayCheckoutEnabled } from "@/utils/bookings/paymentMode";
 import { canUseOnlineCheckout } from "@/utils/payments/paymentAccess";
 import { canBrowseListingCatalog } from "@/utils/listings/catalogBeta";
+import {
+  expoClientCorsJson,
+  expoClientCorsPreflight,
+} from "@/utils/mobileAuth/expoClientCors";
 
 /**
  * POST /api/bookings/request
@@ -15,18 +19,27 @@ import { canBrowseListingCatalog } from "@/utils/listings/catalogBeta";
  * Ops staff (when gateway is on) must use online Reserve instead of this
  * manual request path — guests always request and pay via the host.
  */
+export async function OPTIONS(request) {
+  return expoClientCorsPreflight(request);
+}
+
 export async function POST(request) {
   try {
     await connectToDatabase();
     const session = await getAuthFromRequest(request);
     if (!session?.user?.id && !session?.user?.email) {
-      return Response.json(
+      return expoClientCorsJson(
+        request,
         { error: "Sign in to request a reservation" },
-        { status: 401 },
+        401,
       );
     }
     if (!canBrowseListingCatalog(session)) {
-      return Response.json({ error: "Property not found" }, { status: 404 });
+      return expoClientCorsJson(
+        request,
+        { error: "Property not found" },
+        404,
+      );
     }
 
     const body = await request.json();
@@ -41,26 +54,35 @@ export async function POST(request) {
     } = body || {};
 
     if (!propertyId) {
-      return Response.json({ error: "propertyId is required" }, { status: 400 });
+      return expoClientCorsJson(
+        request,
+        { error: "propertyId is required" },
+        400,
+      );
     }
 
     const property = await Property.findById(propertyId)
       .populate("owner", "username email role")
       .lean();
     if (!property) {
-      return Response.json({ error: "Property not found" }, { status: 404 });
+      return expoClientCorsJson(
+        request,
+        { error: "Property not found" },
+        404,
+      );
     }
 
     if (
       isPaymentGatewayCheckoutEnabled() &&
       canUseOnlineCheckout(session, property)
     ) {
-      return Response.json(
+      return expoClientCorsJson(
+        request,
         {
           error:
             "Online payment is required for this listing. Use Reserve to complete checkout with the payment gateway.",
         },
-        { status: 403 },
+        403,
       );
     }
 
@@ -81,9 +103,10 @@ export async function POST(request) {
     }
 
     if (!guestId) {
-      return Response.json(
+      return expoClientCorsJson(
+        request,
         { error: "Sign in to request a reservation" },
-        { status: 401 },
+        401,
       );
     }
 
@@ -101,13 +124,15 @@ export async function POST(request) {
     });
 
     if (!result.ok) {
-      return Response.json(
+      return expoClientCorsJson(
+        request,
         { error: result.error },
-        { status: result.status || 400 },
+        result.status || 400,
       );
     }
 
-    return Response.json(
+    return expoClientCorsJson(
+      request,
       {
         success: true,
         bookingId: String(result.booking._id),
@@ -123,13 +148,14 @@ export async function POST(request) {
             }
           : undefined,
       },
-      { status: 201 },
+      201,
     );
   } catch (error) {
     console.error("POST /api/bookings/request:", error);
-    return Response.json(
+    return expoClientCorsJson(
+      request,
       { error: "Could not create reservation" },
-      { status: 500 },
+      500,
     );
   }
 }

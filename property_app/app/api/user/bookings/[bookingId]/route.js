@@ -9,6 +9,11 @@ import {
   modifyBookingDates,
 } from "@/utils/bookings/mutateBooking";
 import { describeBookingPolicy } from "@/utils/bookings/bookingPolicy";
+import {
+  expoClientCorsJson,
+  expoClientCorsPreflight,
+  withExpoClientCors,
+} from "@/utils/mobileAuth/expoClientCors";
 
 async function loadGuestBooking(bookingId, sessionUserId) {
   if (!isValidObjectId(bookingId)) return { error: "Invalid booking id", status: 400 };
@@ -23,6 +28,10 @@ async function loadGuestBooking(bookingId, sessionUserId) {
   return { booking, property };
 }
 
+export async function OPTIONS(request) {
+  return expoClientCorsPreflight(request);
+}
+
 /**
  * GET /api/user/bookings/[bookingId] — guest view + policy action flags
  */
@@ -31,23 +40,23 @@ export async function GET(request, { params }) {
     await connectToDatabase();
     const session = await getAuthFromRequest(request);
     if (!session?.user?.id) {
-      return Response.json({ error: "Sign in required" }, { status: 401 });
+      return withExpoClientCors(request, Response.json({ error: "Sign in required" }, { status: 401 }));
     }
 
     const { bookingId } = await params;
     const loaded = await loadGuestBooking(bookingId, session.user.id);
     if (loaded.error) {
-      return Response.json({ error: loaded.error }, { status: loaded.status });
+      return withExpoClientCors(request, Response.json({ error: loaded.error }, { status: loaded.status }));
     }
 
     const item = bookingWithPolicyFlags(loaded.booking, loaded.property, "guest");
-    return Response.json({
+    return withExpoClientCors(request, Response.json({
       booking: item,
       policySummary: describeBookingPolicy(item.policy),
-    });
+    }));
   } catch (error) {
     console.error("GET user booking:", error);
-    return Response.json({ error: "Failed to load booking" }, { status: 500 });
+    return withExpoClientCors(request, Response.json({ error: "Failed to load booking" }, { status: 500 }));
   }
 }
 
@@ -60,13 +69,13 @@ export async function PATCH(request, { params }) {
     await connectToDatabase();
     const session = await getAuthFromRequest(request);
     if (!session?.user?.id) {
-      return Response.json({ error: "Sign in required" }, { status: 401 });
+      return withExpoClientCors(request, Response.json({ error: "Sign in required" }, { status: 401 }));
     }
 
     const { bookingId } = await params;
     const loaded = await loadGuestBooking(bookingId, session.user.id);
     if (loaded.error) {
-      return Response.json({ error: loaded.error }, { status: loaded.status });
+      return withExpoClientCors(request, Response.json({ error: loaded.error }, { status: loaded.status }));
     }
 
     const body = await request.json().catch(() => ({}));
@@ -79,21 +88,21 @@ export async function PATCH(request, { params }) {
     });
 
     if (!result.ok) {
-      return Response.json(
+      return withExpoClientCors(request, Response.json(
         { error: result.error, code: result.code, policy: result.policy },
         { status: result.status || 400 },
-      );
+      ));
     }
 
-    return Response.json({
+    return withExpoClientCors(request, Response.json({
       success: true,
       booking: bookingWithPolicyFlags(result.booking, loaded.property, "guest"),
       nights: result.nights,
       emails: result.emails || null,
-    });
+    }));
   } catch (error) {
     console.error("PATCH user booking:", error);
-    return Response.json({ error: "Failed to modify booking" }, { status: 500 });
+    return withExpoClientCors(request, Response.json({ error: "Failed to modify booking" }, { status: 500 }));
   }
 }
 
@@ -106,13 +115,13 @@ export async function DELETE(request, { params }) {
     await connectToDatabase();
     const session = await getAuthFromRequest(request);
     if (!session?.user?.id) {
-      return Response.json({ error: "Sign in required" }, { status: 401 });
+      return withExpoClientCors(request, Response.json({ error: "Sign in required" }, { status: 401 }));
     }
 
     const { bookingId } = await params;
     const loaded = await loadGuestBooking(bookingId, session.user.id);
     if (loaded.error) {
-      return Response.json({ error: loaded.error }, { status: loaded.status });
+      return withExpoClientCors(request, Response.json({ error: loaded.error }, { status: loaded.status }));
     }
 
     const body = await request.json().catch(() => ({}));
@@ -125,20 +134,20 @@ export async function DELETE(request, { params }) {
     });
 
     if (!result.ok) {
-      return Response.json(
+      return withExpoClientCors(request, Response.json(
         { error: result.error, code: result.code, policy: result.policy },
         { status: result.status || 400 },
-      );
+      ));
     }
 
-    return Response.json({
+    return withExpoClientCors(request, Response.json({
       success: true,
       booking: bookingWithPolicyFlags(result.booking, loaded.property, "guest"),
       refundEligible: result.refundEligible,
       emails: result.emails || null,
-    });
+    }));
   } catch (error) {
     console.error("DELETE user booking:", error);
-    return Response.json({ error: "Failed to cancel booking" }, { status: 500 });
+    return withExpoClientCors(request, Response.json({ error: "Failed to cancel booking" }, { status: 500 }));
   }
 }

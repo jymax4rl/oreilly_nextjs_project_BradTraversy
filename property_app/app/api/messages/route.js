@@ -9,6 +9,11 @@ import {
 } from "@/utils/messages/messageDto";
 import mongoose from "mongoose";
 import { revalidatePath } from "next/cache";
+import {
+  expoClientCorsJson,
+  expoClientCorsPreflight,
+  withExpoClientCors,
+} from "@/utils/mobileAuth/expoClientCors";
 
 /**
  * CONTRACT v1 — dual-gate guest↔host messaging (cookie | Bearer via getAuthFromRequest).
@@ -22,11 +27,15 @@ import { revalidatePath } from "next/cache";
  *   → 201 { message: MessageDTO }
  */
 
-function requireAuth(session) {
+function requireAuth(session, request) {
   if (!session?.user?.id) {
-    return Response.json({ error: "Sign in required" }, { status: 401 });
+    return expoClientCorsJson(request, { error: "Sign in required" }, 401);
   }
   return null;
+}
+
+export async function OPTIONS(request) {
+  return expoClientCorsPreflight(request);
 }
 
 /**
@@ -36,7 +45,7 @@ export async function GET(request) {
   try {
     await connectToDatabase();
     const session = await getAuthFromRequest(request);
-    const unauthorized = requireAuth(session);
+    const unauthorized = requireAuth(session, request);
     if (unauthorized) return unauthorized;
 
     const meId = String(session.user.id);
@@ -47,19 +56,19 @@ export async function GET(request) {
     // Thread mode: both query params required together.
     if (propertyId || peerId) {
       if (!propertyId || !peerId) {
-        return Response.json(
+        return withExpoClientCors(request, Response.json(
           { error: "propertyId and peerId are both required for thread view" },
           { status: 400 },
-        );
+        ));
       }
       if (
         !mongoose.Types.ObjectId.isValid(propertyId) ||
         !mongoose.Types.ObjectId.isValid(peerId)
       ) {
-        return Response.json(
+        return withExpoClientCors(request, Response.json(
           { error: "Invalid propertyId or peerId" },
           { status: 400 },
-        );
+        ));
       }
 
       const messages = await Message.find({
@@ -72,9 +81,9 @@ export async function GET(request) {
         .sort({ createdAt: 1 })
         .lean();
 
-      return Response.json({
+      return withExpoClientCors(request, Response.json({
         messages: messages.map(toMessageDTO),
-      });
+      }));
     }
 
     // Conversation list (default).
@@ -126,13 +135,13 @@ export async function GET(request) {
       userById,
     );
 
-    return Response.json({
+    return withExpoClientCors(request, Response.json({
       conversations,
       total: conversations.length,
-    });
+    }));
   } catch (error) {
     console.error("GET /api/messages:", error);
-    return Response.json({ error: "Failed to load messages" }, { status: 500 });
+    return withExpoClientCors(request, Response.json({ error: "Failed to load messages" }, { status: 500 }));
   }
 }
 
@@ -143,12 +152,12 @@ export async function POST(request) {
   try {
     await connectToDatabase();
     const session = await getAuthFromRequest(request);
-    const unauthorized = requireAuth(session);
+    const unauthorized = requireAuth(session, request);
     if (unauthorized) return unauthorized;
 
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== "object") {
-      return Response.json({ error: "Invalid JSON" }, { status: 400 });
+      return withExpoClientCors(request, Response.json({ error: "Invalid JSON" }, { status: 400 }));
     }
 
     const propertyId = body.propertyId;
@@ -160,17 +169,17 @@ export async function POST(request) {
       typeof body.body === "string" ? body.body.trim() : "";
 
     if (!propertyId || !recipientId || !name || !email || !messageBody) {
-      return Response.json(
+      return withExpoClientCors(request, Response.json(
         { error: "Please fill in all required fields." },
         { status: 400 },
-      );
+      ));
     }
 
     if (String(session.user.id) === String(recipientId)) {
-      return Response.json(
+      return withExpoClientCors(request, Response.json(
         { error: "You cannot send a message to yourself." },
         { status: 400 },
-      );
+      ));
     }
 
     const created = await Message.create({
@@ -191,12 +200,12 @@ export async function POST(request) {
       revalidatePath(`/properties/${listed.slug}`);
     }
 
-    return Response.json(
+    return withExpoClientCors(request, Response.json(
       { message: toMessageDTO(created) },
       { status: 201 },
-    );
+    ));
   } catch (error) {
     console.error("POST /api/messages:", error);
-    return Response.json({ error: "Failed to send message" }, { status: 500 });
+    return withExpoClientCors(request, Response.json({ error: "Failed to send message" }, { status: 500 }));
   }
 }

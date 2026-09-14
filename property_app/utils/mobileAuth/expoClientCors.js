@@ -1,10 +1,8 @@
 /**
- * CORS for public catalogue reads from Expo web (guest, no cookies).
+ * CORS for Expo web (app.isisel.com) calling dual-gate APIs with Bearer JWTs.
  *
- * Allowlisted Origins only — does not reflect arbitrary Origin (unlike
- * mobileAuth/cors which is for Bearer token routes).
- *
- * Methods: GET, HEAD, OPTIONS. Do not use for POST host listing create.
+ * Allowlisted Origins only (same set as guest catalogue + m.isisel.com).
+ * Allows Authorization so Safari/Chrome can send mobile JWTs cross-origin.
  */
 
 const DEFAULT_ORIGINS = [
@@ -17,15 +15,13 @@ const DEFAULT_ORIGINS = [
 ];
 
 const ALLOW_HEADERS = "Authorization, Content-Type";
-const ALLOW_METHODS = "GET, HEAD, OPTIONS";
+const ALLOW_METHODS = "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS";
 
 /**
- * Built-in Expo web origins plus optional comma-separated extras from
- * `CATALOG_CORS_ORIGINS` (env-extendable allowlist).
  * @returns {string[]}
  */
-export function getGuestCatalogAllowedOrigins() {
-  const extras = String(process.env.CATALOG_CORS_ORIGINS || "")
+export function getExpoClientAllowedOrigins() {
+  const extras = String(process.env.EXPO_CORS_ORIGINS || process.env.CATALOG_CORS_ORIGINS || "")
     .split(",")
     .map((v) => v.trim())
     .filter(Boolean);
@@ -36,16 +32,16 @@ export function getGuestCatalogAllowedOrigins() {
  * @param {string|null|undefined} origin
  * @returns {boolean}
  */
-export function isAllowedGuestCatalogOrigin(origin) {
+export function isAllowedExpoClientOrigin(origin) {
   if (!origin || typeof origin !== "string") return false;
-  return getGuestCatalogAllowedOrigins().includes(origin.trim());
+  return getExpoClientAllowedOrigins().includes(origin.trim());
 }
 
 /**
  * @param {Request} request
  * @returns {Headers}
  */
-export function guestCatalogCorsHeaders(request) {
+export function expoClientCorsHeaders(request) {
   const origin = request.headers.get("origin");
   const headers = new Headers();
   headers.set("Vary", "Origin");
@@ -53,32 +49,30 @@ export function guestCatalogCorsHeaders(request) {
   headers.set("Access-Control-Allow-Headers", ALLOW_HEADERS);
   headers.set("Access-Control-Max-Age", "86400");
   headers.set("Access-Control-Allow-Credentials", "false");
-  if (isAllowedGuestCatalogOrigin(origin)) {
+  if (isAllowedExpoClientOrigin(origin)) {
     headers.set("Access-Control-Allow-Origin", origin.trim());
   }
   return headers;
 }
 
 /**
- * OPTIONS preflight — always 204; ACAO only when Origin is allowlisted.
  * @param {Request} request
  * @returns {Response}
  */
-export function guestCatalogCorsPreflight(request) {
+export function expoClientCorsPreflight(request) {
   return new Response(null, {
     status: 204,
-    headers: guestCatalogCorsHeaders(request),
+    headers: expoClientCorsHeaders(request),
   });
 }
 
 /**
- * Merge guest catalogue CORS onto a Response (e.g. existing Response.json).
  * @param {Request} request
  * @param {Response} response
  * @returns {Response}
  */
-export function withGuestCatalogCors(request, response) {
-  const cors = guestCatalogCorsHeaders(request);
+export function withExpoClientCors(request, response) {
+  const cors = expoClientCorsHeaders(request);
   const headers = new Headers(response.headers);
   cors.forEach((value, key) => {
     headers.set(key, value);
@@ -96,9 +90,6 @@ export function withGuestCatalogCors(request, response) {
  * @param {number} [status=200]
  * @returns {Response}
  */
-export function guestCatalogCorsJson(request, data, status = 200) {
-  return withGuestCatalogCors(
-    request,
-    Response.json(data, { status }),
-  );
+export function expoClientCorsJson(request, data, status = 200) {
+  return withExpoClientCors(request, Response.json(data, { status }));
 }
