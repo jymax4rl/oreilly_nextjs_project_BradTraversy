@@ -19,7 +19,7 @@ const archivePath = path.join(root, ".expo-web-dist.tgz");
 const extractDir = path.join(root, ".expo-web-dist");
 
 const DEFAULT_URL =
-  "https://res.cloudinary.com/dyrjziqft/raw/upload/v1789385482/isisel/expo-web/dist-bundle.js";
+  "https://res.cloudinary.com/dyrjziqft/raw/upload/v1789387953/isisel/expo-web/dist-bundle.js";
 
 const url = process.env.EXPO_WEB_DIST_URL || DEFAULT_URL;
 
