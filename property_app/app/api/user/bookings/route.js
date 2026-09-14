@@ -4,6 +4,10 @@ import Property from "@/models/Property";
 import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import { bookingWithPolicyFlags } from "@/utils/bookings/mutateBooking";
 import { buildGuestBookingsQuery } from "@/utils/bookings/guestBookingsList";
+import {
+  expoClientCorsJson,
+  expoClientCorsPreflight,
+} from "@/utils/mobileAuth/expoClientCors";
 
 /**
  * GET /api/user/bookings — guest trips list (cookie or Bearer via getAuthFromRequest)
@@ -18,12 +22,20 @@ import { buildGuestBookingsQuery } from "@/utils/bookings/guestBookingsList";
  * Response: { bookings, total, status }
  * Each item is bookingWithPolicyFlags (guest) plus a lean property card when found.
  */
+export async function OPTIONS(request) {
+  return expoClientCorsPreflight(request);
+}
+
 export async function GET(request) {
   try {
     await connectToDatabase();
     const session = await getAuthFromRequest(request);
     if (!session?.user?.id) {
-      return Response.json({ error: "Sign in required" }, { status: 401 });
+      return expoClientCorsJson(
+        request,
+        { error: "Sign in required" },
+        401,
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -32,7 +44,7 @@ export async function GET(request) {
       status: statusParam,
     });
     if (!built.ok) {
-      return Response.json({ error: built.error }, { status: 400 });
+      return expoClientCorsJson(request, { error: built.error }, 400);
     }
 
     const bookings = await Booking.find(built.query).sort(built.sort).lean();
@@ -72,13 +84,17 @@ export async function GET(request) {
       };
     });
 
-    return Response.json({
+    return expoClientCorsJson(request, {
       bookings: items,
       total: items.length,
       status: built.status,
     });
   } catch (error) {
     console.error("GET user bookings:", error);
-    return Response.json({ error: "Failed to load bookings" }, { status: 500 });
+    return expoClientCorsJson(
+      request,
+      { error: "Failed to load bookings" },
+      500,
+    );
   }
 }
