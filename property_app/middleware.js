@@ -15,6 +15,51 @@ const langCookie = {
   sameSite: "lax",
 };
 
+/** Expo web (isisel-mobile) served from this project until a dedicated Vercel project exists. */
+const EXPO_APP_HOSTS = new Set(["app.isisel.com", "m.isisel.com"]);
+
+function isExpoAppHost(req) {
+  const host = (req.headers.get("host") || "").split(":")[0].toLowerCase();
+  return EXPO_APP_HOSTS.has(host);
+}
+
+/**
+ * Map Expo Router paths to static HTML under /public/app-web.
+ * Absolute /_expo and /assets URLs are copied to public root so they bypass this rewrite.
+ */
+function rewriteExpoApp(req) {
+  const { pathname } = req.nextUrl;
+
+  if (
+    pathname.startsWith("/_expo/") ||
+    pathname.startsWith("/assets/") ||
+    pathname === "/favicon.ico"
+  ) {
+    return NextResponse.next();
+  }
+
+  let target;
+  if (pathname === "/" || pathname === "") {
+    target = "/app-web/index.html";
+  } else if (pathname.startsWith("/property/")) {
+    target = "/app-web/property/[id].html";
+  } else if (pathname.startsWith("/inbox/")) {
+    target = "/app-web/inbox/[propertyId]/[peerId].html";
+  } else if (pathname === "/auth" || pathname === "/auth/") {
+    target = "/app-web/auth/index.html";
+  } else if (pathname.startsWith("/auth/")) {
+    target = `/app-web${pathname.replace(/\/$/, "")}.html`;
+  } else if (pathname.endsWith(".html")) {
+    target = `/app-web${pathname}`;
+  } else {
+    target = `/app-web${pathname.replace(/\/$/, "")}.html`;
+  }
+
+  const url = req.nextUrl.clone();
+  url.pathname = target;
+  return NextResponse.rewrite(url);
+}
+
 const signInUrl = (req, callbackUrl) => {
   const u = new URL("/login", req.url);
   if (callbackUrl) {
@@ -144,6 +189,9 @@ async function handleAuth(req) {
 }
 
 export async function middleware(req) {
+  if (isExpoAppHost(req)) {
+    return rewriteExpoApp(req);
+  }
   const response = await handleAuth(req);
   return applyLocale(req, response);
 }
