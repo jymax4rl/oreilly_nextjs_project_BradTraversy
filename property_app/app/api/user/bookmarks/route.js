@@ -2,6 +2,13 @@ import connectToDatabase from "@/config/database";
 import User from "@/models/User";
 import { getAuthFromRequest } from "@/utils/getAuthFromRequest";
 import mongoose from "mongoose";
+import {
+  expoClientCorsJson,
+  expoClientCorsPreflight,
+  withExpoClientCors,
+} from "@/utils/mobileAuth/expoClientCors";
+
+export const OPTIONS = async (request) => expoClientCorsPreflight(request);
 
 // GET - Fetch user's saved properties with full property data
 export const GET = async (request) => {
@@ -10,7 +17,7 @@ export const GET = async (request) => {
     const session = await getAuthFromRequest(request);
 
     if (!session?.user) {
-      return new Response("Unauthorized", { status: 401 });
+      return withExpoClientCors(request, new Response("Unauthorized", { status: 401 }));
     }
 
     const user = await User.findOne({ email: session.user.email })
@@ -18,7 +25,7 @@ export const GET = async (request) => {
       .lean();
 
     if (!user) {
-      return new Response("User not found", { status: 404 });
+      return withExpoClientCors(request, new Response("User not found", { status: 404 }));
     }
 
     const savedProperties = (user.bookmarks || []).map((property) => ({
@@ -27,10 +34,10 @@ export const GET = async (request) => {
       owner: property.owner?.toString?.() || property.owner,
     }));
 
-    return Response.json({ properties: savedProperties });
+    return expoClientCorsJson(request, { properties: savedProperties });
   } catch (error) {
     console.error("GET bookmarks error:", error);
-    return new Response("Failed to fetch saved properties", { status: 500 });
+    return withExpoClientCors(request, new Response("Failed to fetch saved properties", { status: 500 }));
   }
 };
 
@@ -41,18 +48,18 @@ export const PATCH = async (request) => {
     const session = await getAuthFromRequest(request);
 
     if (!session?.user) {
-      return new Response("Unauthorized", { status: 401 });
+      return withExpoClientCors(request, new Response("Unauthorized", { status: 401 }));
     }
 
     const { propertyId } = await request.json();
 
     if (!propertyId || !mongoose.Types.ObjectId.isValid(propertyId)) {
-      return new Response("Invalid property ID", { status: 400 });
+      return withExpoClientCors(request, new Response("Invalid property ID", { status: 400 }));
     }
 
     const user = await User.findOne({ email: session.user.email });
     if (!user) {
-      return new Response("User not found", { status: 404 });
+      return withExpoClientCors(request, new Response("User not found", { status: 404 }));
     }
 
     const objectId = new mongoose.Types.ObjectId(propertyId);
@@ -70,13 +77,13 @@ export const PATCH = async (request) => {
 
     await user.save();
 
-    return Response.json({
+    return expoClientCorsJson(request, {
       success: true,
       isBookmarked: !isBookmarked,
       message: isBookmarked ? "Removed from saved" : "Added to saved",
     });
   } catch (error) {
     console.error("PATCH bookmarks error:", error);
-    return new Response("Failed to update bookmarks", { status: 500 });
+    return withExpoClientCors(request, new Response("Failed to update bookmarks", { status: 500 }));
   }
 };
