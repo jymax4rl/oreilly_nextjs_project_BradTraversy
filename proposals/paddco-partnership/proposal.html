@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ISISEL × PADDCO — Strategic Partnership Proposal</title>
+  <style>
+    @font-face {
+      font-family: "Noto Serif Display";
+      src: url("file:///usr/share/fonts/truetype/noto/NotoSerifDisplay-Regular.ttf");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Noto Serif Display";
+      src: url("file:///usr/share/fonts/truetype/noto/NotoSerifDisplay-Bold.ttf");
+      font-weight: 700;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Noto Serif Display";
+      src: url("file:///usr/share/fonts/truetype/noto/NotoSerifDisplay-Italic.ttf");
+      font-weight: 400;
+      font-style: italic;
+    }
+    @font-face {
+      font-family: "Noto Sans Display";
+      src: url("file:///usr/share/fonts/truetype/noto/NotoSansDisplay-Regular.ttf");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Noto Sans Display";
+      src: url("file:///usr/share/fonts/truetype/noto/NotoSansDisplay-Bold.ttf");
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    :root {
+      --void: #070c0b;
+      --ink: #0c1a1a;
+      --muted: #4a5c5b;
+      --line: #d8e3e1;
+      --canvas: #f7fbfa;
+      --surface: #ffffff;
+      --teal: #1b5c57;
+      --teal-deep: #134844;
+      --teal-soft: #c5ddd9;
+      --mint: #8fd0c8;
+      --accent-wash: #e8f3f1;
+    }
+
+    * { box-sizing: border-box; }
+
+    @page {
+      size: A4;
+      margin: 18mm 16mm 20mm 16mm;
+      @bottom-left {
+        content: "Isisel × PADDCO";
+        font-family: "Noto Sans Display", sans-serif;
+        font-size: 8pt;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #4a5c5b;
+      }
+      @bottom-right {
+        content: "Page " counter(page);
+        font-family: "Noto Sans Display", sans-serif;
+        font-size: 8pt;
+        color: #4a5c5b;
+      }
+    }
+
+    @page cover {
+      margin: 0;
+      @bottom-left { content: none; }
+      @bottom-right { content: none; }
+    }
+
+    @page closing {
+      margin: 0;
+      @bottom-left { content: none; }
+      @bottom-right { content: none; }
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Noto Sans Display", sans-serif;
+      font-size: 10.25pt;
+      line-height: 1.55;
+      color: var(--ink);
+      background: var(--canvas);
+    }
+
+    h1, h2, h3, .display {
+      font-family: "Noto Serif Display", Georgia, serif;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.15;
+    }
+
+    p { margin: 0 0 0.85em; }
+    p:last-child { margin-bottom: 0; }
+
+    ul {
+      margin: 0.4em 0 1em;
+      padding-left: 1.15em;
+    }
+    li { margin-bottom: 0.28em; }
+    li::marker { color: var(--teal); }
+
+    strong { font-weight: 700; color: var(--ink); }
+
+    .cover {
+      page: cover;
+      page-break-after: always;
+      min-height: 297mm;
+      padding: 28mm 22mm 24mm;
+      background:
+        radial-gradient(ellipse 90% 55% at 15% 10%, rgba(143, 208, 200, 0.22), transparent 55%),
+        radial-gradient(ellipse 70% 45% at 90% 85%, rgba(27, 92, 87, 0.55), transparent 50%),
+        linear-gradient(165deg, #0a1513 0%, #0f2421 42%, #134844 78%, #1b5c57 100%);
+      color: #f6f1e8;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .cover::before {
+      content: "";
+      position: absolute;
+      inset: 12mm;
+      border: 1px solid rgba(246, 241, 232, 0.14);
+      pointer-events: none;
+    }
+
+    .cover-top {
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      font-size: 9pt;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--mint);
+      margin-bottom: 18mm;
+      font-weight: 700;
+    }
+
+    .cover-brand {
+      font-family: "Noto Serif Display", Georgia, serif;
+      font-size: 42pt;
+      letter-spacing: -0.03em;
+      margin: 0 0 4mm;
+      color: #f6f1e8;
+      line-height: 1;
+    }
+
+    .cover-x {
+      font-family: "Noto Sans Display", sans-serif;
+      font-size: 11pt;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: rgba(246, 241, 232, 0.55);
+      margin: 0 0 3mm;
+    }
+
+    .cover-partner {
+      font-family: "Noto Serif Display", Georgia, serif;
+      font-size: 28pt;
+      letter-spacing: -0.02em;
+      margin: 0 0 12mm;
+      color: #f6f1e8;
+    }
+
+    .cover-rule {
+      width: 42mm;
+      height: 2px;
+      background: var(--mint);
+      margin: 0 0 10mm;
+      border: none;
+    }
+
+    .cover-title {
+      font-family: "Noto Serif Display", Georgia, serif;
+      font-size: 16pt;
+      font-weight: 400;
+      line-height: 1.35;
+      max-width: 125mm;
+      margin: 0 0 6mm;
+      color: #f6f1e8;
+    }
+
+    .cover-lede {
+      font-size: 11pt;
+      line-height: 1.55;
+      max-width: 118mm;
+      color: rgba(246, 241, 232, 0.78);
+      margin: 0;
+    }
+
+    .cover-bottom {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12mm;
+      border-top: 1px solid rgba(246, 241, 232, 0.16);
+      padding-top: 8mm;
+    }
+
+    .cover-pill {
+      display: inline-block;
+      padding: 3mm 5mm;
+      border: 1px solid rgba(143, 208, 200, 0.45);
+      color: var(--mint);
+      font-size: 8.5pt;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .cover-meta {
+      text-align: right;
+      font-size: 9pt;
+      color: rgba(246, 241, 232, 0.65);
+      line-height: 1.5;
+    }
+
+    .cover-meta strong {
+      display: block;
+      color: #f6f1e8;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 8.5pt;
+      margin-bottom: 1mm;
+    }
+
+    .section {
+      page-break-inside: avoid;
+      margin-bottom: 8mm;
+    }
+
+    .section-break {
+      page-break-before: always;
+    }
+
+    .section-label {
+      font-size: 8pt;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--teal);
+      font-weight: 700;
+      margin: 0 0 2.5mm;
+    }
+
+    h2 {
+      font-size: 16pt;
+      margin: 0 0 4mm;
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 12.5pt;
+      margin: 0 0 3mm;
+      color: var(--teal-deep);
+    }
+
+    .lead {
+      font-size: 11.25pt;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .salutation {
+      margin-top: 2mm;
+      margin-bottom: 4mm;
+      font-weight: 700;
+    }
+
+    .callout {
+      background: var(--accent-wash);
+      border-left: 3px solid var(--teal);
+      padding: 4.5mm 5.5mm;
+      margin: 5mm 0;
+    }
+
+    .callout p {
+      margin: 0;
+      font-family: "Noto Serif Display", Georgia, serif;
+      font-size: 11.5pt;
+      font-style: italic;
+      color: var(--teal-deep);
+      line-height: 1.45;
+    }
+
+    .duo {
+      display: flex;
+      gap: 5mm;
+      margin: 5mm 0;
+    }
+
+    .duo-card {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 4.5mm 5mm;
+    }
+
+    .duo-card .kicker {
+      font-size: 8pt;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--teal);
+      font-weight: 700;
+      margin-bottom: 2mm;
+    }
+
+    .duo-card p {
+      margin: 0;
+      font-size: 10pt;
+    }
+
+    .promise-row {
+      display: flex;
+      gap: 3.5mm;
+      margin: 5mm 0 2mm;
+    }
+
+    .promise {
+      flex: 1;
+      background: var(--void);
+      color: #f6f1e8;
+      padding: 4mm 4.5mm;
+      min-height: 28mm;
+    }
+
+    .promise .num {
+      font-family: "Noto Serif Display", Georgia, serif;
+      font-size: 14pt;
+      color: var(--mint);
+      margin-bottom: 2mm;
+      line-height: 1;
+    }
+
+    .promise p {
+      margin: 0;
+      font-size: 9.25pt;
+      line-height: 1.4;
+      color: rgba(246, 241, 232, 0.88);
+    }
+
+    .feature {
+      margin: 0 0 7mm;
+      padding-bottom: 6mm;
+      border-bottom: 1px solid var(--line);
+      page-break-inside: avoid;
+    }
+
+    .feature:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .feature-num {
+      display: inline-block;
+      font-size: 8pt;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--teal);
+      font-weight: 700;
+      margin-bottom: 1.5mm;
+    }
+
+    .two-col {
+      display: flex;
+      gap: 8mm;
+    }
+
+    .two-col > div { flex: 1; }
+
+    .quote-block {
+      background: linear-gradient(135deg, #0f2421, #1b5c57);
+      color: #f6f1e8;
+      padding: 6mm 6.5mm;
+      margin: 5mm 0;
+    }
+
+    .quote-block p {
+      font-family: "Noto Serif Display", Georgia, serif;
+      font-size: 12pt;
+      font-style: italic;
+      margin: 0 0 3mm;
+      line-height: 1.4;
+    }
+
+    .quote-block .attr {
+      font-family: "Noto Sans Display", sans-serif;
+      font-style: normal;
+      font-size: 8.5pt;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--mint);
+      margin: 0;
+    }
+
+    .phase-list {
+      margin: 4mm 0 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: phase;
+    }
+
+    .phase-list li {
+      counter-increment: phase;
+      display: flex;
+      gap: 4mm;
+      margin-bottom: 4mm;
+      page-break-inside: avoid;
+      align-items: flex-start;
+    }
+
+    .phase-list .badge {
+      flex: 0 0 14mm;
+      height: 14mm;
+      width: 14mm;
+      background: var(--teal);
+      color: #f6f1e8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Noto Serif Display", Georgia, serif;
+      font-size: 12pt;
+      font-weight: 700;
+    }
+
+    .phase-list .body h4 {
+      font-family: "Noto Serif Display", Georgia, serif;
+      font-size: 11pt;
+      margin: 0 0 1mm;
+      color: var(--ink);
+    }
+
+    .phase-list .body p {
+      margin: 0;
+      font-size: 9.5pt;
+      color: var(--muted);
+    }
+
+    .ask-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3.5mm;
+      margin-top: 4mm;
+    }
+
+    .ask {
+      width: calc(50% - 1.75mm);
+      border: 1px solid var(--line);
+      background: var(--surface);
+      padding: 4mm 4.5mm;
+      page-break-inside: avoid;
+    }
+
+    .ask .n {
+      font-family: "Noto Serif Display", Georgia, serif;
+      color: var(--teal);
+      font-size: 13pt;
+      margin-bottom: 1.5mm;
+    }
+
+    .ask h4 {
+      font-family: "Noto Serif Display", Georgia, serif;
+      font-size: 10.5pt;
+      margin: 0 0 1.5mm;
+    }
+
+    .ask p {
+      margin: 0;
+      font-size: 9.25pt;
+      color: var(--muted);
+    }
+
+    .closing {
+      page: closing;
+      page-break-before: always;
+      min-height: 297mm;
+      padding: 28mm 22mm 24mm;
+      background:
+        radial-gradient(ellipse 80% 50% at 80% 15%, rgba(143, 208, 200, 0.18), transparent 55%),
+        linear-gradient(165deg, #070c0b 0%, #0f2421 55%, #134844 100%);
+      color: #f6f1e8;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .closing::before {
+      content: "";
+      position: absolute;
+      inset: 12mm;
+      border: 1px solid rgba(246, 241, 232, 0.14);
+      pointer-events: none;
+    }
+
+    .closing-inner { position: relative; z-index: 1; }
+
+    .closing h2 {
+      color: #f6f1e8;
+      font-size: 22pt;
+      max-width: 130mm;
+      margin: 0 0 6mm;
+    }
+
+    .closing p {
+      max-width: 125mm;
+      color: rgba(246, 241, 232, 0.82);
+      font-size: 11pt;
+      line-height: 1.6;
+    }
+
+    .closing .pair {
+      margin: 10mm 0;
+      font-family: "Noto Serif Display", Georgia, serif;
+      font-size: 13pt;
+      color: #f6f1e8;
+      line-height: 1.55;
+    }
+
+    .closing .pair span {
+      display: block;
+      color: var(--mint);
+      font-family: "Noto Sans Display", sans-serif;
+      font-size: 8.5pt;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 1.5mm;
+    }
+
+    .signoff {
+      border-top: 1px solid rgba(246, 241, 232, 0.16);
+      padding-top: 8mm;
+      position: relative;
+      z-index: 1;
+    }
+
+    .signoff .brand {
+      font-family: "Noto Serif Display", Georgia, serif;
+      font-size: 20pt;
+      margin: 0 0 2mm;
+      color: #f6f1e8;
+    }
+
+    .signoff .tag {
+      font-size: 9pt;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--mint);
+      margin: 0 0 4mm;
+      font-weight: 700;
+    }
+
+    .signoff .web {
+      font-size: 10.5pt;
+      color: rgba(246, 241, 232, 0.75);
+      margin: 0;
+    }
+
+    .flow {
+      margin: 5mm 0;
+      padding: 5mm 5.5mm;
+      background: var(--void);
+      color: #f6f1e8;
+      font-family: "Noto Sans Display", sans-serif;
+      font-size: 9.5pt;
+      letter-spacing: 0.04em;
+      line-height: 1.85;
+    }
+
+    .flow strong {
+      color: var(--mint);
+      font-weight: 700;
+    }
+
+    .tight-list li { margin-bottom: 0.18em; }
+
+    .split-statement {
+      display: flex;
+      gap: 5mm;
+      margin: 5mm 0;
+    }
+
+    .split-statement > div {
+      flex: 1;
+      padding: 4.5mm 5mm;
+      background: var(--accent-wash);
+      border-top: 2px solid var(--teal);
+    }
+
+    .split-statement .label {
+      font-size: 8pt;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--teal);
+      font-weight: 700;
+      margin-bottom: 2mm;
+    }
+
+    .split-statement p {
+      margin: 0;
+      font-family: "Noto Serif Display", Georgia, serif;
+      font-size: 11pt;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER -->
+  <section class="cover">
+    <div class="cover-top">
+      <p class="eyebrow">Strategic Partnership Proposal</p>
+      <p class="cover-brand">Isisel</p>
+      <p class="cover-x">in partnership with</p>
+      <p class="cover-partner">PADDCO</p>
+      <hr class="cover-rule" />
+      <h1 class="cover-title">Strategic Technology &amp; Distribution Partnership for Zanzibar</h1>
+      <p class="cover-lede">A proposal to make PADDCO one of the most digitally connected real-estate portfolios in Zanzibar — at no upfront cost.</p>
+    </div>
+    <div class="cover-bottom">
+      <span class="cover-pill">No upfront cost · Pilot-first</span>
+      <div class="cover-meta">
+        <strong>Prepared by Isisel</strong>
+        African Property &amp; Hospitality Technology<br />
+        isisel.com
+      </div>
+    </div>
+  </section>
+
+  <!-- INTRO -->
+  <section class="section">
+    <p class="section-label">Introduction</p>
+    <h2>Building Zanzibar’s next generation of places</h2>
+    <p class="salutation">Dear PADDCO Team,</p>
+    <p>Zanzibar is rapidly becoming one of Africa’s most important destinations for tourism, investment and real estate.</p>
+    <p>As a major real-estate developer, PADDCO is in a unique position: you are not simply selling properties — you are creating the places where Zanzibar’s next generation of residents, investors and visitors will live, stay and experience the island.</p>
+    <p>We believe there is an opportunity to complement what PADDCO is already building with a technology platform designed specifically for the African hospitality and property ecosystem.</p>
+    <p><strong>That platform is Isisel.</strong></p>
+  </section>
+
+  <section class="section">
+    <p class="section-label">The Platform</p>
+    <h2>What is Isisel?</h2>
+    <p>Isisel is an Africa-focused property marketplace and property-management platform designed to connect:</p>
+    <div class="callout">
+      <p>Properties → Hosts → Guests → Operations</p>
+    </div>
+    <p>Our objective is to build the digital infrastructure that allows African properties to be discovered, managed and operated more efficiently.</p>
+    <p>Isisel combines property distribution with operational tools for hosts, including reservations, property management, cleaning operations and other services required to run hospitality properties.</p>
+    <p>We are building Isisel with Africa’s realities in mind — including mobile-first users, local payment ecosystems, multilingual markets and the operational challenges that traditional international platforms often do not solve particularly well.</p>
+  </section>
+
+  <section class="section">
+    <p class="section-label">The Fit</p>
+    <h2>Why PADDCO?</h2>
+    <p>PADDCO represents exactly the type of partner we want to work with.</p>
+    <p>You already have something that technology companies cannot manufacture:</p>
+    <div class="callout">
+      <p>High-quality real estate in a strategically important African destination.</p>
+    </div>
+    <p>Our proposition is simple:</p>
+    <div class="duo">
+      <div class="duo-card">
+        <div class="kicker">PADDCO</div>
+        <p>You build the properties.</p>
+      </div>
+      <div class="duo-card">
+        <div class="kicker">Isisel</div>
+        <p>We help build the digital infrastructure around them.</p>
+      </div>
+    </div>
+    <p>Instead of PADDCO having to invest additional resources into building an independent technology ecosystem for property discovery, reservations and operational coordination, Isisel can provide that layer as a strategic technology partner.</p>
+  </section>
+
+  <!-- PROPOSAL -->
+  <section class="section section-break">
+    <p class="section-label">Our Proposal</p>
+    <h2>A strategic partnership — free to begin</h2>
+    <p>We would like to propose a strategic partnership between PADDCO and Isisel.</p>
+    <p>During the initial partnership phase, Isisel would provide PADDCO with access to relevant Isisel technology and marketplace capabilities free of charge, subject to mutually agreed terms and scope.</p>
+    <div class="promise-row">
+      <div class="promise">
+        <div class="num">01</div>
+        <p>No upfront software implementation fee.</p>
+      </div>
+      <div class="promise">
+        <div class="num">02</div>
+        <p>No requirement for PADDCO to build its own platform.</p>
+      </div>
+      <div class="promise">
+        <div class="num">03</div>
+        <p>No immediate financial commitment required to test the partnership.</p>
+      </div>
+    </div>
+    <p>Instead, we would work together to demonstrate what the Isisel ecosystem can do for PADDCO’s properties.</p>
+
+    <p class="section-label" style="margin-top: 8mm;">Value</p>
+    <h2>What PADDCO gets</h2>
+
+    <div class="feature">
+      <span class="feature-num">01 — Digital Property Distribution</span>
+      <h3>An additional channel without building one</h3>
+      <p>PADDCO properties can be presented through the Isisel marketplace. Potential guests and users can discover:</p>
+      <ul class="tight-list">
+        <li>Apartments</li>
+        <li>Villas</li>
+        <li>Residences</li>
+        <li>Holiday properties</li>
+        <li>Investment properties</li>
+        <li>Other eligible PADDCO developments</li>
+      </ul>
+      <p>Each property can have its own digital profile containing professional photographs, property description, amenities, location, availability, pricing, check-in/check-out information, maps and property-specific information.</p>
+      <p>This gives PADDCO an additional digital distribution channel without having to build one internally.</p>
+    </div>
+
+    <div class="feature">
+      <span class="feature-num">02 — Property Management Infrastructure</span>
+      <h3>Technology that disappears behind the operation</h3>
+      <p>For properties intended for short-term or hospitality use, Isisel can provide operational tools allowing PADDCO or its property managers to manage:</p>
+      <ul class="tight-list">
+        <li>Reservations</li>
+        <li>Availability</li>
+        <li>Guests</li>
+        <li>Property information</li>
+        <li>Check-in / check-out</li>
+        <li>Cleaning</li>
+        <li>Operational tasks</li>
+        <li>Reservation history</li>
+      </ul>
+      <p>The objective is to make the technology disappear behind the operation. PADDCO focuses on the real estate. Isisel handles the digital infrastructure.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="feature">
+      <span class="feature-num">03 — Isisel Cleaners</span>
+      <h3>Operational readiness guests will notice</h3>
+      <p>One of the operational modules we are developing is Isisel Cleaners. Hosts and property managers will be able to:</p>
+      <ul class="tight-list">
+        <li>Add cleaners</li>
+        <li>Assign cleaners to properties</li>
+        <li>Automatically generate cleaning requests after checkout</li>
+        <li>Schedule cleaning jobs</li>
+        <li>Manage cleaning calendars</li>
+        <li>Receive completion reports</li>
+        <li>Receive photographs</li>
+        <li>Receive audio reports</li>
+        <li>Review cleaners</li>
+      </ul>
+      <p>This is particularly important in hospitality. A guest may never see the property-management software. But they will absolutely notice whether the property was properly prepared.</p>
+    </div>
+
+    <div class="feature">
+      <span class="feature-num">04 — Audio-Based Reporting</span>
+      <h3>Designed for African operational realities</h3>
+      <p>We are designing Isisel with accessibility and African operational realities in mind. Cleaners will be able to report issues through voice recordings, photographs and optional written notes.</p>
+      <div class="quote-block">
+        <p>“The bathroom sink is leaking and there is a crack on the bedroom mirror.”</p>
+        <p class="attr">Example cleaner audio report</p>
+      </div>
+      <p>The property manager can receive the audio report together with photographs. This removes the requirement for cleaners to produce lengthy written reports and creates a simple operational communication system.</p>
+    </div>
+
+    <div class="feature">
+      <span class="feature-num">05 — A Future PADDCO Digital Ecosystem</span>
+      <h3>Beyond listings — one operational layer</h3>
+      <p>The partnership can eventually go beyond property listings. Imagine PADDCO having a digital operational layer connecting:</p>
+      <div class="flow">
+        <strong>PADDCO</strong> → Properties → Reservations → Guests → Cleaners → Maintenance → Property Managers → <strong>Analytics</strong>
+      </div>
+      <p>All through one ecosystem. This is where we believe Isisel can become significantly more valuable than a conventional property listing platform.</p>
+    </div>
+
+    <div class="feature">
+      <span class="feature-num">06 — Data &amp; Operational Visibility</span>
+      <h3>A clearer picture of portfolio performance</h3>
+      <p>As the platform develops, PADDCO could have access to operational insights such as:</p>
+      <div class="two-col">
+        <div>
+          <ul class="tight-list">
+            <li>Property performance</li>
+            <li>Reservation activity</li>
+            <li>Occupancy</li>
+            <li>Cleaning activity</li>
+            <li>Guest activity</li>
+          </ul>
+        </div>
+        <div>
+          <ul class="tight-list">
+            <li>Property demand</li>
+            <li>Popular locations</li>
+            <li>Booking trends</li>
+            <li>Operational issues</li>
+          </ul>
+        </div>
+      </div>
+      <p>The objective is to give management a clearer picture of how the portfolio is performing.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="section-label">Partnership Philosophy</p>
+    <h2>Why this partnership is different</h2>
+    <p>We are not approaching PADDCO simply asking: “Would you like to list your properties on Isisel?”</p>
+    <p>We are proposing something much broader. We want PADDCO to become one of Isisel’s strategic real-estate partners in Zanzibar.</p>
+    <p>PADDCO would have the opportunity to participate early in the development of the ecosystem and provide feedback on the tools that are being built for African property operators.</p>
+    <p>In return, Isisel gets the opportunity to work alongside an established real-estate developer and learn directly from real-world property operations.</p>
+    <div class="callout">
+      <p>This creates a genuine partnership rather than a conventional software-client relationship.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="section-label">Commercial Approach</p>
+    <h2>Why free?</h2>
+    <p>We understand that PADDCO has no reason to pay for an unproven platform before seeing its value. Therefore, we are prepared to approach the initial collaboration differently.</p>
+    <p><strong>We want to earn the right to become PADDCO’s technology partner.</strong></p>
+    <p>The initial collaboration can be provided without an upfront cost, allowing PADDCO to evaluate:</p>
+    <ul>
+      <li>The platform</li>
+      <li>The marketplace</li>
+      <li>The operational tools</li>
+      <li>The user experience</li>
+      <li>The quality of support</li>
+      <li>The potential business value</li>
+    </ul>
+    <p>…before making any long-term commercial commitment. This significantly reduces PADDCO’s risk.</p>
+  </section>
+
+  <section class="section">
+    <p class="section-label">What We Ask</p>
+    <h2>Strategic collaboration, not upfront investment</h2>
+    <p>In return, we would request strategic collaboration rather than an upfront financial investment.</p>
+    <div class="ask-grid">
+      <div class="ask">
+        <div class="n">01</div>
+        <h4>Access to selected properties</h4>
+        <p>Allow Isisel to onboard an agreed number of eligible PADDCO properties.</p>
+      </div>
+      <div class="ask">
+        <div class="n">02</div>
+        <h4>Feedback</h4>
+        <p>Give us feedback from your property-management and hospitality teams.</p>
+      </div>
+      <div class="ask">
+        <div class="n">03</div>
+        <h4>Strategic relationship</h4>
+        <p>Allow Isisel to work with an identified PADDCO representative to coordinate the partnership.</p>
+      </div>
+      <div class="ask">
+        <div class="n">04</div>
+        <h4>Permission to showcase</h4>
+        <p>Subject to PADDCO’s approval, present PADDCO as a strategic Isisel partner in Zanzibar — visibility as an early adopter of African property technology.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="section-label">Strategic Advantage</p>
+    <h2>The potential advantage for PADDCO</h2>
+    <p>The biggest advantage is not simply another listing channel. It is early access to infrastructure being designed specifically around Africa’s property ecosystem.</p>
+    <p>PADDCO would have the opportunity to influence that infrastructure from the beginning.</p>
+    <div class="split-statement">
+      <div>
+        <div class="label">Not this</div>
+        <p>Adapting PADDCO’s operations to a generic global platform.</p>
+      </div>
+      <div>
+        <div class="label">But this</div>
+        <p>Building the platform around the realities of the market.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="section-label">Market Context</p>
+    <h2>Why Zanzibar matters to Isisel</h2>
+    <p>Zanzibar is strategically important to Isisel because it sits at the intersection of:</p>
+    <div class="two-col">
+      <div>
+        <ul>
+          <li>Tourism</li>
+          <li>International investment</li>
+          <li>African real estate</li>
+          <li>Hospitality</li>
+        </ul>
+      </div>
+      <div>
+        <ul>
+          <li>Short-term rentals</li>
+          <li>Luxury residences</li>
+          <li>Property development</li>
+        </ul>
+      </div>
+    </div>
+    <p>We believe Zanzibar can become one of the strongest markets for Isisel’s expansion. And we would rather enter that market alongside an established local developer than attempt to operate in isolation.</p>
+  </section>
+
+  <section class="section">
+    <p class="section-label">Vision</p>
+    <h2>Our long-term vision</h2>
+    <p>Our ambition is much larger than creating another booking platform. We want Isisel to become part of the digital infrastructure supporting Africa’s hospitality and property industry.</p>
+    <p>That means helping properties move from:</p>
+    <div class="split-statement">
+      <div>
+        <div class="label">From</div>
+        <p>“We have a property.”</p>
+      </div>
+      <div>
+        <div class="label">To</div>
+        <p>“We can digitally distribute, manage and operate that property.”</p>
+      </div>
+    </div>
+    <p>PADDCO can play an important role in that journey.</p>
+  </section>
+
+  <section class="section">
+    <p class="section-label">Proposed Pilot</p>
+    <h2>A limited pilot, five clear phases</h2>
+    <p>We suggest beginning with a limited pilot.</p>
+    <ol class="phase-list">
+      <li>
+        <div class="badge">1</div>
+        <div class="body">
+          <h4>Partnership Setup</h4>
+          <p>Select a group of PADDCO properties.</p>
+        </div>
+      </li>
+      <li>
+        <div class="badge">2</div>
+        <div class="body">
+          <h4>Digital Onboarding</h4>
+          <p>Create and optimize their Isisel profiles.</p>
+        </div>
+      </li>
+      <li>
+        <div class="badge">3</div>
+        <div class="body">
+          <h4>Operational Integration</h4>
+          <p>Introduce relevant host-management and cleaning features.</p>
+        </div>
+      </li>
+      <li>
+        <div class="badge">4</div>
+        <div class="body">
+          <h4>Performance Evaluation</h4>
+          <p>Review user engagement, property visibility, reservation activity, operational efficiency and feedback from PADDCO’s team.</p>
+        </div>
+      </li>
+      <li>
+        <div class="badge">5</div>
+        <div class="body">
+          <h4>Expansion</h4>
+          <p>If both parties see value, expand the partnership to additional properties and potentially additional PADDCO developments.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section class="section">
+    <p class="section-label">Commitment</p>
+    <h2>Our commitment</h2>
+    <p>Isisel is prepared to invest its own time and technology into demonstrating the potential of this partnership.</p>
+    <p>We don’t expect PADDCO to take a leap of faith. We want to build a pilot, demonstrate value and allow the results to determine what comes next.</p>
+  </section>
+
+  <!-- CLOSING -->
+  <section class="closing">
+    <div class="closing-inner">
+      <p class="eyebrow">Next Step</p>
+      <h2>Let’s build something from Zanzibar</h2>
+      <p>Africa’s real-estate and hospitality industries are entering a major digital transformation. We believe African companies should not simply consume technology created elsewhere. They should participate in building the technology that will power the continent’s next generation of properties.</p>
+      <div class="pair">
+        <span>PADDCO</span>
+        Has the real estate.
+      </div>
+      <div class="pair">
+        <span>Isisel</span>
+        Is building the technology.
+      </div>
+      <p>We believe there is an opportunity to combine both. We would welcome the opportunity to meet with the PADDCO team, demonstrate Isisel and discuss what a pilot partnership could look like for selected PADDCO properties.</p>
+    </div>
+    <div class="signoff">
+      <p class="brand">Isisel</p>
+      <p class="tag">African Property &amp; Hospitality Technology</p>
+      <p class="web">Website: isisel.com</p>
+    </div>
+  </section>
+
+</body>
+</html>
