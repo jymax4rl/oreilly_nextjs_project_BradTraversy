@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Isisel Host Console — run your stays from your phone</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --teal: #1b5c57;
+      --teal-deep: #0f3d3a;
+      --ink: #101816;
+      --muted: #5a6664;
+      --paper: #fbfaf7;
+      --sand: #c4a574;
+      --line: rgba(27, 92, 87, 0.14);
+      --fog: #eef3f2;
+    }
+    @page { size: A4 landscape; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; background: #d8dedc; color: var(--ink);
+      font-family: Outfit, "Segoe UI", sans-serif;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .slide {
+      width: 297mm; height: 210mm; margin: 0 auto 10px; overflow: hidden;
+      position: relative; page-break-after: always; break-after: page;
+      background: var(--paper);
+    }
+    .slide:last-child { page-break-after: auto; margin-bottom: 0; }
+
+    .mark { width: 28px; height: 26px; display: block; flex-shrink: 0; }
+    .brand-row {
+      display: flex; align-items: center; gap: 9px;
+      letter-spacing: 0.22em; font-size: 8.5pt; font-weight: 600; text-transform: uppercase;
+    }
+
+    /* Phone device */
+    .phone {
+      position: relative;
+      width: 72mm;
+      height: 148mm;
+      border-radius: 12mm;
+      background: #0a1211;
+      padding: 2.4mm;
+      box-shadow:
+        0 18px 40px rgba(8, 24, 22, 0.28),
+        0 2px 0 rgba(255,255,255,0.08) inset;
+      flex-shrink: 0;
+    }
+    .phone::before {
+      content: "";
+      position: absolute; top: 5.5mm; left: 50%; transform: translateX(-50%);
+      width: 22mm; height: 4.2mm; border-radius: 3mm; background: #050908; z-index: 2;
+    }
+    .phone-screen {
+      width: 100%; height: 100%; border-radius: 10mm; overflow: hidden;
+      background: #fff; position: relative;
+    }
+    .phone-screen img {
+      width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block;
+    }
+    .phone.sm { width: 62mm; height: 128mm; border-radius: 10.5mm; padding: 2.1mm; }
+    .phone.sm::before { width: 18mm; height: 3.6mm; top: 4.6mm; }
+    .phone.sm .phone-screen { border-radius: 8.8mm; }
+    .phone.xs { width: 52mm; height: 108mm; border-radius: 9mm; padding: 1.8mm; }
+    .phone.xs::before { width: 15mm; height: 3.2mm; top: 4mm; }
+    .phone.xs .phone-screen { border-radius: 7.5mm; }
+    .phone.tilt-l { transform: rotate(-4deg); }
+    .phone.tilt-r { transform: rotate(4deg); }
+
+    /* Cover */
+    .cover {
+      color: #f7f4ee;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      padding: 12mm 14mm 12mm 16mm;
+      gap: 8mm;
+      background:
+        radial-gradient(900px 420px at 100% 0%, rgba(196,165,116,0.18), transparent 55%),
+        linear-gradient(145deg, #123f3c 0%, var(--teal) 52%, var(--teal-deep) 100%);
+    }
+    .cover-copy { display: flex; flex-direction: column; justify-content: space-between; padding: 2mm 0; }
+    .cover .eyebrow {
+      font-size: 8.5pt; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; color: var(--sand); margin: 10mm 0 5mm;
+    }
+    .cover h1 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 36pt; font-weight: 600; line-height: 0.96; margin: 0 0 5mm; max-width: 150mm;
+    }
+    .cover h1 em { font-style: italic; color: #e8d7b5; }
+    .cover .lede { font-size: 12.5pt; font-weight: 300; line-height: 1.4; max-width: 145mm; opacity: 0.94; margin: 0 0 6mm; }
+    .hook {
+      display: inline-flex; align-items: center; gap: 3mm;
+      background: rgba(232,215,181,0.14); border: 1px solid rgba(232,215,181,0.35);
+      padding: 3.2mm 5mm; font-size: 11pt; font-weight: 500; max-width: 145mm;
+    }
+    .hook strong { color: #e8d7b5; font-weight: 700; }
+    .cover-phones { display: flex; align-items: flex-end; justify-content: center; gap: 5mm; padding-bottom: 2mm; }
+    .cover-foot { font-size: 9pt; opacity: 0.8; }
+    .cover-foot a { color: #e8d7b5; text-decoration: none; font-weight: 600; }
+
+    /* Content slides */
+    .split {
+      display: grid; grid-template-columns: 1fr 1.05fr; height: 100%;
+      padding: 11mm 14mm 11mm 15mm; gap: 10mm; align-items: center;
+    }
+    .split.reverse { grid-template-columns: 1.05fr 1fr; }
+    .split.reverse .copy { order: 2; }
+    .split.reverse .visual { order: 1; }
+    .kicker {
+      font-size: 8pt; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase;
+      color: var(--teal); margin-bottom: 3.5mm;
+    }
+    h2 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 28pt; font-weight: 600; line-height: 1.02; margin: 0 0 4mm; color: var(--ink);
+    }
+    h2 em { font-style: italic; color: var(--teal); }
+    .blurb { font-size: 11.5pt; color: var(--muted); line-height: 1.45; margin: 0 0 6mm; max-width: 118mm; font-weight: 300; }
+    .points { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 3.2mm; }
+    .points li {
+      display: grid; grid-template-columns: 7mm 1fr; gap: 3mm; align-items: start;
+      font-size: 10.5pt; line-height: 1.35; color: var(--ink);
+    }
+    .points .dot {
+      width: 6mm; height: 6mm; border-radius: 50%;
+      background: var(--fog); border: 1.5px solid var(--teal);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 7pt; font-weight: 700; color: var(--teal); margin-top: 0.6mm;
+    }
+    .points strong { font-weight: 600; }
+    .visual { display: flex; align-items: center; justify-content: center; gap: 6mm; position: relative; }
+    .visual::before {
+      content: ""; position: absolute; inset: 8% 12%;
+      background: radial-gradient(circle at 50% 40%, rgba(27,92,87,0.10), transparent 70%);
+      pointer-events: none;
+    }
+    .badge {
+      display: inline-block; margin-top: 7mm;
+      background: var(--teal); color: #f7f4ee;
+      font-size: 9pt; font-weight: 600; letter-spacing: 0.06em;
+      padding: 2.8mm 4.5mm;
+    }
+
+    /* Dual phone spread */
+    .spread {
+      display: grid; grid-template-columns: 0.82fr 1.28fr; height: 100%;
+      padding: 11mm 10mm 11mm 14mm; gap: 6mm; align-items: center;
+    }
+    .phones-duo { display: flex; align-items: center; justify-content: center; gap: 3.5mm; }
+
+    /* Closing */
+    .close {
+      display: grid; grid-template-columns: 1.1fr 0.9fr; height: 100%;
+      padding: 11mm 14mm; gap: 8mm; align-items: center;
+      background:
+        linear-gradient(180deg, rgba(251,250,247,0.92) 0%, rgba(251,250,247,0.78) 100%),
+        url("pdf-assets/host-cover.jpg") center 45% / cover no-repeat;
+    }
+    .close-card {
+      background: rgba(251,250,247,0.94); border: 1px solid var(--line);
+      padding: 9mm 9mm 8mm; backdrop-filter: blur(6px);
+    }
+    .close h2 { font-size: 30pt; margin-bottom: 3.5mm; }
+    .close .blurb { max-width: none; margin-bottom: 5mm; }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 3mm; margin-top: 6mm; }
+    .cta-btn {
+      display: inline-block; background: var(--teal); color: #f7f4ee; text-decoration: none;
+      font-size: 9.5pt; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 3.6mm 6mm;
+    }
+    .cta-wa {
+      display: inline-block; background: transparent; color: var(--teal); text-decoration: none;
+      border: 1.5px solid var(--teal);
+      font-size: 9.5pt; font-weight: 600; letter-spacing: 0.04em;
+      padding: 3.4mm 5.5mm;
+    }
+    .legal { margin-top: 5mm; font-size: 7pt; color: var(--muted); line-height: 1.4; }
+    .folio {
+      position: absolute; bottom: 7mm; right: 12mm;
+      font-size: 8pt; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+    }
+    .cover .folio { color: rgba(247,244,238,0.55); }
+
+    @media print {
+      html, body { background: none; }
+      .slide { margin: 0; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 01 Cover -->
+  <section class="slide cover">
+    <div class="cover-copy">
+      <div>
+        <div class="brand-row">
+          <svg class="mark" viewBox="0 0 551 519" fill="none" aria-hidden="true">
+            <path d="M238.24 278C229.74 332.5 245.74 393.5 245.74 393.5C245.74 393.5 235.581 401.468 231.74 408.5C227.515 416.232 226.74 430.5 226.74 430.5V517H37.2395C37.2395 517 18.6308 518 6.2395 499C-6.15182 480 3.7395 459 3.7395 459L68.2395 331H205.24C209.74 354.5 229.74 379 229.74 379C229.74 379 219.74 347 226.24 278C232.74 209 274.24 172 274.24 172C274.24 172 246.74 223.5 238.24 278Z" fill="#E8D7B5"/>
+            <path d="M324.24 430.5V517L501.24 519C501.24 519 521.662 516.854 531.74 509.5C540.983 502.755 546.329 497.066 549.24 486C551.678 476.73 548.425 467.5 546.74 463.5C545.054 459.5 536.74 442 536.74 442L480.24 331L329.24 330.5L333.24 325L338.74 316L472.74 314.5L420.74 216H356.74L357.24 205.5L356.74 199H414.74L333.74 48.5C333.74 48.5 309.24 1.53901e-05 274.24 0C239.24 -1.53901e-05 214.24 48.5 214.24 48.5L135.24 199H209.24C209.24 199 234.74 138.5 254.74 114C274.74 89.5 295.74 77 319.74 84C343.74 91 343.74 131 343.74 131C343.74 131 342.863 174.782 326.74 195C315.559 209.02 289.24 221.5 289.24 221.5C289.24 221.5 309.921 219.477 321.74 214C332.161 209.171 345.74 197 345.74 197C345.74 197 349.401 222.094 345.74 237.5C341.394 255.786 333.464 265.159 319.74 278C304.499 292.26 272.24 302.5 272.24 302.5C272.24 302.5 291.49 301.404 303.24 298C317.165 293.966 336.74 282 336.74 282C336.74 282 332.74 315.5 312.24 331C291.74 346.5 298.44 341.372 289.24 347.5C281.574 352.606 273.74 356.5 269.24 360C264.74 363.5 259.24 366.5 256.74 370C254.24 373.5 253.74 374 254.24 379C254.74 384 256.74 387 256.74 387C256.74 387 269.24 383.301 279.24 384C292.24 384.909 301.857 390 306.24 393.5C310.622 397 315.981 402.657 319.74 411C323.268 418.833 324.24 430.5 324.24 430.5Z" fill="#E8D7B5"/>
+          </svg>
+          Isisel
+        </div>
+        <div class="eyebrow">Host console</div>
+        <h1>Your stays.<br />Your rules.<br /><em>One phone.</em></h1>
+        <p class="lede">A host console built for African vacation rentals — reservations, calendars, listings, and creator partnerships, without the platform tax.</p>
+        <div class="hook"><strong>0% Isisel commission</strong>&nbsp;for founding hosts — keep the night.</div>
+      </div>
+      <p class="cover-foot">www.isisel.com · <a href="https://wa.me/33784672083">WhatsApp +33 7 84 67 20 83</a></p>
+    </div>
+    <div class="cover-phones">
+      <div class="phone sm tilt-l">
+        <div class="phone-screen"><img src="pdf-assets/host-console/01-menu.jpg" alt="Host console in the menu" /></div>
+      </div>
+      <div class="phone">
+        <div class="phone-screen"><img src="pdf-assets/host-console/02-home.jpg" alt="Host console home" /></div>
+      </div>
+    </div>
+    <span class="folio">01</span>
+  </section>
+
+  <!-- 02 Zero commission -->
+  <section class="slide">
+    <div class="split">
+      <div class="copy">
+        <div class="kicker">Founding hosts</div>
+        <h2>Keep <em>100%</em> of the night</h2>
+        <p class="blurb">Early hosts are not inventory on a global board. You are a founding partner — and the console shows it.</p>
+        <ul class="points">
+          <li><span class="dot">01</span><span><strong>0% Isisel commission</strong> on your bookings while the founding window runs.</span></li>
+          <li><span class="dot">02</span><span><strong>Needs you</strong> counts — see what requires action before anything else.</span></li>
+          <li><span class="dot">03</span><span><strong>Requests in one feed</strong> — guest, dates, property, ready to answer.</span></li>
+        </ul>
+        <span class="badge">Commission-free until Sep 2029 · founding offer</span>
+      </div>
+      <div class="visual">
+        <div class="phone">
+          <div class="phone-screen"><img src="pdf-assets/host-console/02-home.jpg" alt="Founding host dashboard" /></div>
+        </div>
+      </div>
+    </div>
+    <span class="folio">02</span>
+  </section>
+
+  <!-- 03 Reservations -->
+  <section class="slide">
+    <div class="split reverse">
+      <div class="copy">
+        <div class="kicker">Reservations</div>
+        <h2>Every booking under <em>your</em> thumb</h2>
+        <p class="blurb">Search by guest or reference. Filter what is active. Act without opening five apps.</p>
+        <ul class="points">
+          <li><span class="dot">01</span><span><strong>Clear status</strong> — awaiting payment, confirmed, done.</span></li>
+          <li><span class="dot">02</span><span><strong>WhatsApp, call, message</strong> — reach the guest from the card.</span></li>
+          <li><span class="dot">03</span><span><strong>Resend · modify · unlist · cancel</strong> — full control, on mobile.</span></li>
+          <li><span class="dot">04</span><span><strong>Multi-currency</strong> — EUR, XOF, and more, shown cleanly.</span></li>
+        </ul>
+      </div>
+      <div class="visual">
+        <div class="phone">
+          <div class="phone-screen"><img src="pdf-assets/host-console/03-reservations.jpg" alt="All reservations" /></div>
+        </div>
+      </div>
+    </div>
+    <span class="folio">03</span>
+  </section>
+
+  <!-- 04 Stay calendar -->
+  <section class="slide">
+    <div class="split">
+      <div class="copy">
+        <div class="kicker">Stay calendar</div>
+        <h2>All properties. <em>One timeline.</em></h2>
+        <p class="blurb">See who is coming, who is in stay, and what is pending — across every listing you run.</p>
+        <ul class="points">
+          <li><span class="dot">01</span><span><strong>Color-coded stays</strong> — upcoming, in stay, pending, modified, past.</span></li>
+          <li><span class="dot">02</span><span><strong>Guest on the bar</strong> — names and faces on the timeline.</span></li>
+          <li><span class="dot">03</span><span><strong>Search stays or guests</strong> — find anything in seconds.</span></li>
+        </ul>
+      </div>
+      <div class="visual">
+        <div class="phone">
+          <div class="phone-screen"><img src="pdf-assets/host-console/05-stay-calendar.jpg" alt="Multi-property stay calendar" /></div>
+        </div>
+      </div>
+    </div>
+    <span class="folio">04</span>
+  </section>
+
+  <!-- 05 Listings + availability -->
+  <section class="slide">
+    <div class="spread">
+      <div class="copy">
+        <div class="kicker">Listings &amp; availability</div>
+        <h2>Inventory you can <em>feel</em></h2>
+        <p class="blurb">Beautiful listing cards. Instant actions. A calendar that blocks, unlocks, and prices the way you work.</p>
+        <ul class="points">
+          <li><span class="dot">01</span><span><strong>List a stay</strong> in a tap — live, in review, at a glance.</span></li>
+          <li><span class="dot">02</span><span><strong>Create reservation</strong> for walk-ins and direct guests.</span></li>
+          <li><span class="dot">03</span><span><strong>Block · custom $ · unlock</strong> — select a range, update the market.</span></li>
+        </ul>
+      </div>
+      <div class="phones-duo">
+        <div class="phone xs tilt-l">
+          <div class="phone-screen"><img src="pdf-assets/host-console/04-listings.jpg" alt="Listings manager" /></div>
+        </div>
+        <div class="phone xs">
+          <div class="phone-screen"><img src="pdf-assets/host-console/07-availability.jpg" alt="Availability calendar" /></div>
+        </div>
+        <div class="phone xs tilt-r">
+          <div class="phone-screen"><img src="pdf-assets/host-console/08-block-dates.jpg" alt="Block and price dates" /></div>
+        </div>
+      </div>
+    </div>
+    <span class="folio">05</span>
+  </section>
+
+  <!-- 06 Creators + CTA -->
+  <section class="slide close">
+    <div class="close-card">
+      <div class="kicker">Creator partnerships</div>
+      <h2>Grow stays with <em>creators</em></h2>
+      <p class="blurb">Assign promo codes per listing. Track attributed bookings. See commission you owe — separate from Isisel’s platform fee.</p>
+      <ul class="points">
+        <li><span class="dot">01</span><span><strong>Host-funded marketing</strong> you control — never mixed with platform fees.</span></li>
+        <li><span class="dot">02</span><span><strong>Active codes &amp; attributed stays</strong> — ROI you can read.</span></li>
+      </ul>
+      <div class="cta-row">
+        <a class="cta-btn" href="https://www.isisel.com/host/onboarding">Become a founding host</a>
+        <a class="cta-wa" href="https://wa.me/33784672083">WhatsApp Jimmeh</a>
+      </div>
+      <p class="legal">
+        Founding-host commission terms are offered at Isisel’s discretion for early listings and may change for hosts who join later.
+        Listing is subject to application review. www.isisel.com · WhatsApp +33 7 84 67 20 83 · jimmeh@isisel.com
+      </p>
+    </div>
+    <div class="phones-duo">
+      <div class="phone sm tilt-l">
+        <div class="phone-screen"><img src="pdf-assets/host-console/06-creators.jpg" alt="Creator partnerships" /></div>
+      </div>
+      <div class="phone sm tilt-r">
+        <div class="phone-screen"><img src="pdf-assets/host-console/09-guest-stays.jpg" alt="Guest marketplace" /></div>
+      </div>
+    </div>
+    <span class="folio">06</span>
+  </section>
+
+</body>
+</html>
